@@ -1,0 +1,82 @@
+backend:
+  name: github
+  repo: mouxue56-debug/fuluckpet-website
+  branch: main
+
+media_folder: "images"
+public_folder: "/images"
+
+locale: 'ja'
+
+collections:
+  # ===== 子猫 (Kittens) =====
+  - name: "kittens"
+    label: "子猫管理"
+    folder: "_data/kittens"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "名前", name: "name", widget: "string" }
+      - { label: "猫種", name: "breed", widget: "select", options: ["サイベリアン", "ブリティッシュショートヘア", "ブリティッシュロングヘア", "ラグドール", "ミックス"] }
+      - { label: "性別", name: "gender", widget: "select", options: ["男の子", "女の子"] }
+      - { label: "カラー", name: "color", widget: "string" }
+      - { label: "誕生日", name: "birthday", widget: "date" }
+      - { label: "価格（税込）", name: "price", widget: "number" }
+      - { label: "ステータス", name: "status", widget: "select", options: ["available", "reserved", "sold"], default: "available" }
+      - { label: "写真", name: "image", widget: "image", required: false }
+      - { label: "説明", name: "description", widget: "text", required: false }
+      - { label: "掲載順", name: "order", widget: "number", default: 0 }
+
+  # ===== 親猫 (Parent Cats) =====
+  - name: "parents"
+    label: "親猫管理"
+    folder: "_data/parents"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "名前", name: "name", widget: "string" }
+      - { label: "猫種", name: "breed", widget: "select", options: ["サイベリアン", "ブリティッシュショートヘア", "ブリティッシュロングヘア", "ラグドール"] }
+      - { label: "性別", name: "gender", widget: "select", options: ["男の子", "女の子"] }
+      - { label: "役割", name: "role", widget: "select", options: ["パパ猫", "ママ猫"] }
+      - { label: "写真", name: "image", widget: "image", required: false }
+      - { label: "紹介文", name: "description", widget: "text", required: false }
+
+  # ===== お客様の声 (Reviews) =====
+  - name: "reviews"
+    label: "お客様の声"
+    folder: "_data/reviews"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "お名前（表示用）", name: "author", widget: "string", hint: "例: 大阪府 S様" }
+      - { label: "評価", name: "rating", widget: "select", options: ["5", "4", "3"], default: "5" }
+      - { label: "コメント", name: "comment", widget: "text" }
+      - { label: "掲載日", name: "date", widget: "date" }
+
+  # ===== 卒業猫ギャラリー =====
+  - name: "gallery"
+    label: "卒業猫ギャラリー"
+    folder: "_data/gallery"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "猫の名前", name: "name", widget: "string" }
+      - { label: "写真", name: "image", widget: "image" }
+      - { label: "コメント", name: "caption", widget: "string", required: false }
+
+  # ===== サイト設定 =====
+  - name: "settings"
+    label: "サイト設定"
+    files:
+      - label: "基本情報"
+        name: "general"
+        file: "_data/settings/general.json"
+        fields:
+          - { label: "サイトタイトル", name: "title", widget: "string", default: "福楽ペット" }
+          - { label: "ブランドスローガン", name: "tagline", widget: "string", default: "家族になる、しあわせな出会い。" }
+          - { label: "LINE URL", name: "line_url", widget: "string", required: false }
+          - { label: "Instagram URL", name: "instagram_url", widget: "string", required: false }
+          - { label: "YouTube URL", name: "youtube_url", widget: "string", required: false }
+          - { label: "TikTok URL", name: "tiktok_url", widget: "string", required: false }
+          - { label: "オンラインショップ URL", name: "shop_url", widget: "string", required: false }
+          - { label: "Google Analytics ID", name: "ga_id", widget: "string", required: false, hint: "例: G-XXXXXXXXXX" }
