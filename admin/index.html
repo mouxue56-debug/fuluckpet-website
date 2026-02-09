@@ -169,14 +169,20 @@
     .panel-page.active { display:block; }
 
     /* === IMAGE MANAGER === */
-    .img-manager-row { margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid var(--border); }
+    .img-manager-row { margin-bottom:24px; padding-bottom:24px; border-bottom:1px solid var(--border); }
     .img-manager-row:last-child { margin-bottom:0; border-bottom:none; }
-    .img-manager-row label { display:block; font-size:13px; font-weight:600; margin-bottom:6px; }
-    .img-input-group { display:flex; gap:12px; align-items:flex-start; }
-    .img-input-group .login-input { flex:1; }
-    .img-preview { width:80px; height:80px; border-radius:8px; border:1px solid var(--border); background:var(--bg); overflow:hidden; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+    .img-field-header { display:flex; align-items:center; gap:10px; margin-bottom:4px; }
+    .img-field-header label { font-size:14px; font-weight:600; margin:0; }
+    .img-size-badge { display:inline-block; padding:2px 10px; border-radius:100px; background:#EBF4FF; color:#3182CE; font-size:11px; font-weight:600; white-space:nowrap; }
+    .img-desc { font-size:12px; color:var(--text-light); margin-bottom:10px; line-height:1.6; }
+    .img-input-group { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .img-input-group .form-input { flex:1; min-width:200px; }
+    .img-upload-btn { display:inline-flex; align-items:center; gap:4px; padding:9px 16px; border-radius:8px; border:1.5px dashed var(--mint); background:var(--mint-light); color:var(--mint-dark); font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap; transition:all .2s; }
+    .img-upload-btn:hover { background:var(--mint); color:white; border-style:solid; }
+    .img-upload-btn input[type=file] { display:none; }
+    .img-preview { width:64px; height:64px; border-radius:8px; border:1px solid var(--border); background:var(--bg); overflow:hidden; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
     .img-preview img { width:100%; height:100%; object-fit:cover; }
-    .img-preview-empty { font-size:24px; color:var(--text-light); }
+    .img-preview-empty { font-size:20px; color:var(--text-light); }
     .preview-card { background:var(--white); border-radius:8px; border:1px solid var(--border); overflow:hidden; }
     .preview-card img { width:100%; height:150px; object-fit:cover; }
     .preview-card .preview-label { padding:8px 12px; font-size:11px; font-weight:600; color:var(--text-light); text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -371,125 +377,279 @@
 
         <!-- ====== IMAGES ====== -->
         <div class="panel-page" id="page-images">
-          <div class="settings-card">
-            <h3>🖼️ サイト画像管理</h3>
-            <p style="color:var(--text-light);margin-bottom:20px;">各ページの画像を管理できます。画像URLを入力するか、ローカル画像パス（例: images/hero.jpg）を指定してください。<br>変更後は「HTMLコードを生成」でコードをコピーし、該当HTMLファイルに反映してください。</p>
+          <div class="settings-card" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;">
+            <div style="flex:1;min-width:200px;">
+              <h3>🖼️ <span data-img-ja="サイト画像管理" data-img-zh="网站图片管理">サイト画像管理</span></h3>
+              <p style="color:var(--text-light);margin-top:8px;font-size:13px;">
+                <span data-img-ja="各画像の「URLリンク」または「ファイルを選択」で画像を設定できます。設定後「保存」→「HTMLコード生成」でコードをコピーし、GitHubのHTMLファイルに反映してください。" data-img-zh="每张图片可以选择「输入URL链接」或「选择本地文件」上传。设置好后点「保存」→「生成HTML代码」复制代码，粘贴到GitHub的HTML文件中。">各画像の「URLリンク」または「ファイルを選択」で画像を設定できます。設定後「保存」→「HTMLコード生成」でコードをコピーし、GitHubのHTMLファイルに反映してください。</span>
+              </p>
+            </div>
+            <div>
+              <button class="top-btn btn-secondary" onclick="toggleImgLang()" id="imgLangToggle" style="font-size:12px;">🌐 中文 / 日本語</button>
+            </div>
           </div>
 
+          <!-- ── トップページ index.html ── -->
           <div class="data-table" style="margin-top:20px;">
-            <div class="table-header"><h3 class="table-title">🏠 トップページ（index.html）</h3></div>
+            <div class="table-header">
+              <h3 class="table-title">🏠 <span data-img-ja="トップページ（index.html）" data-img-zh="首页（index.html）">トップページ（index.html）</span></h3>
+            </div>
             <div style="padding:24px;">
-              <div class="img-manager-row">
-                <label>Hero メイン写真</label>
+
+              <div class="img-manager-row" data-field="hero-main">
+                <div class="img-field-header">
+                  <label><span data-img-ja="Hero メイン写真" data-img-zh="首页主图（Hero）">Hero メイン写真</span></label>
+                  <span class="img-size-badge">800×600px</span>
+                </div>
+                <p class="img-desc"><span data-img-ja="訪問者が最初に見る一番大きな写真。猫舎の雰囲気・子猫・お子様と猫の写真がおすすめ。" data-img-zh="访客第一眼看到的最大照片。建议用猫舍环境、子猫、小朋友抱猫的照片。">訪問者が最初に見る一番大きな写真。猫舎の雰囲気・子猫・お子様と猫の写真がおすすめ。</span></p>
                 <div class="img-input-group">
-                  <input type="text" id="img-hero-main" class="login-input" style="margin:0" placeholder="images/hero-main.jpg" value="images/hero-main.jpg">
+                  <input type="text" id="img-hero-main" class="form-input" placeholder="https://... or images/hero-main.jpg" value="images/hero-main.jpg">
+                  <label class="img-upload-btn"><input type="file" accept="image/*" onchange="handleImgUpload(this,'img-hero-main')"> <span data-img-ja="ファイル選択" data-img-zh="选择文件">ファイル選択</span></label>
                   <div class="img-preview" id="preview-hero-main"></div>
                 </div>
-                <small style="color:var(--text-light);">推奨: 800×1000px / ページ訪問者が最初に見る写真</small>
               </div>
-              <div class="img-manager-row">
-                <label>卒業猫プレビュー ①</label>
-                <input type="text" id="img-gallery-1" class="login-input" style="margin:0" placeholder="画像URL" value="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_bb55e8c5f9a5.jpg">
+
+              <div class="img-manager-row" data-field="gallery-1">
+                <div class="img-field-header">
+                  <label><span data-img-ja="卒業猫プレビュー ①" data-img-zh="毕业猫预览 ①">卒業猫プレビュー ①</span></label>
+                  <span class="img-size-badge">400×400px</span>
+                </div>
+                <p class="img-desc"><span data-img-ja="トップページ卒業猫セクションの1枚目。正方形推奨。" data-img-zh="首页毕业猫区域第1张，正方形推荐。">トップページ卒業猫セクションの1枚目。正方形推奨。</span></p>
+                <div class="img-input-group">
+                  <input type="text" id="img-gallery-1" class="form-input" placeholder="https://..." value="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_bb55e8c5f9a5.jpg">
+                  <label class="img-upload-btn"><input type="file" accept="image/*" onchange="handleImgUpload(this,'img-gallery-1')"> <span data-img-ja="ファイル選択" data-img-zh="选择文件">ファイル選択</span></label>
+                </div>
               </div>
-              <div class="img-manager-row">
-                <label>卒業猫プレビュー ②</label>
-                <input type="text" id="img-gallery-2" class="login-input" style="margin:0" placeholder="画像URL" value="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_f526365b0a70.jpg">
+
+              <div class="img-manager-row" data-field="gallery-2">
+                <div class="img-field-header">
+                  <label><span data-img-ja="卒業猫プレビュー ②" data-img-zh="毕业猫预览 ②">卒業猫プレビュー ②</span></label>
+                  <span class="img-size-badge">400×400px</span>
+                </div>
+                <div class="img-input-group">
+                  <input type="text" id="img-gallery-2" class="form-input" placeholder="https://..." value="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_f526365b0a70.jpg">
+                  <label class="img-upload-btn"><input type="file" accept="image/*" onchange="handleImgUpload(this,'img-gallery-2')"> <span data-img-ja="ファイル選択" data-img-zh="选择文件">ファイル選択</span></label>
+                </div>
               </div>
-              <div class="img-manager-row">
-                <label>卒業猫プレビュー ③</label>
-                <input type="text" id="img-gallery-3" class="login-input" style="margin:0" placeholder="画像URL" value="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_b874ae3c23f1.jpg">
+
+              <div class="img-manager-row" data-field="gallery-3">
+                <div class="img-field-header">
+                  <label><span data-img-ja="卒業猫プレビュー ③" data-img-zh="毕业猫预览 ③">卒業猫プレビュー ③</span></label>
+                  <span class="img-size-badge">400×400px</span>
+                </div>
+                <div class="img-input-group">
+                  <input type="text" id="img-gallery-3" class="form-input" placeholder="https://..." value="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_b874ae3c23f1.jpg">
+                  <label class="img-upload-btn"><input type="file" accept="image/*" onchange="handleImgUpload(this,'img-gallery-3')"> <span data-img-ja="ファイル選択" data-img-zh="选择文件">ファイル選択</span></label>
+                </div>
               </div>
-              <div class="img-manager-row">
-                <label>卒業猫プレビュー ④</label>
-                <input type="text" id="img-gallery-4" class="login-input" style="margin:0" placeholder="画像URL" value="https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_1dfb1c5f7bf6.jpg">
+
+              <div class="img-manager-row" data-field="gallery-4">
+                <div class="img-field-header">
+                  <label><span data-img-ja="卒業猫プレビュー ④" data-img-zh="毕业猫预览 ④">卒業猫プレビュー ④</span></label>
+                  <span class="img-size-badge">400×400px</span>
+                </div>
+                <div class="img-input-group">
+                  <input type="text" id="img-gallery-4" class="form-input" placeholder="https://..." value="https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_1dfb1c5f7bf6.jpg">
+                  <label class="img-upload-btn"><input type="file" accept="image/*" onchange="handleImgUpload(this,'img-gallery-4')"> <span data-img-ja="ファイル選択" data-img-zh="选择文件">ファイル選択</span></label>
+                </div>
               </div>
-              <div class="img-manager-row">
-                <label>Instagram ①～④</label>
-                <small style="color:var(--text-light);display:block;margin-bottom:8px">Instagram埋め込みAPIを使う場合はここでは管理不要です。手動で画像を指定する場合のみ設定してください。</small>
-                <input type="text" id="img-insta-1" class="login-input" style="margin:0 0 8px" placeholder="Instagram画像URL 1">
-                <input type="text" id="img-insta-2" class="login-input" style="margin:0 0 8px" placeholder="Instagram画像URL 2">
-                <input type="text" id="img-insta-3" class="login-input" style="margin:0 0 8px" placeholder="Instagram画像URL 3">
-                <input type="text" id="img-insta-4" class="login-input" style="margin:0" placeholder="Instagram画像URL 4">
-              </div>
+
             </div>
           </div>
 
+          <!-- ── Instagram ── -->
           <div class="data-table" style="margin-top:20px;">
-            <div class="table-header"><h3 class="table-title">🐱 サイベリアンページ（siberian.html）</h3></div>
+            <div class="table-header">
+              <h3 class="table-title">📸 Instagram</h3>
+            </div>
             <div style="padding:24px;">
-              <div class="img-manager-row">
-                <label>メイン写真</label>
-                <input type="text" id="img-sib-main" class="login-input" style="margin:0" placeholder="images/siberian-main.jpg" value="images/siberian-main.jpg">
-                <small style="color:var(--text-light);">推奨: 600×800px / 品種概要のメイン写真</small>
+              <p class="img-desc" style="margin-bottom:16px;"><span data-img-ja="各画像をクリックするとInstagramページに飛びます。お好きな猫の写真を4枚選んでください。" data-img-zh="每张图片点击后跳转到Instagram页面。请选择4张喜欢的猫咪照片。">各画像をクリックするとInstagramページに飛びます。お好きな猫の写真を4枚選んでください。</span></p>
+              <div class="img-manager-row" data-field="insta-1">
+                <div class="img-field-header">
+                  <label>Instagram ①</label>
+                  <span class="img-size-badge">400×400px (1:1)</span>
+                </div>
+                <div class="img-input-group">
+                  <input type="text" id="img-insta-1" class="form-input" placeholder="https://... image URL">
+                  <label class="img-upload-btn"><input type="file" accept="image/*" onchange="handleImgUpload(this,'img-insta-1')"> <span data-img-ja="ファイル選択" data-img-zh="选择文件">ファイル選択</span></label>
+                </div>
               </div>
-              <div class="img-manager-row">
-                <label>集合写真</label>
-                <input type="text" id="img-sib-group" class="login-input" style="margin:0" placeholder="images/siberian-group.jpg">
-                <small style="color:var(--text-light);">推奨: 800×450px / 「当舎のサイベリアン」セクション</small>
+              <div class="img-manager-row" data-field="insta-2">
+                <div class="img-field-header"><label>Instagram ②</label><span class="img-size-badge">400×400px (1:1)</span></div>
+                <div class="img-input-group">
+                  <input type="text" id="img-insta-2" class="form-input" placeholder="https://... image URL">
+                  <label class="img-upload-btn"><input type="file" accept="image/*" onchange="handleImgUpload(this,'img-insta-2')"> <span data-img-ja="ファイル選択" data-img-zh="选择文件">ファイル選択</span></label>
+                </div>
+              </div>
+              <div class="img-manager-row" data-field="insta-3">
+                <div class="img-field-header"><label>Instagram ③</label><span class="img-size-badge">400×400px (1:1)</span></div>
+                <div class="img-input-group">
+                  <input type="text" id="img-insta-3" class="form-input" placeholder="https://... image URL">
+                  <label class="img-upload-btn"><input type="file" accept="image/*" onchange="handleImgUpload(this,'img-insta-3')"> <span data-img-ja="ファイル選択" data-img-zh="选择文件">ファイル選択</span></label>
+                </div>
+              </div>
+              <div class="img-manager-row" data-field="insta-4">
+                <div class="img-field-header"><label>Instagram ④</label><span class="img-size-badge">400×400px (1:1)</span></div>
+                <div class="img-input-group">
+                  <input type="text" id="img-insta-4" class="form-input" placeholder="https://... image URL">
+                  <label class="img-upload-btn"><input type="file" accept="image/*" onchange="handleImgUpload(this,'img-insta-4')"> <span data-img-ja="ファイル選択" data-img-zh="选择文件">ファイル選択</span></label>
+                </div>
+              </div>
+              <div style="margin-top:12px;">
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px;"><span data-img-ja="Instagramリンク先URL" data-img-zh="Instagram链接地址">Instagramリンク先URL</span></label>
+                <input type="text" id="img-insta-url" class="form-input" placeholder="https://www.instagram.com/fuluckpet/" value="https://www.instagram.com/fuluckpet/">
+                <small style="color:var(--text-light);"><span data-img-ja="画像クリック時にこのURLに遷移します" data-img-zh="点击图片时跳转到这个链接">画像クリック時にこのURLに遷移します</span></small>
               </div>
             </div>
           </div>
 
+          <!-- ── サイベリアン siberian.html ── -->
           <div class="data-table" style="margin-top:20px;">
-            <div class="table-header"><h3 class="table-title">⭐ お客様の声ページ（reviews.html）</h3></div>
+            <div class="table-header">
+              <h3 class="table-title">🐱 <span data-img-ja="サイベリアンページ（siberian.html）" data-img-zh="西伯利亚猫页面（siberian.html）">サイベリアンページ（siberian.html）</span></h3>
+            </div>
             <div style="padding:24px;">
-              <div class="img-manager-row">
-                <label>レビュースクリーンショット ①（羅方遠）</label>
-                <input type="text" id="img-review-1" class="login-input" style="margin:0" placeholder="images/review-screenshot-1.jpg" value="images/review-screenshot-1.jpg">
-                <small style="color:var(--text-light);">推奨: 390×844px / みんなの子猫ブリーダーの口コミ画面キャプチャ</small>
+              <div class="img-manager-row" data-field="sib-main">
+                <div class="img-field-header">
+                  <label><span data-img-ja="メイン写真" data-img-zh="主图">メイン写真</span></label>
+                  <span class="img-size-badge">600×800px</span>
+                </div>
+                <p class="img-desc"><span data-img-ja="品種概要のメイン写真。サイベリアンの正面アップがおすすめ。縦長推奨。" data-img-zh="品种介绍的主图。建议用西伯利亚猫的正面特写，竖版推荐。">品種概要のメイン写真。サイベリアンの正面アップがおすすめ。縦長推奨。</span></p>
+                <div class="img-input-group">
+                  <input type="text" id="img-sib-main" class="form-input" placeholder="images/siberian-main.jpg" value="images/siberian-main.jpg">
+                  <label class="img-upload-btn"><input type="file" accept="image/*" onchange="handleImgUpload(this,'img-sib-main')"> <span data-img-ja="ファイル選択" data-img-zh="选择文件">ファイル選択</span></label>
+                </div>
               </div>
-              <div class="img-manager-row">
-                <label>レビュースクリーンショット ②（刘暁棉）</label>
-                <input type="text" id="img-review-2" class="login-input" style="margin:0" placeholder="images/review-screenshot-2.jpg" value="images/review-screenshot-2.jpg">
+              <div class="img-manager-row" data-field="sib-group">
+                <div class="img-field-header">
+                  <label><span data-img-ja="集合写真" data-img-zh="集体合照">集合写真</span></label>
+                  <span class="img-size-badge">800×450px (16:9)</span>
+                </div>
+                <p class="img-desc"><span data-img-ja="「当舎のサイベリアン」セクション。複数の猫が一緒に写っている写真。横長推奨。" data-img-zh="「我们的西伯利亚猫」区域。多只猫在一起的合照，横版推荐。">「当舎のサイベリアン」セクション。複数の猫が一緒に写っている写真。横長推奨。</span></p>
+                <div class="img-input-group">
+                  <input type="text" id="img-sib-group" class="form-input" placeholder="images/siberian-group.jpg">
+                  <label class="img-upload-btn"><input type="file" accept="image/*" onchange="handleImgUpload(this,'img-sib-group')"> <span data-img-ja="ファイル選択" data-img-zh="选择文件">ファイル選択</span></label>
+                </div>
               </div>
             </div>
           </div>
 
+          <!-- ── お客様の声 reviews.html ── -->
           <div class="data-table" style="margin-top:20px;">
-            <div class="table-header"><h3 class="table-title">🏆 受賞歴ページ（about.html）</h3></div>
+            <div class="table-header">
+              <h3 class="table-title">⭐ <span data-img-ja="お客様の声（reviews.html）" data-img-zh="客户评价（reviews.html）">お客様の声（reviews.html）</span></h3>
+            </div>
             <div style="padding:24px;">
-              <div class="img-manager-row">
-                <label>受賞バッジ ①（2025上半期）</label>
-                <input type="text" id="img-award-1" class="login-input" style="margin:0" placeholder="images/award-2025-h1.jpg">
+              <div class="img-manager-row" data-field="review-1">
+                <div class="img-field-header">
+                  <label><span data-img-ja="レビュースクリーンショット ①（羅方遠）" data-img-zh="评价截图 ①（罗方远）">レビュースクリーンショット ①（羅方遠）</span></label>
+                  <span class="img-size-badge">390×844px</span>
+                </div>
+                <p class="img-desc"><span data-img-ja="みんなの子猫ブリーダーの口コミ画面をスマホでスクリーンショットしてください。" data-img-zh="请用手机截图「大家的小猫繁殖者」的口碑评价页面。">みんなの子猫ブリーダーの口コミ画面をスマホでスクリーンショットしてください。</span></p>
+                <div class="img-input-group">
+                  <input type="text" id="img-review-1" class="form-input" placeholder="images/review-screenshot-1.jpg" value="images/review-screenshot-1.jpg">
+                  <label class="img-upload-btn"><input type="file" accept="image/*" onchange="handleImgUpload(this,'img-review-1')"> <span data-img-ja="ファイル選択" data-img-zh="选择文件">ファイル選択</span></label>
+                </div>
               </div>
-              <div class="img-manager-row">
-                <label>受賞バッジ ②（2025下半期）</label>
-                <input type="text" id="img-award-2" class="login-input" style="margin:0" placeholder="images/award-2025-h2.jpg">
-              </div>
-              <div class="img-manager-row">
-                <label>評価バッジ</label>
-                <input type="text" id="img-award-3" class="login-input" style="margin:0" placeholder="images/rating-badge.jpg">
-              </div>
-              <div class="img-manager-row">
-                <label>遺伝子検査証明書サンプル</label>
-                <input type="text" id="img-genetic" class="login-input" style="margin:0" placeholder="images/genetic-test.jpg">
-                <small style="color:var(--text-light);">推奨: 800×450px</small>
+              <div class="img-manager-row" data-field="review-2">
+                <div class="img-field-header">
+                  <label><span data-img-ja="レビュースクリーンショット ②（刘暁棉）" data-img-zh="评价截图 ②（刘晓棉）">レビュースクリーンショット ②（刘暁棉）</span></label>
+                  <span class="img-size-badge">390×844px</span>
+                </div>
+                <p class="img-desc"><span data-img-ja="2人目のブリーダーの口コミ画面スクリーンショット。" data-img-zh="第2位繁殖者的评价页面手机截图。">2人目のブリーダーの口コミ画面スクリーンショット。</span></p>
+                <div class="img-input-group">
+                  <input type="text" id="img-review-2" class="form-input" placeholder="images/review-screenshot-2.jpg" value="images/review-screenshot-2.jpg">
+                  <label class="img-upload-btn"><input type="file" accept="image/*" onchange="handleImgUpload(this,'img-review-2')"> <span data-img-ja="ファイル選択" data-img-zh="选择文件">ファイル選択</span></label>
+                </div>
               </div>
             </div>
           </div>
 
+          <!-- ── 受賞歴 about.html ── -->
           <div class="data-table" style="margin-top:20px;">
-            <div class="table-header"><h3 class="table-title">🌐 OGP画像（SNS共有時のサムネイル）</h3></div>
+            <div class="table-header">
+              <h3 class="table-title">🏆 <span data-img-ja="受賞歴ページ（about.html）" data-img-zh="获奖页面（about.html）">受賞歴ページ（about.html）</span></h3>
+            </div>
             <div style="padding:24px;">
-              <div class="img-manager-row">
-                <label>OGP画像</label>
-                <input type="text" id="img-ogp" class="login-input" style="margin:0" placeholder="images/ogp.jpg" value="images/ogp.jpg">
-                <small style="color:var(--text-light);">推奨: 1200×630px / LINE・Twitter・Facebookで共有した際のサムネイル画像</small>
+              <div class="img-manager-row" data-field="award-1">
+                <div class="img-field-header">
+                  <label><span data-img-ja="受賞バッジ ①（2025上半期）" data-img-zh="获奖徽章 ①（2025上半年）">受賞バッジ ①（2025上半期）</span></label>
+                  <span class="img-size-badge">300×200px (3:2)</span>
+                </div>
+                <p class="img-desc"><span data-img-ja="みんなの子猫ブリーダー 2025年上半期アワード全国第1位のバッジ画像。サイトの受賞ページから画像を保存してください。" data-img-zh="大家的小猫繁殖者 2025上半年Award全国第1名的徽章图片。请从该网站的获奖页面保存图片。">みんなの子猫ブリーダー 2025年上半期アワード全国第1位のバッジ画像。サイトの受賞ページから画像を保存してください。</span></p>
+                <div class="img-input-group">
+                  <input type="text" id="img-award-1" class="form-input" placeholder="images/award-2025-h1.jpg">
+                  <label class="img-upload-btn"><input type="file" accept="image/*" onchange="handleImgUpload(this,'img-award-1')"> <span data-img-ja="ファイル選択" data-img-zh="选择文件">ファイル選択</span></label>
+                </div>
+              </div>
+              <div class="img-manager-row" data-field="award-2">
+                <div class="img-field-header">
+                  <label><span data-img-ja="受賞バッジ ②（2025下半期）" data-img-zh="获奖徽章 ②（2025下半年）">受賞バッジ ②（2025下半期）</span></label>
+                  <span class="img-size-badge">300×200px (3:2)</span>
+                </div>
+                <p class="img-desc"><span data-img-ja="2025年下半期アワード全国第2位のバッジ画像。" data-img-zh="2025下半年Award全国第2名的徽章图片。">2025年下半期アワード全国第2位のバッジ画像。</span></p>
+                <div class="img-input-group">
+                  <input type="text" id="img-award-2" class="form-input" placeholder="images/award-2025-h2.jpg">
+                  <label class="img-upload-btn"><input type="file" accept="image/*" onchange="handleImgUpload(this,'img-award-2')"> <span data-img-ja="ファイル選択" data-img-zh="选择文件">ファイル選択</span></label>
+                </div>
+              </div>
+              <div class="img-manager-row" data-field="award-3">
+                <div class="img-field-header">
+                  <label><span data-img-ja="評価バッジ" data-img-zh="评分徽章">評価バッジ</span></label>
+                  <span class="img-size-badge">300×200px (3:2)</span>
+                </div>
+                <p class="img-desc"><span data-img-ja="口コミ5.00満点のバッジ or 評価画面のスクリーンショット。" data-img-zh="口碑5.00满分的徽章或评分页面截图。">口コミ5.00満点のバッジ or 評価画面のスクリーンショット。</span></p>
+                <div class="img-input-group">
+                  <input type="text" id="img-award-3" class="form-input" placeholder="images/rating-badge.jpg">
+                  <label class="img-upload-btn"><input type="file" accept="image/*" onchange="handleImgUpload(this,'img-award-3')"> <span data-img-ja="ファイル選択" data-img-zh="选择文件">ファイル選択</span></label>
+                </div>
+              </div>
+              <div class="img-manager-row" data-field="genetic">
+                <div class="img-field-header">
+                  <label><span data-img-ja="遺伝子検査証明書サンプル" data-img-zh="基因检测证明书样本">遺伝子検査証明書サンプル</span></label>
+                  <span class="img-size-badge">800×450px (16:9)</span>
+                </div>
+                <p class="img-desc"><span data-img-ja="実際の遺伝子検査結果の写真。個人情報はモザイク処理してください。" data-img-zh="实际的基因检测报告照片。请对个人信息打马赛克。">実際の遺伝子検査結果の写真。個人情報はモザイク処理してください。</span></p>
+                <div class="img-input-group">
+                  <input type="text" id="img-genetic" class="form-input" placeholder="images/genetic-test.jpg">
+                  <label class="img-upload-btn"><input type="file" accept="image/*" onchange="handleImgUpload(this,'img-genetic')"> <span data-img-ja="ファイル選択" data-img-zh="选择文件">ファイル選択</span></label>
+                </div>
               </div>
             </div>
           </div>
 
+          <!-- ── OGP ── -->
+          <div class="data-table" style="margin-top:20px;">
+            <div class="table-header">
+              <h3 class="table-title">🌐 <span data-img-ja="OGP画像（SNS共有サムネイル）" data-img-zh="OGP图片（社交媒体分享缩略图）">OGP画像（SNS共有サムネイル）</span></h3>
+            </div>
+            <div style="padding:24px;">
+              <div class="img-manager-row" data-field="ogp">
+                <div class="img-field-header">
+                  <label>OGP</label>
+                  <span class="img-size-badge">1200×630px</span>
+                </div>
+                <p class="img-desc"><span data-img-ja="LINE・Twitter・Facebookでリンクを共有した時に表示されるサムネイル画像。ロゴ+猫の写真を組み合わせるのがおすすめ。" data-img-zh="在LINE、Twitter、Facebook分享链接时显示的缩略图。建议用Logo+猫咪照片组合。">LINE・Twitter・Facebookでリンクを共有した時に表示されるサムネイル画像。ロゴ+猫の写真を組み合わせるのがおすすめ。</span></p>
+                <div class="img-input-group">
+                  <input type="text" id="img-ogp" class="form-input" placeholder="images/ogp.jpg" value="images/ogp.jpg">
+                  <label class="img-upload-btn"><input type="file" accept="image/*" onchange="handleImgUpload(this,'img-ogp')"> <span data-img-ja="ファイル選択" data-img-zh="选择文件">ファイル選択</span></label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── ACTION BUTTONS ── -->
           <div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap;">
-            <button class="top-btn btn-primary" onclick="saveImageConfig()">💾 画像設定を保存</button>
-            <button class="top-btn btn-secondary" onclick="generateImageHTML()">📋 HTMLコードを生成</button>
-            <button class="top-btn btn-secondary" onclick="previewAllImages()">👁 プレビュー</button>
+            <button class="top-btn btn-primary" onclick="saveImageConfig()">💾 <span data-img-ja="保存" data-img-zh="保存">保存</span></button>
+            <button class="top-btn btn-secondary" onclick="generateImageHTML()">📋 <span data-img-ja="HTMLコード生成" data-img-zh="生成HTML代码">HTMLコード生成</span></button>
+            <button class="top-btn btn-secondary" onclick="previewAllImages()">👁 <span data-img-ja="プレビュー" data-img-zh="预览全部">プレビュー</span></button>
           </div>
 
           <div id="imageCodeOutput" style="display:none;margin-top:24px;">
             <div class="data-table">
               <div class="table-header">
-                <h3 class="table-title">生成されたHTMLコード</h3>
-                <button class="top-btn btn-secondary" onclick="copyImageCode()">📋 コピー</button>
+                <h3 class="table-title"><span data-img-ja="生成されたHTMLコード" data-img-zh="生成的HTML代码">生成されたHTMLコード</span></h3>
+                <button class="top-btn btn-secondary" onclick="copyImageCode()">📋 <span data-img-ja="コピー" data-img-zh="复制">コピー</span></button>
               </div>
               <pre id="imageCodeContent" style="padding:24px;background:#f8f9fa;font-size:12px;overflow-x:auto;white-space:pre-wrap;word-break:break-all;max-height:400px;overflow-y:auto;"></pre>
             </div>
@@ -497,7 +657,7 @@
 
           <div id="imagePreviewArea" style="display:none;margin-top:24px;">
             <div class="data-table">
-              <div class="table-header"><h3 class="table-title">画像プレビュー</h3></div>
+              <div class="table-header"><h3 class="table-title"><span data-img-ja="画像プレビュー" data-img-zh="图片预览">画像プレビュー</span></h3></div>
               <div id="imagePreviewGrid" style="padding:24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;"></div>
             </div>
           </div>
@@ -1529,29 +1689,78 @@ function resetData() {
 }
 
 // ============================================================
-// IMAGE MANAGEMENT
+// IMAGE MANAGEMENT (Bilingual + URL/Upload + Instagram Link)
 // ============================================================
+var imgLang = localStorage.getItem('fuluck-img-lang') || 'ja';
+
 var IMAGE_FIELDS = [
-  { id:'img-hero-main',   label:'Hero メイン写真',       page:'index.html',    tag:'hero-main' },
-  { id:'img-gallery-1',   label:'卒業猫プレビュー ①',   page:'index.html',    tag:'gallery-1' },
-  { id:'img-gallery-2',   label:'卒業猫プレビュー ②',   page:'index.html',    tag:'gallery-2' },
-  { id:'img-gallery-3',   label:'卒業猫プレビュー ③',   page:'index.html',    tag:'gallery-3' },
-  { id:'img-gallery-4',   label:'卒業猫プレビュー ④',   page:'index.html',    tag:'gallery-4' },
-  { id:'img-insta-1',     label:'Instagram ①',           page:'index.html',    tag:'insta-1' },
-  { id:'img-insta-2',     label:'Instagram ②',           page:'index.html',    tag:'insta-2' },
-  { id:'img-insta-3',     label:'Instagram ③',           page:'index.html',    tag:'insta-3' },
-  { id:'img-insta-4',     label:'Instagram ④',           page:'index.html',    tag:'insta-4' },
-  { id:'img-sib-main',    label:'サイベリアン メイン',    page:'siberian.html', tag:'sib-main' },
-  { id:'img-sib-group',   label:'サイベリアン 集合写真',  page:'siberian.html', tag:'sib-group' },
-  { id:'img-review-1',    label:'レビュー①（羅方遠）',   page:'reviews.html',  tag:'review-1' },
-  { id:'img-review-2',    label:'レビュー②（刘暁棉）',   page:'reviews.html',  tag:'review-2' },
-  { id:'img-award-1',     label:'受賞バッジ①',           page:'about.html',    tag:'award-1' },
-  { id:'img-award-2',     label:'受賞バッジ②',           page:'about.html',    tag:'award-2' },
-  { id:'img-award-3',     label:'評価バッジ',             page:'about.html',    tag:'award-3' },
-  { id:'img-genetic',     label:'遺伝子検査証明',         page:'about.html',    tag:'genetic' },
-  { id:'img-ogp',         label:'OGP画像',                page:'全ページ',      tag:'ogp' }
+  { id:'img-hero-main',   label:{ja:'Hero メイン写真',      zh:'首页主图'},          page:'index.html',    tag:'hero-main',  size:'800×600px' },
+  { id:'img-gallery-1',   label:{ja:'卒業猫プレビュー ①',  zh:'毕业猫预览 ①'},     page:'index.html',    tag:'gallery-1',  size:'400×400px' },
+  { id:'img-gallery-2',   label:{ja:'卒業猫プレビュー ②',  zh:'毕业猫预览 ②'},     page:'index.html',    tag:'gallery-2',  size:'400×400px' },
+  { id:'img-gallery-3',   label:{ja:'卒業猫プレビュー ③',  zh:'毕业猫预览 ③'},     page:'index.html',    tag:'gallery-3',  size:'400×400px' },
+  { id:'img-gallery-4',   label:{ja:'卒業猫プレビュー ④',  zh:'毕业猫预览 ④'},     page:'index.html',    tag:'gallery-4',  size:'400×400px' },
+  { id:'img-insta-1',     label:{ja:'Instagram ①',          zh:'Instagram ①'},       page:'index.html',    tag:'insta-1',    size:'400×400px' },
+  { id:'img-insta-2',     label:{ja:'Instagram ②',          zh:'Instagram ②'},       page:'index.html',    tag:'insta-2',    size:'400×400px' },
+  { id:'img-insta-3',     label:{ja:'Instagram ③',          zh:'Instagram ③'},       page:'index.html',    tag:'insta-3',    size:'400×400px' },
+  { id:'img-insta-4',     label:{ja:'Instagram ④',          zh:'Instagram ④'},       page:'index.html',    tag:'insta-4',    size:'400×400px' },
+  { id:'img-sib-main',    label:{ja:'サイベリアン メイン',   zh:'西伯利亚猫主图'},    page:'siberian.html', tag:'sib-main',   size:'600×800px' },
+  { id:'img-sib-group',   label:{ja:'サイベリアン 集合写真', zh:'西伯利亚猫合照'},    page:'siberian.html', tag:'sib-group',  size:'800×450px' },
+  { id:'img-review-1',    label:{ja:'レビュー①（羅方遠）',  zh:'评价截图①（罗方远）'},page:'reviews.html', tag:'review-1',   size:'390×844px' },
+  { id:'img-review-2',    label:{ja:'レビュー②（刘暁棉）',  zh:'评价截图②（刘晓棉）'},page:'reviews.html', tag:'review-2',   size:'390×844px' },
+  { id:'img-award-1',     label:{ja:'受賞バッジ①',          zh:'获奖徽章①'},         page:'about.html',    tag:'award-1',    size:'300×200px' },
+  { id:'img-award-2',     label:{ja:'受賞バッジ②',          zh:'获奖徽章②'},         page:'about.html',    tag:'award-2',    size:'300×200px' },
+  { id:'img-award-3',     label:{ja:'評価バッジ',            zh:'评分徽章'},           page:'about.html',    tag:'award-3',    size:'300×200px' },
+  { id:'img-genetic',     label:{ja:'遺伝子検査証明',        zh:'基因检测证明'},       page:'about.html',    tag:'genetic',    size:'800×450px' },
+  { id:'img-ogp',         label:{ja:'OGP画像',               zh:'OGP图片'},            page:'全ページ',      tag:'ogp',        size:'1200×630px' }
 ];
 
+// ── Bilingual Toggle ──
+function toggleImgLang() {
+  imgLang = imgLang === 'ja' ? 'zh' : 'ja';
+  localStorage.setItem('fuluck-img-lang', imgLang);
+  applyImgLang();
+  showToast(imgLang === 'zh' ? '已切换到中文' : '日本語に切り替えました', 'success');
+}
+
+function applyImgLang() {
+  document.querySelectorAll('[data-img-ja]').forEach(function(el) {
+    el.textContent = imgLang === 'zh' ? el.getAttribute('data-img-zh') : el.getAttribute('data-img-ja');
+  });
+  var btn = document.getElementById('imgLangToggle');
+  if (btn) btn.innerHTML = imgLang === 'ja' ? '🌐 切换中文' : '🌐 日本語に切替';
+}
+
+// ── File Upload Handler ──
+function handleImgUpload(fileInput, targetInputId) {
+  var file = fileInput.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    showToast(imgLang === 'zh' ? '请选择图片文件' : '画像ファイルを選択してください', 'error');
+    return;
+  }
+  // Convert to base64 data URL for preview & storage
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var targetInput = document.getElementById(targetInputId);
+    if (targetInput) {
+      targetInput.value = e.target.result;
+      // Show the filename as a hint
+      var row = targetInput.closest('.img-manager-row');
+      var existingHint = row.querySelector('.upload-filename');
+      if (existingHint) existingHint.remove();
+      var hint = document.createElement('small');
+      hint.className = 'upload-filename';
+      hint.style.cssText = 'color:var(--mint-dark);display:block;margin-top:4px;font-size:11px;';
+      hint.textContent = '📎 ' + file.name + ' (' + (file.size / 1024).toFixed(0) + 'KB)';
+      row.appendChild(hint);
+    }
+    showToast('📎 ' + file.name, 'success');
+  };
+  reader.readAsDataURL(file);
+  fileInput.value = '';
+}
+
+// ── Load / Save ──
 function loadImageConfig() {
   try {
     var saved = JSON.parse(localStorage.getItem(IMAGE_KEY) || '{}');
@@ -1559,9 +1768,12 @@ function loadImageConfig() {
       var el = document.getElementById(f.id);
       if (el && saved[f.tag]) el.value = saved[f.tag];
     });
+    // Load Instagram URL
+    var instaUrlEl = document.getElementById('img-insta-url');
+    if (instaUrlEl && saved['insta-url']) instaUrlEl.value = saved['insta-url'];
   } catch(e) {}
-  // Update hero preview
   updateHeroPreview();
+  applyImgLang();
 }
 
 function updateHeroPreview() {
@@ -1575,12 +1787,9 @@ function updateHeroPreview() {
   }
 }
 
-// Auto-update hero preview on input
 document.addEventListener('DOMContentLoaded', function() {
   var heroInput = document.getElementById('img-hero-main');
-  if (heroInput) {
-    heroInput.addEventListener('input', updateHeroPreview);
-  }
+  if (heroInput) heroInput.addEventListener('input', updateHeroPreview);
 });
 
 function saveImageConfig() {
@@ -1593,11 +1802,15 @@ function saveImageConfig() {
       count++;
     }
   });
+  // Save Instagram URL
+  var instaUrl = document.getElementById('img-insta-url');
+  if (instaUrl && instaUrl.value.trim()) config['insta-url'] = instaUrl.value.trim();
   localStorage.setItem(IMAGE_KEY, JSON.stringify(config));
-  addLog('画像設定を保存しました（' + count + '件）');
-  showToast('画像設定を保存しました（' + count + '件）', 'success');
+  addLog(imgLang === 'zh' ? '图片设置已保存（' + count + '张）' : '画像設定を保存しました（' + count + '件）');
+  showToast(imgLang === 'zh' ? '已保存 ' + count + ' 张图片设置' : '画像設定を保存しました（' + count + '件）', 'success');
 }
 
+// ── HTML Code Generation ──
 function generateImageHTML() {
   var lines = [];
   lines.push('<!-- ====================================== -->');
@@ -1606,13 +1819,20 @@ function generateImageHTML() {
   lines.push('<!-- ====================================== -->');
   lines.push('');
 
+  var instaUrl = (document.getElementById('img-insta-url') || {}).value || 'https://www.instagram.com/fuluckpet/';
+
   var pages = {};
   IMAGE_FIELDS.forEach(function(f) {
     var el = document.getElementById(f.id);
     var val = el ? el.value.trim() : '';
     if (!val) return;
+    // Skip base64 images for HTML generation (they need to be saved as files first)
+    if (val.indexOf('data:') === 0) {
+      lines.push('<!-- ⚠ ' + f.label[imgLang] + ': base64 image - please save as file to images/ folder first -->');
+      return;
+    }
     if (!pages[f.page]) pages[f.page] = [];
-    pages[f.page].push({ label:f.label, tag:f.tag, url:val });
+    pages[f.page].push({ label:f.label[imgLang], tag:f.tag, url:val });
   });
 
   Object.keys(pages).forEach(function(page) {
@@ -1626,7 +1846,7 @@ function generateImageHTML() {
         lines.push('<meta property="og:image" content="' + item.url + '">');
       } else if (item.tag.indexOf('insta') === 0) {
         lines.push('<!-- ' + item.label + ' -->');
-        lines.push('<img src="' + item.url + '" alt="' + alt + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius);">');
+        lines.push('<div class="insta-item"><a href="' + instaUrl + '" target="_blank" rel="noopener"><img src="' + item.url + '" alt="Instagram - 福楽キャッテリー" loading="lazy" style="width:100%;height:100%;object-fit:cover;"></a></div>');
       } else if (item.tag.indexOf('gallery') === 0) {
         lines.push('<!-- ' + item.label + ' -->');
         lines.push('<div class="gallery-item"><img src="' + item.url + '" alt="卒業猫 サイベリアン" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius);"></div>');
@@ -1647,9 +1867,10 @@ function generateImageHTML() {
   var output = lines.join('\n');
   document.getElementById('imageCodeContent').textContent = output;
   document.getElementById('imageCodeOutput').style.display = 'block';
-  showToast('HTMLコードを生成しました', 'success');
+  showToast(imgLang === 'zh' ? 'HTML代码已生成' : 'HTMLコードを生成しました', 'success');
 }
 
+// ── Preview All ──
 function previewAllImages() {
   var grid = document.getElementById('imagePreviewGrid');
   grid.innerHTML = '';
@@ -1666,26 +1887,24 @@ function previewAllImages() {
 
     var img = document.createElement('img');
     img.src = val;
-    img.alt = f.label;
+    img.alt = f.label[imgLang];
     img.onerror = function() {
       this.style.display = 'none';
       var errDiv = this.nextElementSibling;
-      if (errDiv) errDiv.className = 'preview-status ng';
-      if (errDiv) errDiv.textContent = '❌ 読み込み失敗';
+      if (errDiv) { errDiv.className = 'preview-status ng'; errDiv.textContent = '❌ ' + (imgLang === 'zh' ? '加载失败' : '読み込み失敗'); }
     };
     img.onload = function() {
       var okDiv = this.nextElementSibling;
-      if (okDiv) okDiv.className = 'preview-status ok';
-      if (okDiv) okDiv.textContent = '✅ OK (' + this.naturalWidth + '×' + this.naturalHeight + ')';
+      if (okDiv) { okDiv.className = 'preview-status ok'; okDiv.textContent = '✅ ' + this.naturalWidth + '×' + this.naturalHeight + ' (' + (imgLang === 'zh' ? '推荐' : '推奨') + ' ' + f.size + ')'; }
     };
 
     var status = document.createElement('div');
     status.className = 'preview-status';
-    status.textContent = '読み込み中…';
+    status.textContent = imgLang === 'zh' ? '加载中…' : '読み込み中…';
 
     var label = document.createElement('div');
     label.className = 'preview-label';
-    label.textContent = f.label;
+    label.textContent = f.label[imgLang];
 
     card.appendChild(img);
     card.appendChild(status);
@@ -1695,18 +1914,19 @@ function previewAllImages() {
 
   document.getElementById('imagePreviewArea').style.display = count > 0 ? 'block' : 'none';
   if (count === 0) {
-    showToast('画像URLが入力されていません', 'error');
+    showToast(imgLang === 'zh' ? '没有输入图片URL' : '画像URLが入力されていません', 'error');
   } else {
-    showToast(count + '件の画像をプレビュー中…', 'success');
+    showToast(count + (imgLang === 'zh' ? ' 张图片预览中…' : '件の画像をプレビュー中…'), 'success');
   }
 }
 
+// ── Copy Code ──
 function copyImageCode() {
   var code = document.getElementById('imageCodeContent').textContent;
-  if (!code) { showToast('まずコードを生成してください', 'error'); return; }
+  if (!code) { showToast(imgLang === 'zh' ? '请先生成代码' : 'まずコードを生成してください', 'error'); return; }
   if (navigator.clipboard) {
     navigator.clipboard.writeText(code).then(function() {
-      showToast('コピーしました', 'success');
+      showToast(imgLang === 'zh' ? '已复制' : 'コピーしました', 'success');
     });
   } else {
     var ta = document.createElement('textarea');
@@ -1715,7 +1935,7 @@ function copyImageCode() {
     ta.select();
     document.execCommand('copy');
     document.body.removeChild(ta);
-    showToast('コピーしました', 'success');
+    showToast(imgLang === 'zh' ? '已复制' : 'コピーしました', 'success');
   }
 }
 
