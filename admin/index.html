@@ -1943,7 +1943,7 @@ function generateImageHTML() {
         lines.push('<img src="' + item.url + '" alt="' + alt + '" loading="lazy" style="max-width:100%;border-radius:var(--radius);">');
       } else {
         lines.push('<!-- ' + item.label + ' -->');
-        lines.push('<img src="' + item.url + '" alt="' + alt + '" loading="' + loading + '" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-lg);">');
+        lines.push('<img src="' + item.url + '" alt="' + alt + '" loading="' + loading + '" style="width:100%;height:auto;object-fit:cover;border-radius:var(--radius-lg);">');
       }
       lines.push('');
     });

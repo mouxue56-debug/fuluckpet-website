@@ -1138,6 +1138,7 @@ button { font-family: inherit; cursor: pointer; }
   cursor: pointer;
   transition: all 0.4s var(--ease-out);
 }
+.insta-item img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
 .insta-item:hover { transform: scale(1.05); box-shadow: var(--shadow-hover); z-index: 2; }
 .insta-ph {
   background: linear-gradient(135deg, var(--peach-milk), var(--strawberry-milk));
