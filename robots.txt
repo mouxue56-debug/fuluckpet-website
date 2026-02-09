@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin/
 Disallow: /api/
 
-Sitemap: https://fuluck.com/sitemap.xml
+Sitemap: https://fuluckpet.com/sitemap.xml

@@ -20,7 +20,7 @@
  *
  * 環境変数:
  *   ADMIN_PASSWORD = 管理画面パスワード (Workers Settings > Variables で設定)
- *   CORS_ORIGIN    = 許可するオリジン (例: https://fuluck.com)
+ *   CORS_ORIGIN    = 許可するオリジン (例: https://fuluckpet.com)
  */
 
 const CORS_HEADERS = {

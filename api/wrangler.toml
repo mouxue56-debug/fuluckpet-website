@@ -25,7 +25,7 @@ id = "YOUR_KV_NAMESPACE_ID_HERE"
 
 # カスタムドメイン (オプション)
 # routes = [
-#   { pattern = "api.fuluck.com/*", zone_name = "fuluck.com" }
+#   { pattern = "api.fuluckpet.com/*", zone_name = "fuluckpet.com" }
 # ]
 
 # デプロイ手順:
