@@ -155,6 +155,128 @@ const translations = {
     'common.backHome': 'ホームに戻る',
     'common.viewKittens': '子猫を見る',
     'common.bookVisit': '見学を予約する',
+
+    // Guide Pages
+    // Guide Common
+    'guide.breadcrumb.home': 'ホーム',
+    'guide.breadcrumb.guide': 'お迎えガイド',
+    'guide.brand': 'サイベリアン｜大阪・福楽キャッテリー',
+    'guide.cta.text': '見学のご相談はLINEへ 😊',
+    'guide.cta.sub1': '現地・オンライン（LINEビデオ）どちらもOK',
+    'guide.cta.sub2': '気になる子がいれば、リンクを送るだけでOK',
+    'guide.cta.btn': 'LINEで相談する',
+    'guide.nav.prev': '← 前のガイド',
+    'guide.nav.next': '次のガイド →',
+    'guide.nav.back': '← ガイド一覧に戻る',
+    'guide.disclaimer.medical': '※ 本ページの内容は一般的な参考情報です。心配な時や症状が強い場合は、かかりつけの動物病院にご相談ください。',
+
+    // Guide Hub (index.html)
+    'guide.hub.title': 'お迎えガイド',
+    'guide.hub.desc': '見学の流れ・料金・お迎え準備・育て方まで、すべてのガイドをまとめました。初めてでも大丈夫。一つずつ、ゆっくりご覧ください。',
+    'guide.hub.cat1': '見学・ご予約',
+    'guide.hub.cat2': 'お迎え準備',
+    'guide.hub.cat3': 'お迎え後サポート',
+
+    // Hub card titles
+    'guide.hub.visit.title': '見学の流れ・消毒ガイド',
+    'guide.hub.visit.desc': '見学の流れが分かる',
+    'guide.hub.price.title': '料金の説明',
+    'guide.hub.price.desc': '料金体系とお支払い方法',
+    'guide.hub.prepare.title': '準備チェックリスト',
+    'guide.hub.prepare.desc': 'まずは必須だけでOK',
+    'guide.hub.bring.title': 'お迎え当日の持ち物',
+    'guide.hub.bring.desc': '当日はこのリストだけ見ればOK',
+    'guide.hub.safety.title': 'おうち安全チェック',
+    'guide.hub.safety.desc': 'できる範囲でOK',
+    'guide.hub.day1.title': '初日ガイド',
+    'guide.hub.day1.desc': '最初の24時間は安心できる場所',
+    'guide.hub.week1.title': '7日チェック',
+    'guide.hub.week1.desc': 'ゆるめの記録で変化に気づく',
+    'guide.hub.family.title': 'ご家族向けスタートガイド',
+    'guide.hub.family.desc': 'お子さま・わんちゃんがいる家庭',
+    'guide.hub.multi.title': '多頭飼いスタートガイド',
+    'guide.hub.multi.desc': '先住猫・先住犬との慣らし方',
+    'guide.hub.neuter.title': '去勢・避妊ケアガイド',
+    'guide.hub.neuter.desc': '術後は静かに休むがいちばん',
+    'guide.hub.grooming.title': '換毛期のお手入れガイド',
+    'guide.hub.grooming.desc': '春と秋の抜け毛対策',
+    'guide.hub.behavior.title': '爪とぎ・甘噛みサポート',
+    'guide.hub.behavior.desc': '叱らず誘導で整える',
+    'guide.hub.passport.title': '子猫パスポート',
+    'guide.hub.passport.desc': '交付サンプル',
+    'guide.hub.weight.title': '体重記録シート',
+    'guide.hub.weight.desc': '気楽に残せる記録表',
+
+    // Homepage Guide Entrance
+    'guide.entrance.title': '初めての方へ',
+    'guide.entrance.desc': '見学の流れ・料金・お迎え準備・育て方まで、すべてのガイドをまとめました。',
+    'guide.entrance.btn': '📖 お迎えガイドを見る',
+
+    // Visit Page
+    'guide.visit.title': '見学の流れ・消毒ガイド',
+    'guide.visit.lead': '初めてでも大丈夫。順番にご案内しますので、約30〜60分ほどで安心してお会いいただけます。',
+    'guide.visit.s1.title': '当日の流れ（目安：30〜60分）',
+    'guide.visit.s2.title': '見学当日のコツ',
+    'guide.visit.s3.title': '消毒・衛生について',
+    'guide.visit.s4.title': '気軽に聞いてください',
+    'guide.visit.meta': '⏱️ 約4分 ｜ 最終更新：2026年2月',
+
+    // Price Page
+    'guide.price.title': '料金の説明',
+    'guide.price.lead': 'サイト掲載価格をベースに、必要なオプションだけ追加するシンプルな仕組みです。',
+    'guide.price.s1.title': '料金の仕組み',
+    'guide.price.s2.title': '選べるオプション',
+    'guide.price.s3.title': '予約金・残金の流れ',
+
+    // Prepare Page
+    'guide.prepare.title': '準備チェックリスト',
+    'guide.prepare.lead': 'お迎えの前にそろえておきたいアイテムをまとめました。まずは必須だけでOK！',
+
+    // Bring Page
+    'guide.bring.title': 'お迎え当日の持ち物',
+    'guide.bring.lead': 'お迎え当日はこのリストだけ確認すればOK！忘れ物チェックにどうぞ。',
+
+    // Home Safety Page
+    'guide.safety.title': 'おうち安全チェック',
+    'guide.safety.lead': '子猫が安全に過ごせるお部屋づくりのポイントをご紹介します。できる範囲でOKです。',
+
+    // Day 1 Page
+    'guide.day1.title': '初日ガイド',
+    'guide.day1.lead': 'お迎え初日の過ごし方を、やさしいステップでご案内します。',
+    'guide.day1.meta': '⏱️ 約3分 ｜ 最終更新：2026年2月',
+
+    // Week 1 Page
+    'guide.week1.title': '7日チェック',
+    'guide.week1.lead': '最初の1週間で気をつけたいポイントと、ゆるめのチェック項目をまとめました。',
+    'guide.week1.meta': '⏱️ 約4分 ｜ 最終更新：2026年2月',
+
+    // Family Page
+    'guide.family.title': 'ご家族向けスタートガイド',
+    'guide.family.lead': 'お子さまや他のペットがいるご家庭向けのアドバイスです。',
+
+    // Multi-cat Page
+    'guide.multi.title': '多頭飼いスタートガイド',
+    'guide.multi.lead': '先住猫・先住犬がいるご家庭での慣らし方をご紹介します。',
+
+    // Neuter Page
+    'guide.neuter.title': '去勢・避妊ケアガイド',
+    'guide.neuter.lead': '手術前後の準備とケアのポイントをまとめました。',
+
+    // Grooming Page
+    'guide.grooming.title': '換毛期のお手入れガイド',
+    'guide.grooming.lead': '春と秋の換毛期に気をつけたいお手入れポイントをご紹介します。',
+
+    // Behavior Page
+    'guide.behavior.title': '爪とぎ・甘噛みサポート',
+    'guide.behavior.lead': '子猫の自然な行動を理解し、叱らず上手に付き合う方法をご紹介します。',
+
+    // Passport Page
+    'guide.passport.title': '子猫パスポート',
+    'guide.passport.lead': 'お引渡し時にお渡しする「子猫パスポート」のサンプルです。',
+
+    // Weight Log Page
+    'guide.weight.title': '体重記録シート',
+    'guide.weight.lead': '月に1〜2回くらいのペースで記録するだけでOKです。',
   },
 
   // ==================== ENGLISH ====================
@@ -308,6 +430,128 @@ const translations = {
     'common.backHome': 'Back to Home',
     'common.viewKittens': 'View Kittens',
     'common.bookVisit': 'Book a Visit',
+
+    // Guide Pages
+    // Guide Common
+    'guide.breadcrumb.home': 'Home',
+    'guide.breadcrumb.guide': 'Adoption Guide',
+    'guide.brand': 'Siberian Cat | Fuluck Cattery, Osaka',
+    'guide.cta.text': 'Contact us on LINE for visits 😊',
+    'guide.cta.sub1': 'In-person or online (LINE video) — both OK',
+    'guide.cta.sub2': 'Just send us a link if you find a kitten you like',
+    'guide.cta.btn': 'Chat on LINE',
+    'guide.nav.prev': '← Previous Guide',
+    'guide.nav.next': 'Next Guide →',
+    'guide.nav.back': '← Back to Guide List',
+    'guide.disclaimer.medical': '※ This page is for general reference only. If you are concerned or symptoms are severe, please consult your veterinarian.',
+
+    // Guide Hub (index.html)
+    'guide.hub.title': 'Adoption Guide',
+    'guide.hub.desc': 'Everything from visiting to pricing, preparation, and care — all in one place. Take your time and browse at your own pace.',
+    'guide.hub.cat1': 'Visit & Reservation',
+    'guide.hub.cat2': 'Preparation',
+    'guide.hub.cat3': 'After-Care Support',
+
+    // Hub card titles
+    'guide.hub.visit.title': 'Visit Process & Hygiene Guide',
+    'guide.hub.visit.desc': 'Understand the visit process',
+    'guide.hub.price.title': 'Pricing Guide',
+    'guide.hub.price.desc': 'Pricing structure & payment methods',
+    'guide.hub.prepare.title': 'Preparation Checklist',
+    'guide.hub.prepare.desc': 'Start with the essentials',
+    'guide.hub.bring.title': 'Pickup Day Items',
+    'guide.hub.bring.desc': 'Just follow this list on the day',
+    'guide.hub.safety.title': 'Home Safety Check',
+    'guide.hub.safety.desc': 'Do what you can',
+    'guide.hub.day1.title': 'First Day Guide',
+    'guide.hub.day1.desc': 'A safe space for the first 24 hours',
+    'guide.hub.week1.title': '7-Day Check',
+    'guide.hub.week1.desc': 'Light tracking to notice changes',
+    'guide.hub.family.title': 'Family Start Guide',
+    'guide.hub.family.desc': 'For families with children or dogs',
+    'guide.hub.multi.title': 'Multi-Cat Introduction Guide',
+    'guide.hub.multi.desc': 'How to introduce to existing pets',
+    'guide.hub.neuter.title': 'Spay/Neuter Care Guide',
+    'guide.hub.neuter.desc': 'Quiet rest is best after surgery',
+    'guide.hub.grooming.title': 'Shedding Season Care Guide',
+    'guide.hub.grooming.desc': 'Spring & fall shedding solutions',
+    'guide.hub.behavior.title': 'Scratching & Biting Support',
+    'guide.hub.behavior.desc': 'Guide without scolding',
+    'guide.hub.passport.title': 'Kitten Passport',
+    'guide.hub.passport.desc': 'Sample document',
+    'guide.hub.weight.title': 'Weight Log Sheet',
+    'guide.hub.weight.desc': 'Easy tracking sheet',
+
+    // Homepage Guide Entrance
+    'guide.entrance.title': 'For First-Time Visitors',
+    'guide.entrance.desc': 'Everything from visits to pricing, preparation, and care — all in one place.',
+    'guide.entrance.btn': '📖 View Adoption Guide',
+
+    // Visit Page
+    'guide.visit.title': 'Visit Process & Hygiene Guide',
+    'guide.visit.lead': 'No worries if it\'s your first time. We\'ll guide you step by step through a 30-60 minute visit.',
+    'guide.visit.s1.title': 'Day-of Process (approx. 30-60 min)',
+    'guide.visit.s2.title': 'Tips for Visit Day',
+    'guide.visit.s3.title': 'Hygiene & Sanitization',
+    'guide.visit.s4.title': 'Feel Free to Ask',
+    'guide.visit.meta': '⏱️ ~4 min read ｜ Updated: Feb 2026',
+
+    // Price Page
+    'guide.price.title': 'Pricing Guide',
+    'guide.price.lead': 'A simple system based on the listed price, with only the options you need.',
+    'guide.price.s1.title': 'Pricing Structure',
+    'guide.price.s2.title': 'Available Options',
+    'guide.price.s3.title': 'Deposit & Payment Flow',
+
+    // Prepare Page
+    'guide.prepare.title': 'Preparation Checklist',
+    'guide.prepare.lead': 'A list of items to prepare before bringing your kitten home. Start with essentials!',
+
+    // Bring Page
+    'guide.bring.title': 'Pickup Day Items',
+    'guide.bring.lead': 'Just check this list on pickup day! Use it as a last-minute checklist.',
+
+    // Home Safety Page
+    'guide.safety.title': 'Home Safety Check',
+    'guide.safety.lead': 'Tips for making your home safe for a kitten. Do what you can!',
+
+    // Day 1 Page
+    'guide.day1.title': 'First Day Guide',
+    'guide.day1.lead': 'A gentle step-by-step guide for your kitten\'s first day home.',
+    'guide.day1.meta': '⏱️ ~3 min read ｜ Updated: Feb 2026',
+
+    // Week 1 Page
+    'guide.week1.title': '7-Day Check',
+    'guide.week1.lead': 'Key points and a gentle checklist for your kitten\'s first week.',
+    'guide.week1.meta': '⏱️ ~4 min read ｜ Updated: Feb 2026',
+
+    // Family Page
+    'guide.family.title': 'Family Start Guide',
+    'guide.family.lead': 'Advice for families with children or other pets.',
+
+    // Multi-cat Page
+    'guide.multi.title': 'Multi-Cat Introduction Guide',
+    'guide.multi.lead': 'How to introduce a new kitten to your existing cat or dog.',
+
+    // Neuter Page
+    'guide.neuter.title': 'Spay/Neuter Care Guide',
+    'guide.neuter.lead': 'Key points for preparation and care before and after surgery.',
+
+    // Grooming Page
+    'guide.grooming.title': 'Shedding Season Care Guide',
+    'guide.grooming.lead': 'Care tips for spring and fall shedding seasons.',
+
+    // Behavior Page
+    'guide.behavior.title': 'Scratching & Biting Support',
+    'guide.behavior.lead': 'Understanding natural kitten behaviors and managing them without scolding.',
+
+    // Passport Page
+    'guide.passport.title': 'Kitten Passport',
+    'guide.passport.lead': 'A sample of the "Kitten Passport" document provided at pickup.',
+
+    // Weight Log Page
+    'guide.weight.title': 'Weight Log Sheet',
+    'guide.weight.lead': 'Just record once or twice a month — that\'s enough.',
   },
 
   // ==================== CHINESE SIMPLIFIED ====================
@@ -461,6 +705,128 @@ const translations = {
     'common.backHome': '返回首页',
     'common.viewKittens': '查看幼猫',
     'common.bookVisit': '预约参观',
+
+    // Guide Pages
+    // Guide Common
+    'guide.breadcrumb.home': '首页',
+    'guide.breadcrumb.guide': '接猫指南',
+    'guide.brand': '西伯利亚猫｜大阪·福楽猫舍',
+    'guide.cta.text': '参观咨询请联系LINE 😊',
+    'guide.cta.sub1': '现场·线上（LINE视频）均可',
+    'guide.cta.sub2': '看中哪只小猫，发链接给我们即可',
+    'guide.cta.btn': '用LINE咨询',
+    'guide.nav.prev': '← 上一篇',
+    'guide.nav.next': '下一篇 →',
+    'guide.nav.back': '← 返回指南列表',
+    'guide.disclaimer.medical': '※ 本页内容仅供一般参考。如有担心或症状严重，请咨询您的兽医。',
+
+    // Guide Hub (index.html)
+    'guide.hub.title': '接猫指南',
+    'guide.hub.desc': '从参观流程、价格、接猫准备到养护方法，所有指南汇总于此。慢慢浏览，不用着急。',
+    'guide.hub.cat1': '参观·预约',
+    'guide.hub.cat2': '接猫准备',
+    'guide.hub.cat3': '接猫后支持',
+
+    // Hub card titles
+    'guide.hub.visit.title': '参观流程·消毒指南',
+    'guide.hub.visit.desc': '了解参观流程',
+    'guide.hub.price.title': '价格说明',
+    'guide.hub.price.desc': '价格体系与支付方式',
+    'guide.hub.prepare.title': '准备清单',
+    'guide.hub.prepare.desc': '先准备必需品即可',
+    'guide.hub.bring.title': '接猫当天物品',
+    'guide.hub.bring.desc': '当天看这份清单就行',
+    'guide.hub.safety.title': '居家安全检查',
+    'guide.hub.safety.desc': '力所能及即可',
+    'guide.hub.day1.title': '第一天指南',
+    'guide.hub.day1.desc': '最初24小时需要安心的空间',
+    'guide.hub.week1.title': '7日检查',
+    'guide.hub.week1.desc': '轻松记录发现变化',
+    'guide.hub.family.title': '家庭入门指南',
+    'guide.hub.family.desc': '有小孩或狗狗的家庭',
+    'guide.hub.multi.title': '多猫家庭入门指南',
+    'guide.hub.multi.desc': '与先住猫·先住狗的磨合方法',
+    'guide.hub.neuter.title': '绝育护理指南',
+    'guide.hub.neuter.desc': '术后安静休息最重要',
+    'guide.hub.grooming.title': '换毛期护理指南',
+    'guide.hub.grooming.desc': '春秋换毛对策',
+    'guide.hub.behavior.title': '磨爪·轻咬行为指导',
+    'guide.hub.behavior.desc': '不责骂，引导纠正',
+    'guide.hub.passport.title': '幼猫护照',
+    'guide.hub.passport.desc': '交付样本',
+    'guide.hub.weight.title': '体重记录表',
+    'guide.hub.weight.desc': '轻松记录表',
+
+    // Homepage Guide Entrance
+    'guide.entrance.title': '致初次来访者',
+    'guide.entrance.desc': '从参观流程、价格、接猫准备到养护方法，所有指南汇总于此。',
+    'guide.entrance.btn': '📖 查看接猫指南',
+
+    // Visit Page
+    'guide.visit.title': '参观流程·消毒指南',
+    'guide.visit.lead': '第一次也没关系。我们会按顺序引导您，大约30〜60分钟即可安心见面。',
+    'guide.visit.s1.title': '当天流程（约30〜60分钟）',
+    'guide.visit.s2.title': '参观当天小贴士',
+    'guide.visit.s3.title': '消毒·卫生须知',
+    'guide.visit.s4.title': '请随时提问',
+    'guide.visit.meta': '⏱️ 约4分钟 ｜ 更新：2026年2月',
+
+    // Price Page
+    'guide.price.title': '价格说明',
+    'guide.price.lead': '以网站标价为基础，按需添加选项的简单体系。',
+    'guide.price.s1.title': '价格体系',
+    'guide.price.s2.title': '可选项目',
+    'guide.price.s3.title': '定金·尾款流程',
+
+    // Prepare Page
+    'guide.prepare.title': '准备清单',
+    'guide.prepare.lead': '接猫前需要准备的物品清单。先准备必需品就好！',
+
+    // Bring Page
+    'guide.bring.title': '接猫当天物品',
+    'guide.bring.lead': '接猫当天只需确认这份清单！用来检查有没有遗漏。',
+
+    // Home Safety Page
+    'guide.safety.title': '居家安全检查',
+    'guide.safety.lead': '介绍让幼猫安全生活的房间布置要点。力所能及即可。',
+
+    // Day 1 Page
+    'guide.day1.title': '第一天指南',
+    'guide.day1.lead': '用简单的步骤引导您度过接猫第一天。',
+    'guide.day1.meta': '⏱️ 约3分钟 ｜ 更新：2026年2月',
+
+    // Week 1 Page
+    'guide.week1.title': '7日检查',
+    'guide.week1.lead': '最初一周需要注意的要点和轻松的检查项目汇总。',
+    'guide.week1.meta': '⏱️ 约4分钟 ｜ 更新：2026年2月',
+
+    // Family Page
+    'guide.family.title': '家庭入门指南',
+    'guide.family.lead': '适用于有小孩或其他宠物的家庭的建议。',
+
+    // Multi-cat Page
+    'guide.multi.title': '多猫家庭入门指南',
+    'guide.multi.lead': '介绍有先住猫·先住狗家庭的新猫磨合方法。',
+
+    // Neuter Page
+    'guide.neuter.title': '绝育护理指南',
+    'guide.neuter.lead': '手术前后的准备和护理要点汇总。',
+
+    // Grooming Page
+    'guide.grooming.title': '换毛期护理指南',
+    'guide.grooming.lead': '春秋换毛期的护理要点介绍。',
+
+    // Behavior Page
+    'guide.behavior.title': '磨爪·轻咬行为指导',
+    'guide.behavior.lead': '了解幼猫的自然行为，不责骂、巧妙引导的方法。',
+
+    // Passport Page
+    'guide.passport.title': '幼猫护照',
+    'guide.passport.lead': '交付时提供的"幼猫护照"样本。',
+
+    // Weight Log Page
+    'guide.weight.title': '体重记录表',
+    'guide.weight.lead': '每月记录1〜2次就够了。',
   }
 };
 

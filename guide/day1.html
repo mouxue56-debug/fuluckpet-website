@@ -50,6 +50,7 @@
         <a href="/index.html#parents" class="nav-link" data-i18n="nav.parents">親猫紹介</a>
         <a href="/index.html#visit" class="nav-link" data-i18n="nav.visit">見学案内</a>
         <a href="/index.html#faq" class="nav-link" data-i18n="nav.faq">よくある質問</a>
+        <a href="/guide/" class="nav-link" data-i18n="nav.guide">お迎えガイド</a>
         <div class="nav-dropdown">
           <button class="nav-link nav-dropdown-toggle" data-i18n="nav.more">もっと見る <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
           <div class="nav-dropdown-menu">
@@ -57,7 +58,6 @@
             <a href="/about.html" class="nav-dropdown-item" data-i18n="nav.aboutPage">受賞歴・認定</a>
             <a href="/gallery.html" class="nav-dropdown-item" data-i18n="nav.gallery">卒業猫ギャラリー</a>
             <a href="/reviews.html" class="nav-dropdown-item" data-i18n="nav.reviews">お客様の声</a>
-            <a href="/guide/" class="nav-dropdown-item" data-i18n="nav.guide">お迎えガイド</a>
             <div class="nav-dropdown-divider"></div>
             <a href="https://catnamegive.mouxue56.workers.dev" target="_blank" rel="noopener" class="nav-dropdown-item" data-i18n="nav.naming">子猫の名前ツール</a>
           </div>
@@ -121,7 +121,7 @@
 
   <!-- ========== BREADCRUMB ========== -->
   <nav class="guide-breadcrumb" aria-label="パンくずリスト">
-    <a href="/index.html">ホーム</a> &gt; <a href="/guide/">お迎えガイド</a> &gt; <span>初日ガイド</span>
+    <a href="/index.html" data-i18n="guide.breadcrumb.home">ホーム</a> &gt; <a href="/guide/" data-i18n="guide.breadcrumb.guide">お迎えガイド</a> &gt; <span data-i18n="guide.day1.title">初日ガイド</span>
   </nav>
 
   <!-- ========== ARTICLE ========== -->
@@ -129,9 +129,14 @@
 
     <!-- Header -->
     <div class="guide-header" data-accent="mint">
-      <h1>お迎え初日ガイド</h1>
-      <p class="guide-lead">完璧じゃなくて大丈夫。初日は落ち着ける環境がいちばん大事です。</p>
-      <p class="guide-brand">サイベリアン｜大阪・福楽キャッテリー</p>
+      <h1 data-i18n="guide.day1.title">お迎え初日ガイド</h1>
+      <p class="guide-lead" data-i18n="guide.day1.lead">完璧じゃなくて大丈夫。初日は落ち着ける環境がいちばん大事です。</p>
+      <p class="guide-brand" data-i18n="guide.brand">サイベリアン｜大阪・福楽キャッテリー</p>
+      <p class="guide-meta" data-i18n="guide.day1.meta">⏱️ 約3分 ｜ 最終更新：2026年2月</p>
+    </div>
+
+    <div class="guide-disclaimer" data-i18n="guide.disclaimer.medical">
+      ※ 本ページの内容は一般的な参考情報です。心配な時や症状が強い場合は、かかりつけの動物病院にご相談ください。
     </div>
 
     <!-- Main Content -->
@@ -229,10 +234,10 @@
   <!-- ========== CTA ========== -->
   <section class="guide-cta">
     <div class="guide-cta-inner">
-      <p class="guide-cta-text">見学のご相談はLINEへ 😊</p>
-      <p class="guide-cta-sub">現地・オンライン（LINEビデオ）どちらもOK</p>
-      <p class="guide-cta-sub">気になる子がいれば、リンクを送るだけでOK</p>
-      <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="guide-cta-btn" target="_blank" rel="noopener">
+      <p class="guide-cta-text" data-i18n="guide.cta.text">見学のご相談はLINEへ 😊</p>
+      <p class="guide-cta-sub" data-i18n="guide.cta.sub1">現地・オンライン（LINEビデオ）どちらもOK</p>
+      <p class="guide-cta-sub" data-i18n="guide.cta.sub2">気になる子がいれば、リンクを送るだけでOK</p>
+      <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="guide-cta-btn" target="_blank" rel="noopener" data-i18n="guide.cta.btn">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596a.626.626 0 0 1-.199.031c-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.271.173-.508.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
         LINEで相談する
       </a>
@@ -242,15 +247,15 @@
   <!-- ========== PREV / NEXT NAV ========== -->
   <nav class="guide-nav">
     <a href="/guide/home-safety.html" class="prev">
-      <span class="guide-nav-label">&larr; 前のガイド</span>
-      <span class="guide-nav-title">おうち安全チェック</span>
+      <span class="guide-nav-label" data-i18n="guide.nav.prev">&larr; 前のガイド</span>
+      <span class="guide-nav-title" data-i18n="guide.hub.safety.title">おうち安全チェック</span>
     </a>
     <a href="/guide/week1.html" class="next">
-      <span class="guide-nav-label">次のガイド &rarr;</span>
-      <span class="guide-nav-title">7日チェック</span>
+      <span class="guide-nav-label" data-i18n="guide.nav.next">次のガイド &rarr;</span>
+      <span class="guide-nav-title" data-i18n="guide.hub.week1.title">7日チェック</span>
     </a>
   </nav>
-  <a href="/guide/" class="guide-nav-back">&larr; ガイド一覧に戻る</a>
+  <a href="/guide/" class="guide-nav-back" data-i18n="guide.nav.back">&larr; ガイド一覧に戻る</a>
 
   <!-- ========== FOOTER ========== -->
   <footer class="footer" id="footer">

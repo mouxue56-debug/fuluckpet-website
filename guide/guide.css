@@ -58,6 +58,15 @@
   color: var(--text-note);
   margin-top: 16px;
 }
+.guide-meta {
+  font-size: 0.82rem;
+  color: var(--text-note);
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
 
 /* Accent color variants */
 .guide-header[data-accent="mint"] { --accent-milk: var(--mint-milk); border-color: rgba(125, 211, 192, 0.2); }
