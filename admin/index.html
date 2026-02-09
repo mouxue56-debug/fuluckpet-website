@@ -168,6 +168,22 @@
     .panel-page { display:none; }
     .panel-page.active { display:block; }
 
+    /* === IMAGE MANAGER === */
+    .img-manager-row { margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid var(--border); }
+    .img-manager-row:last-child { margin-bottom:0; border-bottom:none; }
+    .img-manager-row label { display:block; font-size:13px; font-weight:600; margin-bottom:6px; }
+    .img-input-group { display:flex; gap:12px; align-items:flex-start; }
+    .img-input-group .login-input { flex:1; }
+    .img-preview { width:80px; height:80px; border-radius:8px; border:1px solid var(--border); background:var(--bg); overflow:hidden; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+    .img-preview img { width:100%; height:100%; object-fit:cover; }
+    .img-preview-empty { font-size:24px; color:var(--text-light); }
+    .preview-card { background:var(--white); border-radius:8px; border:1px solid var(--border); overflow:hidden; }
+    .preview-card img { width:100%; height:150px; object-fit:cover; }
+    .preview-card .preview-label { padding:8px 12px; font-size:11px; font-weight:600; color:var(--text-light); text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .preview-card .preview-status { padding:0 12px 8px; font-size:10px; text-align:center; }
+    .preview-card .preview-status.ok { color:#38A169; }
+    .preview-card .preview-status.ng { color:#E53E3E; }
+
     /* === GUIDE === */
     .guide-step { background:var(--white); border-radius:var(--radius); border:1px solid var(--border); padding:24px; margin-bottom:16px; }
     .guide-step h4 { font-size:15px; font-weight:700; margin-bottom:8px; display:flex; align-items:center; gap:8px; }
@@ -216,6 +232,7 @@
         <div class="nav-section">
           <div class="nav-section-title">コンテンツ</div>
           <div class="nav-item" data-page="reviews"><span class="icon">⭐</span> お客様の声</div>
+          <div class="nav-item" data-page="images"><span class="icon">🖼️</span> 画像管理</div>
           <div class="nav-item" data-page="export"><span class="icon">📤</span> HTML出力</div>
         </div>
         <div class="nav-section">
@@ -348,6 +365,140 @@
                 </tr></thead>
                 <tbody id="reviewsTableBody"></tbody>
               </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ====== IMAGES ====== -->
+        <div class="panel-page" id="page-images">
+          <div class="settings-card">
+            <h3>🖼️ サイト画像管理</h3>
+            <p style="color:var(--text-light);margin-bottom:20px;">各ページの画像を管理できます。画像URLを入力するか、ローカル画像パス（例: images/hero.jpg）を指定してください。<br>変更後は「HTMLコードを生成」でコードをコピーし、該当HTMLファイルに反映してください。</p>
+          </div>
+
+          <div class="data-table" style="margin-top:20px;">
+            <div class="table-header"><h3 class="table-title">🏠 トップページ（index.html）</h3></div>
+            <div style="padding:24px;">
+              <div class="img-manager-row">
+                <label>Hero メイン写真</label>
+                <div class="img-input-group">
+                  <input type="text" id="img-hero-main" class="login-input" style="margin:0" placeholder="images/hero-main.jpg" value="images/hero-main.jpg">
+                  <div class="img-preview" id="preview-hero-main"></div>
+                </div>
+                <small style="color:var(--text-light);">推奨: 800×1000px / ページ訪問者が最初に見る写真</small>
+              </div>
+              <div class="img-manager-row">
+                <label>卒業猫プレビュー ①</label>
+                <input type="text" id="img-gallery-1" class="login-input" style="margin:0" placeholder="画像URL" value="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_bb55e8c5f9a5.jpg">
+              </div>
+              <div class="img-manager-row">
+                <label>卒業猫プレビュー ②</label>
+                <input type="text" id="img-gallery-2" class="login-input" style="margin:0" placeholder="画像URL" value="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_f526365b0a70.jpg">
+              </div>
+              <div class="img-manager-row">
+                <label>卒業猫プレビュー ③</label>
+                <input type="text" id="img-gallery-3" class="login-input" style="margin:0" placeholder="画像URL" value="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_b874ae3c23f1.jpg">
+              </div>
+              <div class="img-manager-row">
+                <label>卒業猫プレビュー ④</label>
+                <input type="text" id="img-gallery-4" class="login-input" style="margin:0" placeholder="画像URL" value="https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_1dfb1c5f7bf6.jpg">
+              </div>
+              <div class="img-manager-row">
+                <label>Instagram ①～④</label>
+                <small style="color:var(--text-light);display:block;margin-bottom:8px">Instagram埋め込みAPIを使う場合はここでは管理不要です。手動で画像を指定する場合のみ設定してください。</small>
+                <input type="text" id="img-insta-1" class="login-input" style="margin:0 0 8px" placeholder="Instagram画像URL 1">
+                <input type="text" id="img-insta-2" class="login-input" style="margin:0 0 8px" placeholder="Instagram画像URL 2">
+                <input type="text" id="img-insta-3" class="login-input" style="margin:0 0 8px" placeholder="Instagram画像URL 3">
+                <input type="text" id="img-insta-4" class="login-input" style="margin:0" placeholder="Instagram画像URL 4">
+              </div>
+            </div>
+          </div>
+
+          <div class="data-table" style="margin-top:20px;">
+            <div class="table-header"><h3 class="table-title">🐱 サイベリアンページ（siberian.html）</h3></div>
+            <div style="padding:24px;">
+              <div class="img-manager-row">
+                <label>メイン写真</label>
+                <input type="text" id="img-sib-main" class="login-input" style="margin:0" placeholder="images/siberian-main.jpg" value="images/siberian-main.jpg">
+                <small style="color:var(--text-light);">推奨: 600×800px / 品種概要のメイン写真</small>
+              </div>
+              <div class="img-manager-row">
+                <label>集合写真</label>
+                <input type="text" id="img-sib-group" class="login-input" style="margin:0" placeholder="images/siberian-group.jpg">
+                <small style="color:var(--text-light);">推奨: 800×450px / 「当舎のサイベリアン」セクション</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="data-table" style="margin-top:20px;">
+            <div class="table-header"><h3 class="table-title">⭐ お客様の声ページ（reviews.html）</h3></div>
+            <div style="padding:24px;">
+              <div class="img-manager-row">
+                <label>レビュースクリーンショット ①（羅方遠）</label>
+                <input type="text" id="img-review-1" class="login-input" style="margin:0" placeholder="images/review-screenshot-1.jpg" value="images/review-screenshot-1.jpg">
+                <small style="color:var(--text-light);">推奨: 390×844px / みんなの子猫ブリーダーの口コミ画面キャプチャ</small>
+              </div>
+              <div class="img-manager-row">
+                <label>レビュースクリーンショット ②（刘暁棉）</label>
+                <input type="text" id="img-review-2" class="login-input" style="margin:0" placeholder="images/review-screenshot-2.jpg" value="images/review-screenshot-2.jpg">
+              </div>
+            </div>
+          </div>
+
+          <div class="data-table" style="margin-top:20px;">
+            <div class="table-header"><h3 class="table-title">🏆 受賞歴ページ（about.html）</h3></div>
+            <div style="padding:24px;">
+              <div class="img-manager-row">
+                <label>受賞バッジ ①（2025上半期）</label>
+                <input type="text" id="img-award-1" class="login-input" style="margin:0" placeholder="images/award-2025-h1.jpg">
+              </div>
+              <div class="img-manager-row">
+                <label>受賞バッジ ②（2025下半期）</label>
+                <input type="text" id="img-award-2" class="login-input" style="margin:0" placeholder="images/award-2025-h2.jpg">
+              </div>
+              <div class="img-manager-row">
+                <label>評価バッジ</label>
+                <input type="text" id="img-award-3" class="login-input" style="margin:0" placeholder="images/rating-badge.jpg">
+              </div>
+              <div class="img-manager-row">
+                <label>遺伝子検査証明書サンプル</label>
+                <input type="text" id="img-genetic" class="login-input" style="margin:0" placeholder="images/genetic-test.jpg">
+                <small style="color:var(--text-light);">推奨: 800×450px</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="data-table" style="margin-top:20px;">
+            <div class="table-header"><h3 class="table-title">🌐 OGP画像（SNS共有時のサムネイル）</h3></div>
+            <div style="padding:24px;">
+              <div class="img-manager-row">
+                <label>OGP画像</label>
+                <input type="text" id="img-ogp" class="login-input" style="margin:0" placeholder="images/ogp.jpg" value="images/ogp.jpg">
+                <small style="color:var(--text-light);">推奨: 1200×630px / LINE・Twitter・Facebookで共有した際のサムネイル画像</small>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap;">
+            <button class="top-btn btn-primary" onclick="saveImageConfig()">💾 画像設定を保存</button>
+            <button class="top-btn btn-secondary" onclick="generateImageHTML()">📋 HTMLコードを生成</button>
+            <button class="top-btn btn-secondary" onclick="previewAllImages()">👁 プレビュー</button>
+          </div>
+
+          <div id="imageCodeOutput" style="display:none;margin-top:24px;">
+            <div class="data-table">
+              <div class="table-header">
+                <h3 class="table-title">生成されたHTMLコード</h3>
+                <button class="top-btn btn-secondary" onclick="copyImageCode()">📋 コピー</button>
+              </div>
+              <pre id="imageCodeContent" style="padding:24px;background:#f8f9fa;font-size:12px;overflow-x:auto;white-space:pre-wrap;word-break:break-all;max-height:400px;overflow-y:auto;"></pre>
+            </div>
+          </div>
+
+          <div id="imagePreviewArea" style="display:none;margin-top:24px;">
+            <div class="data-table">
+              <div class="table-header"><h3 class="table-title">画像プレビュー</h3></div>
+              <div id="imagePreviewGrid" style="padding:24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;"></div>
             </div>
           </div>
         </div>
@@ -656,6 +807,7 @@ var DEFAULT_REVIEWS = [
 var STORAGE_KEY = 'fuluck-admin-data';
 var PASS_KEY = 'fuluck-admin-pass';
 var LOG_KEY = 'fuluck-admin-log';
+var IMAGE_KEY = 'fuluck-admin-images';
 var DEFAULT_PASS = 'fuluck2025';
 
 // Pagination
@@ -758,7 +910,7 @@ document.getElementById('logoutBtn').addEventListener('click', function() {
 // ============================================================
 var pageTitles = {
   dashboard:'ダッシュボード', kittens:'子猫管理', parents:'親猫管理',
-  reviews:'お客様の声', export:'HTML出力', data:'データ管理',
+  reviews:'お客様の声', images:'画像管理', export:'HTML出力', data:'データ管理',
   guide:'操作ガイド', settings:'パスワード変更'
 };
 
@@ -821,6 +973,7 @@ function renderAll() {
   renderKittens();
   renderParents();
   renderReviews();
+  loadImageConfig();
 }
 
 // ============================================================
@@ -1373,6 +1526,197 @@ function resetData() {
   addLog('データを初期状態にリセットしました');
   renderAll();
   showToast('データをリセットしました', 'success');
+}
+
+// ============================================================
+// IMAGE MANAGEMENT
+// ============================================================
+var IMAGE_FIELDS = [
+  { id:'img-hero-main',   label:'Hero メイン写真',       page:'index.html',    tag:'hero-main' },
+  { id:'img-gallery-1',   label:'卒業猫プレビュー ①',   page:'index.html',    tag:'gallery-1' },
+  { id:'img-gallery-2',   label:'卒業猫プレビュー ②',   page:'index.html',    tag:'gallery-2' },
+  { id:'img-gallery-3',   label:'卒業猫プレビュー ③',   page:'index.html',    tag:'gallery-3' },
+  { id:'img-gallery-4',   label:'卒業猫プレビュー ④',   page:'index.html',    tag:'gallery-4' },
+  { id:'img-insta-1',     label:'Instagram ①',           page:'index.html',    tag:'insta-1' },
+  { id:'img-insta-2',     label:'Instagram ②',           page:'index.html',    tag:'insta-2' },
+  { id:'img-insta-3',     label:'Instagram ③',           page:'index.html',    tag:'insta-3' },
+  { id:'img-insta-4',     label:'Instagram ④',           page:'index.html',    tag:'insta-4' },
+  { id:'img-sib-main',    label:'サイベリアン メイン',    page:'siberian.html', tag:'sib-main' },
+  { id:'img-sib-group',   label:'サイベリアン 集合写真',  page:'siberian.html', tag:'sib-group' },
+  { id:'img-review-1',    label:'レビュー①（羅方遠）',   page:'reviews.html',  tag:'review-1' },
+  { id:'img-review-2',    label:'レビュー②（刘暁棉）',   page:'reviews.html',  tag:'review-2' },
+  { id:'img-award-1',     label:'受賞バッジ①',           page:'about.html',    tag:'award-1' },
+  { id:'img-award-2',     label:'受賞バッジ②',           page:'about.html',    tag:'award-2' },
+  { id:'img-award-3',     label:'評価バッジ',             page:'about.html',    tag:'award-3' },
+  { id:'img-genetic',     label:'遺伝子検査証明',         page:'about.html',    tag:'genetic' },
+  { id:'img-ogp',         label:'OGP画像',                page:'全ページ',      tag:'ogp' }
+];
+
+function loadImageConfig() {
+  try {
+    var saved = JSON.parse(localStorage.getItem(IMAGE_KEY) || '{}');
+    IMAGE_FIELDS.forEach(function(f) {
+      var el = document.getElementById(f.id);
+      if (el && saved[f.tag]) el.value = saved[f.tag];
+    });
+  } catch(e) {}
+  // Update hero preview
+  updateHeroPreview();
+}
+
+function updateHeroPreview() {
+  var preview = document.getElementById('preview-hero-main');
+  if (!preview) return;
+  var url = document.getElementById('img-hero-main').value.trim();
+  if (url) {
+    preview.innerHTML = '<img src="' + url + '" onerror="this.parentNode.innerHTML=\'<span class=img-preview-empty>🖼</span>\'">';
+  } else {
+    preview.innerHTML = '<span class="img-preview-empty">🖼</span>';
+  }
+}
+
+// Auto-update hero preview on input
+document.addEventListener('DOMContentLoaded', function() {
+  var heroInput = document.getElementById('img-hero-main');
+  if (heroInput) {
+    heroInput.addEventListener('input', updateHeroPreview);
+  }
+});
+
+function saveImageConfig() {
+  var config = {};
+  var count = 0;
+  IMAGE_FIELDS.forEach(function(f) {
+    var el = document.getElementById(f.id);
+    if (el && el.value.trim()) {
+      config[f.tag] = el.value.trim();
+      count++;
+    }
+  });
+  localStorage.setItem(IMAGE_KEY, JSON.stringify(config));
+  addLog('画像設定を保存しました（' + count + '件）');
+  showToast('画像設定を保存しました（' + count + '件）', 'success');
+}
+
+function generateImageHTML() {
+  var lines = [];
+  lines.push('<!-- ====================================== -->');
+  lines.push('<!-- 画像管理 - 自動生成コード -->');
+  lines.push('<!-- 生成日: ' + new Date().toLocaleString('ja-JP') + ' -->');
+  lines.push('<!-- ====================================== -->');
+  lines.push('');
+
+  var pages = {};
+  IMAGE_FIELDS.forEach(function(f) {
+    var el = document.getElementById(f.id);
+    var val = el ? el.value.trim() : '';
+    if (!val) return;
+    if (!pages[f.page]) pages[f.page] = [];
+    pages[f.page].push({ label:f.label, tag:f.tag, url:val });
+  });
+
+  Object.keys(pages).forEach(function(page) {
+    lines.push('<!-- === ' + page + ' === -->');
+    pages[page].forEach(function(item) {
+      var alt = item.label + ' - 福楽キャッテリー';
+      var loading = (item.tag === 'hero-main' || item.tag === 'sib-main') ? 'eager' : 'lazy';
+
+      if (item.tag === 'ogp') {
+        lines.push('<!-- OGP meta tag: -->');
+        lines.push('<meta property="og:image" content="' + item.url + '">');
+      } else if (item.tag.indexOf('insta') === 0) {
+        lines.push('<!-- ' + item.label + ' -->');
+        lines.push('<img src="' + item.url + '" alt="' + alt + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius);">');
+      } else if (item.tag.indexOf('gallery') === 0) {
+        lines.push('<!-- ' + item.label + ' -->');
+        lines.push('<div class="gallery-item"><img src="' + item.url + '" alt="卒業猫 サイベリアン" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius);"></div>');
+      } else if (item.tag.indexOf('review') === 0) {
+        lines.push('<!-- ' + item.label + ' -->');
+        lines.push('<img src="' + item.url + '" alt="みんなの子猫ブリーダー 口コミ" loading="lazy" style="width:100%;border-radius:var(--radius);box-shadow:var(--shadow-card);">');
+      } else if (item.tag.indexOf('award') === 0 || item.tag === 'genetic') {
+        lines.push('<!-- ' + item.label + ' -->');
+        lines.push('<img src="' + item.url + '" alt="' + alt + '" loading="lazy" style="max-width:100%;border-radius:var(--radius);">');
+      } else {
+        lines.push('<!-- ' + item.label + ' -->');
+        lines.push('<img src="' + item.url + '" alt="' + alt + '" loading="' + loading + '" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-lg);">');
+      }
+      lines.push('');
+    });
+  });
+
+  var output = lines.join('\n');
+  document.getElementById('imageCodeContent').textContent = output;
+  document.getElementById('imageCodeOutput').style.display = 'block';
+  showToast('HTMLコードを生成しました', 'success');
+}
+
+function previewAllImages() {
+  var grid = document.getElementById('imagePreviewGrid');
+  grid.innerHTML = '';
+  var count = 0;
+
+  IMAGE_FIELDS.forEach(function(f) {
+    var el = document.getElementById(f.id);
+    var val = el ? el.value.trim() : '';
+    if (!val) return;
+    count++;
+
+    var card = document.createElement('div');
+    card.className = 'preview-card';
+
+    var img = document.createElement('img');
+    img.src = val;
+    img.alt = f.label;
+    img.onerror = function() {
+      this.style.display = 'none';
+      var errDiv = this.nextElementSibling;
+      if (errDiv) errDiv.className = 'preview-status ng';
+      if (errDiv) errDiv.textContent = '❌ 読み込み失敗';
+    };
+    img.onload = function() {
+      var okDiv = this.nextElementSibling;
+      if (okDiv) okDiv.className = 'preview-status ok';
+      if (okDiv) okDiv.textContent = '✅ OK (' + this.naturalWidth + '×' + this.naturalHeight + ')';
+    };
+
+    var status = document.createElement('div');
+    status.className = 'preview-status';
+    status.textContent = '読み込み中…';
+
+    var label = document.createElement('div');
+    label.className = 'preview-label';
+    label.textContent = f.label;
+
+    card.appendChild(img);
+    card.appendChild(status);
+    card.appendChild(label);
+    grid.appendChild(card);
+  });
+
+  document.getElementById('imagePreviewArea').style.display = count > 0 ? 'block' : 'none';
+  if (count === 0) {
+    showToast('画像URLが入力されていません', 'error');
+  } else {
+    showToast(count + '件の画像をプレビュー中…', 'success');
+  }
+}
+
+function copyImageCode() {
+  var code = document.getElementById('imageCodeContent').textContent;
+  if (!code) { showToast('まずコードを生成してください', 'error'); return; }
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(code).then(function() {
+      showToast('コピーしました', 'success');
+    });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = code;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('コピーしました', 'success');
+  }
 }
 
 // ============================================================
