@@ -20,7 +20,7 @@
  7  | award-2025-h2.jpg                    | 300x200px         | 2025下半年获奖 / 2025下半期受賞バッジ
  8  | rating-badge.jpg                     | 300x200px         | 5.00评分徽章 / 評価バッジ
  9  | genetic-test.jpg                     | 800x450px (横版)  | 基因检测证明 / 遺伝子検査証明書
-10  | ogp.jpg                              | 1200x630px        | 社交分享缩略图 / SNS共有サムネイル
+ 
 11  | insta-1.jpg                          | 400x400px (正方)  | Instagram展示1 / Instagram①
 12  | insta-2.jpg                          | 400x400px (正方)  | Instagram展示2 / Instagram②
 13  | insta-3.jpg                          | 400x400px (正方)  | Instagram展示3 / Instagram③

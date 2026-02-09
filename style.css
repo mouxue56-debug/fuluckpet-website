@@ -1436,6 +1436,8 @@ button { font-family: inherit; cursor: pointer; }
 }
 .carousel-slide.active { opacity: 1; position: relative; }
 .carousel-slide iframe { width: 100%; height: 100%; border: none; border-radius: var(--radius-lg); }
+.video-wrapper { position: relative; width: 100%; height: 0; padding-bottom: 56.25%; background: #000; border-radius: var(--radius-lg); overflow: hidden; }
+.video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
 .carousel-btn {
   position: absolute;
   top: 50%;

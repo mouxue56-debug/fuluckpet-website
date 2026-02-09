@@ -216,40 +216,41 @@
   <div id="loginScreen" class="login-screen">
     <div class="login-card">
       <div class="login-logo">🐾</div>
-      <h1 class="login-title">福楽キャッテリー 管理画面</h1>
-      <p class="login-sub">パスワードを入力してログインしてください</p>
+      <h1 class="login-title" id="loginTitle">福楽キャッテリー 管理画面</h1>
+      <p class="login-sub" id="loginSub">パスワードを入力してログインしてください</p>
       <input type="password" id="loginPassword" class="login-input" placeholder="パスワード" autocomplete="current-password">
-      <button id="loginBtn" class="login-btn">ログイン</button>
+      <button id="loginBtn" class="login-btn" data-ja="ログイン" data-zh="登录">ログイン</button>
       <p id="loginError" class="login-error">パスワードが正しくありません</p>
+      <button onclick="toggleLoginLang()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:6px 16px;font-size:12px;cursor:pointer;margin-top:16px;font-family:inherit;color:var(--text-light);">🌐 中文 / 日本語</button>
     </div>
   </div>
 
   <!-- ====== ADMIN LAYOUT ====== -->
   <div id="adminLayout" class="admin-layout">
     <aside class="sidebar">
-      <div class="sidebar-logo"><span>🐾</span> 管理画面</div>
+      <div class="sidebar-logo"><span>🐾</span> <span data-adm-ja="管理画面" data-adm-zh="管理后台">管理画面</span></div>
       <nav class="sidebar-nav">
         <div class="nav-section">
-          <div class="nav-section-title">メイン</div>
-          <div class="nav-item active" data-page="dashboard"><span class="icon">📊</span> ダッシュボード</div>
-          <div class="nav-item" data-page="kittens"><span class="icon">🐱</span> 子猫管理</div>
-          <div class="nav-item" data-page="parents"><span class="icon">🐈</span> 親猫管理</div>
+          <div class="nav-section-title"><span data-adm-ja="メイン" data-adm-zh="主要">メイン</span></div>
+          <div class="nav-item active" data-page="dashboard"><span class="icon">📊</span> <span data-adm-ja="ダッシュボード" data-adm-zh="仪表盘">ダッシュボード</span></div>
+          <div class="nav-item" data-page="kittens"><span class="icon">🐱</span> <span data-adm-ja="子猫管理" data-adm-zh="子猫管理">子猫管理</span></div>
+          <div class="nav-item" data-page="parents"><span class="icon">🐈</span> <span data-adm-ja="親猫管理" data-adm-zh="种猫管理">親猫管理</span></div>
         </div>
         <div class="nav-section">
-          <div class="nav-section-title">コンテンツ</div>
-          <div class="nav-item" data-page="reviews"><span class="icon">⭐</span> お客様の声</div>
-          <div class="nav-item" data-page="images"><span class="icon">🖼️</span> 画像管理</div>
-          <div class="nav-item" data-page="export"><span class="icon">📤</span> HTML出力</div>
+          <div class="nav-section-title"><span data-adm-ja="コンテンツ" data-adm-zh="内容">コンテンツ</span></div>
+          <div class="nav-item" data-page="reviews"><span class="icon">⭐</span> <span data-adm-ja="お客様の声" data-adm-zh="客户评价">お客様の声</span></div>
+          <div class="nav-item" data-page="images"><span class="icon">🖼️</span> <span data-adm-ja="画像管理" data-adm-zh="图片管理">画像管理</span></div>
+          <div class="nav-item" data-page="export"><span class="icon">📤</span> <span data-adm-ja="HTML出力" data-adm-zh="HTML导出">HTML出力</span></div>
         </div>
         <div class="nav-section">
-          <div class="nav-section-title">設定</div>
-          <div class="nav-item" data-page="data"><span class="icon">💾</span> データ管理</div>
-          <div class="nav-item" data-page="guide"><span class="icon">📖</span> 操作ガイド</div>
-          <div class="nav-item" data-page="settings"><span class="icon">⚙️</span> パスワード変更</div>
+          <div class="nav-section-title"><span data-adm-ja="設定" data-adm-zh="设置">設定</span></div>
+          <div class="nav-item" data-page="data"><span class="icon">💾</span> <span data-adm-ja="データ管理" data-adm-zh="数据管理">データ管理</span></div>
+          <div class="nav-item" data-page="guide"><span class="icon">📖</span> <span data-adm-ja="操作ガイド" data-adm-zh="操作指南">操作ガイド</span></div>
+          <div class="nav-item" data-page="settings"><span class="icon">⚙️</span> <span data-adm-ja="パスワード変更" data-adm-zh="修改密码">パスワード変更</span></div>
         </div>
       </nav>
       <div class="sidebar-footer">
-        <button class="logout-btn" id="logoutBtn">ログアウト</button>
+        <button class="logout-btn" id="logoutBtn"><span data-adm-ja="ログアウト" data-adm-zh="退出登录">ログアウト</span></button>
       </div>
     </aside>
 
@@ -257,8 +258,9 @@
       <div class="top-bar">
         <h1 class="page-title" id="pageTitle">ダッシュボード</h1>
         <div class="top-actions">
-          <a href="../index.html" target="_blank" class="top-btn btn-secondary">サイトを表示</a>
-          <button class="top-btn btn-primary" id="addNewBtn" style="display:none">＋ 新規追加</button>
+          <button class="top-btn btn-secondary" onclick="toggleAdminLang()" id="adminLangBtn" style="font-size:12px;">🌐 中文 / 日本語</button>
+          <a href="../index.html" target="_blank" class="top-btn btn-secondary"><span data-adm-ja="サイトを表示" data-adm-zh="查看网站">サイトを表示</span></a>
+          <button class="top-btn btn-primary" id="addNewBtn" style="display:none">＋ <span data-adm-ja="新規追加" data-adm-zh="新增">新規追加</span></button>
         </div>
       </div>
 
@@ -267,19 +269,19 @@
         <!-- ====== DASHBOARD ====== -->
         <div class="panel-page active" id="page-dashboard">
           <div class="stat-grid">
-            <div class="stat-card"><div class="stat-icon">🐱</div><div class="stat-value" id="statKittens">0</div><div class="stat-label">掲載中の子猫</div></div>
-            <div class="stat-card"><div class="stat-icon">🐈</div><div class="stat-value" id="statParents">0</div><div class="stat-label">親猫</div></div>
-            <div class="stat-card"><div class="stat-icon">⭐</div><div class="stat-value" id="statReviews">0</div><div class="stat-label">レビュー</div></div>
-            <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-value" id="statAvailable">0</div><div class="stat-label">販売中</div></div>
+            <div class="stat-card"><div class="stat-icon">🐱</div><div class="stat-value" id="statKittens">0</div><div class="stat-label"><span data-adm-ja="掲載中の子猫" data-adm-zh="在售子猫">掲載中の子猫</span></div></div>
+            <div class="stat-card"><div class="stat-icon">🐈</div><div class="stat-value" id="statParents">0</div><div class="stat-label"><span data-adm-ja="親猫" data-adm-zh="种猫">親猫</span></div></div>
+            <div class="stat-card"><div class="stat-icon">⭐</div><div class="stat-value" id="statReviews">0</div><div class="stat-label"><span data-adm-ja="レビュー" data-adm-zh="评价">レビュー</span></div></div>
+            <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-value" id="statAvailable">0</div><div class="stat-label"><span data-adm-ja="販売中" data-adm-zh="在售">販売中</span></div></div>
           </div>
           <div class="data-table">
-            <div class="table-header"><h3 class="table-title">ステータス別サマリー</h3></div>
+            <div class="table-header"><h3 class="table-title"><span data-adm-ja="ステータス別サマリー" data-adm-zh="状态汇总">ステータス別サマリー</span></h3></div>
             <div style="padding:24px;" id="dashboardSummary"></div>
           </div>
           <div class="data-table">
-            <div class="table-header"><h3 class="table-title">最近の変更</h3></div>
+            <div class="table-header"><h3 class="table-title"><span data-adm-ja="最近の変更" data-adm-zh="最近修改">最近の変更</span></h3></div>
             <div style="padding:24px;" id="dashboardLog">
-              <p style="color:var(--text-light);font-size:13px">変更履歴はブラウザのlocalStorageに保存されます。</p>
+              <p style="color:var(--text-light);font-size:13px"><span data-adm-ja="変更履歴はブラウザのlocalStorageに保存されます。" data-adm-zh="修改记录保存在浏览器的localStorage中。">変更履歴はブラウザのlocalStorageに保存されます。</span></p>
               <div id="changeLog"></div>
             </div>
           </div>
@@ -289,29 +291,29 @@
         <div class="panel-page" id="page-kittens">
           <div class="data-table">
             <div class="table-header">
-              <h3 class="table-title">子猫一覧</h3>
+              <h3 class="table-title"><span data-adm-ja="子猫一覧" data-adm-zh="子猫列表">子猫一覧</span></h3>
               <div class="table-actions">
                 <select id="kittenFilterStatus" class="form-select" style="width:auto;padding:6px 12px;font-size:12px;">
-                  <option value="all">すべて</option>
-                  <option value="available">販売中</option>
-                  <option value="reserved">商談中</option>
-                  <option value="sold">ご家族決定</option>
+                  <option value="all">すべて / 全部</option>
+                  <option value="available">販売中 / 在售</option>
+                  <option value="reserved">商談中 / 洽谈中</option>
+                  <option value="sold">ご家族決定 / 已售</option>
                 </select>
               </div>
             </div>
             <div class="table-scroll">
               <table>
                 <thead><tr>
-                  <th class="thumb-cell">写真</th>
-                  <th>ブリーダーID</th>
-                  <th>猫種</th>
-                  <th>性別</th>
-                  <th>カラー</th>
-                  <th>誕生日</th>
-                  <th>価格</th>
-                  <th>ステータス</th>
-                  <th>パパ / ママ</th>
-                  <th>操作</th>
+                  <th class="thumb-cell"><span data-adm-ja="写真" data-adm-zh="照片">写真</span></th>
+                  <th><span data-adm-ja="ブリーダーID" data-adm-zh="繁殖者ID">ブリーダーID</span></th>
+                  <th><span data-adm-ja="猫種" data-adm-zh="品种">猫種</span></th>
+                  <th><span data-adm-ja="性別" data-adm-zh="性别">性別</span></th>
+                  <th><span data-adm-ja="カラー" data-adm-zh="毛色">カラー</span></th>
+                  <th><span data-adm-ja="誕生日" data-adm-zh="出生日">誕生日</span></th>
+                  <th><span data-adm-ja="価格" data-adm-zh="价格">価格</span></th>
+                  <th><span data-adm-ja="ステータス" data-adm-zh="状态">ステータス</span></th>
+                  <th><span data-adm-ja="パパ / ママ" data-adm-zh="爸爸/妈妈">パパ / ママ</span></th>
+                  <th><span data-adm-ja="操作" data-adm-zh="操作">操作</span></th>
                 </tr></thead>
                 <tbody id="kittensTableBody"></tbody>
               </table>
@@ -327,7 +329,7 @@
               <h3 class="table-title">親猫一覧</h3>
               <div class="table-actions">
                 <select id="parentFilterBreed" class="form-select" style="width:auto;padding:6px 12px;font-size:12px;">
-                  <option value="all">すべて</option>
+                  <option value="all" data-adm-ja="すべて" data-adm-zh="全部">すべて</option>
                   <option value="siberian">サイベリアン</option>
                   <option value="british">ブリティッシュ</option>
                   <option value="ragdoll">ラグドール</option>
@@ -337,15 +339,15 @@
             <div class="table-scroll">
               <table>
                 <thead><tr>
-                  <th class="thumb-cell">写真</th>
-                  <th>名前</th>
-                  <th>猫種</th>
-                  <th>性別</th>
-                  <th>カラー</th>
-                  <th>年齢</th>
-                  <th>役割</th>
-                  <th>遺伝子検査</th>
-                  <th>操作</th>
+                  <th class="thumb-cell"><span data-adm-ja="写真" data-adm-zh="照片">写真</span></th>
+                  <th><span data-adm-ja="名前" data-adm-zh="名字">名前</span></th>
+                  <th><span data-adm-ja="猫種" data-adm-zh="品种">猫種</span></th>
+                  <th><span data-adm-ja="性別" data-adm-zh="性别">性別</span></th>
+                  <th><span data-adm-ja="カラー" data-adm-zh="毛色">カラー</span></th>
+                  <th><span data-adm-ja="年齢" data-adm-zh="年龄">年齢</span></th>
+                  <th><span data-adm-ja="役割" data-adm-zh="角色">役割</span></th>
+                  <th><span data-adm-ja="遺伝子検査" data-adm-zh="基因检测">遺伝子検査</span></th>
+                  <th><span data-adm-ja="操作" data-adm-zh="操作">操作</span></th>
                 </tr></thead>
                 <tbody id="parentsTableBody"></tbody>
               </table>
@@ -358,16 +360,16 @@
         <div class="panel-page" id="page-reviews">
           <div class="data-table">
             <div class="table-header">
-              <h3 class="table-title">お客様の声一覧</h3>
+              <h3 class="table-title"><span data-adm-ja="お客様の声一覧" data-adm-zh="客户评价列表">お客様の声一覧</span></h3>
             </div>
             <div class="table-scroll">
               <table>
                 <thead><tr>
-                  <th>お名前</th>
-                  <th>地域</th>
-                  <th>時期</th>
-                  <th>本文（抜粋）</th>
-                  <th>操作</th>
+                  <th><span data-adm-ja="お名前" data-adm-zh="姓名">お名前</span></th>
+                  <th><span data-adm-ja="地域" data-adm-zh="地区">地域</span></th>
+                  <th><span data-adm-ja="時期" data-adm-zh="时间">時期</span></th>
+                  <th><span data-adm-ja="本文（抜粋）" data-adm-zh="正文（摘要）">本文（抜粋）</span></th>
+                  <th><span data-adm-ja="操作" data-adm-zh="操作">操作</span></th>
                 </tr></thead>
                 <tbody id="reviewsTableBody"></tbody>
               </table>
@@ -666,115 +668,125 @@
         <!-- ====== EXPORT ====== -->
         <div class="panel-page" id="page-export">
           <div class="settings-card">
-            <h3>📤 HTMLコード生成</h3>
-            <p style="color:var(--text-light);margin-bottom:16px;font-size:13px;">管理画面のデータからウェブサイト用のHTMLコードを作成します。<br>生成したコードをGitHubのファイルに貼り付けると、サイトが自動更新されます。</p>
+            <h3>📤 <span data-adm-ja="HTMLコード生成" data-adm-zh="生成HTML代码">HTMLコード生成</span></h3>
+            <p style="color:var(--text-light);margin-bottom:16px;font-size:13px;"><span data-adm-ja="管理画面のデータからウェブサイト用のHTMLコードを作成します。<br>生成したコードをGitHubのファイルに貼り付けると、サイトが自動更新されます。" data-adm-zh="从管理后台的数据生成网站用的HTML代码。<br>将生成的代码粘贴到GitHub的文件中，网站就会自动更新。">管理画面のデータからウェブサイト用のHTMLコードを作成します。<br>生成したコードをGitHubのファイルに貼り付けると、サイトが自動更新されます。</span></p>
             <div style="display:flex;gap:12px;flex-wrap:wrap;">
-              <button class="top-btn btn-primary" onclick="generateKittensHTML()">子猫セクション HTML生成</button>
-              <button class="top-btn btn-primary" onclick="generateParentsHTML()">親猫セクション HTML生成</button>
-              <button class="top-btn btn-primary" onclick="generateReviewsHTML()">レビューセクション HTML生成</button>
+              <button class="top-btn btn-primary" onclick="generateKittensHTML()"><span data-adm-ja="子猫セクション HTML生成" data-adm-zh="子猫区域 生成HTML">子猫セクション HTML生成</span></button>
+              <button class="top-btn btn-primary" onclick="generateParentsHTML()"><span data-adm-ja="親猫セクション HTML生成" data-adm-zh="种猫区域 生成HTML">親猫セクション HTML生成</span></button>
+              <button class="top-btn btn-primary" onclick="generateReviewsHTML()"><span data-adm-ja="レビューセクション HTML生成" data-adm-zh="评价区域 生成HTML">レビューセクション HTML生成</span></button>
             </div>
           </div>
           <div id="generatedCodeArea" style="display:none;">
             <div class="settings-card">
-              <h3 id="generatedCodeTitle">生成されたHTML</h3>
+              <h3 id="generatedCodeTitle"><span data-adm-ja="生成されたHTML" data-adm-zh="生成的HTML">生成されたHTML</span></h3>
               <div class="code-block-wrapper">
-                <button class="copy-btn" onclick="copyGeneratedCode()">コピー</button>
+                <button class="copy-btn" onclick="copyGeneratedCode()"><span data-adm-ja="コピー" data-adm-zh="复制">コピー</span></button>
                 <pre class="code-block" id="generatedCode"></pre>
               </div>
             </div>
           </div>
           <div class="settings-card">
-            <h3>📋 サイトへの反映手順</h3>
+            <h3>📋 <span data-adm-ja="サイトへの反映手順" data-adm-zh="更新到网站的步骤">サイトへの反映手順</span></h3>
             <div class="guide-step">
-              <h4><span class="step-number">1</span> HTMLコードを生成</h4>
-              <p>上のボタンをクリックして、更新したいセクションのHTMLコードを生成します。</p>
+              <h4><span class="step-number">1</span> <span data-adm-ja="HTMLコードを生成" data-adm-zh="生成HTML代码">HTMLコードを生成</span></h4>
+              <p><span data-adm-ja="上のボタンをクリックして、更新したいセクションのHTMLコードを生成します。" data-adm-zh="点击上方按钮，生成想要更新的区域的HTML代码。">上のボタンをクリックして、更新したいセクションのHTMLコードを生成します。</span></p>
             </div>
             <div class="guide-step">
-              <h4><span class="step-number">2</span> コードをコピー</h4>
-              <p>生成されたコードの「コピー」ボタンをクリックします。</p>
+              <h4><span class="step-number">2</span> <span data-adm-ja="コードをコピー" data-adm-zh="复制代码">コードをコピー</span></h4>
+              <p><span data-adm-ja="生成されたコードの「コピー」ボタンをクリックします。" data-adm-zh="点击生成代码的「复制」按钮。">生成されたコードの「コピー」ボタンをクリックします。</span></p>
             </div>
             <div class="guide-step">
-              <h4><span class="step-number">3</span> GitHubでファイルを編集</h4>
-              <p>GitHubリポジトリの該当ファイル（index.html / parents.html / reviews.html）を開き、該当箇所を貼り替えます。</p>
+              <h4><span class="step-number">3</span> <span data-adm-ja="GitHubでファイルを編集" data-adm-zh="在GitHub编辑文件">GitHubでファイルを編集</span></h4>
+              <p><span data-adm-ja="GitHubリポジトリの該当ファイル（index.html / parents.html / reviews.html）を開き、該当箇所を貼り替えます。" data-adm-zh="打开GitHub仓库的对应文件（index.html / parents.html / reviews.html），替换对应的部分。">GitHubリポジトリの該当ファイル（index.html / parents.html / reviews.html）を開き、該当箇所を貼り替えます。</span></p>
             </div>
             <div class="guide-step">
-              <h4><span class="step-number">4</span> 保存してデプロイ</h4>
-              <p>「Commit changes」ボタンで保存すると、数分後にサイトに自動反映されます。</p>
+              <h4><span class="step-number">4</span> <span data-adm-ja="保存してデプロイ" data-adm-zh="保存并部署">保存してデプロイ</span></h4>
+              <p><span data-adm-ja="「Commit changes」ボタンで保存すると、数分後にサイトに自動反映されます。" data-adm-zh="点击「Commit changes」按钮保存，几分钟后网站会自动更新。">「Commit changes」ボタンで保存すると、数分後にサイトに自動反映されます。</span></p>
             </div>
-            <p style="color:var(--danger-dark);font-size:13px;margin-top:12px;font-weight:600;">※ この操作がわからない場合は、管理者に連絡してください。</p>
+            <p style="color:var(--danger-dark);font-size:13px;margin-top:12px;font-weight:600;"><span data-adm-ja="※ この操作がわからない場合は、管理者に連絡してください。" data-adm-zh="※ 如果不清楚操作方法，请联系管理员。">※ この操作がわからない場合は、管理者に連絡してください。</span></p>
           </div>
         </div>
 
         <!-- ====== DATA MANAGEMENT ====== -->
         <div class="panel-page" id="page-data">
           <div class="settings-card">
-            <h3>💾 JSONデータエクスポート</h3>
-            <p style="color:var(--text-light);margin-bottom:16px;font-size:13px;">現在の管理データ（子猫・親猫・レビュー）をJSON形式でダウンロードします。</p>
-            <button class="top-btn btn-primary" onclick="exportJSON()">JSONエクスポート</button>
+            <h3>💾 <span data-adm-ja="JSONデータエクスポート" data-adm-zh="JSON数据导出">JSONデータエクスポート</span></h3>
+            <p style="color:var(--text-light);margin-bottom:16px;font-size:13px;"><span data-adm-ja="現在の管理データ（子猫・親猫・レビュー）をJSON形式でダウンロードします。" data-adm-zh="将当前管理数据（子猫、种猫、评价）以JSON格式下载。">現在の管理データ（子猫・親猫・レビュー）をJSON形式でダウンロードします。</span></p>
+            <button class="top-btn btn-primary" onclick="exportJSON()"><span data-adm-ja="JSONエクスポート" data-adm-zh="导出JSON">JSONエクスポート</span></button>
           </div>
           <div class="settings-card">
-            <h3>📂 JSONデータインポート</h3>
-            <p style="color:var(--text-light);margin-bottom:16px;font-size:13px;">以前エクスポートしたJSONファイルからデータを復元します。<br><strong style="color:var(--danger-dark)">注意：現在のデータが上書きされます。</strong></p>
+            <h3>📂 <span data-adm-ja="JSONデータインポート" data-adm-zh="JSON数据导入">JSONデータインポート</span></h3>
+            <p style="color:var(--text-light);margin-bottom:16px;font-size:13px;"><span data-adm-ja="以前エクスポートしたJSONファイルからデータを復元します。<br><strong style='color:var(--danger-dark)'>注意：現在のデータが上書きされます。</strong>" data-adm-zh="从以前导出的JSON文件恢复数据。<br><strong style='color:var(--danger-dark)'>注意：当前数据将被覆盖。</strong>">以前エクスポートしたJSONファイルからデータを復元します。<br><strong style="color:var(--danger-dark)">注意：現在のデータが上書きされます。</strong></span></p>
             <div class="gallery-empty" id="importDropZone" onclick="document.getElementById('importFileInput').click()" style="cursor:pointer;">
               <div style="font-size:32px;margin-bottom:8px;">📂</div>
-              <p>クリックしてJSONファイルを選択</p>
+              <p><span data-adm-ja="クリックしてJSONファイルを選択" data-adm-zh="点击选择JSON文件">クリックしてJSONファイルを選択</span></p>
             </div>
             <input type="file" id="importFileInput" accept=".json" style="display:none">
           </div>
           <div class="settings-card">
-            <h3>🔄 データリセット</h3>
-            <p style="color:var(--text-light);margin-bottom:16px;font-size:13px;">管理データを初期状態（サイトの実際のデータ）に戻します。</p>
-            <button class="top-btn btn-danger" onclick="resetData()">データをリセット</button>
+            <h3>🔄 <span data-adm-ja="データリセット" data-adm-zh="数据重置">データリセット</span></h3>
+            <p style="color:var(--text-light);margin-bottom:16px;font-size:13px;"><span data-adm-ja="管理データを初期状態（サイトの実際のデータ）に戻します。" data-adm-zh="将管理数据恢复到初始状态（网站的实际数据）。">管理データを初期状態（サイトの実際のデータ）に戻します。</span></p>
+            <button class="top-btn btn-danger" onclick="resetData()"><span data-adm-ja="データをリセット" data-adm-zh="重置数据">データをリセット</span></button>
           </div>
         </div>
 
         <!-- ====== GUIDE ====== -->
         <div class="panel-page" id="page-guide">
           <div class="settings-card">
-            <h3>📖 操作ガイド</h3>
-            <p style="color:var(--text-light);margin-bottom:24px;font-size:13px;">管理画面の基本的な操作方法を説明します。</p>
+            <h3>📖 <span data-adm-ja="操作ガイド" data-adm-zh="操作指南">操作ガイド</span></h3>
+            <p style="color:var(--text-light);margin-bottom:24px;font-size:13px;"><span data-adm-ja="管理画面の基本的な操作方法を説明します。左のメニューから各ページにアクセスできます。" data-adm-zh="说明管理后台的基本操作方法。可以从左侧菜单访问各个页面。">管理画面の基本的な操作方法を説明します。左のメニューから各ページにアクセスできます。</span></p>
           </div>
 
           <div class="guide-step">
-            <h4><span class="step-number">1</span> 子猫を追加する</h4>
-            <p>「子猫管理」ページで右上の「＋ 新規追加」ボタンをクリック。<br>ブリーダーID、猫種、性別、カラー、誕生日、価格を入力して保存します。<br>パパ猫・ママ猫は登録済みの親猫から選択できます。</p>
+            <h4><span class="step-number">1</span> <span data-adm-ja="子猫を追加する" data-adm-zh="添加子猫">子猫を追加する</span></h4>
+            <p><span data-adm-ja="① 左メニューの「🐱 子猫管理」をクリック<br>② 右上の「＋ 新規追加」ボタンをクリック<br>③ フォームに情報を入力：<br>&nbsp;&nbsp;&nbsp;・ブリーダーID → 「みんなの子猫ブリーダー」の掲載IDをそのまま入力（例：2509-02907）<br>&nbsp;&nbsp;&nbsp;・猫種 → プルダウンから選択<br>&nbsp;&nbsp;&nbsp;・性別・カラー・誕生日・価格 → それぞれ入力<br>&nbsp;&nbsp;&nbsp;・ステータス → 販売中/商談中/ご家族決定から選択<br>&nbsp;&nbsp;&nbsp;・パパ猫/ママ猫 → 親猫管理で登録済みの親猫から選択可能<br>&nbsp;&nbsp;&nbsp;・YouTube動画 → YouTubeの「共有」→「埋め込む」からコードをコピー&ペースト<br>④ 「保存する」をクリック" data-adm-zh="① 点击左侧菜单的「🐱 子猫管理」<br>② 点击右上角的「＋ 新增」按钮<br>③ 在表单中填写信息：<br>&nbsp;&nbsp;&nbsp;・繁殖者ID → 直接输入「大家的小猫繁殖者」的刊登ID（例：2509-02907）<br>&nbsp;&nbsp;&nbsp;・品种 → 从下拉菜单选择<br>&nbsp;&nbsp;&nbsp;・性别、毛色、出生日、价格 → 分别填写<br>&nbsp;&nbsp;&nbsp;・状态 → 从在售/洽谈中/已找到家庭中选择<br>&nbsp;&nbsp;&nbsp;・爸爸猫/妈妈猫 → 可从种猫管理中已注册的种猫选择<br>&nbsp;&nbsp;&nbsp;・YouTube视频 → 复制YouTube「分享」→「嵌入」的代码粘贴即可<br>④ 点击「保存」">① 左メニューの「🐱 子猫管理」をクリック<br>② 右上の「＋ 新規追加」ボタンをクリック<br>③ フォームに情報を入力：<br>&nbsp;&nbsp;&nbsp;・ブリーダーID → 「みんなの子猫ブリーダー」の掲載IDをそのまま入力（例：2509-02907）<br>&nbsp;&nbsp;&nbsp;・猫種 → プルダウンから選択<br>&nbsp;&nbsp;&nbsp;・性別・カラー・誕生日・価格 → それぞれ入力<br>&nbsp;&nbsp;&nbsp;・ステータス → 販売中/商談中/ご家族決定から選択<br>&nbsp;&nbsp;&nbsp;・パパ猫/ママ猫 → 親猫管理で登録済みの親猫から選択可能<br>&nbsp;&nbsp;&nbsp;・YouTube動画 → YouTubeの「共有」→「埋め込む」からコードをコピー&ペースト<br>④ 「保存する」をクリック</span></p>
           </div>
 
           <div class="guide-step">
-            <h4><span class="step-number">2</span> 写真アルバムを管理する</h4>
-            <p>子猫・親猫の一覧で「写真」ボタンをクリック。<br>Google フォトの共有リンクを追加して、複数の写真を登録できます。<br>その中から1枚を「カバー写真」として選択すると、サイトのサムネイルに使用されます。</p>
+            <h4><span class="step-number">2</span> <span data-adm-ja="写真アルバムを管理する" data-adm-zh="管理照片相册">写真アルバムを管理する</span></h4>
+            <p><span data-adm-ja="① 子猫管理 or 親猫管理の一覧から「写真」ボタンをクリック<br>② 写真アルバム管理ウィンドウが開きます<br>③ Google フォトの共有リンクをコピーして「写真URLを追加」に貼り付け → 「追加」をクリック<br>④ 複数枚の写真を追加できます<br>⑤ 「★ カバーに設定」をクリックすると、その写真がサイトのサムネイルに使用されます<br>⑥ 不要な写真は「✕」ボタンで削除<br><br>💡 Google フォトの共有リンクの取得方法：<br>&nbsp;&nbsp;&nbsp;Google フォトで写真を開く → 右上「共有」→「リンクをコピー」" data-adm-zh="① 在子猫管理或种猫管理的列表中点击「照片」按钮<br>② 打开照片相册管理窗口<br>③ 复制Google相册的分享链接粘贴到「添加照片URL」→ 点击「添加」<br>④ 可以添加多张照片<br>⑤ 点击「★ 设为封面」，该照片会用作网站的缩略图<br>⑥ 不需要的照片点「✕」按钮删除<br><br>💡 获取Google相册分享链接的方法：<br>&nbsp;&nbsp;&nbsp;在Google相册打开照片 → 右上角「分享」→「复制链接」">① 子猫管理 or 親猫管理の一覧から「写真」ボタンをクリック<br>② 写真アルバム管理ウィンドウが開きます<br>③ Google フォトの共有リンクをコピーして「写真URLを追加」に貼り付け → 「追加」をクリック<br>④ 複数枚の写真を追加できます<br>⑤ 「★ カバーに設定」をクリックすると、その写真がサイトのサムネイルに使用されます<br>⑥ 不要な写真は「✕」ボタンで削除<br><br>💡 Google フォトの共有リンクの取得方法：<br>&nbsp;&nbsp;&nbsp;Google フォトで写真を開く → 右上「共有」→「リンクをコピー」</span></p>
           </div>
 
           <div class="guide-step">
-            <h4><span class="step-number">3</span> ステータスを変更する</h4>
-            <p>子猫の「編集」ボタンをクリックし、ステータスを変更します。<br>「販売中」→「商談中」→「ご家族決定」の順で更新できます。</p>
+            <h4><span class="step-number">3</span> <span data-adm-ja="ステータスを変更する" data-adm-zh="修改状态">ステータスを変更する</span></h4>
+            <p><span data-adm-ja="① 子猫管理の一覧で「編集」ボタンをクリック<br>② ステータスを変更：<br>&nbsp;&nbsp;&nbsp;・<strong>販売中</strong> → 購入可能な状態（サイトに表示）<br>&nbsp;&nbsp;&nbsp;・<strong>商談中</strong> → お客様とお話し中（サイトに「商談中」表示）<br>&nbsp;&nbsp;&nbsp;・<strong>ご家族決定</strong> → 売約済み（サイトに表示されなくなります）<br>③ 「保存する」をクリック" data-adm-zh="① 在子猫管理列表中点击「编辑」按钮<br>② 修改状态：<br>&nbsp;&nbsp;&nbsp;・<strong>在售</strong> → 可以购买的状态（显示在网站上）<br>&nbsp;&nbsp;&nbsp;・<strong>洽谈中</strong> → 正在与客户洽谈（网站上显示「洽谈中」）<br>&nbsp;&nbsp;&nbsp;・<strong>已找到家庭</strong> → 已售出（不再显示在网站上）<br>③ 点击「保存」">① 子猫管理の一覧で「編集」ボタンをクリック<br>② ステータスを変更：<br>&nbsp;&nbsp;&nbsp;・<strong>販売中</strong> → 購入可能な状態（サイトに表示）<br>&nbsp;&nbsp;&nbsp;・<strong>商談中</strong> → お客様とお話し中（サイトに「商談中」表示）<br>&nbsp;&nbsp;&nbsp;・<strong>ご家族決定</strong> → 売約済み（サイトに表示されなくなります）<br>③ 「保存する」をクリック</span></p>
           </div>
 
           <div class="guide-step">
-            <h4><span class="step-number">4</span> データをエクスポート・バックアップする</h4>
-            <p>「データ管理」ページで「JSONエクスポート」をクリックすると、全データがJSONファイルとしてダウンロードされます。<br>他のPCやブラウザにインポートすることもできます。</p>
+            <h4><span class="step-number">4</span> <span data-adm-ja="YouTube動画を追加する" data-adm-zh="添加YouTube视频">YouTube動画を追加する</span></h4>
+            <p><span data-adm-ja="① 子猫の「編集」ボタンをクリック<br>② フォーム下部の「YouTube動画」欄に以下のいずれかを貼り付け：<br>&nbsp;&nbsp;&nbsp;・<strong>埋め込みコード</strong>（推奨）: YouTubeで動画を開く →「共有」→「埋め込む」→ コードをコピー<br>&nbsp;&nbsp;&nbsp;・<strong>短縮URL</strong>: https://youtu.be/xxxxx の形式<br>&nbsp;&nbsp;&nbsp;・<strong>通常URL</strong>: https://www.youtube.com/watch?v=xxxxx の形式<br>③ 「保存する」をクリック<br>④ 子猫一覧に「▶YT」マークが表示されれば成功！<br>⑤ サイトの子猫詳細モーダルで動画が再生できます" data-adm-zh="① 点击子猫的「编辑」按钮<br>② 在表单下方的「YouTube视频」栏粘贴以下任一格式：<br>&nbsp;&nbsp;&nbsp;・<strong>嵌入代码</strong>（推荐）: 在YouTube打开视频 →「分享」→「嵌入」→ 复制代码<br>&nbsp;&nbsp;&nbsp;・<strong>短链接</strong>: https://youtu.be/xxxxx 格式<br>&nbsp;&nbsp;&nbsp;・<strong>普通链接</strong>: https://www.youtube.com/watch?v=xxxxx 格式<br>③ 点击「保存」<br>④ 子猫列表显示「▶YT」标记就成功了！<br>⑤ 网站的子猫详情弹窗中可以播放视频">① 子猫の「編集」ボタンをクリック<br>② フォーム下部の「YouTube動画」欄に以下のいずれかを貼り付け：<br>&nbsp;&nbsp;&nbsp;・<strong>埋め込みコード</strong>（推奨）: YouTubeで動画を開く →「共有」→「埋め込む」→ コードをコピー<br>&nbsp;&nbsp;&nbsp;・<strong>短縮URL</strong>: https://youtu.be/xxxxx の形式<br>&nbsp;&nbsp;&nbsp;・<strong>通常URL</strong>: https://www.youtube.com/watch?v=xxxxx の形式<br>③ 「保存する」をクリック<br>④ 子猫一覧に「▶YT」マークが表示されれば成功！<br>⑤ サイトの子猫詳細モーダルで動画が再生できます</span></p>
           </div>
 
           <div class="guide-step">
-            <h4><span class="step-number">5</span> ウェブサイトを更新する</h4>
-            <p>「HTML出力」ページで更新したいセクションのHTMLを生成します。<br>生成されたコードをコピーし、GitHubリポジトリの該当HTMLファイルに貼り付けてCommit。<br>GitHub Pagesが自動的にデプロイします（数分で反映）。<br><strong style="color:var(--danger-dark)">※ わからない場合は管理者に連絡してください。</strong></p>
+            <h4><span class="step-number">5</span> <span data-adm-ja="画像を管理する" data-adm-zh="管理图片">画像を管理する</span></h4>
+            <p><span data-adm-ja="① 左メニューの「🖼️ 画像管理」をクリック<br>② 各画像スロットに URL を入力するか「ファイル選択」でPC内の画像をアップロード<br>③ 各画像の推奨サイズが青いバッジで表示されています<br>④ 「💾 保存」をクリックして設定を保存<br>⑤ 「📋 HTMLコード生成」で、サイトに反映するためのHTMLコードを生成<br>⑥ 「👁 プレビュー」で現在の画像設定を確認できます<br><br>⚠️ 注意点：<br>&nbsp;&nbsp;&nbsp;・画像サイズは500KB以内がおすすめ<br>&nbsp;&nbsp;&nbsp;・レビュースクリーンショットはスマホで撮影<br>&nbsp;&nbsp;&nbsp;・遺伝子検査証明書は個人情報をモザイク処理" data-adm-zh="① 点击左侧菜单的「🖼️ 图片管理」<br>② 在每个图片位置输入URL或点击「选择文件」上传电脑中的图片<br>③ 每张图片的推荐尺寸用蓝色标签显示<br>④ 点击「💾 保存」保存设置<br>⑤ 点击「📋 生成HTML代码」生成用于更新网站的HTML代码<br>⑥ 点击「👁 预览全部」查看当前图片设置<br><br>⚠️ 注意事项：<br>&nbsp;&nbsp;&nbsp;・图片大小建议在500KB以内<br>&nbsp;&nbsp;&nbsp;・评价截图请用手机截屏<br>&nbsp;&nbsp;&nbsp;・基因检测证明书请对个人信息打马赛克">① 左メニューの「🖼️ 画像管理」をクリック<br>② 各画像スロットに URL を入力するか「ファイル選択」でPC内の画像をアップロード<br>③ 各画像の推奨サイズが青いバッジで表示されています<br>④ 「💾 保存」をクリックして設定を保存<br>⑤ 「📋 HTMLコード生成」で、サイトに反映するためのHTMLコードを生成<br>⑥ 「👁 プレビュー」で現在の画像設定を確認できます<br><br>⚠️ 注意点：<br>&nbsp;&nbsp;&nbsp;・画像サイズは500KB以内がおすすめ<br>&nbsp;&nbsp;&nbsp;・レビュースクリーンショットはスマホで撮影<br>&nbsp;&nbsp;&nbsp;・遺伝子検査証明書は個人情報をモザイク処理</span></p>
           </div>
 
           <div class="guide-step">
-            <h4><span class="step-number">6</span> データの仕組みについて</h4>
-            <p>このサイトはGitHub Pagesの静的サイトのため、バックエンドデータベースはありません。<br>管理画面のデータはブラウザのlocalStorageに保存されています。<br>ブラウザを変更したりキャッシュを消去すると、データが初期化されます。<br>必ず定期的にJSONエクスポートでバックアップを取ってください。</p>
+            <h4><span class="step-number">6</span> <span data-adm-ja="データをバックアップする" data-adm-zh="备份数据">データをバックアップする</span></h4>
+            <p><span data-adm-ja="① 左メニューの「💾 データ管理」をクリック<br>② 「JSONエクスポート」ボタンをクリック → JSONファイルが自動でダウンロードされます<br>③ このファイルを安全な場所に保存してください<br>④ 復元する時は「JSONデータインポート」をクリックして、保存したファイルを選択<br><br>⚠️ <strong>重要：</strong>週に1回はバックアップを取ることをおすすめします！<br>&nbsp;&nbsp;&nbsp;ブラウザのキャッシュを消去するとデータが消えます" data-adm-zh="① 点击左侧菜单的「💾 数据管理」<br>② 点击「导出JSON」按钮 → JSON文件会自动下载<br>③ 请将文件保存到安全的位置<br>④ 恢复数据时点击「JSON数据导入」，选择保存的文件<br><br>⚠️ <strong>重要：</strong>建议每周至少备份一次！<br>&nbsp;&nbsp;&nbsp;清除浏览器缓存会导致数据丢失">① 左メニューの「💾 データ管理」をクリック<br>② 「JSONエクスポート」ボタンをクリック → JSONファイルが自動でダウンロードされます<br>③ このファイルを安全な場所に保存してください<br>④ 復元する時は「JSONデータインポート」をクリックして、保存したファイルを選択<br><br>⚠️ <strong>重要：</strong>週に1回はバックアップを取ることをおすすめします！<br>&nbsp;&nbsp;&nbsp;ブラウザのキャッシュを消去するとデータが消えます</span></p>
+          </div>
+
+          <div class="guide-step">
+            <h4><span class="step-number">7</span> <span data-adm-ja="ウェブサイトを更新する" data-adm-zh="更新网站">ウェブサイトを更新する</span></h4>
+            <p><span data-adm-ja="① 左メニューの「📤 HTML出力」をクリック<br>② 更新したいセクションの「HTML生成」ボタンをクリック（子猫/親猫/レビュー）<br>③ 「コピー」ボタンをクリックしてHTMLコードをコピー<br>④ GitHub (<a href='https://github.com/mouxue56-debug/fuluckpet-website' target='_blank'>リポジトリ</a>) にアクセスしてファイルを編集<br>⑤ 該当箇所のHTMLを貼り替えて「Commit changes」をクリック<br>⑥ 数分後にサイト (fuluckpet.com) に自動反映されます<br><br><strong style='color:var(--danger-dark)'>※ GitHub操作がわからない場合は管理者に連絡してください</strong>" data-adm-zh="① 点击左侧菜单的「📤 HTML导出」<br>② 点击想要更新的区域的「生成HTML」按钮（子猫/种猫/评价）<br>③ 点击「复制」按钮复制HTML代码<br>④ 访问GitHub (<a href='https://github.com/mouxue56-debug/fuluckpet-website' target='_blank'>仓库</a>) 编辑文件<br>⑤ 替换对应部分的HTML后点击「Commit changes」<br>⑥ 几分钟后网站 (fuluckpet.com) 会自动更新<br><br><strong style='color:var(--danger-dark)'>※ 如果不清楚GitHub操作请联系管理员</strong>">① 左メニューの「📤 HTML出力」をクリック<br>② 更新したいセクションの「HTML生成」ボタンをクリック（子猫/親猫/レビュー）<br>③ 「コピー」ボタンをクリックしてHTMLコードをコピー<br>④ GitHub (<a href='https://github.com/mouxue56-debug/fuluckpet-website' target='_blank'>リポジトリ</a>) にアクセスしてファイルを編集<br>⑤ 該当箇所のHTMLを貼り替えて「Commit changes」をクリック<br>⑥ 数分後にサイト (fuluckpet.com) に自動反映されます<br><br><strong style='color:var(--danger-dark)'>※ GitHub操作がわからない場合は管理者に連絡してください</strong></span></p>
+          </div>
+
+          <div class="guide-step">
+            <h4><span class="step-number">8</span> <span data-adm-ja="データの仕組みについて" data-adm-zh="关于数据机制">データの仕組みについて</span></h4>
+            <p><span data-adm-ja="📌 <strong>知っておくべきこと：</strong><br>・このサイトはGitHub Pagesの静的サイトです（データベースなし）<br>・管理画面のデータはブラウザの<strong>localStorage</strong>に保存されています<br>・同じブラウザ・同じPCでのみデータが見えます<br>・ブラウザのキャッシュをクリアするとデータが初期化されます<br>・別のPC/ブラウザで使うには「JSONエクスポート → インポート」してください<br>・サイトURL: <a href='https://fuluckpet.com' target='_blank'>fuluckpet.com</a><br>・管理画面URL: <a href='https://fuluckpet.com/admin/' target='_blank'>fuluckpet.com/admin/</a>" data-adm-zh="📌 <strong>需要了解的事项：</strong><br>・本网站是GitHub Pages的静态网站（没有数据库）<br>・管理后台的数据保存在浏览器的<strong>localStorage</strong>中<br>・只有在同一浏览器、同一台电脑上才能看到数据<br>・清除浏览器缓存会导致数据初始化<br>・在其他电脑/浏览器使用请先「导出JSON → 导入」<br>・网站地址: <a href='https://fuluckpet.com' target='_blank'>fuluckpet.com</a><br>・管理后台地址: <a href='https://fuluckpet.com/admin/' target='_blank'>fuluckpet.com/admin/</a>">📌 <strong>知っておくべきこと：</strong><br>・このサイトはGitHub Pagesの静的サイトです（データベースなし）<br>・管理画面のデータはブラウザの<strong>localStorage</strong>に保存されています<br>・同じブラウザ・同じPCでのみデータが見えます<br>・ブラウザのキャッシュをクリアするとデータが初期化されます<br>・別のPC/ブラウザで使うには「JSONエクスポート → インポート」してください<br>・サイトURL: <a href='https://fuluckpet.com' target='_blank'>fuluckpet.com</a><br>・管理画面URL: <a href='https://fuluckpet.com/admin/' target='_blank'>fuluckpet.com/admin/</a></span></p>
           </div>
         </div>
 
         <!-- ====== SETTINGS ====== -->
         <div class="panel-page" id="page-settings">
           <div class="settings-card">
-            <h3>🔐 パスワード変更</h3>
+            <h3>🔐 <span data-adm-ja="パスワード変更" data-adm-zh="修改密码">パスワード変更</span></h3>
             <div class="form-row">
-              <div class="form-group"><label class="form-label">新しいパスワード</label><input class="form-input" type="password" id="newPassword"></div>
-              <div class="form-group"><label class="form-label">確認</label><input class="form-input" type="password" id="confirmPassword"></div>
+              <div class="form-group"><label class="form-label"><span data-adm-ja="新しいパスワード" data-adm-zh="新密码">新しいパスワード</span></label><input class="form-input" type="password" id="newPassword"></div>
+              <div class="form-group"><label class="form-label"><span data-adm-ja="確認" data-adm-zh="确认">確認</span></label><input class="form-input" type="password" id="confirmPassword"></div>
             </div>
-            <button class="btn-save" id="changePasswordBtn">パスワードを変更</button>
+            <button class="btn-save" id="changePasswordBtn"><span data-adm-ja="パスワードを変更" data-adm-zh="修改密码">パスワードを変更</span></button>
           </div>
         </div>
 
@@ -785,38 +797,45 @@
   <!-- ====== KITTEN FORM MODAL ====== -->
   <div class="modal-overlay" id="kittenFormModal">
     <div class="modal modal-lg">
-      <div class="modal-header"><h2 id="kittenFormTitle">子猫の追加</h2><button class="modal-close" onclick="closeModal('kittenFormModal')">×</button></div>
+      <div class="modal-header"><h2 id="kittenFormTitle"><span data-adm-ja="子猫の追加" data-adm-zh="添加子猫">子猫の追加</span></h2><button class="modal-close" onclick="closeModal('kittenFormModal')">×</button></div>
       <div class="modal-body">
         <input type="hidden" id="kittenEditId">
         <div class="form-row">
-          <div class="form-group"><label class="form-label">ブリーダーID</label><input class="form-input" id="kf_breederId" placeholder="例：2509-02907"><div class="form-hint">手動入力してください</div></div>
-          <div class="form-group"><label class="form-label">猫種 *</label><select class="form-select" id="kf_breed"><option>サイベリアン</option><option>ブリティッシュショートヘア</option><option>ブリティッシュロングヘア</option><option>ラグドール</option><option>サイベリアン×ブリティッシュ</option></select></div>
+          <div class="form-group"><label class="form-label"><span data-adm-ja="ブリーダーID" data-adm-zh="繁殖者ID">ブリーダーID</span></label><input class="form-input" id="kf_breederId" placeholder="例：2509-02907"><div class="form-hint"><span data-adm-ja="みんなの子猫ブリーダーの掲載IDを手動入力" data-adm-zh="手动输入「大家的小猫繁殖者」的刊登ID">みんなの子猫ブリーダーの掲載IDを手動入力</span></div></div>
+          <div class="form-group"><label class="form-label"><span data-adm-ja="猫種 *" data-adm-zh="品种 *">猫種 *</span></label><select class="form-select" id="kf_breed"><option>サイベリアン</option><option>ブリティッシュショートヘア</option><option>ブリティッシュロングヘア</option><option>ラグドール</option><option>サイベリアン×ブリティッシュ</option></select></div>
         </div>
         <div class="form-row-3">
-          <div class="form-group"><label class="form-label">性別 *</label><select class="form-select" id="kf_gender"><option value="♂">♂ 男の子</option><option value="♀">♀ 女の子</option></select></div>
-          <div class="form-group"><label class="form-label">カラー *</label><input class="form-input" id="kf_color" placeholder="例：ブルーリンクスポイント"></div>
-          <div class="form-group"><label class="form-label">誕生日 *</label><input class="form-input" type="month" id="kf_birthday"></div>
+          <div class="form-group"><label class="form-label"><span data-adm-ja="性別 *" data-adm-zh="性别 *">性別 *</span></label><select class="form-select" id="kf_gender"><option value="♂">♂ 男の子</option><option value="♀">♀ 女の子</option></select></div>
+          <div class="form-group"><label class="form-label"><span data-adm-ja="カラー *" data-adm-zh="毛色 *">カラー *</span></label><input class="form-input" id="kf_color" placeholder="例：ブルーリンクスポイント"></div>
+          <div class="form-group"><label class="form-label"><span data-adm-ja="誕生日 *" data-adm-zh="出生日 *">誕生日 *</span></label><input class="form-input" type="month" id="kf_birthday"></div>
         </div>
         <div class="form-row-3">
-          <div class="form-group"><label class="form-label">価格（税込）*</label><input class="form-input" type="number" id="kf_price" placeholder="250000"></div>
-          <div class="form-group"><label class="form-label">ステータス *</label><select class="form-select" id="kf_status"><option value="available">販売中</option><option value="reserved">商談中</option><option value="sold">ご家族決定</option></select></div>
-          <div class="form-group"><label class="form-label">NEWバッジ</label><select class="form-select" id="kf_isNew"><option value="true">表示</option><option value="false">非表示</option></select></div>
+          <div class="form-group"><label class="form-label"><span data-adm-ja="価格（税込）*" data-adm-zh="价格（含税）*">価格（税込）*</span></label><input class="form-input" type="number" id="kf_price" placeholder="250000"></div>
+          <div class="form-group"><label class="form-label"><span data-adm-ja="ステータス *" data-adm-zh="状态 *">ステータス *</span></label><select class="form-select" id="kf_status"><option value="available">販売中</option><option value="reserved">商談中</option><option value="sold">ご家族決定</option></select></div>
+          <div class="form-group"><label class="form-label"><span data-adm-ja="NEWバッジ" data-adm-zh="NEW标签">NEWバッジ</span></label><select class="form-select" id="kf_isNew"><option value="true">表示</option><option value="false">非表示</option></select></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label class="form-label">パパ猫</label><select class="form-select" id="kf_papa"><option value="">-- 選択 --</option></select></div>
-          <div class="form-group"><label class="form-label">ママ猫</label><select class="form-select" id="kf_mama"><option value="">-- 選択 --</option></select></div>
+          <div class="form-group"><label class="form-label"><span data-adm-ja="パパ猫" data-adm-zh="爸爸猫">パパ猫</span></label><select class="form-select" id="kf_papa"><option value="">-- 選択 --</option></select></div>
+          <div class="form-group"><label class="form-label"><span data-adm-ja="ママ猫" data-adm-zh="妈妈猫">ママ猫</span></label><select class="form-select" id="kf_mama"><option value="">-- 選択 --</option></select></div>
         </div>
         <div class="form-group">
-          <label class="form-label">備考</label>
+          <label class="form-label"><span data-adm-ja="備考" data-adm-zh="备注">備考</span></label>
           <input class="form-input" id="kf_note" placeholder="例：去勢済み">
         </div>
         <div class="form-group">
-          <p style="font-size:12px;color:var(--text-light);background:var(--bg);padding:12px;border-radius:8px;">📷 写真は保存後、一覧の「写真」ボタンから管理できます。</p>
+          <label class="form-label"><span data-adm-ja="YouTube動画" data-adm-zh="YouTube视频">YouTube動画</span></label>
+          <textarea class="form-textarea" id="kf_video" rows="3" placeholder='YouTubeの「共有」→「埋め込む」からコードをコピーして貼り付け&#10;例: <iframe width="560" height="315" src="https://www.youtube.com/embed/xxxxx" ...></iframe>&#10;または動画URL: https://youtu.be/xxxxx'></textarea>
+          <div class="form-hint" style="background:var(--bg);padding:10px 12px;border-radius:8px;margin-top:6px;line-height:1.8;">
+            <span data-adm-ja="📹 <b>貼り付け方法：</b><br>① YouTubeで動画を開く → ②「共有」をクリック → ③「埋め込む」をクリック → ④ コードをコピー → ⑤ ここに貼り付け<br>💡 埋め込みコード・短縮URL・通常URLのいずれでもOKです" data-adm-zh="📹 <b>粘贴方法：</b><br>① 在YouTube打开视频 → ② 点击「分享」→ ③ 点击「嵌入」→ ④ 复制代码 → ⑤ 粘贴到这里<br>💡 嵌入代码、短链接、普通链接都可以">📹 <b>貼り付け方法：</b><br>① YouTubeで動画を開く → ②「共有」をクリック → ③「埋め込む」をクリック → ④ コードをコピー → ⑤ ここに貼り付け<br>💡 埋め込みコード・短縮URL・通常URLのいずれでもOKです</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <p style="font-size:12px;color:var(--text-light);background:var(--bg);padding:12px;border-radius:8px;"><span data-adm-ja="📷 写真は保存後、一覧の「写真」ボタンから管理できます。" data-adm-zh="📷 照片保存后，可以在列表的「照片」按钮管理。">📷 写真は保存後、一覧の「写真」ボタンから管理できます。</span></p>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn-cancel" onclick="closeModal('kittenFormModal')">キャンセル</button>
-        <button class="btn-save" onclick="saveKitten()">保存する</button>
+        <button class="btn-cancel" onclick="closeModal('kittenFormModal')"><span data-adm-ja="キャンセル" data-adm-zh="取消">キャンセル</span></button>
+        <button class="btn-save" onclick="saveKitten()"><span data-adm-ja="保存する" data-adm-zh="保存">保存する</span></button>
       </div>
     </div>
   </div>
@@ -824,33 +843,33 @@
   <!-- ====== PARENT FORM MODAL ====== -->
   <div class="modal-overlay" id="parentFormModal">
     <div class="modal">
-      <div class="modal-header"><h2 id="parentFormTitle">親猫の編集</h2><button class="modal-close" onclick="closeModal('parentFormModal')">×</button></div>
+      <div class="modal-header"><h2 id="parentFormTitle"><span data-adm-ja="親猫の編集" data-adm-zh="编辑种猫">親猫の編集</span></h2><button class="modal-close" onclick="closeModal('parentFormModal')">×</button></div>
       <div class="modal-body">
         <input type="hidden" id="parentEditId">
         <div class="form-row">
-          <div class="form-group"><label class="form-label">名前 *</label><input class="form-input" id="pf_name" placeholder="例：しろくん"></div>
-          <div class="form-group"><label class="form-label">猫種 *</label><select class="form-select" id="pf_breed"><option>サイベリアン</option><option>ブリティッシュショートヘア</option><option>ブリティッシュロングヘア</option><option>ラグドール</option></select></div>
+          <div class="form-group"><label class="form-label"><span data-adm-ja="名前 *" data-adm-zh="名字 *">名前 *</span></label><input class="form-input" id="pf_name" placeholder="例：しろくん"></div>
+          <div class="form-group"><label class="form-label"><span data-adm-ja="猫種 *" data-adm-zh="品种 *">猫種 *</span></label><select class="form-select" id="pf_breed"><option>サイベリアン</option><option>ブリティッシュショートヘア</option><option>ブリティッシュロングヘア</option><option>ラグドール</option></select></div>
         </div>
         <div class="form-row-3">
-          <div class="form-group"><label class="form-label">性別</label><select class="form-select" id="pf_gender"><option value="♂">♂</option><option value="♀">♀</option></select></div>
-          <div class="form-group"><label class="form-label">カラー</label><input class="form-input" id="pf_color" placeholder="例：ホワイト"></div>
-          <div class="form-group"><label class="form-label">年齢</label><input class="form-input" id="pf_age" placeholder="例：3歳"></div>
+          <div class="form-group"><label class="form-label"><span data-adm-ja="性別" data-adm-zh="性别">性別</span></label><select class="form-select" id="pf_gender"><option value="♂">♂</option><option value="♀">♀</option></select></div>
+          <div class="form-group"><label class="form-label"><span data-adm-ja="カラー" data-adm-zh="毛色">カラー</span></label><input class="form-input" id="pf_color" placeholder="例：ホワイト"></div>
+          <div class="form-group"><label class="form-label"><span data-adm-ja="年齢" data-adm-zh="年龄">年齢</span></label><input class="form-input" id="pf_age" placeholder="例：3歳"></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label class="form-label">役割</label><select class="form-select" id="pf_role"><option value="パパ猫">パパ猫</option><option value="ママ猫">ママ猫</option></select></div>
-          <div class="form-group"><label class="form-label">遺伝子検査</label><select class="form-select" id="pf_tested"><option value="true">検査済み</option><option value="false">未検査</option></select></div>
+          <div class="form-group"><label class="form-label"><span data-adm-ja="役割" data-adm-zh="角色">役割</span></label><select class="form-select" id="pf_role"><option value="パパ猫">パパ猫</option><option value="ママ猫">ママ猫</option></select></div>
+          <div class="form-group"><label class="form-label"><span data-adm-ja="遺伝子検査" data-adm-zh="基因检测">遺伝子検査</span></label><select class="form-select" id="pf_tested"><option value="true">検査済み</option><option value="false">未検査</option></select></div>
         </div>
         <div class="form-group">
-          <label class="form-label">ブリーダーグループ</label>
+          <label class="form-label"><span data-adm-ja="ブリーダーグループ" data-adm-zh="繁殖者组别">ブリーダーグループ</span></label>
           <select class="form-select" id="pf_group"><option value="c995680">羅方遠（c995680）</option><option value="d696506">刘小棉（d696506）</option></select>
         </div>
         <div class="form-group">
-          <p style="font-size:12px;color:var(--text-light);background:var(--bg);padding:12px;border-radius:8px;">📷 写真は保存後、一覧の「写真」ボタンから管理できます。</p>
+          <p style="font-size:12px;color:var(--text-light);background:var(--bg);padding:12px;border-radius:8px;"><span data-adm-ja="📷 写真は保存後、一覧の「写真」ボタンから管理できます。" data-adm-zh="📷 照片保存后，可以在列表的「照片」按钮管理。">📷 写真は保存後、一覧の「写真」ボタンから管理できます。</span></p>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn-cancel" onclick="closeModal('parentFormModal')">キャンセル</button>
-        <button class="btn-save" onclick="saveParent()">保存する</button>
+        <button class="btn-cancel" onclick="closeModal('parentFormModal')"><span data-adm-ja="キャンセル" data-adm-zh="取消">キャンセル</span></button>
+        <button class="btn-save" onclick="saveParent()"><span data-adm-ja="保存する" data-adm-zh="保存">保存する</span></button>
       </div>
     </div>
   </div>
@@ -858,19 +877,19 @@
   <!-- ====== REVIEW FORM MODAL ====== -->
   <div class="modal-overlay" id="reviewFormModal">
     <div class="modal">
-      <div class="modal-header"><h2 id="reviewFormTitle">レビューの編集</h2><button class="modal-close" onclick="closeModal('reviewFormModal')">×</button></div>
+      <div class="modal-header"><h2 id="reviewFormTitle"><span data-adm-ja="レビューの編集" data-adm-zh="编辑评价">レビューの編集</span></h2><button class="modal-close" onclick="closeModal('reviewFormModal')">×</button></div>
       <div class="modal-body">
         <input type="hidden" id="reviewEditId">
         <div class="form-row">
-          <div class="form-group"><label class="form-label">お名前 *</label><input class="form-input" id="rf_author" placeholder="例：L.A様"></div>
-          <div class="form-group"><label class="form-label">地域 *</label><input class="form-input" id="rf_region" placeholder="例：大阪府"></div>
+          <div class="form-group"><label class="form-label"><span data-adm-ja="お名前 *" data-adm-zh="姓名 *">お名前 *</span></label><input class="form-input" id="rf_author" placeholder="例：L.A様"></div>
+          <div class="form-group"><label class="form-label"><span data-adm-ja="地域 *" data-adm-zh="地区 *">地域 *</span></label><input class="form-input" id="rf_region" placeholder="例：大阪府"></div>
         </div>
-        <div class="form-group"><label class="form-label">時期</label><input class="form-input" id="rf_date" placeholder="例：2026年1月"></div>
-        <div class="form-group"><label class="form-label">本文 *</label><textarea class="form-textarea" id="rf_body" rows="4"></textarea></div>
+        <div class="form-group"><label class="form-label"><span data-adm-ja="時期" data-adm-zh="时间">時期</span></label><input class="form-input" id="rf_date" placeholder="例：2026年1月"></div>
+        <div class="form-group"><label class="form-label"><span data-adm-ja="本文 *" data-adm-zh="正文 *">本文 *</span></label><textarea class="form-textarea" id="rf_body" rows="4"></textarea></div>
       </div>
       <div class="modal-footer">
-        <button class="btn-cancel" onclick="closeModal('reviewFormModal')">キャンセル</button>
-        <button class="btn-save" onclick="saveReview()">保存する</button>
+        <button class="btn-cancel" onclick="closeModal('reviewFormModal')"><span data-adm-ja="キャンセル" data-adm-zh="取消">キャンセル</span></button>
+        <button class="btn-save" onclick="saveReview()"><span data-adm-ja="保存する" data-adm-zh="保存">保存する</span></button>
       </div>
     </div>
   </div>
@@ -878,23 +897,23 @@
   <!-- ====== PHOTO / GALLERY MODAL ====== -->
   <div class="modal-overlay" id="photoModal">
     <div class="modal modal-lg">
-      <div class="modal-header"><h2>写真アルバム管理</h2><button class="modal-close" onclick="closeModal('photoModal')">×</button></div>
+      <div class="modal-header"><h2><span data-adm-ja="写真アルバム管理" data-adm-zh="照片相册管理">写真アルバム管理</span></h2><button class="modal-close" onclick="closeModal('photoModal')">×</button></div>
       <div class="modal-body">
         <input type="hidden" id="photo_type">
         <input type="hidden" id="photo_id">
-        <p style="font-size:13px;color:var(--text-light);margin-bottom:16px;">写真を追加・削除したり、カバー写真を選択できます。</p>
+        <p style="font-size:13px;color:var(--text-light);margin-bottom:16px;"><span data-adm-ja="写真を追加・削除したり、カバー写真を選択できます。" data-adm-zh="可以添加、删除照片，以及选择封面照片。">写真を追加・削除したり、カバー写真を選択できます。</span></p>
         <div id="galleryGrid" class="gallery-grid"></div>
         <div style="margin-top:20px;">
-          <label class="form-label">写真URLを追加</label>
+          <label class="form-label"><span data-adm-ja="写真URLを追加" data-adm-zh="添加照片URL">写真URLを追加</span></label>
           <div style="display:flex;gap:8px;">
             <input class="form-input" id="newPhotoUrl" placeholder="https://photos.google.com/..." style="flex:1;">
-            <button class="btn-save" onclick="addGalleryPhoto()">追加</button>
+            <button class="btn-save" onclick="addGalleryPhoto()"><span data-adm-ja="追加" data-adm-zh="添加">追加</span></button>
           </div>
-          <div class="form-hint">Google フォトの共有リンクを貼り付けてください</div>
+          <div class="form-hint"><span data-adm-ja="Google フォトの共有リンクを貼り付けてください" data-adm-zh="请粘贴Google相册的分享链接">Google フォトの共有リンクを貼り付けてください</span></div>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn-cancel" onclick="closeModal('photoModal')">閉じる</button>
+        <button class="btn-cancel" onclick="closeModal('photoModal')"><span data-adm-ja="閉じる" data-adm-zh="关闭">閉じる</span></button>
       </div>
     </div>
   </div>
@@ -1081,7 +1100,7 @@ document.querySelectorAll('.nav-item').forEach(function(item) {
     item.classList.add('active');
     document.querySelectorAll('.panel-page').forEach(function(p) { p.classList.remove('active'); });
     document.getElementById('page-' + page).classList.add('active');
-    document.getElementById('pageTitle').textContent = pageTitles[page] || '';
+    document.getElementById('pageTitle').textContent = (admLang === 'zh' ? pageTitlesZh[page] : pageTitles[page]) || '';
     document.getElementById('addNewBtn').style.display = ['kittens','parents','reviews'].indexOf(page) >= 0 ? 'inline-flex' : 'none';
   });
 });
@@ -1115,9 +1134,9 @@ function renderPagination(containerId, currentPage, totalPages, onPageChange) {
   if (!container) return;
   if (totalPages <= 1) { container.innerHTML = ''; return; }
   container.innerHTML =
-    '<button class="page-prev" ' + (currentPage <= 1 ? 'disabled' : '') + '>« 前へ</button>' +
-    '<span class="page-info">' + currentPage + ' / ' + totalPages + ' ページ</span>' +
-    '<button class="page-next" ' + (currentPage >= totalPages ? 'disabled' : '') + '>次へ »</button>';
+    '<button class="page-prev" ' + (currentPage <= 1 ? 'disabled' : '') + '>« ' + t('前へ','上一页') + '</button>' +
+    '<span class="page-info">' + currentPage + ' / ' + totalPages + ' ' + t('ページ','页') + '</span>' +
+    '<button class="page-next" ' + (currentPage >= totalPages ? 'disabled' : '') + '>' + t('次へ','下一页') + ' »</button>';
   var prev = container.querySelector('.page-prev');
   var next = container.querySelector('.page-next');
   if (prev) prev.addEventListener('click', function() { if (currentPage > 1) onPageChange(currentPage - 1); });
@@ -1134,6 +1153,7 @@ function renderAll() {
   renderParents();
   renderReviews();
   loadImageConfig();
+  applyAdminLang();
 }
 
 // ============================================================
@@ -1151,16 +1171,16 @@ function renderDashboard() {
 
   document.getElementById('dashboardSummary').innerHTML =
     '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">' +
-    '<div style="text-align:center;padding:20px;background:#C6F6D5;border-radius:8px;"><div style="font-size:24px;font-weight:700;color:#22543D;">' + avail + '</div><div style="font-size:12px;color:#22543D;">販売中</div></div>' +
-    '<div style="text-align:center;padding:20px;background:#FEFCBF;border-radius:8px;"><div style="font-size:24px;font-weight:700;color:#744210;">' + reserved + '</div><div style="font-size:12px;color:#744210;">商談中</div></div>' +
-    '<div style="text-align:center;padding:20px;background:#FED7E2;border-radius:8px;"><div style="font-size:24px;font-weight:700;color:#702459;">' + sold + '</div><div style="font-size:12px;color:#702459;">ご家族決定</div></div>' +
+    '<div style="text-align:center;padding:20px;background:#C6F6D5;border-radius:8px;"><div style="font-size:24px;font-weight:700;color:#22543D;">' + avail + '</div><div style="font-size:12px;color:#22543D;">' + t('販売中','在售') + '</div></div>' +
+    '<div style="text-align:center;padding:20px;background:#FEFCBF;border-radius:8px;"><div style="font-size:24px;font-weight:700;color:#744210;">' + reserved + '</div><div style="font-size:12px;color:#744210;">' + t('商談中','洽谈中') + '</div></div>' +
+    '<div style="text-align:center;padding:20px;background:#FED7E2;border-radius:8px;"><div style="font-size:24px;font-weight:700;color:#702459;">' + sold + '</div><div style="font-size:12px;color:#702459;">' + t('ご家族決定','已找到家庭') + '</div></div>' +
     '</div>';
 
   try {
     var logs = JSON.parse(localStorage.getItem(LOG_KEY) || '[]');
     document.getElementById('changeLog').innerHTML = logs.length ? logs.slice(0, 10).map(function(l) {
       return '<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--text-light);margin-right:12px;">' + l.time + '</span>' + l.msg + '</div>';
-    }).join('') : '<p style="color:var(--text-light);font-size:13px">まだ変更履歴はありません</p>';
+    }).join('') : '<p style="color:var(--text-light);font-size:13px">' + t('まだ変更履歴はありません','暂无修改记录') + '</p>';
   } catch(e) {}
 }
 
@@ -1180,8 +1200,8 @@ function renderKittens(filter) {
     var cover = getCoverPhoto(k);
     var photoCount = (k.photos || []).length;
     var statusClass = k.status === 'available' ? 'badge-available' : k.status === 'reserved' ? 'badge-reserved' : 'badge-sold';
-    var statusText = k.status === 'available' ? '販売中' : k.status === 'reserved' ? '商談中' : 'ご家族決定';
-    var genderDisplay = k.gender === '♂' ? '♂ 男の子' : '♀ 女の子';
+    var statusText = k.status === 'available' ? t('販売中','在售') : k.status === 'reserved' ? t('商談中','洽谈中') : t('ご家族決定','已找到家庭');
+    var genderDisplay = k.gender === '♂' ? t('♂ 男の子','♂ 公') : t('♀ 女の子','♀ 母');
     var birthdayDisplay = k.birthday ? k.birthday.replace('-', '年') + '月' : '--';
     return '<tr>' +
       '<td class="thumb-cell">' + (cover ? '<img src="' + cover + '" class="thumb-img" onclick="openPhotoModal(\'kitten\',\'' + k.id + '\')" title="クリックで写真管理">' : '<div class="thumb-placeholder" onclick="openPhotoModal(\'kitten\',\'' + k.id + '\')" style="cursor:pointer;" title="クリックで写真追加">🐱</div>') + '</td>' +
@@ -1194,9 +1214,10 @@ function renderKittens(filter) {
       '<td><span class="status-badge ' + statusClass + '">' + statusText + '</span>' + (k.isNew ? ' <span style="background:var(--mint);color:white;font-size:10px;padding:1px 6px;border-radius:4px;">NEW</span>' : '') + '</td>' +
       '<td style="font-size:12px;white-space:nowrap;">' + (k.papa||'--') + ' / ' + (k.mama||'--') + '</td>' +
       '<td><div class="action-btns">' +
-        '<button class="action-btn photo" onclick="openPhotoModal(\'kitten\',\'' + k.id + '\')">写真' + (photoCount > 0 ? '(' + photoCount + ')' : '') + '</button>' +
-        '<button class="action-btn edit" onclick="editKitten(\'' + k.id + '\')">編集</button>' +
-        '<button class="action-btn delete" onclick="deleteKitten(\'' + k.id + '\')">削除</button>' +
+        '<button class="action-btn photo" onclick="openPhotoModal(\'kitten\',\'' + k.id + '\')">' + t('写真','照片') + (photoCount > 0 ? '(' + photoCount + ')' : '') + '</button>' +
+        (k.video ? '<span style="color:#c4302b;font-size:11px;font-weight:600;" title="' + t('YouTube動画あり','有YouTube视频') + '">▶YT</span>' : '') +
+        '<button class="action-btn edit" onclick="editKitten(\'' + k.id + '\')">' + t('編集','编辑') + '</button>' +
+        '<button class="action-btn delete" onclick="deleteKitten(\'' + k.id + '\')">' + t('削除','删除') + '</button>' +
       '</div></td>' +
     '</tr>';
   }).join('');
@@ -1208,7 +1229,7 @@ document.getElementById('kittenFilterStatus').addEventListener('change', functio
 
 function openKittenForm(kitten) {
   document.getElementById('kittenEditId').value = kitten ? kitten.id : '';
-  document.getElementById('kittenFormTitle').textContent = kitten ? '子猫の編集' : '子猫の追加';
+  document.getElementById('kittenFormTitle').textContent = kitten ? t('子猫の編集','编辑子猫') : t('子猫の追加','添加子猫');
   document.getElementById('kf_breederId').value = kitten ? kitten.breederId : '';
   document.getElementById('kf_breed').value = kitten ? kitten.breed : 'サイベリアン';
   document.getElementById('kf_gender').value = kitten ? kitten.gender : '♂';
@@ -1218,6 +1239,7 @@ function openKittenForm(kitten) {
   document.getElementById('kf_status').value = kitten ? kitten.status : 'available';
   document.getElementById('kf_isNew').value = kitten ? String(kitten.isNew) : 'true';
   document.getElementById('kf_note').value = kitten ? (kitten.note||'') : '';
+  document.getElementById('kf_video').value = kitten ? (kitten.video||'') : '';
 
   var papas = data.parents.filter(function(p) { return p.gender === '♂'; });
   var mamas = data.parents.filter(function(p) { return p.gender === '♀'; });
@@ -1246,36 +1268,37 @@ function saveKitten() {
     papa: document.getElementById('kf_papa').value,
     mama: document.getElementById('kf_mama').value,
     note: document.getElementById('kf_note').value.trim(),
+    video: document.getElementById('kf_video').value.trim(),
   };
 
-  if (!obj.breederId && !obj.color) { showToast('ブリーダーIDまたはカラーを入力してください', 'error'); return; }
+  if (!obj.breederId && !obj.color) { showToast(t('ブリーダーIDまたはカラーを入力してください','请输入繁殖者ID或毛色'), 'error'); return; }
 
   if (editId) {
     var idx = data.kittens.findIndex(function(k) { return k.id === editId; });
-    if (idx >= 0) { Object.assign(data.kittens[idx], obj); addLog('子猫 ' + obj.breederId + ' を編集しました'); }
+    if (idx >= 0) { Object.assign(data.kittens[idx], obj); addLog(t('子猫 ' + obj.breederId + ' を編集しました','编辑了子猫 ' + obj.breederId)); }
   } else {
     obj.id = 'k' + Date.now();
     obj.group = '';
     obj.photos = [];
     obj.coverIndex = 0;
     data.kittens.push(obj);
-    addLog('子猫 ' + obj.breederId + ' を追加しました');
+    addLog(t('子猫 ' + obj.breederId + ' を追加しました','添加了子猫 ' + obj.breederId));
   }
   saveData(data);
   closeModal('kittenFormModal');
   renderAll();
-  showToast('保存しました', 'success');
+  showToast(t('保存しました','已保存'), 'success');
 }
 
 function deleteKitten(id) {
   var k = data.kittens.find(function(x) { return x.id === id; });
   if (!k) return;
-  if (!confirm('子猫 ' + k.breederId + ' を削除しますか？')) return;
+  if (!confirm(t('子猫 ' + k.breederId + ' を削除しますか？','确定删除子猫 ' + k.breederId + '？'))) return;
   data.kittens = data.kittens.filter(function(x) { return x.id !== id; });
   saveData(data);
-  addLog('子猫 ' + k.breederId + ' を削除しました');
+  addLog(t('子猫 ' + k.breederId + ' を削除しました','删除了子猫 ' + k.breederId));
   renderAll();
-  showToast('削除しました', 'success');
+  showToast(t('削除しました','已删除'), 'success');
 }
 
 // ============================================================
@@ -1306,11 +1329,11 @@ function renderParents(filter) {
       '<td>' + p.color + '</td>' +
       '<td>' + p.age + '</td>' +
       '<td><span class="status-badge ' + roleClass + '">' + p.role + '</span></td>' +
-      '<td>' + (p.tested ? '<span style="color:var(--success);font-weight:600;">✓ 検査済</span>' : '<span style="color:var(--text-light);">未検査</span>') + '</td>' +
+      '<td>' + (p.tested ? '<span style="color:var(--success);font-weight:600;">✓ ' + t('検査済','已检测') + '</span>' : '<span style="color:var(--text-light);">' + t('未検査','未检测') + '</span>') + '</td>' +
       '<td><div class="action-btns">' +
-        '<button class="action-btn photo" onclick="openPhotoModal(\'parent\',\'' + p.id + '\')">写真' + (photoCount > 0 ? '(' + photoCount + ')' : '') + '</button>' +
-        '<button class="action-btn edit" onclick="editParent(\'' + p.id + '\')">編集</button>' +
-        '<button class="action-btn delete" onclick="deleteParent(\'' + p.id + '\')">削除</button>' +
+        '<button class="action-btn photo" onclick="openPhotoModal(\'parent\',\'' + p.id + '\')">' + t('写真','照片') + (photoCount > 0 ? '(' + photoCount + ')' : '') + '</button>' +
+        '<button class="action-btn edit" onclick="editParent(\'' + p.id + '\')">' + t('編集','编辑') + '</button>' +
+        '<button class="action-btn delete" onclick="deleteParent(\'' + p.id + '\')">' + t('削除','删除') + '</button>' +
       '</div></td>' +
     '</tr>';
   }).join('');
@@ -1322,7 +1345,7 @@ document.getElementById('parentFilterBreed').addEventListener('change', function
 
 function openParentForm(parent) {
   document.getElementById('parentEditId').value = parent ? parent.id : '';
-  document.getElementById('parentFormTitle').textContent = parent ? '親猫の編集' : '親猫の追加';
+  document.getElementById('parentFormTitle').textContent = parent ? t('親猫の編集','编辑种猫') : t('親猫の追加','添加种猫');
   document.getElementById('pf_name').value = parent ? parent.name : '';
   document.getElementById('pf_breed').value = parent ? parent.breed : 'サイベリアン';
   document.getElementById('pf_gender').value = parent ? parent.gender : '♂';
@@ -1351,33 +1374,33 @@ function saveParent() {
     tested: document.getElementById('pf_tested').value === 'true',
     group: document.getElementById('pf_group').value,
   };
-  if (!obj.name) { showToast('名前を入力してください', 'error'); return; }
+  if (!obj.name) { showToast(t('名前を入力してください','请输入名字'), 'error'); return; }
 
   if (editId) {
     var idx = data.parents.findIndex(function(p) { return p.id === editId; });
-    if (idx >= 0) { Object.assign(data.parents[idx], obj); addLog('親猫 ' + obj.name + ' を編集しました'); }
+    if (idx >= 0) { Object.assign(data.parents[idx], obj); addLog(t('親猫 ' + obj.name + ' を編集しました','编辑了种猫 ' + obj.name)); }
   } else {
     obj.id = 'p' + Date.now();
     obj.photos = [];
     obj.coverIndex = 0;
     data.parents.push(obj);
-    addLog('親猫 ' + obj.name + ' を追加しました');
+    addLog(t('親猫 ' + obj.name + ' を追加しました','添加了种猫 ' + obj.name));
   }
   saveData(data);
   closeModal('parentFormModal');
   renderAll();
-  showToast('保存しました', 'success');
+  showToast(t('保存しました','已保存'), 'success');
 }
 
 function deleteParent(id) {
   var p = data.parents.find(function(x) { return x.id === id; });
   if (!p) return;
-  if (!confirm('親猫 ' + p.name + ' を削除しますか？')) return;
+  if (!confirm(t('親猫 ' + p.name + ' を削除しますか？','确定删除种猫 ' + p.name + '？'))) return;
   data.parents = data.parents.filter(function(x) { return x.id !== id; });
   saveData(data);
-  addLog('親猫 ' + p.name + ' を削除しました');
+  addLog(t('親猫 ' + p.name + ' を削除しました','删除了种猫 ' + p.name));
   renderAll();
-  showToast('削除しました', 'success');
+  showToast(t('削除しました','已删除'), 'success');
 }
 
 // ============================================================
@@ -1393,8 +1416,8 @@ function renderReviews() {
       '<td>' + r.date + '</td>' +
       '<td style="max-width:300px;">' + excerpt + '</td>' +
       '<td><div class="action-btns">' +
-        '<button class="action-btn edit" onclick="editReview(\'' + r.id + '\')">編集</button>' +
-        '<button class="action-btn delete" onclick="deleteReview(\'' + r.id + '\')">削除</button>' +
+        '<button class="action-btn edit" onclick="editReview(\'' + r.id + '\')">' + t('編集','编辑') + '</button>' +
+        '<button class="action-btn delete" onclick="deleteReview(\'' + r.id + '\')">' + t('削除','删除') + '</button>' +
       '</div></td>' +
     '</tr>';
   }).join('');
@@ -1402,7 +1425,7 @@ function renderReviews() {
 
 function openReviewForm(review) {
   document.getElementById('reviewEditId').value = review ? review.id : '';
-  document.getElementById('reviewFormTitle').textContent = review ? 'レビューの編集' : 'レビューの追加';
+  document.getElementById('reviewFormTitle').textContent = review ? t('レビューの編集','编辑评价') : t('レビューの追加','添加评价');
   document.getElementById('rf_author').value = review ? review.author : '';
   document.getElementById('rf_region').value = review ? review.region : '';
   document.getElementById('rf_date').value = review ? review.date : '';
@@ -1423,31 +1446,31 @@ function saveReview() {
     date: document.getElementById('rf_date').value.trim(),
     body: document.getElementById('rf_body').value.trim(),
   };
-  if (!obj.author || !obj.body) { showToast('お名前と本文を入力してください', 'error'); return; }
+  if (!obj.author || !obj.body) { showToast(t('お名前と本文を入力してください','请输入姓名和正文'), 'error'); return; }
 
   if (editId) {
     var idx = data.reviews.findIndex(function(r) { return r.id === editId; });
-    if (idx >= 0) { Object.assign(data.reviews[idx], obj); addLog('レビュー ' + obj.author + ' を編集しました'); }
+    if (idx >= 0) { Object.assign(data.reviews[idx], obj); addLog(t('レビュー ' + obj.author + ' を編集しました','编辑了评价 ' + obj.author)); }
   } else {
     obj.id = 'r' + Date.now();
     data.reviews.push(obj);
-    addLog('レビュー ' + obj.author + ' を追加しました');
+    addLog(t('レビュー ' + obj.author + ' を追加しました','添加了评价 ' + obj.author));
   }
   saveData(data);
   closeModal('reviewFormModal');
   renderAll();
-  showToast('保存しました', 'success');
+  showToast(t('保存しました','已保存'), 'success');
 }
 
 function deleteReview(id) {
   var r = data.reviews.find(function(x) { return x.id === id; });
   if (!r) return;
-  if (!confirm('レビュー ' + r.author + ' を削除しますか？')) return;
+  if (!confirm(t('レビュー ' + r.author + ' を削除しますか？','确定删除评价 ' + r.author + '？'))) return;
   data.reviews = data.reviews.filter(function(x) { return x.id !== id; });
   saveData(data);
-  addLog('レビュー ' + r.author + ' を削除しました');
+  addLog(t('レビュー ' + r.author + ' を削除しました','删除了评价 ' + r.author));
   renderAll();
-  showToast('削除しました', 'success');
+  showToast(t('削除しました','已删除'), 'success');
 }
 
 // ============================================================
@@ -1469,7 +1492,7 @@ function openPhotoModal(type, id) {
 function renderGalleryGrid(item) {
   var grid = document.getElementById('galleryGrid');
   if (!item || !item.photos || item.photos.length === 0) {
-    grid.innerHTML = '<div class="gallery-empty">📷 写真がありません<br><small>下のフォームからURLを追加してください</small></div>';
+    grid.innerHTML = '<div class="gallery-empty">📷 ' + t('写真がありません','没有照片') + '<br><small>' + t('下のフォームからURLを追加してください','请在下方表单添加URL') + '</small></div>';
     return;
   }
   var coverIdx = item.coverIndex || 0;
@@ -1477,16 +1500,16 @@ function renderGalleryGrid(item) {
     var isCover = i === coverIdx;
     return '<div class="gallery-item' + (isCover ? ' cover' : '') + '">' +
       '<img src="' + url + '" alt="写真 ' + (i+1) + '">' +
-      (isCover ? '<span class="gallery-label">カバー</span>' : '') +
-      '<button class="gallery-delete" onclick="deleteGalleryPhoto(' + i + ')" title="削除">✕</button>' +
-      (!isCover ? '<button class="gallery-cover-btn" onclick="setGalleryCover(' + i + ')">★ カバーに設定</button>' : '') +
+      (isCover ? '<span class="gallery-label">' + t('カバー','封面') + '</span>' : '') +
+      '<button class="gallery-delete" onclick="deleteGalleryPhoto(' + i + ')" title="' + t('削除','删除') + '">✕</button>' +
+      (!isCover ? '<button class="gallery-cover-btn" onclick="setGalleryCover(' + i + ')">★ ' + t('カバーに設定','设为封面') + '</button>' : '') +
     '</div>';
   }).join('');
 }
 
 function addGalleryPhoto() {
   var url = document.getElementById('newPhotoUrl').value.trim();
-  if (!url) { showToast('URLを入力してください', 'error'); return; }
+  if (!url) { showToast(t('URLを入力してください','请输入URL'), 'error'); return; }
 
   var type = document.getElementById('photo_type').value;
   var id = document.getElementById('photo_id').value;
@@ -1503,8 +1526,8 @@ function addGalleryPhoto() {
   renderGalleryGrid(item);
   renderAll();
   document.getElementById('newPhotoUrl').value = '';
-  addLog((type === 'kitten' ? '子猫 ' + item.breederId : '親猫 ' + item.name) + ' に写真を追加しました');
-  showToast('写真を追加しました', 'success');
+  addLog(t((type === 'kitten' ? '子猫 ' + item.breederId : '親猫 ' + item.name) + ' に写真を追加しました', (type === 'kitten' ? '给子猫 ' + item.breederId : '给种猫 ' + item.name) + ' 添加了照片'));
+  showToast(t('写真を追加しました','已添加照片'), 'success');
 }
 
 function deleteGalleryPhoto(index) {
@@ -1515,7 +1538,7 @@ function deleteGalleryPhoto(index) {
   else item = data.parents.find(function(x) { return x.id === id; });
 
   if (!item || !item.photos) return;
-  if (!confirm('この写真を削除しますか？')) return;
+  if (!confirm(t('この写真を削除しますか？','确定删除这张照片？'))) return;
 
   item.photos.splice(index, 1);
   if (item.coverIndex >= item.photos.length) item.coverIndex = Math.max(0, item.photos.length - 1);
@@ -1523,8 +1546,8 @@ function deleteGalleryPhoto(index) {
   saveData(data);
   renderGalleryGrid(item);
   renderAll();
-  addLog((type === 'kitten' ? '子猫 ' + item.breederId : '親猫 ' + item.name) + ' の写真を削除しました');
-  showToast('写真を削除しました', 'success');
+  addLog(t((type === 'kitten' ? '子猫 ' + item.breederId : '親猫 ' + item.name) + ' の写真を削除しました', (type === 'kitten' ? '删除了子猫 ' + item.breederId : '删除了种猫 ' + item.name) + ' 的照片'));
+  showToast(t('写真を削除しました','已删除照片'), 'success');
 }
 
 function setGalleryCover(index) {
@@ -1540,8 +1563,8 @@ function setGalleryCover(index) {
   saveData(data);
   renderGalleryGrid(item);
   renderAll();
-  addLog((type === 'kitten' ? '子猫 ' + item.breederId : '親猫 ' + item.name) + ' のカバー写真を変更しました');
-  showToast('カバー写真を変更しました', 'success');
+  addLog(t((type === 'kitten' ? '子猫 ' + item.breederId : '親猫 ' + item.name) + ' のカバー写真を変更しました', (type === 'kitten' ? '更改了子猫 ' + item.breederId : '更改了种猫 ' + item.name) + ' 的封面照片'));
+  showToast(t('カバー写真を変更しました','已更改封面照片'), 'success');
 }
 
 // ============================================================
@@ -1557,7 +1580,7 @@ function generateKittensHTML() {
     var genderFull = k.gender === '♂' ? '♂ 男の子' : '♀ 女の子';
     var bMonth = k.birthday ? k.birthday.replace('-', '年') + '月生まれ' : '';
     html +=
-'        <div class="kitten-card" data-status="' + k.status + '" data-price="' + k.price + '" data-birthday="' + k.birthday + '-01" data-images="" data-video="" data-papa="' + (k.papa||'') + '" data-mama="' + (k.mama||'') + '" data-new="' + k.isNew + '" data-name="" data-breeder-id="' + k.breederId + '">\n' +
+'        <div class="kitten-card" data-status="' + k.status + '" data-price="' + k.price + '" data-birthday="' + k.birthday + '-01" data-images="" data-video="' + (k.video||'').replace(/"/g, '&quot;') + '" data-papa="' + (k.papa||'') + '" data-mama="' + (k.mama||'') + '" data-new="' + k.isNew + '" data-name="" data-breeder-id="' + k.breederId + '">\n' +
 '          <div class="kitten-img">\n' +
 '            <img src="' + cover + '" alt="子猫の写真" loading="lazy" style="width:100%;height:100%;object-fit:cover;">\n' +
 '            <span class="kit-status ' + statusClass + '" data-i18n="kittens.' + k.status + '">' + statusText + '</span>' + (k.isNew ? '\n            <span class="kit-badge-new">NEW</span>' : '') + '\n' +
@@ -1574,7 +1597,7 @@ function generateKittensHTML() {
   document.getElementById('generatedCode').textContent = html;
   document.getElementById('generatedCodeTitle').textContent = '子猫セクション HTML（index.html用）';
   document.getElementById('generatedCodeArea').style.display = 'block';
-  showToast('HTMLコードを生成しました', 'success');
+  showToast(t('HTMLコードを生成しました','已生成HTML代码'), 'success');
 }
 
 function generateParentsHTML() {
@@ -1598,7 +1621,7 @@ function generateParentsHTML() {
   document.getElementById('generatedCode').textContent = html;
   document.getElementById('generatedCodeTitle').textContent = '親猫セクション HTML（parents.html用）';
   document.getElementById('generatedCodeArea').style.display = 'block';
-  showToast('HTMLコードを生成しました', 'success');
+  showToast(t('HTMLコードを生成しました','已生成HTML代码'), 'success');
 }
 
 function generateReviewsHTML() {
@@ -1621,13 +1644,13 @@ function generateReviewsHTML() {
   document.getElementById('generatedCode').textContent = html;
   document.getElementById('generatedCodeTitle').textContent = 'レビューセクション HTML（reviews.html用）';
   document.getElementById('generatedCodeArea').style.display = 'block';
-  showToast('HTMLコードを生成しました', 'success');
+  showToast(t('HTMLコードを生成しました','已生成HTML代码'), 'success');
 }
 
 function copyGeneratedCode() {
   var code = document.getElementById('generatedCode').textContent;
   navigator.clipboard.writeText(code).then(function() {
-    showToast('コピーしました', 'success');
+    showToast(t('コピーしました','已复制'), 'success');
   }).catch(function() {
     var ta = document.createElement('textarea');
     ta.value = code;
@@ -1635,7 +1658,7 @@ function copyGeneratedCode() {
     ta.select();
     document.execCommand('copy');
     document.body.removeChild(ta);
-    showToast('コピーしました', 'success');
+    showToast(t('コピーしました','已复制'), 'success');
   });
 }
 
@@ -1650,8 +1673,8 @@ function exportJSON() {
   a.download = 'fuluck-admin-data-' + new Date().toISOString().slice(0,10) + '.json';
   a.click();
   URL.revokeObjectURL(url);
-  addLog('データをJSONエクスポートしました');
-  showToast('エクスポートしました', 'success');
+  addLog(t('データをJSONエクスポートしました','已导出JSON数据'));
+  showToast(t('エクスポートしました','已导出'), 'success');
 }
 
 document.getElementById('importFileInput').addEventListener('change', function(e) {
@@ -1661,18 +1684,18 @@ document.getElementById('importFileInput').addEventListener('change', function(e
     try {
       var imported = JSON.parse(ev.target.result);
       if (!imported.kittens || !imported.parents || !imported.reviews) {
-        showToast('無効なデータファイルです', 'error');
+        showToast(t('無効なデータファイルです','无效的数据文件'), 'error');
         return;
       }
-      if (!confirm('現在のデータを上書きします。よろしいですか？')) return;
+      if (!confirm(t('現在のデータを上書きします。よろしいですか？','将覆盖当前数据。确定吗？'))) return;
       imported = migrateData(imported);
       saveData(imported);
       data = imported;
-      addLog('JSONデータをインポートしました');
+      addLog(t('JSONデータをインポートしました','已导入JSON数据'));
       renderAll();
-      showToast('インポートしました', 'success');
+      showToast(t('インポートしました','已导入'), 'success');
     } catch(err) {
-      showToast('ファイルの読み込みに失敗しました', 'error');
+      showToast(t('ファイルの読み込みに失敗しました','文件读取失败'), 'error');
     }
   };
   reader.readAsText(e.target.files[0]);
@@ -1680,18 +1703,19 @@ document.getElementById('importFileInput').addEventListener('change', function(e
 });
 
 function resetData() {
-  if (!confirm('すべてのデータを初期状態に戻します。\n（サイトの実際のデータに復元されます）\n\nよろしいですか？')) return;
+  if (!confirm(t('すべてのデータを初期状態に戻します。\n（サイトの実際のデータに復元されます）\n\nよろしいですか？','将所有数据恢复到初始状态。\n（恢复为网站的实际数据）\n\n确定吗？'))) return;
   localStorage.removeItem(STORAGE_KEY);
   data = getData();
-  addLog('データを初期状態にリセットしました');
+  addLog(t('データを初期状態にリセットしました','已将数据恢复到初始状态'));
   renderAll();
-  showToast('データをリセットしました', 'success');
+  showToast(t('データをリセットしました','已重置数据'), 'success');
 }
 
 // ============================================================
 // IMAGE MANAGEMENT (Bilingual + URL/Upload + Instagram Link)
 // ============================================================
-var imgLang = localStorage.getItem('fuluck-img-lang') || 'ja';
+var admLang = localStorage.getItem('fuluck-admin-lang') || 'ja';
+var imgLang = admLang; // backward compat
 
 var IMAGE_FIELDS = [
   { id:'img-hero-main',   label:{ja:'Hero メイン写真',      zh:'首页主图'},          page:'index.html',    tag:'hero-main',  size:'800×600px' },
@@ -1714,20 +1738,81 @@ var IMAGE_FIELDS = [
   { id:'img-ogp',         label:{ja:'OGP画像',               zh:'OGP图片'},            page:'全ページ',      tag:'ogp',        size:'1200×630px' }
 ];
 
-// ── Bilingual Toggle ──
-function toggleImgLang() {
-  imgLang = imgLang === 'ja' ? 'zh' : 'ja';
-  localStorage.setItem('fuluck-img-lang', imgLang);
-  applyImgLang();
-  showToast(imgLang === 'zh' ? '已切换到中文' : '日本語に切り替えました', 'success');
+// ── Global Bilingual System ──
+function toggleAdminLang() {
+  admLang = admLang === 'ja' ? 'zh' : 'ja';
+  imgLang = admLang;
+  localStorage.setItem('fuluck-admin-lang', admLang);
+  applyAdminLang();
+  showToast(admLang === 'zh' ? '已切换到中文' : '日本語に切り替えました', 'success');
 }
 
-function applyImgLang() {
-  document.querySelectorAll('[data-img-ja]').forEach(function(el) {
-    el.textContent = imgLang === 'zh' ? el.getAttribute('data-img-zh') : el.getAttribute('data-img-ja');
+// Alias for image page compatibility
+function toggleImgLang() { toggleAdminLang(); }
+
+// Login screen language toggle
+function toggleLoginLang() {
+  admLang = admLang === 'ja' ? 'zh' : 'ja';
+  imgLang = admLang;
+  localStorage.setItem('fuluck-admin-lang', admLang);
+  var t = document.getElementById('loginTitle');
+  var s = document.getElementById('loginSub');
+  var b = document.getElementById('loginBtn');
+  var e = document.getElementById('loginError');
+  if (t) t.textContent = admLang === 'zh' ? '福楽猫舍 管理后台' : '福楽キャッテリー 管理画面';
+  if (s) s.textContent = admLang === 'zh' ? '请输入密码登录' : 'パスワードを入力してログインしてください';
+  if (b) b.textContent = admLang === 'zh' ? '登录' : 'ログイン';
+  if (e) e.textContent = admLang === 'zh' ? '密码不正确' : 'パスワードが正しくありません';
+  var pwd = document.getElementById('loginPassword');
+  if (pwd) pwd.placeholder = admLang === 'zh' ? '密码' : 'パスワード';
+}
+
+function applyAdminLang() {
+  // Apply to all [data-adm-ja] elements (global admin)
+  document.querySelectorAll('[data-adm-ja]').forEach(function(el) {
+    var newText = admLang === 'zh' ? el.getAttribute('data-adm-zh') : el.getAttribute('data-adm-ja');
+    if (!newText) return;
+    if ((el.innerHTML||'').indexOf('<') >= 0 && (el.getAttribute('data-adm-zh')||'').indexOf('<') >= 0) {
+      el.innerHTML = newText; // if contains HTML tags
+    } else {
+      el.textContent = newText;
+    }
   });
-  var btn = document.getElementById('imgLangToggle');
-  if (btn) btn.innerHTML = imgLang === 'ja' ? '🌐 切换中文' : '🌐 日本語に切替';
+  // Apply to all [data-img-ja] elements (image page)
+  document.querySelectorAll('[data-img-ja]').forEach(function(el) {
+    var t = admLang === 'zh' ? el.getAttribute('data-img-zh') : el.getAttribute('data-img-ja');
+    if ((el.innerHTML||'').indexOf('<') >= 0 && (t||'').indexOf('<') >= 0) {
+      el.innerHTML = t;
+    } else {
+      el.textContent = t;
+    }
+  });
+  // Update toggle buttons
+  var adminBtn = document.getElementById('adminLangBtn');
+  if (adminBtn) adminBtn.innerHTML = admLang === 'ja' ? '🌐 切换中文' : '🌐 日本語に切替';
+  var imgBtn = document.getElementById('imgLangToggle');
+  if (imgBtn) imgBtn.innerHTML = admLang === 'ja' ? '🌐 切换中文' : '🌐 日本語に切替';
+  // Update page title
+  updatePageTitleLang();
+}
+
+function applyImgLang() { applyAdminLang(); }
+
+// Bilingual text helper
+function t(ja, zh) { return admLang === 'zh' ? zh : ja; }
+
+// Page titles bilingual
+var pageTitlesZh = {
+  dashboard:'仪表盘', kittens:'子猫管理', parents:'种猫管理',
+  reviews:'客户评价', images:'图片管理', export:'HTML导出', data:'数据管理',
+  guide:'操作指南', settings:'修改密码'
+};
+
+function updatePageTitleLang() {
+  var active = document.querySelector('.nav-item.active');
+  var page = active ? active.dataset.page : 'dashboard';
+  var title = admLang === 'zh' ? (pageTitlesZh[page] || '') : (pageTitles[page] || '');
+  document.getElementById('pageTitle').textContent = title;
 }
 
 // ── File Upload Handler ──
@@ -1945,13 +2030,13 @@ function copyImageCode() {
 document.getElementById('changePasswordBtn').addEventListener('click', function() {
   var np = document.getElementById('newPassword').value;
   var cp = document.getElementById('confirmPassword').value;
-  if (!np) { showToast('パスワードを入力してください', 'error'); return; }
-  if (np !== cp) { showToast('パスワードが一致しません', 'error'); return; }
+  if (!np) { showToast(t('パスワードを入力してください','请输入密码'), 'error'); return; }
+  if (np !== cp) { showToast(t('パスワードが一致しません','两次密码不一致'), 'error'); return; }
   localStorage.setItem(PASS_KEY, np);
-  showToast('パスワードを変更しました', 'success');
+  showToast(t('パスワードを変更しました','已修改密码'), 'success');
   document.getElementById('newPassword').value = '';
   document.getElementById('confirmPassword').value = '';
-  addLog('パスワードを変更しました');
+  addLog(t('パスワードを変更しました','已修改密码'));
 });
 
 // ============================================================
@@ -1960,6 +2045,20 @@ document.getElementById('changePasswordBtn').addEventListener('click', function(
 if (sessionStorage.getItem('fuluck-admin-auth') === '1') {
   renderAll();
 }
+// Apply saved language to login screen on load
+(function initLoginLang() {
+  if (admLang !== 'zh') return;
+  var tt = document.getElementById('loginTitle');
+  var ss = document.getElementById('loginSub');
+  var bb = document.getElementById('loginBtn');
+  var ee = document.getElementById('loginError');
+  var pp = document.getElementById('loginPassword');
+  if (tt) tt.textContent = '福楽猫舍 管理后台';
+  if (ss) ss.textContent = '请输入密码登录';
+  if (bb) bb.textContent = '登录';
+  if (ee) ee.textContent = '密码不正确';
+  if (pp) pp.placeholder = '密码';
+})();
 </script>
 </body>
 </html>

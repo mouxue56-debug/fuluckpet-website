@@ -174,20 +174,40 @@ document.addEventListener('DOMContentLoaded', () => {
   function buildCarousel(card) {
     if (!kittenModal) return;
     const images = card.dataset.images ? card.dataset.images.split(',') : [];
-    const video = card.dataset.video || '';
+    const videoRaw = card.dataset.video || '';
     const gallery = kittenModal.querySelector('.modal-gallery');
     if (!gallery) return;
+
+    // Parse YouTube embed: accept iframe embed code, youtu.be/xxx, or youtube.com/watch?v=xxx
+    let videoEmbedUrl = '';
+    if (videoRaw) {
+      const iframeSrcMatch = videoRaw.match(/src=["']([^"']+)["']/);
+      if (iframeSrcMatch) {
+        videoEmbedUrl = iframeSrcMatch[1];
+      } else if (videoRaw.match(/youtu\.be\/([a-zA-Z0-9_-]+)/)) {
+        videoEmbedUrl = 'https://www.youtube.com/embed/' + videoRaw.match(/youtu\.be\/([a-zA-Z0-9_-]+)/)[1];
+      } else if (videoRaw.match(/[?&]v=([a-zA-Z0-9_-]+)/)) {
+        videoEmbedUrl = 'https://www.youtube.com/embed/' + videoRaw.match(/[?&]v=([a-zA-Z0-9_-]+)/)[1];
+      } else if (videoRaw.match(/youtube\.com\/embed\//)) {
+        videoEmbedUrl = videoRaw.trim();
+      }
+    }
 
     // Build slides
     let slidesHTML = '';
     let dotsHTML = '';
     let thumbsHTML = '';
 
-    if (images.length === 0) {
+    if (images.length === 0 && !videoEmbedUrl) {
       // Fallback placeholder
       slidesHTML = '<div class="carousel-slide active"><div class="img-placeholder kit-modal-ph"><span>🐱</span><p>写真準備中</p></div></div>';
       dotsHTML = '<span class="dot active"></span>';
       thumbsHTML = '<div class="thumb active"><div class="img-placeholder thumb-ph"><span>🐱</span></div></div>';
+    } else if (images.length === 0 && videoEmbedUrl) {
+      // Video only — make it the first active slide
+      slidesHTML = `<div class="carousel-slide active"><div class="video-wrapper"><iframe src="${videoEmbedUrl}" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" loading="lazy"></iframe></div></div>`;
+      dotsHTML = '<span class="dot video-dot active">▶</span>';
+      thumbsHTML = '<div class="thumb video-thumb active"><div class="img-placeholder thumb-ph" style="background:linear-gradient(135deg,#c4302b,#ff6b6b);color:white;"><span>▶</span></div></div>';
     } else {
       images.forEach((img, i) => {
         const activeClass = i === 0 ? ' active' : '';
@@ -195,12 +215,12 @@ document.addEventListener('DOMContentLoaded', () => {
         dotsHTML += `<span class="dot${activeClass}"></span>`;
         thumbsHTML += `<div class="thumb${activeClass}"><img src="${img.trim()}" alt="サムネイル ${i + 1}"></div>`;
       });
-    }
-
-    if (video) {
-      slidesHTML += `<div class="carousel-slide"><iframe src="${video}" allowfullscreen loading="lazy"></iframe></div>`;
-      dotsHTML += '<span class="dot video-dot">▶</span>';
-      thumbsHTML += '<div class="thumb video-thumb"><div class="img-placeholder thumb-ph"><span>▶</span></div></div>';
+      // Append video as last slide
+      if (videoEmbedUrl) {
+        slidesHTML += `<div class="carousel-slide"><div class="video-wrapper"><iframe src="${videoEmbedUrl}" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" loading="lazy"></iframe></div></div>`;
+        dotsHTML += '<span class="dot video-dot">▶</span>';
+        thumbsHTML += '<div class="thumb video-thumb"><div class="img-placeholder thumb-ph" style="background:linear-gradient(135deg,#c4302b,#ff6b6b);color:white;"><span>▶</span></div></div>';
+      }
     }
 
     gallery.innerHTML = `
