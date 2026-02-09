@@ -1,7 +1,7 @@
 # 福楽キャッテリー 网站交接文档
 
 > **本文档供下一个 AI 会话使用，用于快速了解本项目的全部背景。**
-> 最后更新：2026-02-09 Session 9
+> 最后更新：2026-02-09 Session 10
 
 ---
 
@@ -47,7 +47,7 @@ fuluckpet-website/
 ├── parents.html        # 种猫介绍（親猫紹介）— 含外链图片!
 ├── 404.html            # 404 错误页
 ├── style.css           # 全局样式
-├── script.js           # 全局 JS（i18n、导航、动画、modal）~619行
+├── script.js           # 全局 JS（i18n、导航、动画、modal、YouTube embed）~660行
 ├── i18n.js             # 翻译字典（JA/EN/ZH）
 ├── sitemap.xml         # SEO sitemap（7 页）
 ├── robots.txt          # 爬虫规则（屏蔽 /admin/ 和 /api/）
@@ -65,7 +65,7 @@ fuluckpet-website/
 │   ├── siberian-group.jpg # 西伯利亚猫集合写真
 │   └── .gitkeep
 ├── admin/
-│   └── index.html      # 管理后台（~1700+行，完全自包含）
+│   └── index.html      # 管理后台（~2050+行，完全自包含，全面双语）
 └── api/
     ├── worker.js        # Cloudflare Worker（未部署）
     ├── wrangler.toml    # Worker 配置
@@ -80,7 +80,7 @@ fuluckpet-website/
 |------|------|
 | **地址** | https://fuluckpet.com/admin/ |
 | **密码** | `fuluck5632` |
-| **实现** | 单 HTML 文件（~1700+行），CSS/JS 全内联 |
+| **实现** | 单 HTML 文件（~2050+行），CSS/JS 全内联，全站中日双语 |
 | **存储** | 浏览器 `localStorage` |
 | **认证** | `sessionStorage`，关闭浏览器需重新登录 |
 
@@ -91,7 +91,7 @@ fuluckpet-website/
 | `fuluck-admin-pass` | 密码（默认 fuluck5632） |
 | `fuluck-admin-log` | 操作日志 |
 | `fuluck-admin-images` | 画像管理配置（URL/路径） |
-| `fuluck-img-lang` | 画像管理页面语言（ja/zh） |
+| `fuluck-admin-lang` | 全站管理后台语言（ja/zh）—— Session 10 升级为全局 |
 
 ### 核心功能模块
 1. **ダッシュボード** — 概览统计 + 操作日志
@@ -140,6 +140,7 @@ fuluckpet-website/
   breederId, father, mother,
   photos: ['google_photos_url', ...],  // 0-N 张
   coverIndex: 0,                        // 封面索引
+  video: '<iframe ...> or youtu.be/xxx',  // YouTube 嵌入代码（Session 10）
   personality, vaccinated, neutered, microchipped
 }
 ```
@@ -161,7 +162,10 @@ fuluckpet-website/
 - `renderPagination(total, current, callback, containerId)` — 分页
 - `loadImageConfig()` — 加载画像管理配置
 - `handleImgUpload(fileInput, targetInputId)` — 文件上传转 base64
-- `toggleImgLang()` / `applyImgLang()` — 画像管理双语切换
+- `toggleAdminLang()` / `applyAdminLang()` — **全站**管理后台双语切换（Session 10）
+- `toggleLoginLang()` — 登录页面双语切换
+- `t(ja, zh)` — 双语文本辅助函数（用于 JS 动态生成的文本）
+- `toggleImgLang()` / `applyImgLang()` — 向后兼容别名（实际调用 Admin 版本）
 
 ---
 
@@ -170,7 +174,11 @@ fuluckpet-website/
 - 日语（默认）、英语、中文
 - `i18n.js` 翻译字典 + `script.js` 切换器
 - HTML 用 `data-i18n` 属性标记
-- **Admin 画像管理**：独立双语系统，用 `data-img-ja` / `data-img-zh` 属性
+- **Admin 全站双语**（Session 10 升级）：用 `data-adm-ja` / `data-adm-zh` 属性覆盖全部页面
+  - 登录页面、侧边栏、顶部栏、仪表盘、子猫管理、种猫管理、评价管理、图片管理、HTML导出、数据管理、操作指南、密码设置
+  - 所有表单标签、表格表头、按钮文本、Toast 消息、确认对话框
+  - `data-img-ja` / `data-img-zh` 属性保留向后兼容（画像管理页面）
+  - JS 动态文本通过 `t(ja, zh)` 辅助函数实现双语
 
 ---
 
@@ -286,12 +294,11 @@ siberian.html 集合写真占位符需替换（文件已有）。
 7. **Google Photos 外链方案** — 用户提过「Google Photos外链和Cloudflare Workers同时弄」
 8. **Cloudflare Workers** — `api/worker.js` 已写未部署
 9. **FAQ 追加成交型问题** — 之前规划的但未执行
-10. **Admin 子猫管理增强** — 支持 URL 链接和图片上传两种方式管理子猫照片
 
 ### P3 低优先级
-11. **删旧域名 fuluck.com** — 业主确认可删，Cloudflare Dashboard 手动操作
-12. **员工培训** — 教员工用 Admin Panel
-13. **性能优化** — 考虑 lazy load / WebP / image CDN
+10. **删旧域名 fuluck.com** — 业主确认可删，Cloudflare Dashboard 手动操作
+11. **员工培训** — 教员工用 Admin Panel（操作指南已完善双语版）
+12. **性能优化** — 考虑 lazy load / WebP / image CDN
 
 ---
 
@@ -303,7 +310,8 @@ siberian.html 集合写真占位符需替换（文件已有）。
 | 6 | Admin 后台（子猫/种猫/评价管理 + HTML 导出 + 照片相册 + 分页） |
 | 7 | GA4 + sitemap + Search Console + STORES.jp Footer + 404页 |
 | 8 | LINE 浮动按钮重做 + Gallery 真实照片 + HANDOVER.md + TUTORIAL.md |
-| 9（本次） | 内容/CTA优化（价格免责、アレルギー措辞、LINE CTA）→ 图片占位符替换（Hero/Siberian/Reviews/Gallery）→ Admin 画像管理功能（双语、URL+文件上传、尺寸标签、Instagram超链接、预览）→ images/ 文件夹方案C + 双语图片指南 |
+| 9 | 内容/CTA优化（价格免责、アレルギー措辞、LINE CTA）→ 图片占位符替换（Hero/Siberian/Reviews/Gallery）→ Admin 画像管理功能（双语、URL+文件上传、尺寸标签、Instagram超链接、预览）→ images/ 文件夹方案C + 双语图片指南 |
+| 10（本次） | YouTube 视频嵌入（子猫详情modal + Admin子猫表单）→ Admin 全站中日双语切换（从仅画像管理扩展到全部9个页面+登录页+所有modal+所有JS动态文本）→ 操作指南重写（8步详细双语指导）→ HANDOVER.md 更新 |
 
 ---
 
@@ -330,8 +338,9 @@ git push origin main          # 1-2 分钟自动部署
 4. **没有数据库** — localStorage，多个 key（见第4节表格）
 5. **业主说中文** — 沟通用中文
 6. **网站日语** — i18n 支持 EN/ZH
-7. **Admin 画像管理双语** — 独立系统，用 `data-img-ja/zh` 属性
-8. **照片方案** — Admin 支持 URL + 本地上传；方案C 是直接放 images/ 文件夹
+7. **Admin 全站双语** — 用 `data-adm-ja/zh` 属性 + `t(ja,zh)` 函数；画像管理保留 `data-img-ja/zh` 兼容
+8. **YouTube 嵌入** — 子猫 `video` 字段支持 iframe embed/youtu.be/youtube.com URL，modal 自动播放
+9. **照片方案** — Admin 支持 URL + 本地上传；方案C 是直接放 images/ 文件夹
 9. **别改密码** — `fuluck5632`，改前问业主
 10. **外链图片危险** — koneko-breeder.com ~92张图，随时可能挂
 11. **公开仓库** — 别提交敏感信息
