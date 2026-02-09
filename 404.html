@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ページが見つかりません | 福楽キャッテリー</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <meta name="theme-color" content="#7DD3C0">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐱</text></svg>">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background: linear-gradient(135deg, #F0FFFA 0%, #FFF8FB 50%, #FFFCF0 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      color: #2D3748;
+    }
+    .error-page { max-width: 480px; }
+    .error-icon { font-size: 80px; margin-bottom: 16px; animation: bounce 2s ease infinite; }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+    .error-code { font-size: 96px; font-weight: 700; color: #7DD3C0; line-height: 1; margin-bottom: 8px; }
+    .error-title { font-size: 22px; font-weight: 700; margin-bottom: 12px; }
+    .error-text { font-size: 15px; color: #718096; line-height: 1.8; margin-bottom: 32px; }
+    .error-btn {
+      display: inline-block;
+      padding: 14px 32px;
+      background: linear-gradient(135deg, #7DD3C0, #5BC4A8);
+      color: #fff;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 15px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .error-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(125,211,192,0.3);
+    }
+    .error-links { margin-top: 24px; display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+    .error-links a { color: #7DD3C0; text-decoration: none; font-size: 14px; }
+    .error-links a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="error-page">
+    <div class="error-icon">🐱</div>
+    <div class="error-code">404</div>
+    <h1 class="error-title">ページが見つかりません</h1>
+    <p class="error-text">
+      お探しのページは移動または削除された可能性があります。<br>
+      URLが正しいかご確認ください。
+    </p>
+    <a href="index.html" class="error-btn">トップページへ戻る</a>
+    <div class="error-links">
+      <a href="index.html#kittens">子猫一覧</a>
+      <a href="index.html#visit">見学案内</a>
+      <a href="siberian.html">サイベリアン</a>
+      <a href="gallery.html">ギャラリー</a>
+    </div>
+  </div>
+</body>
+</html>

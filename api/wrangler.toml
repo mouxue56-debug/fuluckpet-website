@@ -1,0 +1,38 @@
+# 福楽キャッテリー — Cloudflare Workers 設定
+# ドキュメント: https://developers.cloudflare.com/workers/wrangler/configuration/
+
+name = "fuluck-api"
+main = "worker.js"
+compatibility_date = "2024-09-23"
+
+# 環境変数 (本番では Workers Settings > Variables で設定)
+[vars]
+CORS_ORIGIN = "*"
+# ADMIN_PASSWORD は Workers Settings の Encrypted Variables で設定してください
+# ここには書かないでください
+
+# R2 バケット (画像ストレージ)
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "fuluck-images"
+# preview_bucket_name = "fuluck-images-dev"  # ローカル開発用
+
+# KV Namespace (データストア)
+[[kv_namespaces]]
+binding = "DATA"
+id = "YOUR_KV_NAMESPACE_ID_HERE"
+# preview_id = "YOUR_KV_PREVIEW_ID_HERE"  # ローカル開発用
+
+# カスタムドメイン (オプション)
+# routes = [
+#   { pattern = "api.fuluck.com/*", zone_name = "fuluck.com" }
+# ]
+
+# デプロイ手順:
+# 1. npm install -g wrangler
+# 2. wrangler login
+# 3. wrangler r2 bucket create fuluck-images
+# 4. wrangler kv namespace create DATA
+#    → 返された id を上の id = "..." に貼り付け
+# 5. wrangler deploy
+# 6. Workers Settings > Variables で ADMIN_PASSWORD を設定
