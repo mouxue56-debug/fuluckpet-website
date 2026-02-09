@@ -141,20 +141,71 @@
         <h2 class="sec-title">卒業猫たち</h2>
         <p class="sec-desc">200匹以上の子猫たちが新しいご家族の元へ旅立ちました。</p>
       </div>
-      <div class="gallery-page-grid">
-        <div class="gallery-item"><div class="img-placeholder gal-ph"><span>📸</span><p>卒業猫の写真 1</p></div></div>
-        <div class="gallery-item"><div class="img-placeholder gal-ph"><span>📸</span><p>卒業猫の写真 2</p></div></div>
-        <div class="gallery-item"><div class="img-placeholder gal-ph"><span>📸</span><p>卒業猫の写真 3</p></div></div>
-        <div class="gallery-item"><div class="img-placeholder gal-ph"><span>📸</span><p>卒業猫の写真 4</p></div></div>
-        <div class="gallery-item"><div class="img-placeholder gal-ph"><span>📸</span><p>卒業猫の写真 5</p></div></div>
-        <div class="gallery-item"><div class="img-placeholder gal-ph"><span>📸</span><p>卒業猫の写真 6</p></div></div>
-        <div class="gallery-item"><div class="img-placeholder gal-ph"><span>📸</span><p>卒業猫の写真 7</p></div></div>
-        <div class="gallery-item"><div class="img-placeholder gal-ph"><span>📸</span><p>卒業猫の写真 8</p></div></div>
-        <div class="gallery-item"><div class="img-placeholder gal-ph"><span>📸</span><p>卒業猫の写真 9</p></div></div>
-        <div class="gallery-item"><div class="img-placeholder gal-ph"><span>📸</span><p>卒業猫の写真 10</p></div></div>
-        <div class="gallery-item"><div class="img-placeholder gal-ph"><span>📸</span><p>卒業猫の写真 11</p></div></div>
-        <div class="gallery-item"><div class="img-placeholder gal-ph"><span>📸</span><p>卒業猫の写真 12</p></div></div>
+      <!-- 卒業猫フィルター -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:32px;">
+        <button class="filter-btn active" onclick="filterGallery('all')">すべて</button>
+        <button class="filter-btn" onclick="filterGallery('siberian')">サイベリアン</button>
+        <button class="filter-btn" onclick="filterGallery('british')">ブリティッシュ</button>
+        <button class="filter-btn" onclick="filterGallery('ragdoll')">ラグドール</button>
       </div>
+
+      <div class="gallery-page-grid" id="galleryGrid">
+        <!-- 羅方遠ブリーダー（サイベリアン） -->
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_bb55e8c5f9a5.jpg" alt="サイベリアン♂ ブラウンタビー" loading="lazy"><div class="gal-caption">♂ ブラウンタビー<br>2025/10/21生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_87d12b60e262.jpg" alt="サイベリアン♀ ブラウンタビー" loading="lazy"><div class="gal-caption">♀ ブラウンタビー<br>2025/6/1生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_1d05d58a7032.jpg" alt="サイベリアン♂ シルバーシェーデッド" loading="lazy"><div class="gal-caption">♂ シルバーシェーデッド<br>2025/6/1生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_f526365b0a70.jpg" alt="サイベリアン♂ ブルー＆ホワイト" loading="lazy"><div class="gal-caption">♂ ブルー＆ホワイト<br>2025/5/23生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_0ccb14ba6d68.jpg" alt="サイベリアン♂ レッドリンクスポイント" loading="lazy"><div class="gal-caption">♂ レッドリンクスポイント<br>2025/5/20生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_1554b23e6e08.jpg" alt="サイベリアン♀ シルバータビー＆ホワイト" loading="lazy"><div class="gal-caption">♀ シルバータビー＆ホワイト<br>2025/10/21生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_b874ae3c23f1.jpg" alt="サイベリアン♀ ブルーリンクスポイント" loading="lazy"><div class="gal-caption">♀ ブルーリンクスポイント<br>2025/9/30生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_361844d3ded6.jpg" alt="サイベリアン♂ シルバータビー" loading="lazy"><div class="gal-caption">♂ シルバータビー<br>2025/10/21生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_4c544cfcf124.jpg" alt="サイベリアン♀ ブラウンタビー＆ホワイト" loading="lazy"><div class="gal-caption">♀ ブラウンタビー＆ホワイト<br>2025/9/24生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_5a2074d703.jpg" alt="サイベリアン♀ ブルーリンクスポイント" loading="lazy"><div class="gal-caption">♀ ブルーリンクスポイント<br>2025/9/30生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_3334b28066e8.jpg" alt="サイベリアン♀ ブラウンタビー" loading="lazy"><div class="gal-caption">♀ ブラウンタビー<br>2025/6/21生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_82cfb7831908.jpg" alt="サイベリアン♀ ブラウンタビー" loading="lazy"><div class="gal-caption">♀ ブラウンタビー<br>2025/7/30生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_9fc5abad3e05.jpg" alt="サイベリアン♀ ブラウンタビー" loading="lazy"><div class="gal-caption">♀ ブラウンタビー<br>2025/7/28生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_ad4b386b42e4.jpg" alt="サイベリアン♀ ブルータビー" loading="lazy"><div class="gal-caption">♀ ブルータビー<br>2025/7/28生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_029e92051da3.jpg" alt="サイベリアン♀ シールポイント" loading="lazy"><div class="gal-caption">♀ シールポイント<br>2025/6/13生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_2aae53482506.jpg" alt="サイベリアン♀ ブルーリンクスポイント" loading="lazy"><div class="gal-caption">♀ ブルーリンクスポイント<br>2025/5/20生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_5a1c37d343b4.jpg" alt="サイベリアン♂ ブラウンタビー" loading="lazy"><div class="gal-caption">♂ ブラウンタビー<br>2025/7/30生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_999536a8ade3.jpg" alt="サイベリアン♂ ブラウンタビー" loading="lazy"><div class="gal-caption">♂ ブラウンタビー<br>2025/7/28生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_c63a55058585.jpg" alt="サイベリアン♀ ブラウンタビー" loading="lazy"><div class="gal-caption">♀ ブラウンタビー<br>2025/6/1生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_2d63f4b50fd8.jpg" alt="サイベリアン♀ ホワイト" loading="lazy"><div class="gal-caption">♀ ホワイト<br>2025/5/23生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_ab7dfbac2219.jpg" alt="サイベリアン♀ ブルーリンクスポイント" loading="lazy"><div class="gal-caption">♀ ブルーリンクスポイント<br>2025/6/13生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_8455be149c27.jpg" alt="サイベリアン♂ ホワイト" loading="lazy"><div class="gal-caption">♂ ホワイト<br>2025/5/23生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_f75668328a57.jpg" alt="サイベリアン♂ シールポイント" loading="lazy"><div class="gal-caption">♂ シールポイント<br>2025/6/13生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_2a79f3122b38.jpg" alt="サイベリアン♀ シールポイント" loading="lazy"><div class="gal-caption">♀ シールポイント<br>2025/5/20生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_f312a98a0f76.jpg" alt="サイベリアン♀ ブラウンタビー" loading="lazy"><div class="gal-caption">♀ ブラウンタビー<br>2025/6/1生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_5f991e9d9710.jpg" alt="サイベリアン♂ ブラウンタビー" loading="lazy"><div class="gal-caption">♂ ブラウンタビー<br>2025/6/1生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_ace42e893731.jpg" alt="サイベリアン♀ シルバータビー" loading="lazy"><div class="gal-caption">♀ シルバータビー<br>2025/6/1生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_5dbd2ff72fb5.jpg" alt="サイベリアン♂ ホワイト" loading="lazy"><div class="gal-caption">♂ ホワイト<br>2025/4/18生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_97b942019e98.jpg" alt="サイベリアン♀ ブルーリンクスポイント" loading="lazy"><div class="gal-caption">♀ ブルーリンクスポイント<br>2025/3/23生</div></div>
+        <div class="gallery-item" data-breed="siberian"><img src="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_bf2df175bb86.jpg" alt="サイベリアン♂ シールポイント" loading="lazy"><div class="gal-caption">♂ シールポイント<br>2025/4/18生</div></div>
+        <!-- 刘暁棉ブリーダー（ブリティッシュ・ラグドール） -->
+        <div class="gallery-item" data-breed="ragdoll"><img src="https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_1dfb1c5f7bf6.jpg" alt="ラグドール♂ シールポイントバイカラー" loading="lazy"><div class="gal-caption">♂ ラグドール<br>シールポイントバイカラー</div></div>
+        <div class="gallery-item" data-breed="british"><img src="https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_1d68ec7ae213.jpg" alt="シベリアン×ブリティッシュ♀ ブラウンタビー" loading="lazy"><div class="gal-caption">♀ シベリアン×ブリティッシュ<br>ブラウンタビー＆ホワイト</div></div>
+        <div class="gallery-item" data-breed="ragdoll"><img src="https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_de7865fb8950.jpg" alt="ラグドール♀ シールポイントバイカラー" loading="lazy"><div class="gal-caption">♀ ラグドール<br>シールポイントバイカラー</div></div>
+        <div class="gallery-item" data-breed="british"><img src="https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_f7c380c023e8.jpg" alt="ブリティッシュショートヘア♀ ホワイト" loading="lazy"><div class="gal-caption">♀ ブリティッシュショートヘア<br>ホワイト</div></div>
+        <div class="gallery-item" data-breed="british"><img src="https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_93864f279eb0.jpg" alt="シベリアン×ブリティッシュ♂ ホワイト" loading="lazy"><div class="gal-caption">♂ シベリアン×ブリティッシュ<br>ホワイト</div></div>
+        <div class="gallery-item" data-breed="british"><img src="https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_f7e6cae2b792.jpg" alt="ブリティッシュショートヘア♂ ブラウンタビー" loading="lazy"><div class="gal-caption">♂ ブリティッシュショートヘア<br>ブラウンタビー＆ホワイト</div></div>
+      </div>
+      <p style="text-align:center;color:var(--text-note);margin-top:24px;font-size:14px;">…他 170匹以上の卒業猫がいます 🐾</p>
+
+      <script>
+      function filterGallery(breed) {
+        var items = document.querySelectorAll('#galleryGrid .gallery-item');
+        var btns = document.querySelectorAll('.filter-btn');
+        btns.forEach(function(b){ b.classList.remove('active'); });
+        event.target.classList.add('active');
+        items.forEach(function(item) {
+          if (breed === 'all' || item.getAttribute('data-breed') === breed) {
+            item.style.display = '';
+          } else {
+            item.style.display = 'none';
+          }
+        });
+      }
+      </script>
     </div>
   </section>
 
@@ -239,7 +290,8 @@
   <!-- ========== FIXED LINE BUTTON ========== -->
   <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="fixed-line" aria-label="LINEでお問い合わせ" id="fixedLine">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596a.626.626 0 0 1-.199.031c-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.271.173-.508.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
-    <span class="line-text">LINE</span>
+    <span class="fixed-line-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596a.626.626 0 0 1-.199.031c-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.271.173-.508.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg></span>
+    <span class="fixed-line-content"><span class="fixed-line-label">見学予約・ご相談</span><span class="fixed-line-cta">LINEで相談 🐾</span></span>
   </a>
 
   <!-- Back to Top -->

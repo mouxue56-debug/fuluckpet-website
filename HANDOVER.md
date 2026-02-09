@@ -74,7 +74,7 @@ fuluckpet-website/
 | 项目 | 内容 |
 |------|------|
 | **地址** | https://fuluckpet.com/admin/ |
-| **密码** | `fuluck2025` |
+| **密码** | `fuluck5632` |
 | **实现** | 单 HTML 文件，CSS/JS 全内联 |
 | **存储** | 浏览器 `localStorage`，key: `fuluckData` |
 | **认证** | `sessionStorage`，关闭浏览器需重新登录 |
@@ -212,7 +212,7 @@ git push origin main          # 1-2 分钟自动部署
 4. **业主说中文** — 沟通用中文
 5. **网站日语** — i18n 支持 EN/ZH
 6. **照片用 Google Photos URL** — 不是文件上传
-7. **别改密码** — `fuluck2025`，改前问业主
+7. **别改密码** — `fuluck5632`，改前问业主
 8. **外链图片危险** — koneko-breeder.com 随时可能挂
 9. **公开仓库** — 别提交敏感信息
 10. **纯静态** — 改文件 push 就行，没有构建步骤
