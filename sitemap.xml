@@ -3,52 +3,49 @@
   <!-- メインページ -->
   <url>
     <loc>https://fuluckpet.com/</loc>
-    <lastmod>2025-02-08</lastmod>
+    <lastmod>2026-02-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <!-- サイベリアンの魅力 -->
   <url>
     <loc>https://fuluckpet.com/siberian.html</loc>
-    <lastmod>2025-02-08</lastmod>
+    <lastmod>2026-02-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <!-- 受賞歴・認定 -->
   <url>
     <loc>https://fuluckpet.com/about.html</loc>
-    <lastmod>2025-02-08</lastmod>
+    <lastmod>2026-02-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <!-- 卒業猫ギャラリー -->
   <url>
     <loc>https://fuluckpet.com/gallery.html</loc>
-    <lastmod>2025-02-08</lastmod>
+    <lastmod>2026-02-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <!-- お客様の声 -->
   <url>
     <loc>https://fuluckpet.com/reviews.html</loc>
-    <lastmod>2025-02-08</lastmod>
+    <lastmod>2026-02-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
-  <!-- 子猫の名前ツール -->
-  <url>
-    <loc>https://catnamegive.mouxue56.workers.dev</loc>
-    <lastmod>2025-02-09</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
+  <!-- 子猫一覧 -->
   <url>
     <loc>https://fuluckpet.com/kittens.html</loc>
+    <lastmod>2026-02-09</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
+  <!-- 親猫紹介 -->
   <url>
     <loc>https://fuluckpet.com/parents.html</loc>
+    <lastmod>2026-02-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
