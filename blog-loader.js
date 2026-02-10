@@ -85,7 +85,6 @@
           '<span class="blog-card-cat">' + catLabel(a.category) + '</span>' +
           '<h3 class="blog-card-title">' + title + '</h3>' +
           (excerpt ? '<p class="blog-card-excerpt">' + excerpt + '</p>' : '') +
-          '<time class="blog-card-date">' + formatDate(a.publishedAt) + '</time>' +
         '</div>' +
       '</a>';
     }).join('');
@@ -106,7 +105,6 @@
       (cover ? '<img src="' + cover + '" alt="' + title + '" class="blog-detail-cover">' : '') +
       '<div class="blog-detail-meta">' +
         '<span class="blog-card-cat">' + catLabel(article.category) + '</span>' +
-        '<time>' + formatDate(article.publishedAt) + '</time>' +
       '</div>' +
       '<h1 class="blog-detail-title">' + title + '</h1>' +
       '<div class="blog-detail-content">' + content + '</div>';

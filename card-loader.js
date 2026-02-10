@@ -186,6 +186,31 @@
           }
         });
 
+        // Inject per-kitten JSON-LD Product schema for SEO
+        var available = kittens.filter(function(k) { return k.status === 'available'; });
+        if (available.length > 0) {
+          var ldItems = available.map(function(k) {
+            var gender = k.gender === '♂' ? '男の子' : '女の子';
+            return {
+              '@type': 'Product',
+              'name': (k.breed || 'サイベリアン') + ' ' + gender + ' ' + (k.color || ''),
+              'description': '大阪の福楽キャッテリー（ブリーダー：羅方遠/ラホウエン）の' + (k.breed || 'サイベリアン') + '子猫。' + gender + '・' + (k.color || '') + (k.birthday ? '・' + k.birthday.replace('-', '年').replace(/-0?/, '月') + '生まれ' : '') + '。',
+              'brand': { '@type': 'Brand', 'name': '福楽キャッテリー' },
+              'offers': {
+                '@type': 'Offer',
+                'price': String(k.price || ''),
+                'priceCurrency': 'JPY',
+                'availability': 'https://schema.org/InStock',
+                'seller': { '@type': 'Organization', 'name': '福楽キャッテリー', 'url': 'https://fuluckpet.com/' }
+              }
+            };
+          });
+          var ldScript = document.createElement('script');
+          ldScript.type = 'application/ld+json';
+          ldScript.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': ldItems });
+          document.head.appendChild(ldScript);
+        }
+
         if (typeof window.rebindCards === 'function') {
           window.rebindCards();
         }
