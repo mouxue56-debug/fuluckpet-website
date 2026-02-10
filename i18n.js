@@ -860,6 +860,23 @@ function setLanguage(lang) {
     }
   });
 
+  // Guide body block replacement (data-i18n-html)
+  if (typeof guideBodyTranslations !== 'undefined') {
+    document.querySelectorAll('[data-i18n-html]').forEach(el => {
+      var key = el.getAttribute('data-i18n-html');
+      if (lang === 'ja') {
+        // Restore original Japanese HTML
+        if (el._i18nOriginal) el.innerHTML = el._i18nOriginal;
+      } else {
+        // Save original on first switch
+        if (!el._i18nOriginal) el._i18nOriginal = el.innerHTML;
+        if (guideBodyTranslations[lang] && guideBodyTranslations[lang][key]) {
+          el.innerHTML = guideBodyTranslations[lang][key];
+        }
+      }
+    });
+  }
+
   document.querySelectorAll('.lang-btn').forEach(btn => {
     btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
   });
