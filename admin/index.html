@@ -240,6 +240,7 @@
           <div class="nav-section-title"><span data-adm-ja="コンテンツ" data-adm-zh="内容">コンテンツ</span></div>
           <div class="nav-item" data-page="reviews"><span class="icon">⭐</span> <span data-adm-ja="お客様の声" data-adm-zh="客户评价">お客様の声</span></div>
           <div class="nav-item" data-page="images"><span class="icon">🖼️</span> <span data-adm-ja="画像管理" data-adm-zh="图片管理">画像管理</span></div>
+          <div class="nav-item" data-page="drive"><span class="icon">☁️</span> <span data-adm-ja="Drive写真" data-adm-zh="Drive照片">Drive写真</span></div>
           <div class="nav-item" data-page="export"><span class="icon">📤</span> <span data-adm-ja="HTML出力" data-adm-zh="HTML导出">HTML出力</span></div>
         </div>
         <div class="nav-section">
@@ -665,6 +666,28 @@
           </div>
         </div>
 
+        <!-- ====== DRIVE PHOTOS ====== -->
+        <div class="panel-page" id="page-drive">
+          <div class="settings-card" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;">
+            <div style="flex:1;min-width:200px;">
+              <h3>☁️ <span data-adm-ja="Google Drive 写真管理" data-adm-zh="Google Drive 照片管理">Google Drive 写真管理</span></h3>
+              <p style="color:var(--text-light);margin-top:8px;font-size:13px;">
+                <span data-adm-ja="Google Driveのフォルダと写真の同期状態を確認できます。写真はDriveにアップロード後、自動的にサイトに反映されます（最大30分）。" data-adm-zh="查看Google Drive文件夹和照片的同步状态。照片上传到Drive后会自动同步到网站（最多30分钟）。">Google Driveのフォルダと写真の同期状態を確認できます。写真はDriveにアップロード後、自動的にサイトに反映されます（最大30分）。</span>
+              </p>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="top-btn btn-primary" id="driveRefreshBtn" onclick="loadDriveStatus()">🔄 <span data-adm-ja="状態を更新" data-adm-zh="刷新状态">状態を更新</span></button>
+              <button class="top-btn btn-danger" id="driveCacheClearBtn" onclick="clearDriveCache()">🗑️ <span data-adm-ja="キャッシュクリア" data-adm-zh="清除缓存">キャッシュクリア</span></button>
+            </div>
+          </div>
+          <div id="driveStatusArea" style="margin-top:16px;">
+            <div class="settings-card" style="text-align:center;padding:48px;color:var(--text-light);">
+              <p style="font-size:32px;margin-bottom:12px;">☁️</p>
+              <p><span data-adm-ja="「状態を更新」ボタンをクリックしてDriveの写真状態を確認" data-adm-zh="点击「刷新状态」按钮查看Drive照片状态">「状態を更新」ボタンをクリックしてDriveの写真状態を確認</span></p>
+            </div>
+          </div>
+        </div>
+
         <!-- ====== EXPORT ====== -->
         <div class="panel-page" id="page-export">
           <div class="settings-card">
@@ -988,6 +1011,7 @@ var PASS_KEY = 'fuluck-admin-pass';
 var LOG_KEY = 'fuluck-admin-log';
 var IMAGE_KEY = 'fuluck-admin-images';
 var DEFAULT_PASS = 'fuluck2025';
+var DRIVE_API = 'https://fuluck-api.mouxue56.workers.dev';
 
 // Pagination
 var kittenPage = 1;
@@ -1062,15 +1086,58 @@ document.getElementById('loginBtn').addEventListener('click', doLogin);
 document.getElementById('loginPassword').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
 
 function doLogin() {
-  if (document.getElementById('loginPassword').value === getPass()) {
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('adminLayout').classList.add('active');
-    sessionStorage.setItem('fuluck-admin-auth', '1');
-    renderAll();
-  } else {
-    document.getElementById('loginError').style.display = 'block';
-    document.getElementById('loginPassword').style.borderColor = '#FC8181';
-  }
+  var pwd = document.getElementById('loginPassword').value;
+  var btn = document.getElementById('loginBtn');
+  btn.disabled = true;
+  btn.textContent = '...';
+
+  // Try Worker API auth first, then fallback to local
+  fetch(DRIVE_API + '/api/auth', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password: pwd })
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.success) {
+        loginSuccess(pwd);
+      } else if (pwd === getPass()) {
+        // Fallback: local password match (for non-Drive features)
+        loginSuccess(pwd);
+      } else {
+        loginFail();
+      }
+    })
+    .catch(function() {
+      // API unreachable — fallback to local auth
+      if (pwd === getPass()) {
+        loginSuccess(pwd);
+      } else {
+        loginFail();
+      }
+    })
+    .finally(function() {
+      btn.disabled = false;
+      btn.textContent = admLang === 'zh' ? '登录' : 'ログイン';
+    });
+}
+
+function loginSuccess(pwd) {
+  sessionStorage.setItem('fuluck-admin-auth', '1');
+  sessionStorage.setItem('fuluck-admin-pwd', pwd);
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('adminLayout').classList.add('active');
+  renderAll();
+}
+
+function loginFail() {
+  document.getElementById('loginError').style.display = 'block';
+  document.getElementById('loginPassword').style.borderColor = '#FC8181';
+}
+
+// Get active session password for API calls
+function getSessionPass() {
+  return sessionStorage.getItem('fuluck-admin-pwd') || getPass();
 }
 
 if (sessionStorage.getItem('fuluck-admin-auth') === '1') {
@@ -1081,6 +1148,7 @@ if (sessionStorage.getItem('fuluck-admin-auth') === '1') {
 
 document.getElementById('logoutBtn').addEventListener('click', function() {
   sessionStorage.removeItem('fuluck-admin-auth');
+  sessionStorage.removeItem('fuluck-admin-pwd');
   location.reload();
 });
 
@@ -1660,6 +1728,83 @@ function copyGeneratedCode() {
     document.body.removeChild(ta);
     showToast(t('コピーしました','已复制'), 'success');
   });
+}
+
+// ============================================================
+// DRIVE PHOTOS MANAGEMENT
+// ============================================================
+
+function loadDriveStatus() {
+  var area = document.getElementById('driveStatusArea');
+  var btn = document.getElementById('driveRefreshBtn');
+  if (!area) return;
+  btn && (btn.disabled = true);
+  area.innerHTML = '<div class="settings-card" style="text-align:center;padding:32px;"><p style="font-size:24px;">⏳</p><p>' + (admLang === 'zh' ? '加载中...' : '読み込み中...') + '</p></div>';
+
+  var pass = getSessionPass();
+  fetch(DRIVE_API + '/api/admin/drive/status', { headers: { 'Authorization': 'Bearer ' + pass } })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.error) { area.innerHTML = '<div class="settings-card" style="color:var(--danger-dark);padding:24px;">❌ ' + data.error + '</div>'; return; }
+      var html = '';
+      var categoryLabels = { kittens: '🐱 ' + (admLang === 'zh' ? '子猫 (kittens)' : '子猫 (kittens)'), parents: '🐈 ' + (admLang === 'zh' ? '种猫 (parents)' : '親猫 (parents)'), gallery: '📸 ' + (admLang === 'zh' ? '毕业猫 (gallery)' : '卒業猫 (gallery)') };
+      Object.keys(data).forEach(function(cat) {
+        var info = data[cat];
+        var subs = info.subfolders || [];
+        html += '<div class="data-table" style="margin-bottom:16px;">';
+        html += '<div class="table-header"><h3 class="table-title">' + (categoryLabels[cat] || cat) + ' <span style="font-weight:400;font-size:13px;color:var(--text-light);">— ' + subs.length + (admLang === 'zh' ? ' 个文件夹' : ' フォルダ') + '</span></h3></div>';
+        if (subs.length === 0) {
+          html += '<div style="padding:24px;color:var(--text-light);text-align:center;">' + (admLang === 'zh' ? '暂无文件夹' : 'フォルダなし') + '</div>';
+        } else {
+          html += '<div style="padding:8px 16px;">';
+          subs.forEach(function(sub) {
+            var hasImages = sub.imageCount > 0;
+            var statusIcon = hasImages ? '✅' : '⬜';
+            html += '<div style="display:flex;align-items:center;gap:12px;padding:12px 8px;border-bottom:1px solid var(--border);flex-wrap:wrap;">';
+            html += '<span style="font-size:16px;">' + statusIcon + '</span>';
+            html += '<span style="font-weight:600;min-width:140px;">' + sub.name + '</span>';
+            html += '<span style="font-size:13px;color:' + (hasImages ? 'var(--mint-dark)' : 'var(--text-light)') + ';font-weight:600;">' + sub.imageCount + (admLang === 'zh' ? ' 张照片' : ' 枚') + '</span>';
+            if (hasImages) {
+              html += '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-left:auto;">';
+              sub.images.forEach(function(img, idx) {
+                html += '<span style="font-size:11px;background:' + (idx === 0 ? 'var(--mint-light)' : 'var(--bg-light)') + ';padding:2px 8px;border-radius:4px;color:' + (idx === 0 ? 'var(--mint-dark)' : 'var(--text-light)') + ';" title="' + (idx === 0 ? (admLang === 'zh' ? '封面图' : 'カバー写真') : '') + '">' + (idx === 0 ? '📌 ' : '') + img.name + '</span>';
+              });
+              html += '</div>';
+            }
+            html += '</div>';
+          });
+          html += '</div>';
+        }
+        html += '</div>';
+      });
+      area.innerHTML = html;
+    })
+    .catch(function(e) {
+      area.innerHTML = '<div class="settings-card" style="color:var(--danger-dark);padding:24px;">❌ ' + (admLang === 'zh' ? '连接失败: ' : '接続エラー: ') + e.message + '</div>';
+    })
+    .finally(function() { btn && (btn.disabled = false); });
+}
+
+function clearDriveCache() {
+  if (!confirm(admLang === 'zh' ? '确定要清除Drive缓存吗？\n清除后照片会在下次访问时重新从Drive加载。' : 'Driveキャッシュをクリアしますか？\nクリア後、次回アクセス時にDriveから再読み込みされます。')) return;
+  var btn = document.getElementById('driveCacheClearBtn');
+  btn && (btn.disabled = true);
+  var pass = getSessionPass();
+  fetch(DRIVE_API + '/api/admin/drive/refresh', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + pass, 'Content-Type': 'application/json' }
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.success) {
+        showToast((admLang === 'zh' ? '缓存已清除 (' + d.cleared + ' 条)' : 'キャッシュクリア完了 (' + d.cleared + ' 件)'), 'success');
+        loadDriveStatus();
+      } else {
+        showToast('❌ ' + (d.error || 'Error'), 'error');
+      }
+    })
+    .catch(function(e) { showToast('❌ ' + e.message, 'error'); })
+    .finally(function() { btn && (btn.disabled = false); });
 }
 
 // ============================================================
