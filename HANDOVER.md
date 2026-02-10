@@ -1,7 +1,7 @@
 # 福楽キャッテリー 网站交接文档
 
 > **本文档供下一个 AI 会话使用，用于快速了解本项目的全部背景。**
-> 最后更新：2026-02-09 Session 10
+> 最后更新：2026-02-10 Session 11
 
 ---
 
@@ -48,7 +48,7 @@ fuluckpet-website/
 ├── 404.html            # 404 错误页
 ├── style.css           # 全局样式
 ├── script.js           # 全局 JS（i18n、导航、动画、modal、YouTube embed）~660行
-├── i18n.js             # 翻译字典（JA/EN/ZH）
+├── i18n.js             # 翻译字典（JA/EN/ZH）+ data-i18n-html 块替换
 ├── sitemap.xml         # SEO sitemap（7 页）
 ├── robots.txt          # 爬虫规则（屏蔽 /admin/ 和 /api/）
 ├── CNAME               # 自定义域名
@@ -64,6 +64,11 @@ fuluckpet-website/
 │   ├── siberian-main.jpg  # 西伯利亚猫品种主图
 │   ├── siberian-group.jpg # 西伯利亚猫集合写真
 │   └── .gitkeep
+├── guide/              # お迎えガイド（14子页面）
+│   ├── index.html      # Guide 首页（カード一覧）
+│   ├── guide.css       # Guide 专用样式
+│   ├── i18n-guide-body.js  # 正文翻译（14页 × EN/ZH，1323行）
+│   └── *.html ×14      # 各子页面（见第6节 i18n 说明）
 ├── admin/
 │   └── index.html      # 管理后台（~2050+行，完全自包含，全面双语）
 └── api/
@@ -179,6 +184,31 @@ fuluckpet-website/
   - 所有表单标签、表格表头、按钮文本、Toast 消息、确认对话框
   - `data-img-ja` / `data-img-zh` 属性保留向后兼容（画像管理页面）
   - JS 动态文本通过 `t(ja, zh)` 辅助函数实现双语
+
+### Guide 子页面 i18n（Session 11 新增）
+
+**机制**：`data-i18n-html` 整块 innerHTML 替换（区别于逐元素的 `data-i18n`）
+
+**原理**：
+1. `i18n.js` 第 863-878 行：检测 `[data-i18n-html]` 属性的元素
+2. 切换到 en/zh 时：保存原始 HTML 到 `el._i18nOriginal`，用翻译 HTML 替换
+3. 切回 ja 时：恢复 `el._i18nOriginal`
+4. 翻译数据来自 `guide/i18n-guide-body.js`（`guideBodyTranslations` 全局变量）
+
+**14个页面两种结构**：
+- **Pattern A**（guide-header 在 guide-main 外面）：`data-i18n-html` 直接加在 `.guide-main` 上
+  - 5个页面：visit, day1, multi-cat, neuter, price
+- **Pattern B**（guide-header 在 guide-main 里面）：新增 `<div class="guide-body-content" data-i18n-html="...">` 包裹 sections
+  - 9个页面：prepare, bring, home-safety, week1, family, grooming, behavior, passport, weight-log
+
+**翻译 key 格式**：`guide.body.visit`、`guide.body.prepare`、`guide.body.homeSafety` 等
+
+**脚本加载顺序**：`i18n.js` → `guide/i18n-guide-body.js` → `script.js`
+
+**⚠️ 修改注意**：
+- 修改 Pattern B 页面的日语正文时，只改 `guide-body-content` 内的 sections
+- `guide-header` 内容（标题、导语）用的是 `data-i18n` 逐元素替换，翻译在 `i18n.js`
+- 新增 guide 子页面需要：(1) 在 HTML 加属性 (2) 在 `i18n-guide-body.js` 加 EN/ZH 翻译
 
 ---
 
@@ -311,7 +341,8 @@ siberian.html 集合写真占位符需替换（文件已有）。
 | 7 | GA4 + sitemap + Search Console + STORES.jp Footer + 404页 |
 | 8 | LINE 浮动按钮重做 + Gallery 真实照片 + HANDOVER.md + TUTORIAL.md |
 | 9 | 内容/CTA优化（价格免责、アレルギー措辞、LINE CTA）→ 图片占位符替换（Hero/Siberian/Reviews/Gallery）→ Admin 画像管理功能（双语、URL+文件上传、尺寸标签、Instagram超链接、预览）→ images/ 文件夹方案C + 双语图片指南 |
-| 10（本次） | YouTube 视频嵌入（子猫详情modal + Admin子猫表单）→ Admin 全站中日双语切换（从仅画像管理扩展到全部9个页面+登录页+所有modal+所有JS动态文本）→ 操作指南重写（8步详细双语指导）→ HANDOVER.md 更新 |
+| 10 | YouTube 视频嵌入（子猫详情modal + Admin子猫表单）→ Admin 全站中日双语切换（从仅画像管理扩展到全部9个页面+登录页+所有modal+所有JS动态文本）→ 操作指南重写（8步详细双语指导）→ HANDOVER.md 更新 |
+| 11（本次） | Guide 子页面 i18n 正文切换（14个页面 × EN/ZH 翻译）→ `data-i18n-html` 整块替换机制 → `guide/i18n-guide-body.js` 翻译文件（1323行） |
 
 ---
 
@@ -347,3 +378,5 @@ git push origin main          # 1-2 分钟自动部署
 12. **纯静态** — 改文件 push 就行，没有构建步骤
 13. **LINE URL** — `https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true`
 14. **两个 breeder 账号** — c995680（羅方遠/サイベリアン）和 d696506（刘暁棉/British/Ragdoll）
+15. **Guide i18n 双机制** — guide-header 用 `data-i18n`（翻译在 i18n.js），正文用 `data-i18n-html`（翻译在 guide/i18n-guide-body.js）。两种 HTML 结构（Pattern A/B），详见第6节
+16. **guide/i18n-guide-body.js** — 1323行，28个翻译块。修改日语正文后需同步更新此文件中对应的 EN/ZH 翻译
