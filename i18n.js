@@ -105,6 +105,10 @@ const translations = {
     'faq.a5': 'はい、お迎え後もLINEにていつでもご相談いただけます。食事・健康管理・しつけなど、何でもお気軽にご連絡ください。末永くサポートいたします。',
     'faq.q6': 'サイベリアン以外の猫種も扱っていますか？',
     'faq.a6': 'はい、サイベリアンを中心に、ブリティッシュショートヘア・ブリティッシュロングヘア・ラグドールも取り扱っております。ご希望の猫種がございましたらお問い合わせください。',
+    'faq.moreLink': 'すべてのFAQを見る →',
+    'faq.tag': 'FAQ',
+    'faq.pageTitle': 'よくある質問',
+    'faq.pageSubtitle': 'お迎えに関するよくある質問をまとめました',
 
     // Gallery
     'gallery.title': '卒業猫ギャラリー',
@@ -386,6 +390,10 @@ const translations = {
     'faq.a5': 'Yes, we offer lifelong support via LINE for diet, health care, training, and any concerns.',
     'faq.q6': 'Do you breed cats other than Siberians?',
     'faq.a6': 'Yes, we also breed British Shorthairs, British Longhairs, and Ragdolls alongside our specialty Siberians.',
+    'faq.moreLink': 'View All FAQs →',
+    'faq.tag': 'FAQ',
+    'faq.pageTitle': 'FAQ',
+    'faq.pageSubtitle': 'Frequently asked questions about adopting from our cattery',
 
     // Gallery
     'gallery.title': 'Alumni Gallery',
@@ -667,6 +675,10 @@ const translations = {
     'faq.a5': '有的，领养后可随时通过LINE咨询饮食、健康管理、训练等任何问题。我们提供终身支持。',
     'faq.q6': '除了西伯利亚猫还有其他猫种吗？',
     'faq.a6': '有的，以西伯利亚猫为主，同时也繁育英国短毛猫、英国长毛猫和布偶猫。',
+    'faq.moreLink': '查看所有FAQ →',
+    'faq.tag': 'FAQ',
+    'faq.pageTitle': '常见问题',
+    'faq.pageSubtitle': '关于领养的常见问题汇总',
 
     // Gallery
     'gallery.title': '毕业猫相册',

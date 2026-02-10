@@ -46,6 +46,7 @@ fuluckpet-website/
 ├── kittens.html        # 幼猫列表（子猫一覧）
 ├── parents.html        # 种猫介绍（親猫紹介）
 ├── blog.html           # 知識ライブラリ（知识库文章列表+详情）Session 15 新增
+├── faq.html            # FAQ 独立页面（从API动态加载，分类过滤）Session 15b 新增
 ├── 404.html            # 404 错误页
 ├── style.css           # 全局样式
 ├── blog.css            # 知识库专用样式 Session 15 新增
@@ -53,7 +54,8 @@ fuluckpet-website/
 ├── i18n.js             # 翻译字典（JA/EN/ZH）+ data-i18n-html 块替换 + langChanged 事件
 ├── card-loader.js      # 动态渲染（从 API 加载子猫/种猫/评价卡片）Session 15b 新增
 ├── blog-loader.js      # 知识库前端加载（从 API 渲染文章列表/详情）Session 15 新增
-├── faq-loader.js       # FAQ 动态加载（从 API 替换静态 FAQ）Session 15 新增
+├── faq-loader.js       # FAQ 动态加载（旧版，首页已不使用）Session 15
+├── faq-page-loader.js  # FAQ 独立页面加载器（faq.html 专用）Session 15b 新增
 ├── sitemap.xml         # SEO sitemap（含 blog.html）
 ├── robots.txt          # 爬虫规则（屏蔽 /admin/ 和 /api/）
 ├── CNAME               # 自定义域名
@@ -511,7 +513,7 @@ fuluckpet-photos/  (ID: 1sbFIW5C7YfSw7zVIKhhAyCOuKivD8qUc)
 | 13 | 子猫モーダル前後ナビ+親猫クリック遷移 → PC版ナビボタン拡大+スクロール修正 → Adminログイン API統合（プライベートモード対応）→ Admin Drive写真管理パネル → 写真管理モーダルにDriveプレビュー追加 → **全站架构升级计划**（动态渲染+知识库+FAQ） |
 | 14 | HANDOVER修正+OGP统一+about评价徽章CSS → **图片迁移R2**（76张扫描→75张上传→Worker `/r2/` 路由→HTML URL全替换→0外链残留）→ **Admin数据持久化KV**（api-client.js+migrate.js+CRUD改造）→ 性能优化（lazy loading）|
 | 15 | **Admin模块化**（~1400行inline JS→12外部模块）→ **Worker articles+FAQ端点** → **FAQ系统**（faq-loader.js动态加载+admin-faq.js管理+种子数据）→ **知识库**（blog.html+blog.css+blog-loader.js 8分类+admin-articles.js三语编辑）→ **全站导航更新**（22个HTML+i18n.js+sitemap.xml）→ i18n langChanged事件 |
-| 15b | **前端动态渲染**：card-loader.js新建（~200行，从API加载子猫/种猫/评价卡片）→ script.js重构（rebindCards/bindKittenCards/bindParentCards/bindAnimations可重复绑定）→ 4个HTML加载card-loader.js → KV种子数据导入（24子猫+16种猫+6评价+6FAQ）→ 保留硬编码HTML做SEO fallback |
+| 15b | **前端动态渲染**：card-loader.js新建（~200行，从API加载子猫/种猫/评价卡片）→ script.js重构（rebindCards等可重复绑定）→ 4个HTML加载card-loader.js → KV种子数据导入（24子猫+16种猫+6评价+6FAQ）→ **FAQ改造**：首页恢复静态FAQ+添加"更多FAQ"链接 → faq.html独立页面+faq-page-loader.js（API动态加载+分类过滤）|
 
 ---
 
