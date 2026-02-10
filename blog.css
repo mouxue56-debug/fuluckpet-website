@@ -99,6 +99,28 @@
 .article-sources a { color: var(--mint-dark, #5BC4A8); text-decoration: none; }
 .article-sources a:hover { text-decoration: underline; }
 
+/* Related articles & guide links */
+.blog-related { max-width: 800px; margin: 0 auto; padding: 0 16px 40px; }
+.blog-related h2 { font-size: 18px; margin-bottom: 16px; color: var(--text-dark, #2D3436); }
+.blog-related h2:not(:first-child) { margin-top: 24px; }
+.blog-related-grid { display: grid; gap: 12px; }
+.blog-related-link {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; border-radius: 12px;
+  text-decoration: none; color: inherit; transition: transform 0.2s;
+}
+.blog-related-link:hover { transform: translateX(4px); }
+.blog-related-link--article { background: var(--cream, #FFF8F0); }
+.blog-related-link--guide { background: var(--mint-light, #F0FFFA); }
+.blog-related-link span:first-child { font-size: 14px; color: var(--mint-dark, #5BC4A8); }
+.blog-related-link span:last-child { font-size: 14px; font-weight: 500; }
+
+/* Blog article page breadcrumb */
+.blog-article { max-width: 800px; margin: 0 auto; padding: 20px 16px 40px; }
+
+/* Blog list static card links */
+.blog-card[data-category] { display: block; }
+
 @media (max-width: 768px) {
   .blog-grid { grid-template-columns: 1fr; gap: 16px; }
   .blog-hero { padding: 60px 0 24px; }

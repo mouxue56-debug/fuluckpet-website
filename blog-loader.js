@@ -41,10 +41,17 @@
     return d.getFullYear() + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0');
   }
 
-  // Check URL for slug parameter
+  // Check URL for slug parameter — redirect to static page if found
   function getSlugFromUrl() {
     var params = new URLSearchParams(window.location.search);
     return params.get('slug');
+  }
+
+  // Redirect old ?slug= URLs to static /blog/{slug}.html pages
+  var slugParam = getSlugFromUrl();
+  if (slugParam) {
+    window.location.replace('/blog/' + encodeURIComponent(slugParam) + '.html');
+    return;
   }
 
   function renderFilters() {
@@ -79,7 +86,7 @@
       var title = txt(a.title);
       var excerpt = txt(a.excerpt);
       var cover = a.coverImage || '';
-      return '<a href="blog.html?slug=' + encodeURIComponent(a.slug) + '" class="blog-card">' +
+      return '<a href="/blog/' + encodeURIComponent(a.slug) + '.html" class="blog-card">' +
         (cover ? '<div class="blog-card-img"><img src="' + cover + '" alt="' + title + '" loading="lazy"></div>' : '<div class="blog-card-img blog-card-noimg">📝</div>') +
         '<div class="blog-card-body">' +
           '<span class="blog-card-cat">' + catLabel(a.category) + '</span>' +
@@ -110,33 +117,23 @@
       '<div class="blog-detail-content">' + content + '</div>';
   }
 
-  // Init
+  // Init — fetch articles for filter/language features (static HTML provides SEO fallback)
   fetch(API + '/api/articles')
     .then(function(r) { return r.json(); })
     .then(function(data) {
       allArticles = data || [];
-      var slug = getSlugFromUrl();
-      if (slug) {
-        var article = allArticles.find(function(a) { return a.slug === slug; });
-        if (article) {
-          renderDetail(article);
-          return;
-        }
-      }
       renderFilters();
       renderList();
     })
     .catch(function() {
-      listContainer.innerHTML = '<div class="blog-empty">Failed to load articles</div>';
+      // Static cards remain visible as fallback — only show error if no static cards
+      if (!listContainer.querySelector('.blog-card')) {
+        listContainer.innerHTML = '<div class="blog-empty">Failed to load articles</div>';
+      }
     });
 
   window.addEventListener('langChanged', function() {
     if (allArticles.length > 0) {
-      var slug = getSlugFromUrl();
-      if (slug) {
-        var article = allArticles.find(function(a) { return a.slug === slug; });
-        if (article) { renderDetail(article); return; }
-      }
       renderFilters();
       renderList();
     }

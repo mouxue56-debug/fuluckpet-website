@@ -3,101 +3,779 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>猫の飼い方・健康管理 知識ライブラリ｜大阪・福楽キャッテリー</title>
-  <meta name="description" content="猫の飼い方・健康管理・食事・しつけなど、大阪のサイベリアン専門ブリーダー・福楽キャッテリー（羅方遠/ラホウエン）が執筆する猫の知識コラム。初めての猫飼いさんも安心。">
-  <meta name="keywords" content="猫,飼い方,健康管理,サイベリアン,大阪,ブリーダー,福楽キャッテリー,羅方遠,ラホウエン,猫の知識,しつけ,栄養">
-  <meta property="og:title" content="猫の飼い方・健康管理 知識ライブラリ｜大阪・福楽キャッテリー">
-  <meta property="og:description" content="大阪のサイベリアン専門ブリーダーが執筆する猫の飼い方・健康管理の知識コラム。">
+  <title>猫の知識ライブラリ｜サイベリアン・猫の飼い方情報｜福楽キャッテリー</title>
+  <meta name="description" content="サイベリアンの特徴、猫の健康管理、子猫の育て方など、猫に関する知識を専門ブリーダーが解説。大阪の福楽キャッテリーがお届けする猫の知識ライブラリ。">
+  <meta name="keywords" content="猫,知識,サイベリアン,飼い方,健康,子猫,ブリーダー,大阪">
+  <meta property="og:title" content="猫の知識ライブラリ｜福楽キャッテリー">
+  <meta property="og:description" content="サイベリアンの特徴、猫の健康管理、子猫の育て方など専門ブリーダーが解説する猫の知識ライブラリ。">
   <meta property="og:type" content="website">
-  <meta property="og:image" content="/images/ogp.jpg">
+  <meta property="og:url" content="https://fuluckpet.com/blog.html">
+  <meta property="og:image" content="https://fuluckpet.com/images/ogp.jpg">
+  <meta property="og:site_name" content="サイベリアン｜大阪・福楽キャッテリー">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="theme-color" content="#7DD3C0">
+  <link rel="canonical" href="https://fuluckpet.com/blog.html">
+  <link rel="alternate" hreflang="ja" href="https://fuluckpet.com/blog.html">
+  <link rel="alternate" hreflang="en" href="https://fuluckpet.com/blog.html">
+  <link rel="alternate" hreflang="zh" href="https://fuluckpet.com/blog.html">
+  <link rel="alternate" hreflang="x-default" href="https://fuluckpet.com/blog.html">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="blog.css">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/guide/guide.css">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐱</text></svg>">
-  <link rel="canonical" href="https://fuluckpet.com/blog.html">
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
-  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-EK459EK55M");</script>
+  <style>
+    .blog-hero { max-width:800px; margin:0 auto; padding:calc(var(--header-height) + 40px) 24px 20px; text-align:center; }
+    .blog-hero h1 { font-size:1.8rem; margin-bottom:12px; color:var(--text-heading); }
+    .blog-hero p { color:var(--text-body); font-size:1rem; }
+    .blog-cat-nav { max-width:800px; margin:0 auto 24px; padding:0 24px; display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+    .blog-cat-tag { padding:6px 16px; background:var(--mint-bg); color:var(--mint-dark); border-radius:20px; text-decoration:none; font-size:0.85rem; font-weight:500; transition:all 0.2s; }
+    .blog-cat-tag:hover { background:var(--mint); color:#fff; }
+    .blog-cat-heading { max-width:800px; margin:40px auto 16px; padding:0 24px; font-size:1.3rem; color:var(--text-heading); border-bottom:2px solid var(--mint); padding-bottom:8px; }
+    .blog-grid { max-width:800px; margin:0 auto; padding:0 24px; display:grid; grid-template-columns:1fr; gap:16px; }
+    .blog-card { display:block; padding:20px; background:#fff; border:1px solid #eee; border-radius:12px; text-decoration:none; transition:all 0.2s; }
+    .blog-card:hover { border-color:var(--mint); transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,0.06); }
+    .blog-card-cat { display:inline-block; font-size:0.75rem; padding:2px 8px; background:var(--mint-bg); color:var(--mint-dark); border-radius:12px; margin-bottom:8px; }
+    .blog-card-title { font-size:1rem; font-weight:600; color:var(--text-heading); margin-bottom:6px; line-height:1.5; }
+    .blog-card-desc { font-size:0.85rem; color:var(--text-note); line-height:1.6; margin:0; }
+    .blog-bottom-cta { max-width:800px; margin:40px auto; padding:32px 24px; text-align:center; }
+    @media(min-width:640px){ .blog-grid { grid-template-columns:1fr 1fr; } }
+  </style>
 </head>
 <body>
 
-  <!-- ===== HEADER ===== -->
-  <header class="header">
-    <div class="container header-inner">
-      <a href="index.html" class="logo"><span class="logo-icon">🐾</span> 福楽キャッテリー</a>
-      <nav class="nav-desktop">
-        <a href="index.html" class="nav-link" data-i18n="nav.home">ホーム</a>
-        <a href="index.html#kittens" class="nav-link" data-i18n="nav.kittens">子猫一覧</a>
-        <a href="index.html#parents" class="nav-link" data-i18n="nav.parents">親猫紹介</a>
-        <a href="guide/" class="nav-link" data-i18n="nav.guide">お迎えガイド</a>
-        <a href="blog.html" class="nav-link active" data-i18n="nav.blog">知識ライブラリ</a>
-        <a href="index.html#contact" class="nav-link nav-cta" data-i18n="nav.contact">お問い合わせ</a>
+  <!-- Scroll Progress Bar -->
+  <div class="scroll-progress"></div>
+
+  <!-- ========== HEADER ========== -->
+  <header class="header" id="header">
+    <div class="header-inner">
+      <a href="/index.html" class="logo">
+        <span class="logo-icon">🐾</span>
+        <span class="logo-text">福楽キャッテリー</span>
+      </a>
+
+      <nav class="nav" id="nav">
+        <a href="/index.html#about" class="nav-link" data-i18n="nav.about">猫舎について</a>
+        <a href="/index.html#kittens" class="nav-link" data-i18n="nav.kittens">子猫一覧</a>
+        <a href="/index.html#parents" class="nav-link" data-i18n="nav.parents">親猫紹介</a>
+        <a href="/index.html#visit" class="nav-link" data-i18n="nav.visit">見学案内</a>
+        <a href="/index.html#faq" class="nav-link" data-i18n="nav.faq">よくある質問</a>
+        <a href="/guide/" class="nav-link" data-i18n="nav.guide">お迎えガイド</a>
+        <a href="/blog.html" class="nav-link" data-i18n="nav.blog">知識ライブラリ</a>
+        <div class="nav-dropdown">
+          <button class="nav-link nav-dropdown-toggle" data-i18n="nav.more">もっと見る <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <div class="nav-dropdown-menu">
+            <a href="/siberian.html" class="nav-dropdown-item" data-i18n="nav.siberian">サイベリアンの魅力</a>
+            <a href="/about.html" class="nav-dropdown-item" data-i18n="nav.aboutPage">受賞歴・認定</a>
+            <a href="/gallery.html" class="nav-dropdown-item" data-i18n="nav.gallery">卒業猫ギャラリー</a>
+            <a href="/reviews.html" class="nav-dropdown-item" data-i18n="nav.reviews">お客様の声</a>
+            <div class="nav-dropdown-divider"></div>
+            <a href="https://catnamegive.mouxue56.workers.dev" target="_blank" rel="noopener" class="nav-dropdown-item" data-i18n="nav.naming">子猫の名前ツール</a>
+          </div>
+        </div>
       </nav>
-      <div class="lang-switch">
-        <button class="lang-btn active" data-lang="ja">日本語</button>
-        <button class="lang-btn" data-lang="en">EN</button>
-        <button class="lang-btn" data-lang="zh">中文</button>
+
+      <div class="header-right">
+        <div class="lang-switch">
+          <button class="lang-btn active" data-lang="ja">JP</button>
+          <button class="lang-btn" data-lang="en">EN</button>
+          <button class="lang-btn" data-lang="zh">中</button>
+        </div>
+        <div class="header-sns">
+          <a href="https://www.instagram.com/fuluckpet/" class="sns-icon" aria-label="Instagram" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg></a>
+          <a href="https://www.youtube.com/channel/UCuVbvcbkbXs6MaBN2G1Zx1A" class="sns-icon" aria-label="YouTube" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.94 2C5.12 20 12 20 12 20s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="currentColor" stroke="none"/></svg></a>
+          <a href="https://www.tiktok.com/@fuluckpet" class="sns-icon" aria-label="TikTok" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1 0-5.78 2.92 2.92 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 3 15.57 6.33 6.33 0 0 0 9.37 22a6.33 6.33 0 0 0 6.33-6.33V9.18a8.16 8.16 0 0 0 3.89.98V6.73a4.85 4.85 0 0 1-.01-.04z"/></svg></a>
+        </div>
+        <button class="hamburger" id="hamburger" aria-label="メニュー">
+          <span></span><span></span><span></span>
+        </button>
       </div>
-      <button class="burger" id="burger" aria-label="メニュー">
-        <span></span><span></span><span></span>
-      </button>
     </div>
   </header>
 
-  <!-- Mobile Nav -->
+  <!-- ========== MOBILE NAV ========== -->
   <div class="mobile-nav" id="mobileNav">
-    <div class="mobile-nav-inner">
-      <a href="index.html" class="mobile-nav-link" data-i18n="nav.home">ホーム</a>
-      <a href="index.html#kittens" class="mobile-nav-link" data-i18n="nav.kittens">子猫一覧</a>
-      <a href="index.html#parents" class="mobile-nav-link" data-i18n="nav.parents">親猫紹介</a>
-      <a href="guide/" class="mobile-nav-link" data-i18n="nav.guide">お迎えガイド</a>
-      <a href="blog.html" class="mobile-nav-link active" data-i18n="nav.blog">知識ライブラリ</a>
-      <a href="index.html#contact" class="mobile-nav-link" data-i18n="nav.contact">お問い合わせ</a>
+    <nav>
+      <a href="/index.html#about" class="mobile-nav-link" data-i18n="nav.about">猫舎について</a>
+      <a href="/index.html#kittens" class="mobile-nav-link" data-i18n="nav.kittens">子猫一覧</a>
+      <a href="/index.html#parents" class="mobile-nav-link" data-i18n="nav.parents">親猫紹介</a>
+      <a href="/index.html#visit" class="mobile-nav-link" data-i18n="nav.visit">見学案内</a>
+      <a href="/index.html#faq" class="mobile-nav-link" data-i18n="nav.faq">よくある質問</a>
+      <a href="/siberian.html" class="mobile-nav-link" data-i18n="nav.siberian">サイベリアン</a>
+      <a href="/kittens.html" class="mobile-nav-link" data-i18n="nav.allKittens">子猫一覧（すべて）</a>
+      <a href="/parents.html" class="mobile-nav-link" data-i18n="nav.allParents">親猫紹介（すべて）</a>
+      <a href="/gallery.html" class="mobile-nav-link" data-i18n="nav.gallery">ギャラリー</a>
+      <a href="/reviews.html" class="mobile-nav-link" data-i18n="nav.reviews">お客様の声</a>
+      <a href="/about.html" class="mobile-nav-link" data-i18n="nav.aboutPage">受賞歴・認定</a>
+      <a href="/guide/" class="mobile-nav-link" data-i18n="nav.guide">お迎えガイド</a>
+      <a href="/blog.html" class="mobile-nav-link" data-i18n="nav.blog">知識ライブラリ</a>
+      <a href="https://catnamegive.mouxue56.workers.dev" target="_blank" rel="noopener" class="mobile-nav-link" data-i18n="nav.naming">子猫の名前ツール</a>
+    </nav>
+    <div class="mobile-nav-bottom">
+      <div class="lang-switch mobile-lang">
+        <button class="lang-btn active" data-lang="ja">JP</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="zh">中</button>
+      </div>
     </div>
   </div>
 
-  <!-- ===== HERO ===== -->
-  <div class="blog-hero">
-    <div class="container">
-      <span class="sec-tag" data-i18n="blog.tag">Knowledge Base</span>
-      <h1 data-i18n="blog.title">知識ライブラリ</h1>
-      <p data-i18n="blog.subtitle">猫の健康・栄養・ケアについて、ブリーダーが解説します</p>
-    </div>
-  </div>
-
-  <!-- ===== CONTENT ===== -->
-  <section class="section" style="padding-top:0;">
-    <div class="container">
-      <div class="blog-filters" id="blogFilters"></div>
-      <div class="blog-grid" id="blogList"></div>
-      <div id="blogDetail" style="display:none;"></div>
-    </div>
+  <section class="blog-hero">
+    <h1>🐱 猫の知識ライブラリ</h1>
+    <p>サイベリアンの特徴から猫の健康管理、子猫の育て方まで。<br>大阪の福楽キャッテリーが専門ブリーダーの視点でお届けする猫の知識集です。</p>
   </section>
 
-  <!-- ===== FOOTER ===== -->
-  <footer class="footer">
-    <div class="container footer-inner">
-      <div class="footer-brand">
-        <div class="footer-logo">🐾 福楽キャッテリー</div>
-        <p class="footer-copy">© 2025 Fuluck Cattery. All rights reserved.</p>
+    <div class="blog-cat-nav">
+      <a href="#breed" class="blog-cat-tag">猫種知識（15）</a>
+      <a href="#health" class="blog-cat-tag">健康管理（15）</a>
+      <a href="#nutrition" class="blog-cat-tag">飲食栄養（8）</a>
+      <a href="#grooming" class="blog-cat-tag">日常ケア（9）</a>
+      <a href="#behavior" class="blog-cat-tag">行動・しつけ（13）</a>
+      <a href="#kitten" class="blog-cat-tag">子猫育て（11）</a>
+      <a href="#breeder" class="blog-cat-tag">ブリーダー選び（5）</a>
+      <a href="#allergy" class="blog-cat-tag">アレルギー（6）</a>
+      <a href="#lifestyle" class="blog-cat-tag">猫ライフ（17）</a>
+      <a href="#senior" class="blog-cat-tag">シニア猫（5）</a>
+    </div>
+
+    <h2 class="blog-cat-heading" id="breed">猫種知識</h2>
+    <div class="blog-grid">
+      <a href="/blog/siberian-character.html" class="blog-card">
+        <span class="blog-card-cat">猫種知識</span>
+        <h3 class="blog-card-title">サイベリアンの性格と特徴</h3>
+        <p class="blog-card-desc">サイベリアンの性格・特徴をブリーダーが解説。穏やかで賢く犬のような忠実さを持つロシア原産の天然猫種。大阪の福楽キャッテリーがご紹介。…</p>
+      </a>
+      <a href="/blog/siberian-color-types.html" class="blog-card">
+        <span class="blog-card-cat">猫種知識</span>
+        <h3 class="blog-card-title">サイベリアンの毛色の種類一覧</h3>
+        <p class="blog-card-desc">サイベリアンの毛色バリエーションを写真付きで解説。ブラウンタビー、シルバー、ネヴァマスカレードなど人気カラーの特徴と選び方。…</p>
+      </a>
+      <a href="/blog/siberian-weight-size.html" class="blog-card">
+        <span class="blog-card-cat">猫種知識</span>
+        <h3 class="blog-card-title">サイベリアンの体重・サイズガイド</h3>
+        <p class="blog-card-desc">サイベリアンの体重・サイズを月齢別に解説。オス・メスの平均体重、成長曲線、適正体重の管理方法まで。大阪の福楽キャッテリーが解説。…</p>
+      </a>
+      <a href="/blog/siberian-vs-norwegian.html" class="blog-card">
+        <span class="blog-card-cat">猫種知識</span>
+        <h3 class="blog-card-title">サイベリアン vs ノルウェージャンフォレストキャット</h3>
+        <p class="blog-card-desc">サイベリアンとノルウェージャンフォレストキャットの違いを徹底比較。性格・体格・被毛・アレルゲン量など7つの観点で解説。…</p>
+      </a>
+      <a href="/blog/siberian-vs-mainecoon.html" class="blog-card">
+        <span class="blog-card-cat">猫種知識</span>
+        <h3 class="blog-card-title">サイベリアン vs メインクーン</h3>
+        <p class="blog-card-desc">サイベリアンとメインクーンの違いを比較。体格・性格・飼いやすさ・アレルゲンなどの観点から大型猫種選びをサポート。…</p>
+      </a>
+      <a href="/blog/siberian-neva-masquerade.html" class="blog-card">
+        <span class="blog-card-cat">猫種知識</span>
+        <h3 class="blog-card-title">ネヴァマスカレードとは？サイベリアンのポイントカラー品種を解説</h3>
+        <p class="blog-card-desc">ネヴァマスカレード（Neva Masquerade）はサイベリアンのポイントカラーバリエーション。特徴・性格・毛色パターンを解説。…</p>
+      </a>
+      <a href="/blog/british-shorthair-character.html" class="blog-card">
+        <span class="blog-card-cat">猫種知識</span>
+        <h3 class="blog-card-title">ブリティッシュショートヘアの性格と特徴</h3>
+        <p class="blog-card-desc">ブリティッシュショートヘアの性格・特徴を解説。穏やかで独立心があり、初心者にも飼いやすい人気猫種の魅力をブリーダーがご紹介。…</p>
+      </a>
+      <a href="/blog/british-longhair-character.html" class="blog-card">
+        <span class="blog-card-cat">猫種知識</span>
+        <h3 class="blog-card-title">ブリティッシュロングヘアの性格と特徴</h3>
+        <p class="blog-card-desc">ブリティッシュロングヘアの性格・特徴・飼い方を解説。ブリティッシュショートヘアの長毛版として人気上昇中の猫種。…</p>
+      </a>
+      <a href="/blog/ragdoll-character.html" class="blog-card">
+        <span class="blog-card-cat">猫種知識</span>
+        <h3 class="blog-card-title">ラグドールの性格と特徴</h3>
+        <p class="blog-card-desc">ラグドールの性格・特徴を解説。その名の通り抱っこするとぬいぐるみのように脱力する愛らしい猫種。飼い方のポイントも紹介。…</p>
+      </a>
+      <a href="/blog/siberian-history.html" class="blog-card">
+        <span class="blog-card-cat">猫種知識</span>
+        <h3 class="blog-card-title">サイベリアンの歴史</h3>
+        <p class="blog-card-desc">サイベリアンの歴史と起源を解説。ロシアの国宝猫とも呼ばれるサイベリアンは1000年以上の歴史を持つ天然猫種です。…</p>
+      </a>
+      <a href="/blog/siberian-lifespan.html" class="blog-card">
+        <span class="blog-card-cat">猫種知識</span>
+        <h3 class="blog-card-title">サイベリアンの寿命と長生きの秘訣</h3>
+        <p class="blog-card-desc">サイベリアンの平均寿命は12〜18年。長生きの秘訣として食事管理・定期検診・ストレスケアなど健康管理のポイントを解説。…</p>
+      </a>
+      <a href="/blog/large-cat-breeds.html" class="blog-card">
+        <span class="blog-card-cat">猫種知識</span>
+        <h3 class="blog-card-title">大型猫種の魅力と飼い方</h3>
+        <p class="blog-card-desc">サイベリアン、メインクーン、ラグドールなど人気の大型猫種5選を比較。大きな猫の魅力と飼い方のポイントを解説。…</p>
+      </a>
+      <a href="/blog/natural-cat-breeds.html" class="blog-card">
+        <span class="blog-card-cat">猫種知識</span>
+        <h3 class="blog-card-title">天然猫種（ナチュラルブリード）とは？人工交配との違いを解説</h3>
+        <p class="blog-card-desc">サイベリアンやノルウェージャンなどの天然猫種の特徴・メリットを解説。人工的に作られた品種との違いや健康面の優位性について。…</p>
+      </a>
+      <a href="/blog/siberian-voice.html" class="blog-card">
+        <span class="blog-card-cat">猫種知識</span>
+        <h3 class="blog-card-title">サイベリアンの鳴き声は？静かで飼いやすい猫種の特徴</h3>
+        <p class="blog-card-desc">サイベリアンの鳴き声の特徴を解説。比較的静かで穏やかな鳴き声はマンション飼いにも適しています。…</p>
+      </a>
+      <a href="/blog/cat-breed-ranking-japan.html" class="blog-card">
+        <span class="blog-card-cat">猫種知識</span>
+        <h3 class="blog-card-title">日本で人気の猫種ランキング2025</h3>
+        <p class="blog-card-desc">2025年版日本で人気の猫種ランキングを解説。サイベリアンの人気上昇の背景と各猫種の特徴を比較。…</p>
+      </a>
+    </div>
+    <h2 class="blog-cat-heading" id="health">健康管理</h2>
+    <div class="blog-grid">
+      <a href="/blog/kitten-vaccine-schedule.html" class="blog-card">
+        <span class="blog-card-cat">健康管理</span>
+        <h3 class="blog-card-title">子猫のワクチンスケジュール</h3>
+        <p class="blog-card-desc">子猫のワクチン接種スケジュールを月齢別に解説。混合ワクチンの種類、接種回数、費用の目安まで。…</p>
+      </a>
+      <a href="/blog/cat-neuter-timing.html" class="blog-card">
+        <span class="blog-card-cat">健康管理</span>
+        <h3 class="blog-card-title">猫の去勢・避妊手術の適切な時期と費用</h3>
+        <p class="blog-card-desc">猫の去勢・避妊手術の最適な時期、費用の目安、メリット・デメリットを獣医師の観点も交えて解説。…</p>
+      </a>
+      <a href="/blog/cat-virus-test.html" class="blog-card">
+        <span class="blog-card-cat">健康管理</span>
+        <h3 class="blog-card-title">猫のウイルス検査とは？FIV・FeLVの基礎知識</h3>
+        <p class="blog-card-desc">猫のウイルス検査（FIV・FeLV）について解説。検査の重要性、陽性だった場合の対応、予防法まで。…</p>
+      </a>
+      <a href="/blog/cat-genetic-test.html" class="blog-card">
+        <span class="blog-card-cat">健康管理</span>
+        <h3 class="blog-card-title">猫の遺伝子検査とは？ブリーダーが行う理由と意味</h3>
+        <p class="blog-card-desc">猫の遺伝子検査の目的・種類・意味を解説。信頼できるブリーダーが遺伝子検査を行う理由とは。…</p>
+      </a>
+      <a href="/blog/cat-health-checkpoints.html" class="blog-card">
+        <span class="blog-card-cat">健康管理</span>
+        <h3 class="blog-card-title">猫の健康チェックポイント</h3>
+        <p class="blog-card-desc">猫の健康状態を毎日チェックする方法を解説。食欲・排泄・被毛・目・耳など9つの観察ポイント。…</p>
+      </a>
+      <a href="/blog/kitten-weight-management.html" class="blog-card">
+        <span class="blog-card-cat">健康管理</span>
+        <h3 class="blog-card-title">子猫の体重管理</h3>
+        <p class="blog-card-desc">子猫の体重管理の重要性と方法を解説。月齢別の目安体重、体重の測り方、成長記録のつけ方まで。…</p>
+      </a>
+      <a href="/blog/cat-dental-care.html" class="blog-card">
+        <span class="blog-card-cat">健康管理</span>
+        <h3 class="blog-card-title">猫の歯磨きと口腔ケア</h3>
+        <p class="blog-card-desc">猫の歯磨き方法と口腔ケアの基本を解説。歯周病は3歳以上の猫の80%に影響するとされています。…</p>
+      </a>
+      <a href="/blog/cat-eye-care.html" class="blog-card">
+        <span class="blog-card-cat">健康管理</span>
+        <h3 class="blog-card-title">猫の目やに・涙やけ対策</h3>
+        <p class="blog-card-desc">猫の目やにや涙やけの原因と対策を解説。正常な目やにと病気のサインの見分け方も。…</p>
+      </a>
+      <a href="/blog/cat-ear-cleaning.html" class="blog-card">
+        <span class="blog-card-cat">健康管理</span>
+        <h3 class="blog-card-title">猫の耳掃除の方法</h3>
+        <p class="blog-card-desc">猫の耳掃除の正しいやり方、頻度、注意点を解説。耳ダニや外耳炎の予防にも。…</p>
+      </a>
+      <a href="/blog/cat-parasite-prevention.html" class="blog-card">
+        <span class="blog-card-cat">健康管理</span>
+        <h3 class="blog-card-title">猫の寄生虫予防</h3>
+        <p class="blog-card-desc">猫の寄生虫（ノミ・ダニ・回虫・条虫）の予防と対策を解説。室内飼いでも油断できない理由とは。…</p>
+      </a>
+      <a href="/blog/cat-obesity-prevention.html" class="blog-card">
+        <span class="blog-card-cat">健康管理</span>
+        <h3 class="blog-card-title">猫の肥満防止</h3>
+        <p class="blog-card-desc">猫の肥満のリスクと予防法を解説。適正体重の見分け方、食事管理、運動のコツまで。…</p>
+      </a>
+      <a href="/blog/cat-microchip.html" class="blog-card">
+        <span class="blog-card-cat">健康管理</span>
+        <h3 class="blog-card-title">猫のマイクロチップ</h3>
+        <p class="blog-card-desc">猫のマイクロチップ義務化について解説。装着の仕組み、費用、登録方法、メリットを分かりやすく説明。…</p>
+      </a>
+      <a href="/blog/cat-stool-check.html" class="blog-card">
+        <span class="blog-card-cat">健康管理</span>
+        <h3 class="blog-card-title">猫の便で健康チェック</h3>
+        <p class="blog-card-desc">猫の便の色・形・臭いから健康状態を判断する方法を解説。正常な便と異常な便の違い、注意すべきサインとは。…</p>
+      </a>
+      <a href="/blog/cat-vomit-causes.html" class="blog-card">
+        <span class="blog-card-cat">健康管理</span>
+        <h3 class="blog-card-title">猫の嘔吐の原因と対処法</h3>
+        <p class="blog-card-desc">猫の嘔吐の原因を解説。毛玉・空腹・早食いなど心配のない嘔吐と、すぐに病院に行くべき嘔吐の違い。…</p>
+      </a>
+      <a href="/blog/cat-cold-symptoms.html" class="blog-card">
+        <span class="blog-card-cat">健康管理</span>
+        <h3 class="blog-card-title">猫風邪の症状と対策</h3>
+        <p class="blog-card-desc">猫風邪（上部気道感染症）の症状・原因・対策を解説。くしゃみ、鼻水、目やにが続く場合の対処法。…</p>
+      </a>
+    </div>
+    <h2 class="blog-cat-heading" id="nutrition">飲食栄養</h2>
+    <div class="blog-grid">
+      <a href="/blog/kitten-food-guide.html" class="blog-card">
+        <span class="blog-card-cat">飲食栄養</span>
+        <h3 class="blog-card-title">子猫のフード選び完全ガイド</h3>
+        <p class="blog-card-desc">子猫のフードの選び方を月齢別に解説。ドライフード・ウェットフードの使い分け、切り替え時の注意点まで。…</p>
+      </a>
+      <a href="/blog/food-dry-vs-wet.html" class="blog-card">
+        <span class="blog-card-cat">飲食栄養</span>
+        <h3 class="blog-card-title">猫のドライフード vs ウェットフード</h3>
+        <p class="blog-card-desc">猫のドライフードとウェットフードのメリット・デメリットを比較。併用のコツや選び方のポイントを解説。…</p>
+      </a>
+      <a href="/blog/cat-dangerous-foods.html" class="blog-card">
+        <span class="blog-card-cat">飲食栄養</span>
+        <h3 class="blog-card-title">猫に与えてはいけない食べ物一覧</h3>
+        <p class="blog-card-desc">猫に与えてはいけない食べ物を一覧で紹介。チョコレート、ネギ類、ブドウなど、誤食時の症状と対処法も解説。…</p>
+      </a>
+      <a href="/blog/cat-water-intake.html" class="blog-card">
+        <span class="blog-card-cat">飲食栄養</span>
+        <h3 class="blog-card-title">猫の水分補給ガイド</h3>
+        <p class="blog-card-desc">猫の適切な飲水量と水分補給の工夫を解説。脱水のサイン、水を飲ませるコツ、自動給水器の選び方まで。…</p>
+      </a>
+      <a href="/blog/food-transition.html" class="blog-card">
+        <span class="blog-card-cat">飲食栄養</span>
+        <h3 class="blog-card-title">猫のフードの切り替え方法</h3>
+        <p class="blog-card-desc">猫のフードを安全に切り替える方法を解説。急な切り替えによる下痢を防ぐ7日間プランをご紹介。…</p>
+      </a>
+      <a href="/blog/cat-treats-guide.html" class="blog-card">
+        <span class="blog-card-cat">飲食栄養</span>
+        <h3 class="blog-card-title">猫のおやつの選び方と与え方</h3>
+        <p class="blog-card-desc">猫のおやつの選び方、適切な量と頻度を解説。おやつの与えすぎによる肥満を防ぐポイントも。…</p>
+      </a>
+      <a href="/blog/cat-appetite-loss.html" class="blog-card">
+        <span class="blog-card-cat">飲食栄養</span>
+        <h3 class="blog-card-title">猫の食欲低下の原因と対処法</h3>
+        <p class="blog-card-desc">猫の食欲低下の原因と対処法を解説。何日食べないと危険なのか、食欲を取り戻すためのコツも紹介。…</p>
+      </a>
+      <a href="/blog/cat-food-allergy.html" class="blog-card">
+        <span class="blog-card-cat">飲食栄養</span>
+        <h3 class="blog-card-title">猫のフードアレルギー</h3>
+        <p class="blog-card-desc">猫のフードアレルギーの症状、原因となりやすい食材、除去食による診断と対策を解説。…</p>
+      </a>
+    </div>
+    <h2 class="blog-cat-heading" id="grooming">日常ケア</h2>
+    <div class="blog-grid">
+      <a href="/blog/long-hair-brushing.html" class="blog-card">
+        <span class="blog-card-cat">日常ケア</span>
+        <h3 class="blog-card-title">長毛猫のブラッシング方法</h3>
+        <p class="blog-card-desc">長毛猫のブラッシング方法を解説。サイベリアンなど長毛種の毛玉予防、おすすめの道具、嫌がる場合の対処法。…</p>
+      </a>
+      <a href="/blog/cat-shampoo-guide.html" class="blog-card">
+        <span class="blog-card-cat">日常ケア</span>
+        <h3 class="blog-card-title">猫のシャンプー方法</h3>
+        <p class="blog-card-desc">猫のシャンプーの正しいやり方を解説。必要な頻度、準備するもの、嫌がる猫を上手に洗うコツ。…</p>
+      </a>
+      <a href="/blog/cat-nail-clipping.html" class="blog-card">
+        <span class="blog-card-cat">日常ケア</span>
+        <h3 class="blog-card-title">猫の爪切りの方法</h3>
+        <p class="blog-card-desc">猫の爪切りの正しいやり方、適切な頻度、嫌がる場合の対処法を解説。初心者でも安心のステップガイド。…</p>
+      </a>
+      <a href="/blog/cat-shedding-season.html" class="blog-card">
+        <span class="blog-card-cat">日常ケア</span>
+        <h3 class="blog-card-title">猫の換毛期対策</h3>
+        <p class="blog-card-desc">猫の換毛期（春・秋）の抜け毛対策を解説。ブラッシング方法、掃除のコツ、おすすめグッズまで。…</p>
+      </a>
+      <a href="/blog/cat-hairball-prevention.html" class="blog-card">
+        <span class="blog-card-cat">日常ケア</span>
+        <h3 class="blog-card-title">猫の毛球症予防</h3>
+        <p class="blog-card-desc">猫の毛球症（ヘアボール）の原因と予防法を解説。ブラッシング、毛玉ケアフード、サプリメントなどの対策。…</p>
+      </a>
+      <a href="/blog/cat-litter-guide.html" class="blog-card">
+        <span class="blog-card-cat">日常ケア</span>
+        <h3 class="blog-card-title">猫砂の選び方ガイド</h3>
+        <p class="blog-card-desc">猫砂の種類（鉱物系・紙系・木系・シリカ系・おから系）のメリット・デメリットを比較。猫と飼い主に最適な猫砂の選び方。…</p>
+      </a>
+      <a href="/blog/cat-toilet-cleaning.html" class="blog-card">
+        <span class="blog-card-cat">日常ケア</span>
+        <h3 class="blog-card-title">猫のトイレ掃除の頻度と方法</h3>
+        <p class="blog-card-desc">猫のトイレ掃除の適切な頻度と方法を解説。清潔なトイレは猫の健康と粗相防止に重要です。…</p>
+      </a>
+      <a href="/blog/cat-smell-prevention.html" class="blog-card">
+        <span class="blog-card-cat">日常ケア</span>
+        <h3 class="blog-card-title">猫の臭い対策完全ガイド</h3>
+        <p class="blog-card-desc">猫の臭いの原因と対策を徹底解説。トイレの臭い、体臭、部屋の臭いをそれぞれ改善する方法。…</p>
+      </a>
+      <a href="/blog/cat-grooming-tools.html" class="blog-card">
+        <span class="blog-card-cat">日常ケア</span>
+        <h3 class="blog-card-title">猫のお手入れグッズおすすめ一覧</h3>
+        <p class="blog-card-desc">猫のお手入れに必要なグッズを一覧で紹介。ブラシ、爪切り、歯ブラシ、耳掃除用品などの選び方。…</p>
+      </a>
+    </div>
+    <h2 class="blog-cat-heading" id="behavior">行動・しつけ</h2>
+    <div class="blog-grid">
+      <a href="/blog/cat-socialization.html" class="blog-card">
+        <span class="blog-card-cat">行動・しつけ</span>
+        <h3 class="blog-card-title">猫の社会化トレーニングとは？子猫期が重要な理由</h3>
+        <p class="blog-card-desc">猫の社会化トレーニングの重要性と方法を解説。生後2〜7週の社会化期に何をすべきか、ブリーダーの実践を紹介。…</p>
+      </a>
+      <a href="/blog/cat-toilet-training.html" class="blog-card">
+        <span class="blog-card-cat">行動・しつけ</span>
+        <h3 class="blog-card-title">猫のトイレトレーニング</h3>
+        <p class="blog-card-desc">猫のトイレトレーニングの基本を解説。子猫のトイレの教え方、粗相の原因と対策まで。…</p>
+      </a>
+      <a href="/blog/cat-biting-habit.html" class="blog-card">
+        <span class="blog-card-cat">行動・しつけ</span>
+        <h3 class="blog-card-title">猫の噛み癖の直し方</h3>
+        <p class="blog-card-desc">猫の噛み癖の原因と対処法を解説。甘噛みと本気噛みの見分け方、噛まれないための予防策。…</p>
+      </a>
+      <a href="/blog/cat-night-crying.html" class="blog-card">
+        <span class="blog-card-cat">行動・しつけ</span>
+        <h3 class="blog-card-title">猫の夜鳴き対策</h3>
+        <p class="blog-card-desc">猫の夜鳴きの原因と対策を解説。深夜に鳴く理由、すぐにできる対処法、マンションでの注意点。…</p>
+      </a>
+      <a href="/blog/cat-stress-signs.html" class="blog-card">
+        <span class="blog-card-cat">行動・しつけ</span>
+        <h3 class="blog-card-title">猫のストレスサイン10選</h3>
+        <p class="blog-card-desc">猫のストレスサインを10個紹介。隠れる、過剰グルーミング、食欲低下など、ストレスのサインと対処法を解説。…</p>
+      </a>
+      <a href="/blog/cat-hiding-reasons.html" class="blog-card">
+        <span class="blog-card-cat">行動・しつけ</span>
+        <h3 class="blog-card-title">猫が隠れる理由</h3>
+        <p class="blog-card-desc">猫が隠れる理由と対処法を解説。お迎え直後に隠れてしまう場合の適切な対応方法。…</p>
+      </a>
+      <a href="/blog/cat-spray-behavior.html" class="blog-card">
+        <span class="blog-card-cat">行動・しつけ</span>
+        <h3 class="blog-card-title">猫のスプレー行動（マーキング）の原因と対策</h3>
+        <p class="blog-card-desc">猫のスプレー行動の原因と対策を解説。去勢手術の効果、ストレス対策、掃除方法まで。…</p>
+      </a>
+      <a href="/blog/cat-exercise-play.html" class="blog-card">
+        <span class="blog-card-cat">行動・しつけ</span>
+        <h3 class="blog-card-title">猫との遊び方ガイド</h3>
+        <p class="blog-card-desc">猫との正しい遊び方を解説。おすすめのおもちゃ、遊びの時間と頻度、運動不足を解消するコツ。…</p>
+      </a>
+      <a href="/blog/cat-body-language.html" class="blog-card">
+        <span class="blog-card-cat">行動・しつけ</span>
+        <h3 class="blog-card-title">猫のボディランゲージ完全ガイド</h3>
+        <p class="blog-card-desc">猫のボディランゲージを解説。しっぽの動き、耳の向き、体の姿勢から猫の気持ちを読み取る方法。…</p>
+      </a>
+      <a href="/blog/cat-communication-sounds.html" class="blog-card">
+        <span class="blog-card-cat">行動・しつけ</span>
+        <h3 class="blog-card-title">猫の鳴き声の意味</h3>
+        <p class="blog-card-desc">猫の鳴き声12種類の意味を解説。ニャー、ゴロゴロ、シャー、カカカなど、鳴き方でわかる猫の感情。…</p>
+      </a>
+      <a href="/blog/cat-sleeping-habits.html" class="blog-card">
+        <span class="blog-card-cat">行動・しつけ</span>
+        <h3 class="blog-card-title">猫の睡眠時間と寝方の秘密</h3>
+        <p class="blog-card-desc">猫の睡眠時間、寝姿の意味、快適な睡眠環境の作り方を解説。へそ天、香箱座り、丸まりなど。…</p>
+      </a>
+      <a href="/blog/cat-purring-meaning.html" class="blog-card">
+        <span class="blog-card-cat">行動・しつけ</span>
+        <h3 class="blog-card-title">猫のゴロゴロ音の秘密</h3>
+        <p class="blog-card-desc">猫のゴロゴロ音（パーリング）の仕組み、意味、健康効果を科学的に解説。人間への癒し効果も紹介。…</p>
+      </a>
+      <a href="/blog/cat-diy-toys.html" class="blog-card">
+        <span class="blog-card-cat">行動・しつけ</span>
+        <h3 class="blog-card-title">手作りで簡単！猫のおもちゃDIYアイデア10選</h3>
+        <p class="blog-card-desc">家にあるものでできる猫のおもちゃ10選。ダンボール、靴下、ペットボトルなど簡単に作れるDIYアイデア。…</p>
+      </a>
+    </div>
+    <h2 class="blog-cat-heading" id="kitten">子猫育て</h2>
+    <div class="blog-grid">
+      <a href="/blog/kitten-checklist.html" class="blog-card">
+        <span class="blog-card-cat">子猫育て</span>
+        <h3 class="blog-card-title">子猫のお迎え準備チェックリスト</h3>
+        <p class="blog-card-desc">子猫を迎える前に準備すべきものをチェックリストで紹介。フード、トイレ、キャリーバッグなど必需品と便利グッズ。…</p>
+      </a>
+      <a href="/blog/kitten-day1-guide.html" class="blog-card">
+        <span class="blog-card-cat">子猫育て</span>
+        <h3 class="blog-card-title">子猫のお迎え初日の過ごし方</h3>
+        <p class="blog-card-desc">子猫のお迎え初日の正しい過ごし方を解説。緊張している子猫を安心させるための5つのポイント。…</p>
+      </a>
+      <a href="/blog/kitten-week1-guide.html" class="blog-card">
+        <span class="blog-card-cat">子猫育て</span>
+        <h3 class="blog-card-title">子猫お迎え後1週間の過ごし方</h3>
+        <p class="blog-card-desc">子猫のお迎え後1週間の過ごし方ガイド。日ごとの対応とチェックポイントを解説。…</p>
+      </a>
+      <a href="/blog/kitten-growth-guide.html" class="blog-card">
+        <span class="blog-card-cat">子猫育て</span>
+        <h3 class="blog-card-title">子猫の月齢別成長ガイド</h3>
+        <p class="blog-card-desc">子猫の月齢別の成長・発達を解説。体重、できるようになること、ケアのポイントを月ごとにまとめ。…</p>
+      </a>
+      <a href="/blog/kitten-room-safety.html" class="blog-card">
+        <span class="blog-card-cat">子猫育て</span>
+        <h3 class="blog-card-title">子猫を安全に育てる部屋作り</h3>
+        <p class="blog-card-desc">子猫の安全な部屋作りのポイントを解説。誤食・落下・感電など10の危険を防ぐためのチェックリスト。…</p>
+      </a>
+      <a href="/blog/kitten-meet-existing-cat.html" class="blog-card">
+        <span class="blog-card-cat">子猫育て</span>
+        <h3 class="blog-card-title">子猫と先住猫の顔合わせ方法</h3>
+        <p class="blog-card-desc">子猫と先住猫の正しい顔合わせ方法を5ステップで解説。ストレスを最小限にする段階的な導入法。…</p>
+      </a>
+      <a href="/blog/kitten-and-children.html" class="blog-card">
+        <span class="blog-card-cat">子猫育て</span>
+        <h3 class="blog-card-title">子猫と子供の暮らし方</h3>
+        <p class="blog-card-desc">子猫と子供が安全に一緒に暮らすためのルールとポイントを解説。猫との正しい接し方を子供に教える方法。…</p>
+      </a>
+      <a href="/blog/kitten-socialization-period.html" class="blog-card">
+        <span class="blog-card-cat">子猫育て</span>
+        <h3 class="blog-card-title">子猫の社会化期とは？最重要な生後2〜7週を解説</h3>
+        <p class="blog-card-desc">子猫の社会化期（生後2〜7週）の重要性を解説。この時期の経験が一生の性格を左右する理由。…</p>
+      </a>
+      <a href="/blog/kitten-toy-guide.html" class="blog-card">
+        <span class="blog-card-cat">子猫育て</span>
+        <h3 class="blog-card-title">子猫のおもちゃ選び</h3>
+        <p class="blog-card-desc">子猫のおもちゃの選び方を月齢別に解説。安全なおもちゃの見分け方、誤食を防ぐ注意点。…</p>
+      </a>
+      <a href="/blog/kitten-health-prevention.html" class="blog-card">
+        <span class="blog-card-cat">子猫育て</span>
+        <h3 class="blog-card-title">子猫の病気予防ガイド</h3>
+        <p class="blog-card-desc">子猫の最初の1年間で気をつけるべき病気と予防法を解説。ワクチン、駆虫、日常の観察ポイント。…</p>
+      </a>
+      <a href="/blog/kitten-first-time.html" class="blog-card">
+        <span class="blog-card-cat">子猫育て</span>
+        <h3 class="blog-card-title">初めて猫を飼う方へ</h3>
+        <p class="blog-card-desc">初めて猫を飼う方に向けた完全ガイド。準備、心構え、日常のケア、費用まで分かりやすく解説。…</p>
+      </a>
+    </div>
+    <h2 class="blog-cat-heading" id="breeder">ブリーダー選び</h2>
+    <div class="blog-grid">
+      <a href="/blog/choose-breeder.html" class="blog-card">
+        <span class="blog-card-cat">ブリーダー選び</span>
+        <h3 class="blog-card-title">信頼できるブリーダーの見分け方</h3>
+        <p class="blog-card-desc">信頼できる猫ブリーダーの見分け方を8つのチェックポイントで解説。見学時に確認すべきこと。…</p>
+      </a>
+      <a href="/blog/breeder-vs-petshop.html" class="blog-card">
+        <span class="blog-card-cat">ブリーダー選び</span>
+        <h3 class="blog-card-title">ブリーダーとペットショップの違い</h3>
+        <p class="blog-card-desc">ブリーダーとペットショップの違いを比較。健康管理、社会化、アフターサポート、価格の観点から解説。…</p>
+      </a>
+      <a href="/blog/breeder-visit-guide.html" class="blog-card">
+        <span class="blog-card-cat">ブリーダー選び</span>
+        <h3 class="blog-card-title">ブリーダー見学の流れとマナー</h3>
+        <p class="blog-card-desc">猫ブリーダーへの見学の流れ、当日のマナー、確認すべきポイント、持ち物リストを解説。…</p>
+      </a>
+      <a href="/blog/kitten-price-factors.html" class="blog-card">
+        <span class="blog-card-cat">ブリーダー選び</span>
+        <h3 class="blog-card-title">子猫の値段の決まり方</h3>
+        <p class="blog-card-desc">猫の値段がどのように決まるのかを解説。血統、毛色、性別、ブリーダーの管理コストなど価格に影響する要因。…</p>
+      </a>
+      <a href="/blog/pedigree-certificate.html" class="blog-card">
+        <span class="blog-card-cat">ブリーダー選び</span>
+        <h3 class="blog-card-title">血統書の読み方ガイド</h3>
+        <p class="blog-card-desc">猫の血統書の読み方をわかりやすく解説。記載情報の見方、血統書の意味、発行団体の違いについて。…</p>
+      </a>
+    </div>
+    <h2 class="blog-cat-heading" id="allergy">アレルギー</h2>
+    <div class="blog-grid">
+      <a href="/blog/cat-allergy-guide.html" class="blog-card">
+        <span class="blog-card-cat">アレルギー</span>
+        <h3 class="blog-card-title">猫アレルギーでも猫を飼える？症状・対策・低アレルゲン猫種</h3>
+        <p class="blog-card-desc">猫アレルギーの症状、原因、対策を解説。低アレルゲン猫種サイベリアンなら飼える可能性も。アレルギー検査の方法も紹介。…</p>
+      </a>
+      <a href="/blog/siberian-allergy-facts.html" class="blog-card">
+        <span class="blog-card-cat">アレルギー</span>
+        <h3 class="blog-card-title">サイベリアンは猫アレルギーでも飼える？低アレルゲンの科学的根拠</h3>
+        <p class="blog-card-desc">サイベリアンの低アレルゲン特性を科学的に解説。Fel d1が少ない理由、個体差、購入前のアレルギーテスト方法。…</p>
+      </a>
+      <a href="/blog/allergy-test-method.html" class="blog-card">
+        <span class="blog-card-cat">アレルギー</span>
+        <h3 class="blog-card-title">猫アレルギー検査の方法</h3>
+        <p class="blog-card-desc">猫アレルギーの検査方法を解説。血液検査（IgE）とプリックテストの違い、費用、受けられる場所。…</p>
+      </a>
+      <a href="/blog/allergy-living-tips.html" class="blog-card">
+        <span class="blog-card-cat">アレルギー</span>
+        <h3 class="blog-card-title">猫アレルギーとの共生テクニック15選</h3>
+        <p class="blog-card-desc">猫アレルギーがあっても猫と暮らすための15のテクニック。空気清浄機、掃除法、生活空間の工夫など。…</p>
+      </a>
+      <a href="/blog/allergy-medications.html" class="blog-card">
+        <span class="blog-card-cat">アレルギー</span>
+        <h3 class="blog-card-title">猫アレルギーの薬と治療法</h3>
+        <p class="blog-card-desc">猫アレルギーの治療法を解説。抗ヒスタミン薬、点鼻薬の市販薬から、根本的な免疫療法（減感作療法）まで。…</p>
+      </a>
+      <a href="/blog/air-purifier-for-cats.html" class="blog-card">
+        <span class="blog-card-cat">アレルギー</span>
+        <h3 class="blog-card-title">猫アレルギー対策の空気清浄機選び</h3>
+        <p class="blog-card-desc">猫アレルギー対策に効果的な空気清浄機の選び方を解説。HEPAフィルターの性能、設置場所、おすすめの使い方。…</p>
+      </a>
+    </div>
+    <h2 class="blog-cat-heading" id="lifestyle">猫ライフ</h2>
+    <div class="blog-grid">
+      <a href="/blog/cat-apartment-living.html" class="blog-card">
+        <span class="blog-card-cat">猫ライフ</span>
+        <h3 class="blog-card-title">マンションでの猫の飼い方</h3>
+        <p class="blog-card-desc">マンションで猫を飼う際の注意点を解説。ペット可物件の選び方、騒音対策、臭い対策、退去時のトラブル防止まで。…</p>
+      </a>
+      <a href="/blog/cat-indoor-benefits.html" class="blog-card">
+        <span class="blog-card-cat">猫ライフ</span>
+        <h3 class="blog-card-title">完全室内飼いのメリット5つ</h3>
+        <p class="blog-card-desc">猫の完全室内飼いのメリットを5つの観点から解説。安全性、健康、寿命への影響を科学的データとともに紹介。…</p>
+      </a>
+      <a href="/blog/cat-summer-care.html" class="blog-card">
+        <span class="blog-card-cat">猫ライフ</span>
+        <h3 class="blog-card-title">猫の夏の暑さ対策</h3>
+        <p class="blog-card-desc">猫の夏の暑さ対策を解説。熱中症の症状と予防法、適切なエアコン設定、水分補給の工夫。…</p>
+      </a>
+      <a href="/blog/cat-winter-care.html" class="blog-card">
+        <span class="blog-card-cat">猫ライフ</span>
+        <h3 class="blog-card-title">猫の冬の寒さ対策</h3>
+        <p class="blog-card-desc">猫の冬の寒さ対策を解説。適切な暖房設定、ペット用ヒーター、注意すべき暖房器具の危険性。…</p>
+      </a>
+      <a href="/blog/cat-disaster-prep.html" class="blog-card">
+        <span class="blog-card-cat">猫ライフ</span>
+        <h3 class="blog-card-title">猫の防災対策</h3>
+        <p class="blog-card-desc">猫の防災対策を解説。非常用持ち出し袋の中身、避難時の注意点、ペット同行避難の準備について。…</p>
+      </a>
+      <a href="/blog/cat-moving-stress.html" class="blog-card">
+        <span class="blog-card-cat">猫ライフ</span>
+        <h3 class="blog-card-title">猫と引っ越し</h3>
+        <p class="blog-card-desc">猫と引っ越しする際のストレス軽減法を解説。引っ越し前・当日・後の対応を時系列で紹介。…</p>
+      </a>
+      <a href="/blog/cat-travel-tips.html" class="blog-card">
+        <span class="blog-card-cat">猫ライフ</span>
+        <h3 class="blog-card-title">猫を留守番させる際のポイント</h3>
+        <p class="blog-card-desc">猫の留守番の限界日数と安全な留守番のポイントを解説。ペットシッター、自動給餌器、見守りカメラの活用法。…</p>
+      </a>
+      <a href="/blog/cat-insurance-guide.html" class="blog-card">
+        <span class="blog-card-cat">猫ライフ</span>
+        <h3 class="blog-card-title">ペット保険の選び方ガイド</h3>
+        <p class="blog-card-desc">猫のペット保険の選び方を解説。補償内容、保険料の比較ポイント、加入のタイミング、必要性の判断基準。…</p>
+      </a>
+      <a href="/blog/cat-cost-monthly.html" class="blog-card">
+        <span class="blog-card-cat">猫ライフ</span>
+        <h3 class="blog-card-title">猫の飼育費用</h3>
+        <p class="blog-card-desc">猫の月々の飼育費用と年間コストを項目別に解説。フード代、医療費、トイレ用品、保険など実際の出費を紹介。…</p>
+      </a>
+      <a href="/blog/cat-and-baby.html" class="blog-card">
+        <span class="blog-card-cat">猫ライフ</span>
+        <h3 class="blog-card-title">猫と赤ちゃんの安全な同居ガイド</h3>
+        <p class="blog-card-desc">猫と赤ちゃんが安全に暮らすための注意点とポイントを解説。妊娠中のトキソプラズマ対策から出産後の対応まで。…</p>
+      </a>
+      <a href="/blog/cat-carrier-guide.html" class="blog-card">
+        <span class="blog-card-cat">猫ライフ</span>
+        <h3 class="blog-card-title">猫のキャリーバッグの選び方</h3>
+        <p class="blog-card-desc">猫のキャリーバッグのタイプ別メリット・デメリットと、猫をキャリーに慣れさせる方法を解説。…</p>
+      </a>
+      <a href="/blog/cat-and-other-pets.html" class="blog-card">
+        <span class="blog-card-cat">猫ライフ</span>
+        <h3 class="blog-card-title">猫と犬の同居のコツ</h3>
+        <p class="blog-card-desc">猫と犬を一緒に飼う際のポイントを解説。段階的な導入法、相性の良い犬種、注意すべき行動。…</p>
+      </a>
+      <a href="/blog/multi-cat-tips.html" class="blog-card">
+        <span class="blog-card-cat">猫ライフ</span>
+        <h3 class="blog-card-title">猫の多頭飼いの始め方</h3>
+        <p class="blog-card-desc">猫の多頭飼いを成功させるコツを解説。猫の相性、必要なスペースと設備、よくあるトラブルと対処法。…</p>
+      </a>
+      <a href="/blog/cat-photo-tips.html" class="blog-card">
+        <span class="blog-card-cat">猫ライフ</span>
+        <h3 class="blog-card-title">スマホで猫を可愛く撮る10のテクニック</h3>
+        <p class="blog-card-desc">スマホで猫を可愛く撮影する10のテクニックを解説。構図、光、アングル、猫の注目を引くコツ。…</p>
+      </a>
+      <a href="/blog/cat-naming-guide.html" class="blog-card">
+        <span class="blog-card-cat">猫ライフ</span>
+        <h3 class="blog-card-title">猫の名前の付け方</h3>
+        <p class="blog-card-desc">猫の名前の付け方のコツと人気の名前ランキングを紹介。和名・洋名・食べ物など、ジャンル別のアイデア集。…</p>
+      </a>
+      <a href="/blog/cat-age-human.html" class="blog-card">
+        <span class="blog-card-cat">猫ライフ</span>
+        <h3 class="blog-card-title">猫の年齢を人間に換算すると？年齢早見表とライフステージ別ケア</h3>
+        <p class="blog-card-desc">猫の年齢を人間に換算する早見表と、各ライフステージの特徴・ケアのポイントを詳しく解説。…</p>
+      </a>
+      <a href="/blog/cat-first-year-cost.html" class="blog-card">
+        <span class="blog-card-cat">猫ライフ</span>
+        <h3 class="blog-card-title">猫を飼う初年度の費用まとめ</h3>
+        <p class="blog-card-desc">猫を飼い始める初年度にかかる費用を完全網羅。子猫の購入費、初期用品、医療費の総額を解説。…</p>
+      </a>
+    </div>
+    <h2 class="blog-cat-heading" id="senior">シニア猫</h2>
+    <div class="blog-grid">
+      <a href="/blog/senior-cat-diet.html" class="blog-card">
+        <span class="blog-card-cat">シニア猫</span>
+        <h3 class="blog-card-title">シニア猫の食事ガイド</h3>
+        <p class="blog-card-desc">シニア猫の食事管理を解説。7歳以降に必要な栄養素、フード選び、食欲が落ちた時の工夫。…</p>
+      </a>
+      <a href="/blog/senior-cat-diseases.html" class="blog-card">
+        <span class="blog-card-cat">シニア猫</span>
+        <h3 class="blog-card-title">シニア猫に多い病気5選</h3>
+        <p class="blog-card-desc">シニア猫がかかりやすい5つの病気と早期発見のポイントを解説。慢性腎臓病、甲状腺機能亢進症、糖尿病など。…</p>
+      </a>
+      <a href="/blog/senior-cat-comfort.html" class="blog-card">
+        <span class="blog-card-cat">シニア猫</span>
+        <h3 class="blog-card-title">シニア猫の快適な暮らし</h3>
+        <p class="blog-card-desc">シニア猫が快適に暮らすための環境づくりと日常ケアを解説。段差対策、トイレの工夫、温度管理など。…</p>
+      </a>
+      <a href="/blog/senior-cat-cognitive.html" class="blog-card">
+        <span class="blog-card-cat">シニア猫</span>
+        <h3 class="blog-card-title">猫の認知症（認知機能不全）</h3>
+        <p class="blog-card-desc">猫の認知症の症状、原因、家庭でできるケアを解説。夜鳴き、徘徊、トイレの失敗への対応策。…</p>
+      </a>
+      <a href="/blog/senior-cat-end-of-life.html" class="blog-card">
+        <span class="blog-card-cat">シニア猫</span>
+        <h3 class="blog-card-title">猫の看取りとお別れ</h3>
+        <p class="blog-card-desc">愛猫との最期の時間の過ごし方、看取りの心構え、ペットロスへの向き合い方を解説。…</p>
+      </a>
+    </div>
+
+  <div class="blog-bottom-cta" style="background:linear-gradient(135deg,#f0faf7,#fef6f0);border-radius:16px;max-width:760px;">
+    <div style="font-size:2rem;margin-bottom:12px;">🐾</div>
+    <h2 style="font-size:1.15rem;margin-bottom:8px;">福楽キャッテリーの子猫を見てみませんか？</h2>
+    <p style="font-size:0.92rem;color:var(--text-body);margin-bottom:20px;">健康管理と社会化トレーニングを大切に育てた子猫たちをご紹介しています。</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <a href="/kittens.html" style="display:inline-flex;align-items:center;gap:6px;padding:12px 24px;background:var(--mint);color:#fff;border-radius:30px;font-weight:600;font-size:0.92rem;text-decoration:none;">🐾 子猫一覧を見る</a>
+      <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:12px 24px;background:#06C755;color:#fff;border-radius:30px;font-weight:600;font-size:0.92rem;text-decoration:none;">💬 LINEで相談する</a>
+    </div>
+  </div>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="footer" id="footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="f-logo">
+            <span class="logo-icon">🐾</span>
+            <span class="f-logo-text">福楽キャッテリー</span>
+          </div>
+          <p class="f-tagline" data-i18n="footer.tagline">サイベリアン｜大阪・福楽キャッテリー</p>
+          <div class="f-sns">
+            <a href="https://www.instagram.com/fuluckpet/" class="sns-icon" aria-label="Instagram"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg></a>
+            <a href="https://www.youtube.com/channel/UCuVbvcbkbXs6MaBN2G1Zx1A" class="sns-icon" aria-label="YouTube"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.94 2C5.12 20 12 20 12 20s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="currentColor" stroke="none"/></svg></a>
+            <a href="https://www.tiktok.com/@fuluckpet" class="sns-icon" aria-label="TikTok"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1 0-5.78 2.92 2.92 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 3 15.57 6.33 6.33 0 0 0 9.37 22a6.33 6.33 0 0 0 6.33-6.33V9.18a8.16 8.16 0 0 0 3.89.98V6.73a4.85 4.85 0 0 1-.01-.04z"/></svg></a>
+          </div>
+        </div>
+        <div class="footer-links">
+          <h4 data-i18n="footer.navTitle">ナビゲーション</h4>
+          <a href="/index.html#about" data-i18n="nav.about">猫舎について</a>
+          <a href="/index.html#kittens" data-i18n="nav.kittens">子猫一覧</a>
+          <a href="/index.html#parents" data-i18n="nav.parents">親猫紹介</a>
+          <a href="/index.html#visit" data-i18n="nav.visit">見学案内</a>
+          <a href="/index.html#faq" data-i18n="nav.faq">よくある質問</a>
+          <a href="/siberian.html" data-i18n="nav.siberian">サイベリアン</a>
+          <a href="/kittens.html" data-i18n="nav.allKittens">子猫一覧（すべて）</a>
+          <a href="/parents.html" data-i18n="nav.allParents">親猫紹介（すべて）</a>
+          <a href="/gallery.html" data-i18n="nav.gallery">ギャラリー</a>
+          <a href="/reviews.html" data-i18n="nav.reviews">お客様の声</a>
+          <a href="/about.html" data-i18n="nav.aboutPage">受賞歴・認定</a>
+          <a href="/guide/" data-i18n="nav.guide">お迎えガイド</a>
+          <a href="/blog.html" data-i18n="nav.blog">知識ライブラリ</a>
+          <a href="https://catnamegive.mouxue56.workers.dev" target="_blank" rel="noopener" data-i18n="nav.naming">子猫の名前ツール</a>
+        </div>
+        <div class="footer-legal">
+          <h4 data-i18n="footer.legalTitle">動物取扱業表示</h4>
+          <div class="legal-box">
+            <p><strong>福楽キャッテリー（第一種動物取扱業）</strong></p>
+            <p>福楽株式会社 代表取締役 羅 方遠</p>
+            <p>登録番号: 220012A / 有効期限: ~2027年4月26日</p>
+            <p>所在地: 大阪府大阪市城東区東中浜 6-10-7</p>
+          </div>
+          <div class="legal-box">
+            <p><strong>Fulluck Kitty（第一種動物取扱業）</strong></p>
+            <p>代表: 刘 暁棉</p>
+            <p>登録番号: 240051A / 有効期限: ~2029年7月16日</p>
+            <p>所在地: 大阪市城東区東中浜 2-6-23</p>
+          </div>
+          <div class="law-notice-compact">
+            <div class="law-notice-title">📋 対面販売について</div>
+            <p data-i18n="footer.lawNotice">動物愛護管理法に基づき、販売時には事前に対面による現物確認・説明が義務付けられています。ご購入前に必ず見学（対面またはビデオ通話）をお願いしております。</p>
+          </div>
+        </div>
       </div>
-      <div class="footer-links">
-        <a href="index.html" data-i18n="nav.home">ホーム</a>
-        <a href="index.html#about" data-i18n="nav.about">猫舎について</a>
-        <a href="index.html#kittens" data-i18n="nav.kittens">子猫一覧</a>
-        <a href="guide/" data-i18n="nav.guide">お迎えガイド</a>
-        <a href="blog.html" data-i18n="nav.blog">知識ライブラリ</a>
-        <a href="index.html#contact" data-i18n="nav.contact">お問い合わせ</a>
+      <div class="footer-bottom">
+        <p>&copy; 2025 サイベリアン｜大阪・福楽キャッテリー（福楽株式会社）All Rights Reserved.</p>
       </div>
     </div>
   </footer>
 
-  <script src="i18n.js"></script>
-  <script src="blog-loader.js"></script>
-  <script src="cta-widget.js"></script>
-  <script src="script.js"></script>
+  <!-- ========== FIXED LINE BUTTON ========== -->
+  <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="fixed-line" aria-label="LINEでお問い合わせ" id="fixedLine" target="_blank" rel="noopener">
+    <span class="fixed-line-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596a.626.626 0 0 1-.199.031c-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.271.173-.508.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg></span>
+    <span class="fixed-line-content"><span class="fixed-line-label">見学予約・ご相談</span><span class="fixed-line-cta">LINEで相談 🐾</span></span>
+  </a>
+
+  <!-- ========== BACK TO TOP ========== -->
+  <button class="back-to-top" id="backToTop" aria-label="ページトップへ戻る">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 15l-6-6-6 6"/></svg>
+  </button>
+
+  <script src="/i18n.js"></script>
+  <script src="/cta-widget.js"></script>
+  <script src="/script.js"></script>
+
 </body>
 </html>

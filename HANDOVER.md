@@ -1,7 +1,7 @@
 # 福楽キャッテリー 网站交接文档
 
 > **本文档供下一个 AI 会话使用，用于快速了解本项目的全部背景。**
-> 最后更新：2026-02-11 Session 16
+> 最后更新：2026-02-11 Session 17
 
 ---
 
@@ -45,8 +45,8 @@ fuluckpet-website/
 ├── reviews.html        # 客户评价（お客様の声）
 ├── kittens.html        # 幼猫列表（子猫一覧）
 ├── parents.html        # 种猫介绍（親猫紹介）
-├── blog.html           # 知識ライブラリ（知识库文章列表+详情）Session 15 新增
-├── faq.html            # FAQ 独立页面（从API动态加载，分类过滤）Session 15b 新增
+├── blog.html           # 知識ライブラリ列表页（104篇静态卡片，10分类）Session 17 静态化
+├── faq.html            # FAQ 独立页面（24项静态HTML + FAQPage JSON-LD）Session 17 静态化
 ├── 404.html            # 404 错误页
 ├── style.css           # 全局样式
 ├── blog.css            # 知识库专用样式 Session 15 新增（Session 16 追加 .article-sources 引用块样式）
@@ -54,10 +54,10 @@ fuluckpet-website/
 ├── i18n.js             # 翻译字典（JA/EN/ZH）+ data-i18n-html 块替换 + langChanged 事件
 ├── card-loader.js      # 动态渲染（从 API 加载子猫/种猫/评价卡片）Session 15b 新增（Session 16 追加 JSON-LD Product schema）
 ├── cta-widget.js       # 固定底栏 CTA 组件（子猫募集中+LINE 引流）Session 16 新增
-├── blog-loader.js      # 知识库前端加载（从 API 渲染文章列表/详情）Session 15 新增
+├── blog-loader.js      # 知识库前端加载（blog.html列表渲染+slug重定向）Session 17 改造
 ├── faq-loader.js       # FAQ 动态加载（旧版，首页已不使用）Session 15
-├── faq-page-loader.js  # FAQ 独立页面加载器（faq.html 专用）Session 15b 新增
-├── sitemap.xml         # SEO sitemap（含 blog.html）
+├── faq-page-loader.js  # FAQ 独立页面加载器（faq.html 专用，增强静态HTML）Session 17
+├── sitemap.xml         # SEO sitemap（128个URL，含104篇博客文章）Session 17 扩充
 ├── robots.txt          # 爬虫规则（屏蔽 /admin/ 和 /api/）
 ├── CNAME               # 自定义域名
 ├── .nojekyll           # 禁用 Jekyll
@@ -65,6 +65,10 @@ fuluckpet-website/
 ├── README.md
 ├── HANDOVER.md         # 本文档
 ├── TUTORIAL.md         # 教学文档（给业主学习）
+├── blog/               # 104篇静态博客文章 Session 17
+│   ├── blog-i18n.js    # 博客文章语言切换（读取 window._blogArticleI18n）
+│   ├── siberian-character.html  # 例：サイベリアンの性格と特徴
+│   └── ... (104篇 .html)       # 10分类：猫種知識/健康管理/飲食栄養/日常ケア/行動しつけ/子猫育て/ブリーダー選び/アレルギー/猫ライフ/シニア猫
 ├── images/             # 图片目录
 │   ├── README-IMAGES.txt  # 双语图片准备指南
 │   ├── hero-main.jpg      # 首页主图（已压缩至1200px）
@@ -307,12 +311,16 @@ fuluckpet-website/
 - ✅ OGP meta 标签（全页面）
 - ✅ JSON-LD 结构化数据（全页面）— 含 FAQ + 动态 Product schema（Session 16）
 - ✅ canonical URL（全页面）
-- ✅ sitemap.xml（7 页）
+- ✅ sitemap.xml（128个URL，含104篇博客文章）Session 17 扩充
 - ✅ robots.txt（屏蔽 admin/api）
-- ✅ GA4（全 8 页）
+- ✅ GA4（全页面已嵌入）
 - ✅ Search Console 验证 + sitemap
 - ✅ SEO 关键词全站布局（Session 16）：大阪/サイベリアン/ブリーダー/羅方遠/ラホウエン/みんなの子猫ブリーダー/口コミ
 - ✅ kittens.html 动态 JSON-LD Product schema（每只 available 子猫独立 Product 数据）
+- ✅ **104篇静态博客文章**（Session 17）：每篇独立 `/blog/{slug}.html`，含 BlogPosting JSON-LD + BreadcrumbList
+- ✅ **FAQPage JSON-LD**（Session 17）：faq.html 包含24项静态FAQ + FAQPage结构化数据
+- ✅ **hreflang 标签**（Session 17）：全站129个HTML文件添加 ja/en/zh/x-default
+- ✅ **静态博客列表页**（Session 17）：blog.html 包含104篇文章静态卡片，分10个分类
 - ⚠️ `images/ogp.jpg` 尚未创建（社交分享无预览图）— OGP 路径已统一为 `/images/ogp.jpg`（Session 14）
 
 ### 内容优化状态（Session 9）
@@ -520,6 +528,7 @@ fuluckpet-photos/  (ID: 1sbFIW5C7YfSw7zVIKhhAyCOuKivD8qUc)
 | 15b | **前端动态渲染**：card-loader.js新建（~200行，从API加载子猫/种猫/评价卡片）→ script.js重构（rebindCards等可重复绑定）→ 4个HTML加载card-loader.js → KV种子数据导入（24子猫+16种猫+6评价+6FAQ）→ **FAQ改造**：首页恢复静态FAQ+添加"更多FAQ"链接 → faq.html独立页面+faq-page-loader.js（API动态加载+分类过滤）|
 | 15c | **SEO优化**：blog.html/faq.html title+H1添加搜索关键词（猫の飼い方、猫のお迎えQ&A）→ **内容大扩充**：FAQ从6条→24条（4分类×6条，三语）+ 知识库16篇文章（8分类×2篇，三语HTML正文）→ faq.css高级UI（Ice Cream Design渐变+图标+徽章+动画）|
 | 16 | **日期移除**：blog-loader.js 移除文章列表+详情的日期显示 → **全站SEO关键词优化**：25+个HTML文件title/description/keywords增加目标关键词（大阪/サイベリアン/ブリーダー/羅方遠/ラホウエン/みんなの子猫ブリーダー/口コミ）→ card-loader.js动态JSON-LD Product schema → **CTA引流组件**：cta-widget.js新建（固定底栏，子猫募集中X匹+LINE按钮，i18n，滚动显隐）→ 17个页面引入cta-widget.js → **知识库出处**：16篇文章追加权威引用（環境省/日本獣医師会/TICA/CFA等） |
+| 17 | **SEO基础设施大升级**：104篇静态博客文章（`/blog/*.html`，含BlogPosting JSON-LD+BreadcrumbList+完整header/footer+LINE CTA+blog-i18n.js语言切换）→ blog.html列表页静态化（10分类×104篇卡片）→ faq.html静态化（24项FAQ+FAQPage JSON-LD结构化数据）→ hreflang标签全站129个文件（ja/en/zh/x-default）→ sitemap.xml扩充至128个URL → blog-loader.js slug重定向+静态链接 |
 
 ---
 
