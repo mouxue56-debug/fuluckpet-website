@@ -109,6 +109,8 @@ const translations = {
     'faq.tag': 'FAQ',
     'faq.pageTitle': 'よくある質問',
     'faq.pageSubtitle': 'お迎えに関するよくある質問をまとめました',
+    'faq.guideTitle': 'もっと詳しく知りたい方へ',
+    'faq.guideDesc': 'お迎え準備から日々のケアまで、初めての方にもわかりやすくまとめたガイドをご用意しています。',
 
     // Gallery
     'gallery.title': '卒業猫ギャラリー',
@@ -394,6 +396,8 @@ const translations = {
     'faq.tag': 'FAQ',
     'faq.pageTitle': 'FAQ',
     'faq.pageSubtitle': 'Frequently asked questions about adopting from our cattery',
+    'faq.guideTitle': 'Want to Learn More?',
+    'faq.guideDesc': 'We have comprehensive guides covering everything from preparation to daily care, perfect for first-time cat owners.',
 
     // Gallery
     'gallery.title': 'Alumni Gallery',
@@ -679,6 +683,8 @@ const translations = {
     'faq.tag': 'FAQ',
     'faq.pageTitle': '常见问题',
     'faq.pageSubtitle': '关于领养的常见问题汇总',
+    'faq.guideTitle': '想了解更多？',
+    'faq.guideDesc': '从接猫准备到日常护理，我们为新手铲屎官准备了详细的指南。',
 
     // Gallery
     'gallery.title': '毕业猫相册',
