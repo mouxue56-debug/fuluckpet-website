@@ -1,7 +1,7 @@
 # 福楽キャッテリー 网站交接文档
 
 > **本文档供下一个 AI 会话使用，用于快速了解本项目的全部背景。**
-> 最后更新：2026-02-11 Session 17
+> 最后更新：2026-02-11 Session 18
 
 ---
 
@@ -53,6 +53,7 @@ fuluckpet-website/
 ├── script.js           # 全局 JS（i18n、导航、动画、modal、YouTube embed、猫咪ナビ）~780行
 ├── i18n.js             # 翻译字典（JA/EN/ZH）+ data-i18n-html 块替换 + langChanged 事件
 ├── card-loader.js      # 动态渲染（从 API 加载子猫/种猫/评价卡片）Session 15b 新增（Session 16 追加 JSON-LD Product schema）
+├── kitten-carousel.js  # 动态猫咪滚动轮播（API实时数据+照片卡片）Session 18 新增
 ├── cta-widget.js       # 固定底栏 CTA 组件（子猫募集中+LINE 引流）Session 16 新增
 ├── blog-loader.js      # 知识库前端加载（blog.html列表渲染+slug重定向）Session 17 改造
 ├── faq-loader.js       # FAQ 动态加载（旧版，首页已不使用）Session 15
@@ -73,6 +74,7 @@ fuluckpet-website/
 │   ├── README-IMAGES.txt  # 双语图片准备指南
 │   ├── hero-main.jpg      # 首页主图（已压缩至1200px）
 │   ├── hero-main-original.jpg  # 原图备份
+│   ├── ogp.jpg              # OGP社交分享预览图（1200×630px）Session 18 添加
 │   ├── siberian-main.jpg  # 西伯利亚猫品种主图
 │   ├── siberian-group.jpg # 西伯利亚猫集合写真
 │   └── .gitkeep
@@ -96,6 +98,10 @@ fuluckpet-website/
 │       ├── admin-faq.js     # FAQ 管理（Session 15 新增）
 │       ├── admin-articles.js # 文章管理（Session 15 新增）
 │       └── admin-settings.js # 密码设置 + 初始化
+├── tools/
+│   ├── generate-site.js # 全站静态页面生成脚本（从API数据重新生成HTML）Session 18 新增
+│   ├── migrate-images.js # 图片迁移脚本（Session 14，已完成）
+│   └── url-map.json     # URL映射表（76条）
 └── api/
     ├── worker.js        # Cloudflare Worker（已部署 ✅ fuluck-api.mouxue56.workers.dev）
     ├── wrangler.toml    # Worker 配置
@@ -529,6 +535,7 @@ fuluckpet-photos/  (ID: 1sbFIW5C7YfSw7zVIKhhAyCOuKivD8qUc)
 | 15c | **SEO优化**：blog.html/faq.html title+H1添加搜索关键词（猫の飼い方、猫のお迎えQ&A）→ **内容大扩充**：FAQ从6条→24条（4分类×6条，三语）+ 知识库16篇文章（8分类×2篇，三语HTML正文）→ faq.css高级UI（Ice Cream Design渐变+图标+徽章+动画）|
 | 16 | **日期移除**：blog-loader.js 移除文章列表+详情的日期显示 → **全站SEO关键词优化**：25+个HTML文件title/description/keywords增加目标关键词（大阪/サイベリアン/ブリーダー/羅方遠/ラホウエン/みんなの子猫ブリーダー/口コミ）→ card-loader.js动态JSON-LD Product schema → **CTA引流组件**：cta-widget.js新建（固定底栏，子猫募集中X匹+LINE按钮，i18n，滚动显隐）→ 17个页面引入cta-widget.js → **知识库出处**：16篇文章追加权威引用（環境省/日本獣医師会/TICA/CFA等） |
 | 17 | **SEO基础设施大升级**：104篇静态博客文章（`/blog/*.html`，含BlogPosting JSON-LD+BreadcrumbList+完整header/footer+LINE CTA+blog-i18n.js语言切换）→ blog.html列表页静态化（10分类×104篇卡片）→ faq.html静态化（24项FAQ+FAQPage JSON-LD结构化数据）→ hreflang标签全站129个文件（ja/en/zh/x-default）→ sitemap.xml扩充至128个URL → blog-loader.js slug重定向+静态链接 |
+| 18 | **日期移除**（104篇博客文章+JSON-LD datePublished/dateModified）→ **kitten-carousel.js**（动态猫咪轮播组件，API实时数据+照片+价格+状态徽章，自动滚动+三语）→ **FAQ页面CTA增强**（猫咪轮播+お迎えガイド/知識ライブラリ引导）→ **OGP图片**（1200×630px品牌宣传图）→ **generate-site.js**（全站静态页面生成脚本，从API数据重新生成kittens/parents/reviews/sitemap） |
 
 ---
 
