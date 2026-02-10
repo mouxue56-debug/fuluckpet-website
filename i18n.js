@@ -163,8 +163,8 @@ const translations = {
 
     // Blog (Knowledge Base)
     'blog.tag': 'Knowledge Base',
-    'blog.title': '知識ライブラリ',
-    'blog.subtitle': '猫の健康・栄養・ケアについて、ブリーダーが解説します',
+    'blog.title': '猫の飼い方｜知識ライブラリ',
+    'blog.subtitle': '猫の健康管理・食事・しつけなど、ブリーダーが分かりやすく解説します',
 
     // Guide Pages
     // Guide Common
@@ -448,8 +448,8 @@ const translations = {
 
     // Blog (Knowledge Base)
     'blog.tag': 'Knowledge Base',
-    'blog.title': 'Knowledge Base',
-    'blog.subtitle': 'Expert tips on cat health, nutrition, and care from our breeder',
+    'blog.title': 'Cat Care | Knowledge Base',
+    'blog.subtitle': 'Expert tips on cat health, nutrition, grooming and behavior from our breeder',
 
     // Guide Pages
     // Guide Common
@@ -733,8 +733,8 @@ const translations = {
 
     // Blog (Knowledge Base)
     'blog.tag': 'Knowledge Base',
-    'blog.title': '知识库',
-    'blog.subtitle': '繁殖人为您讲解猫咪健康、营养与护理知识',
+    'blog.title': '养猫指南｜知识库',
+    'blog.subtitle': '专业繁殖人为您讲解猫咪健康管理、饮食、护理与行为知识',
 
     // Guide Pages
     // Guide Common
