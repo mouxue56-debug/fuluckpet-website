@@ -419,35 +419,32 @@ document.addEventListener('DOMContentLoaded', () => {
     nextBtn.style.display = hasNext ? '' : 'none';
   }
 
-  // Add nav buttons to modal
+  // Add nav buttons to modal-overlay (not container, to avoid overflow clipping)
   if (kittenModal) {
-    const container = kittenModal.querySelector('.modal-container');
-    if (container) {
-      const prevBtn = document.createElement('button');
-      prevBtn.className = 'modal-kitten-nav modal-kitten-prev';
-      prevBtn.innerHTML = '‹';
-      prevBtn.title = '前の子猫';
-      prevBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        for (let i = currentKittenIndex - 1; i >= 0; i--) {
-          if (!allKittenCards[i].classList.contains('hidden')) { openKittenByIndex(i); break; }
-        }
-      });
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'modal-kitten-nav modal-kitten-prev';
+    prevBtn.innerHTML = '‹';
+    prevBtn.title = '前の子猫';
+    prevBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      for (let i = currentKittenIndex - 1; i >= 0; i--) {
+        if (!allKittenCards[i].classList.contains('hidden')) { openKittenByIndex(i); break; }
+      }
+    });
 
-      const nextBtn = document.createElement('button');
-      nextBtn.className = 'modal-kitten-nav modal-kitten-next';
-      nextBtn.innerHTML = '›';
-      nextBtn.title = '次の子猫';
-      nextBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        for (let i = currentKittenIndex + 1; i < allKittenCards.length; i++) {
-          if (!allKittenCards[i].classList.contains('hidden')) { openKittenByIndex(i); break; }
-        }
-      });
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'modal-kitten-nav modal-kitten-next';
+    nextBtn.innerHTML = '›';
+    nextBtn.title = '次の子猫';
+    nextBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      for (let i = currentKittenIndex + 1; i < allKittenCards.length; i++) {
+        if (!allKittenCards[i].classList.contains('hidden')) { openKittenByIndex(i); break; }
+      }
+    });
 
-      container.appendChild(prevBtn);
-      container.appendChild(nextBtn);
-    }
+    kittenModal.appendChild(prevBtn);
+    kittenModal.appendChild(nextBtn);
   }
 
   // Open kitten modal

@@ -1387,11 +1387,13 @@ button { font-family: inherit; cursor: pointer; }
   max-width: 960px;
   width: 100%;
   max-height: 90vh;
-  overflow-y: auto;
+  overflow: hidden;
   position: relative;
   box-shadow: 0 32px 80px rgba(0, 0, 0, 0.2);
   transform: translateY(24px) scale(0.96);
   transition: transform 0.5s var(--ease-spring), opacity 0.4s var(--ease-out);
+  display: flex;
+  flex-direction: column;
 }
 .modal-overlay.active .modal-container { transform: translateY(0) scale(1); }
 .modal-sm { max-width: 680px; }
@@ -1416,30 +1418,30 @@ button { font-family: inherit; cursor: pointer; }
 }
 .modal-close:hover { background: rgba(90, 122, 122, 0.15); transform: rotate(90deg); }
 
-/* Kitten Nav: prev/next buttons in modal */
+/* Kitten Nav: prev/next buttons on modal overlay (outside container to avoid clipping) */
 .modal-kitten-nav {
-  position: absolute;
+  position: fixed;
   top: 50%;
   transform: translateY(-50%);
-  width: 44px;
-  height: 44px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   border: none;
-  background: rgba(255,255,255,0.92);
+  background: rgba(255,255,255,0.95);
   color: var(--text-heading);
-  font-size: 22px;
+  font-size: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 20;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  z-index: 2010;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.18);
   transition: all 0.2s ease;
   line-height: 1;
 }
 .modal-kitten-nav:hover { background: var(--mint); color: white; transform: translateY(-50%) scale(1.1); }
-.modal-kitten-prev { left: -22px; }
-.modal-kitten-next { right: -22px; }
+.modal-kitten-prev { left: max(16px, calc(50% - 520px)); }
+.modal-kitten-next { right: max(16px, calc(50% - 520px)); }
 
 /* Clickable parent chips */
 .modal-parent-chip.clickable {
@@ -1474,7 +1476,7 @@ button { font-family: inherit; cursor: pointer; }
   font-weight: 600;
 }
 
-.modal-body { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+.modal-body { display: grid; grid-template-columns: 1fr 1fr; gap: 0; flex: 1; min-height: 0; overflow: hidden; }
 .modal-sm .modal-body { grid-template-columns: 0.8fr 1fr; }
 
 /* Modal Gallery */
@@ -1482,6 +1484,8 @@ button { font-family: inherit; cursor: pointer; }
   padding: 28px;
   background: var(--bg-cream);
   border-radius: var(--radius-xl) 0 0 var(--radius-xl);
+  overflow-y: auto;
+  min-height: 0;
 }
 .carousel { position: relative; border-radius: var(--radius-lg); overflow: hidden; }
 .carousel-main { position: relative; aspect-ratio: 1; }
@@ -1568,7 +1572,7 @@ button { font-family: inherit; cursor: pointer; }
 .video-thumb .thumb-ph { background: linear-gradient(135deg, #333, #555); color: white; }
 
 /* Modal Info */
-.modal-info { padding: 36px 32px; overflow-y: auto; }
+.modal-info { padding: 36px 32px; overflow-y: auto; min-height: 0; }
 .modal-status-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
 .kit-badge-new {
   display: inline-block;
@@ -1976,12 +1980,14 @@ button { font-family: inherit; cursor: pointer; }
   .visit-layout { grid-template-columns: 1fr; gap: 32px; }
   .visit-cta-area { position: static; }
   .footer-top { grid-template-columns: 1fr; gap: 40px; }
-  .modal-body { grid-template-columns: 1fr; }
+  .modal-container { overflow-y: auto; }
+  .modal-body { grid-template-columns: 1fr; overflow: visible; }
   .modal-sm .modal-body { grid-template-columns: 1fr; }
-  .modal-gallery { border-radius: var(--radius-xl) var(--radius-xl) 0 0; }
+  .modal-gallery { border-radius: var(--radius-xl) var(--radius-xl) 0 0; overflow-y: visible; }
+  .modal-info { overflow-y: visible; }
   .modal-kitten-prev { left: 4px; }
   .modal-kitten-next { right: 4px; }
-  .modal-kitten-nav { width: 36px; height: 36px; font-size: 18px; }
+  .modal-kitten-nav { width: 40px; height: 40px; font-size: 20px; }
   .awards-grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; }
   .instagram-grid { grid-template-columns: repeat(3, 1fr); }
   .gallery-page-grid { grid-template-columns: repeat(2, 1fr); }
