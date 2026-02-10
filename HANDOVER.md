@@ -1,7 +1,7 @@
 # 福楽キャッテリー 网站交接文档
 
 > **本文档供下一个 AI 会话使用，用于快速了解本项目的全部背景。**
-> 最后更新：2026-02-10 Session 11
+> 最后更新：2026-02-10 Session 12
 
 ---
 
@@ -320,47 +320,51 @@ siberian.html 集合写真占位符需替换（文件已有）。
 5. **替换外链图片** — koneko-breeder.com → Google Photos 或自托管
 6. **review-screenshot-1/2.jpg** — 用户之前上传过截图给 AI，但文件未放到 images/ 文件夹
 
-### P1+ Google Drive 图片自动同步（Session 11 规划，下次实现）
+### P1+ Google Drive 图片自动同步（Session 12 — 已完成部署 ✅）
 
-**业主需求**：不想手动粘贴图片 URL，改为 Google Drive 文件夹自动同步
+**状态**：全部完成并已上线
 
-**用户操作流程（目标）**：
-1. 在 Google Drive 创建文件夹，文件夹名 = 小猫的 breederId（如 `2602-00625`）
-2. 往文件夹里放小猫照片
-3. 网站自动根据 breederId 从 Google Drive 读取并显示图片
+**技术方案：Cloudflare Worker + R2 缓存 + Google Drive**
+- 业主/员工往 Drive 放图片 → Worker 调 Drive API 获取列表 → 图片缓存到 R2（自动压缩至 2MB 以下）→ 前端从 CDN 加载
 
-**技术方案（推荐方案 B）**：
+**Worker URL**: `https://fuluck-api.mouxue56.workers.dev`
 
-**方案 A：Cloudflare Worker 代理**
-- Worker 接收 breederId → 调 Google Drive API → 返回文件夹内图片列表
-- 优点：已有 `api/worker.js` 框架
-- 缺点：需要配置 Google Service Account、部署 Worker
+**已完成**：
+1. `api/worker.js` — Google Auth JWT 签名、Drive API、R2 缓存代理、**自动压缩（>2MB 时使用 Google 缩略图 API 缩小）**、缓存管理路由
+2. `api/wrangler.toml` — KV namespace ID、R2 bucket、secret 变量说明
+3. `drive-loader.js`（新文件）— 前端 Drive 图片加载模块
+4. `script.js` — `buildCarousel()` 已改为 async，支持 Drive 异步加载
+5. R2 bucket `fuluck-images` 已创建
+6. KV namespace `DATA` 已创建 (ID: `d319e99874ef40d5b5836587edfee243`)
+7. Secrets 已设置（GOOGLE_SA_KEY、GOOGLE_DRIVE_ROOT_FOLDER_ID、ADMIN_PASSWORD）
+8. SA 密钥已轮换（旧密钥已删除）
+9. Drive 文件夹已创建并共享给 SA
+10. **员工教程**：`EMPLOYEE-GUIDE.md`
 
-**方案 B：Google Apps Script（推荐，更简单）**
-- 写一个 Apps Script 部署为 Web App
-- 接口格式：`https://script.google.com/macros/s/xxx/exec?folder=2602-00625`
-- 返回 JSON：`{ images: ["https://drive.google.com/uc?id=xxx", ...] }`
-- 前端 JS 根据 breederId 请求这个 API，动态加载图片
-- 优点：不需要额外服务、免费、跟用户的 Google 生态一体
-- 缺点：Google Apps Script 有调用限额（但猫舍网站完全够用）
+**Worker API 路由**：
+- `GET /api/drive/folders/:parentFolderId` — 列出子文件夹（KV 缓存 30 分钟）
+- `GET /api/drive/images/:folderId` — 列出文件夹内图片（KV 缓存 30 分钟）
+- `GET /api/drive/img/:fileId` — 代理图片（R2 永久缓存 + **自动压缩** + Cache-Control 7天）
+- `POST /api/admin/drive/refresh` — 清除所有 Drive 缓存（需认证）
+- `POST /api/admin/drive/refresh/:folderId` — 清除指定文件夹缓存
 
-**需要改造的文件**：
-1. **创建 Google Apps Script**（全新）— 读取 Drive 文件夹、返回图片 URL 列表
-2. **admin/index.html** — 去掉 URL 粘贴输入，改为「同步 Google Drive」按钮
-3. **script.js** — `buildCarousel()` 改为先检查 breederId，按需从 API 加载图片
-4. **kittens.html** — `data-images` 改为 `data-breeder-id`，图片动态加载
-5. **index.html** — 首页小猫卡片同步改造
+**Drive 文件夹结构（已创建）**：
+```
+fuluckpet-photos/  (ID: 1sbFIW5C7YfSw7zVIKhhAyCOuKivD8qUc)
+├── kittens/       (ID: 1bQKvwvfa3jHIuKGzR9nvvZIKB6z5-kF4) ← 子猫（按 breederId 命名子文件夹）
+├── parents/       (ID: 1GlqXIGEEzupIQ0WHmN4tOvlvCPE7uNuX) ← 种猫（按猫名命名）
+└── gallery/       (ID: 1DilSsje7F6Oc1cktpzgIDHG8zlBEd5yt) ← 毕业猫
+```
 
-**前提条件**：
-- Google Drive 根文件夹需要设为「知道链接的人可查看」
-- 每个小猫子文件夹命名为 breederId
-- 文件夹内放 jpg/png 图片，第一张按文件名排序为封面
+**SA 邮箱**：`fuluckpet@fuluckpet-drive.iam.gserviceaccount.com`
+**GCP 教程**：`GOOGLE-DRIVE-SETUP.md`
+**员工教程**：`EMPLOYEE-GUIDE.md`
 
-**预估工作量**：需要一个完整 session
+**下一步**：给 HTML 页面的 kitten-card 添加 `data-drive-folder` 属性指向 Drive 文件夹 ID，实现前端自动加载
 
 ### P2 中优先级
-7. ~~Google Photos 外链方案~~ → 已升级为 P1+ Google Drive 方案（见上）
-8. **Cloudflare Workers** — `api/worker.js` 已写未部署（可能不再需要，取决于选择方案A还是B）
+7. ~~Google Photos 外链方案~~ → 已实施为 P1+ Worker+R2+Drive 方案（见上）
+8. ~~Cloudflare Workers~~ — `api/worker.js` 已扩展 Drive 集成，等待部署
 9. **FAQ 追加成交型问题** — 之前规划的但未执行
 
 ### P3 低优先级
@@ -380,7 +384,8 @@ siberian.html 集合写真占位符需替换（文件已有）。
 | 8 | LINE 浮动按钮重做 + Gallery 真实照片 + HANDOVER.md + TUTORIAL.md |
 | 9 | 内容/CTA优化（价格免责、アレルギー措辞、LINE CTA）→ 图片占位符替换（Hero/Siberian/Reviews/Gallery）→ Admin 画像管理功能（双语、URL+文件上传、尺寸标签、Instagram超链接、预览）→ images/ 文件夹方案C + 双语图片指南 |
 | 10 | YouTube 视频嵌入（子猫详情modal + Admin子猫表单）→ Admin 全站中日双语切换（从仅画像管理扩展到全部9个页面+登录页+所有modal+所有JS动态文本）→ 操作指南重写（8步详细双语指导）→ HANDOVER.md 更新 |
-| 11（本次） | Guide 子页面 i18n 正文切换（14页 × EN/ZH）→ Google Drive 图片同步方案规划（下次实现） |
+| 11 | Guide 子页面 i18n 正文切换（14页 × EN/ZH）→ Google Drive 图片同步方案规划 |
+| 12 | Google Drive 图片同步全部完成：Worker+R2+Drive 方案代码 → R2/KV 创建 → Drive 文件夹+SA 配置 → Worker 部署上线 → 自动压缩功能（>2MB 图片自动缩小）→ 员工操作教程 EMPLOYEE-GUIDE.md |
 
 ---
 
@@ -409,7 +414,7 @@ git push origin main          # 1-2 分钟自动部署
 6. **网站日语** — i18n 支持 EN/ZH
 7. **Admin 全站双语** — 用 `data-adm-ja/zh` 属性 + `t(ja,zh)` 函数；画像管理保留 `data-img-ja/zh` 兼容
 8. **YouTube 嵌入** — 子猫 `video` 字段支持 iframe embed/youtu.be/youtube.com URL，modal 自动播放
-9. **照片方案** — Admin 支持 URL + 本地上传；方案C 是直接放 images/ 文件夹
+9. **照片方案** — Admin 支持 URL + 本地上传；新增 Drive+Worker+R2 自动同步方案（代码已写，等部署）
 9. **别改密码** — `fuluck5632`，改前问业主
 10. **外链图片危险** — koneko-breeder.com ~92张图，随时可能挂
 11. **公开仓库** — 别提交敏感信息
@@ -418,4 +423,5 @@ git push origin main          # 1-2 分钟自动部署
 14. **两个 breeder 账号** — c995680（羅方遠/サイベリアン）和 d696506（刘暁棉/British/Ragdoll）
 15. **Guide i18n 双机制** — guide-header 用 `data-i18n`（翻译在 i18n.js），正文用 `data-i18n-html`（翻译在 guide/i18n-guide-body.js）。两种 HTML 结构（Pattern A/B），详见第6节
 16. **guide/i18n-guide-body.js** — 1323行，28个翻译块。修改日语正文后需同步更新此文件中对应的 EN/ZH 翻译
-17. **下次优先任务：Google Drive 图片同步** — 用户不想手动粘贴 URL，要改为 Google Drive 文件夹自动同步。详细方案见第10节 P1+。推荐方案B（Google Apps Script）
+17. **Google Drive 同步已上线** — Worker 已部署至 `https://fuluck-api.mouxue56.workers.dev`。下次任务：给 HTML 页面的猫咪卡片添加 `data-drive-folder` 属性，连接前端和 Drive
+18. **员工教程** — `EMPLOYEE-GUIDE.md`，教员工如何用 Google Drive 上传猫咪照片

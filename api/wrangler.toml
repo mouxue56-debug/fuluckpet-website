@@ -8,8 +8,10 @@ compatibility_date = "2024-09-23"
 # 環境変数 (本番では Workers Settings > Variables で設定)
 [vars]
 CORS_ORIGIN = "*"
-# ADMIN_PASSWORD は Workers Settings の Encrypted Variables で設定してください
-# ここには書かないでください
+# 以下のシークレットは `wrangler secret put` で設定してください（コードに書かないこと）:
+#   ADMIN_PASSWORD            — 管理画面パスワード
+#   GOOGLE_SA_KEY             — Google Service Account JSON（全内容をペースト）
+#   GOOGLE_DRIVE_ROOT_FOLDER_ID — Google Drive ルートフォルダ ID
 
 # R2 バケット (画像ストレージ)
 [[r2_buckets]]
@@ -20,7 +22,7 @@ bucket_name = "fuluck-images"
 # KV Namespace (データストア)
 [[kv_namespaces]]
 binding = "DATA"
-id = "YOUR_KV_NAMESPACE_ID_HERE"
+id = "d319e99874ef40d5b5836587edfee243"
 # preview_id = "YOUR_KV_PREVIEW_ID_HERE"  # ローカル開発用
 
 # カスタムドメイン (オプション)

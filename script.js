@@ -171,12 +171,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const kittenModal = document.getElementById('kittenModal');
   const modalClose = document.getElementById('modalClose');
 
-  function buildCarousel(card) {
+  async function buildCarousel(card) {
     if (!kittenModal) return;
-    const images = card.dataset.images ? card.dataset.images.split(',') : [];
+    let images = card.dataset.images ? card.dataset.images.split(',') : [];
     const videoRaw = card.dataset.video || '';
     const gallery = kittenModal.querySelector('.modal-gallery');
     if (!gallery) return;
+
+    // If no hardcoded images but has Drive folder, load from Drive
+    if (images.length === 0 && card.dataset.driveFolder && window.DriveLoader) {
+      gallery.innerHTML = '<div class="carousel-slide active"><div class="img-placeholder kit-modal-ph"><span>⏳</span><p>読み込み中...</p></div></div>';
+      const driveUrls = await window.DriveLoader.loadCardImages(card);
+      if (driveUrls) {
+        images = driveUrls.split(',');
+      }
+    }
 
     // Parse YouTube embed: accept iframe embed code, youtu.be/xxx, or youtube.com/watch?v=xxx
     let videoEmbedUrl = '';
