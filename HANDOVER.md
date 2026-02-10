@@ -1,7 +1,7 @@
 # 福楽キャッテリー 网站交接文档
 
 > **本文档供下一个 AI 会话使用，用于快速了解本项目的全部背景。**
-> 最后更新：2026-02-10 Session 14
+> 最后更新：2026-02-10 Session 15
 
 ---
 
@@ -38,18 +38,22 @@
 
 ```
 fuluckpet-website/
-├── index.html          # 首页（メインページ）~965行
-├── siberian.html       # 品种介绍（サイベリアンの魅力）~386行
+├── index.html          # 首页（メインページ）~970行
+├── siberian.html       # 品种介绍（サイベリアンの魅力）
 ├── about.html          # 奖项认证（受賞歴・認定）
-├── gallery.html        # 毕业猫画廊（卒業猫ギャラリー）~304行，36张真实毕业猫照片
+├── gallery.html        # 毕业猫画廊（卒業猫ギャラリー）36张真实毕业猫照片
 ├── reviews.html        # 客户评价（お客様の声）
-├── kittens.html        # 幼猫列表（子猫一覧）— 含外链图片!
-├── parents.html        # 种猫介绍（親猫紹介）— 含外链图片!
+├── kittens.html        # 幼猫列表（子猫一覧）
+├── parents.html        # 种猫介绍（親猫紹介）
+├── blog.html           # 知識ライブラリ（知识库文章列表+详情）Session 15 新增
 ├── 404.html            # 404 错误页
 ├── style.css           # 全局样式
+├── blog.css            # 知识库专用样式 Session 15 新增
 ├── script.js           # 全局 JS（i18n、导航、动画、modal、YouTube embed、猫咪ナビ）~680行
-├── i18n.js             # 翻译字典（JA/EN/ZH）+ data-i18n-html 块替换
-├── sitemap.xml         # SEO sitemap（7 页）
+├── i18n.js             # 翻译字典（JA/EN/ZH）+ data-i18n-html 块替换 + langChanged 事件
+├── blog-loader.js      # 知识库前端加载（从 API 渲染文章列表/详情）Session 15 新增
+├── faq-loader.js       # FAQ 动态加载（从 API 替换静态 FAQ）Session 15 新增
+├── sitemap.xml         # SEO sitemap（含 blog.html）
 ├── robots.txt          # 爬虫规则（屏蔽 /admin/ 和 /api/）
 ├── CNAME               # 自定义域名
 ├── .nojekyll           # 禁用 Jekyll
@@ -58,9 +62,9 @@ fuluckpet-website/
 ├── HANDOVER.md         # 本文档
 ├── TUTORIAL.md         # 教学文档（给业主学习）
 ├── images/             # 图片目录
-│   ├── README-IMAGES.txt  # 双语图片准备指南（14张图清单）
+│   ├── README-IMAGES.txt  # 双语图片准备指南
 │   ├── hero-main.jpg      # 首页主图（已压缩至1200px）
-│   ├── hero-main-original.jpg  # 原图备份5557×6945px
+│   ├── hero-main-original.jpg  # 原图备份
 │   ├── siberian-main.jpg  # 西伯利亚猫品种主图
 │   ├── siberian-group.jpg # 西伯利亚猫集合写真
 │   └── .gitkeep
@@ -70,10 +74,20 @@ fuluckpet-website/
 │   ├── i18n-guide-body.js  # 正文翻译（14页 × EN/ZH，1323行）
 │   └── *.html ×14      # 各子页面（见第6节 i18n 说明）
 ├── admin/
-│   ├── index.html      # 管理后台（~2370行，全面双语，API登录+KV同步+Drive写真管理）
-│   └── js/
-│       ├── api-client.js  # Worker KV API 调用层（FuluckAPI 对象）
-│       └── migrate.js     # localStorage→KV 一键迁移（FuluckMigrate 对象）
+│   ├── index.html      # 管理后台（~1160行 HTML/CSS，JS 已模块化）Session 15 重构
+│   └── js/             # Admin JS 模块（Session 15 拆分）
+│       ├── api-client.js    # Worker KV API 调用层（FuluckAPI 对象）
+│       ├── migrate.js       # localStorage→KV 一键迁移（FuluckMigrate 对象）
+│       ├── admin-images.js  # 语言系统 + 图片管理（t(), admLang, 必须最先加载）
+│       ├── admin-core.js    # 核心：数据管理、认证、导航、modal/toast
+│       ├── admin-render.js  # 渲染：dashboard + kittens/parents/reviews CRUD
+│       ├── admin-photos.js  # 照片相册 modal
+│       ├── admin-export.js  # HTML 代码生成
+│       ├── admin-drive.js   # Drive 状态面板
+│       ├── admin-data.js    # 数据导入导出重置
+│       ├── admin-faq.js     # FAQ 管理（Session 15 新增）
+│       ├── admin-articles.js # 文章管理（Session 15 新增）
+│       └── admin-settings.js # 密码设置 + 初始化
 └── api/
     ├── worker.js        # Cloudflare Worker（已部署 ✅ fuluck-api.mouxue56.workers.dev）
     ├── wrangler.toml    # Worker 配置
@@ -88,7 +102,7 @@ fuluckpet-website/
 |------|------|
 | **地址** | https://fuluckpet.com/admin/ |
 | **密码** | `fuluck5632` |
-| **实现** | 单 HTML 文件（~2350行），CSS/JS 全内联，全站中日双语 |
+| **实现** | HTML/CSS 单文件（~1160行）+ 12个外部 JS 模块，全站中日双语（Session 15 模块化） |
 | **存储** | Worker KV（主存储）+ `localStorage`（离线 fallback）— Session 14 已接入 |
 | **认证** | Worker API 优先验证 + localStorage 兜底；`sessionStorage` 存会话密码 |
 
@@ -106,21 +120,31 @@ fuluckpet-website/
 2. **子猫管理** — CRUD + 状态（available/reserved/sold/graduated）+ 分页
 3. **親猫管理** — CRUD + 退役标记 + 分页
 4. **お客様の声** — 评价管理
-5. **🖼️ 画像管理**（Session 9 新增） — 全站图片管理
-   - **日中双语切换**（右上角按钮，保存到 localStorage）
-   - **每张图带尺寸标签**（蓝色 badge 如 `800×600px`）
-   - **每张图带用途说明**（双语）
-   - **支持 URL 输入 + 本地文件选择上传**
-   - **Instagram 区域**：4 张图片 + 独立链接 URL 配置
-   - **保存**：存到 localStorage
-   - **HTML 代码生成**：自动生成各页面对应的 img/meta 标签
-   - **预览**：加载图片显示实际尺寸 vs 推荐尺寸
-   - **base64 上传图片会在代码生成时提示需先保存为文件**
+5. **🖼️ 画像管理** — 全站图片管理（URL + 上传 + 尺寸标签 + 预览 + HTML 生成）
 6. **HTML出力** — 生成子猫/种猫/评价 HTML 代码
-7. **☁️ Drive写真**（Session 13 新增） — Drive 同步状态查看 + 缓存清除
-8. **データ管理** — JSON 导入/导出/重置
-9. **操作ガイド** — 使用指南
-10. **パスワード変更** — 密码设置
+7. **☁️ Drive写真** — Drive 同步状态查看 + 缓存清除
+8. **📝 FAQ管理**（Session 15 新增） — FAQ CRUD + 种子数据 + 三语编辑
+9. **📖 文章管理**（Session 15 新增） — 知识库文章 CRUD + 8分类 + 三语编辑
+10. **データ管理** — JSON 导入/导出/重置
+11. **操作ガイド** — 使用指南
+12. **パスワード変更** — 密码设置
+
+### Admin JS 模块加载顺序（Session 15 模块化）
+```html
+<script src="js/api-client.js"></script>
+<script src="js/migrate.js"></script>
+<script src="js/admin-images.js"></script>  <!-- t(), admLang 必须最先 -->
+<script src="js/admin-core.js"></script>     <!-- data, saveData 等核心 -->
+<script src="js/admin-render.js"></script>
+<script src="js/admin-photos.js"></script>
+<script src="js/admin-export.js"></script>
+<script src="js/admin-drive.js"></script>
+<script src="js/admin-data.js"></script>
+<script src="js/admin-faq.js"></script>
+<script src="js/admin-articles.js"></script>
+<script src="js/admin-settings.js"></script>
+```
+所有函数保持全局作用域（无 IIFE），各文件可直接互相访问 `data`、`saveData()`、`t()` 等。
 
 ### 画像管理配置的 18 个图片位置
 | Tag | 页面 | 推荐尺寸 |
@@ -161,6 +185,34 @@ fuluckpet-website/
   photos: ['url', ...],
   coverIndex: 0,
   personality, geneticTest, retired
+}
+```
+
+### 文章 articles（Session 15 新增，存 KV key: `articles`）
+```javascript
+{
+  id, slug,
+  title: { ja, en, zh },
+  excerpt: { ja, en, zh },
+  content: { ja, en, zh },  // HTML 格式
+  category: "health|nutrition|grooming|behavior|breed|kitten|senior|lifestyle",
+  coverImage: "R2 URL",
+  tags: [],
+  published: true,
+  publishedAt, createdAt, updatedAt
+}
+```
+
+### FAQ（Session 15 新增，存 KV key: `faq`）
+```javascript
+{
+  id,
+  question: { ja, en, zh },
+  answer: { ja, en, zh },
+  category: "general|purchase|care|health",
+  order: 1,
+  published: true,
+  createdAt, updatedAt
 }
 ```
 
@@ -351,16 +403,16 @@ about.html 还有 1 个占位符（基因检测证明），index.html Instagram 
 6. ⬜ HTML 页面改造（删除硬编码卡片，保留容器）
 7. ⬜ drive-loader.js 适配（监听 `cards-rendered` 事件）
 
-**B. 知识库 + FAQ 系统**：
-1. Worker 加 articles + faq 端点
-2. 新建 `blog.html`（Markdown 文章列表+详情，8大栏目）
-3. Admin 加文章管理（Markdown 编辑器 + 图片上传到 R2）
-4. Admin 加 FAQ 管理
-5. 导航栏所有页面加「知識ライブラリ」链接
+**B. ✅ 知识库 + FAQ 系统 + Admin 模块化**（Session 15 完成）：
+1. ✅ Admin 模块化：~1400行 inline JS 拆分为 12 个外部模块
+2. ✅ Worker 加 articles + faq 端点（CRUD + bulk + 公开查询）
+3. ✅ FAQ 系统：`faq-loader.js` 动态加载 + `admin-faq.js` 管理面板 + 种子数据
+4. ✅ 知识库：`blog.html` + `blog.css` + `blog-loader.js`（8分类，列表+详情视图）
+5. ✅ Admin 文章管理：`admin-articles.js`（三语编辑 + 8分类）
+6. ✅ 全站导航更新：22个HTML文件 + i18n.js + sitemap.xml
+7. ✅ 语言切换事件：i18n.js 新增 `langChanged` CustomEvent，FAQ/Blog 动态重渲染
 
 **图片双通道**：直接上传到 R2（Admin 拖拽）+ Drive 同步（员工批量操作），两种并存。
-
-**建议分 2 次对话执行**：第 1 次 A 部分（动态化），第 2 次 B 部分（知识库+Admin 改造）。
 
 ### P1+ Google Drive 图片自动同步（Session 12 — 已完成部署 ✅）
 
@@ -390,21 +442,28 @@ about.html 还有 1 个占位符（基因检测证明），index.html Instagram 
 - `GET /api/kittens` — 获取子猫列表
 - `GET /api/parents` — 获取种猫列表
 - `GET /api/reviews` — 获取评价列表
-- `GET /r2/*` — R2 图片公开访问（30天缓存，Session 14 新增）
+- `GET /api/articles` — 获取已发布文章列表（按 publishedAt 倒序）Session 15 新增
+- `GET /api/articles/:slug` — 按 slug 获取单篇文章 Session 15 新增
+- `GET /api/faq` — 获取已发布 FAQ 列表（按 order 排序）Session 15 新增
+- `GET /r2/*` — R2 图片公开访问（30天缓存）
 - `GET /api/drive/folders/:parentFolderId` — 列出子文件夹（KV 缓存 30 分钟）
 - `GET /api/drive/images/:folderId` — 列出文件夹内图片（KV 缓存 30 分钟）
-- `GET /api/drive/img/:fileId` — 代理图片（R2 永久缓存 + **自动压缩** + Cache-Control 7天）
+- `GET /api/drive/img/:fileId` — 代理图片（R2 永久缓存 + 自动压缩 + Cache-Control 7天）
 
 管理端点（需 `Authorization: Bearer <password>` 认证）：
 - `POST/PUT/DELETE /api/admin/kittens/:id` — 子猫 CRUD
-- `POST /api/admin/kittens/bulk` — 子猫批量导入（Session 14 新增）
+- `POST /api/admin/kittens/bulk` — 子猫批量导入
 - `POST/PUT/DELETE /api/admin/parents/:id` — 种猫 CRUD
-- `POST /api/admin/parents/bulk` — 种猫批量导入（Session 14 新增）
+- `POST /api/admin/parents/bulk` — 种猫批量导入
 - `POST/PUT/DELETE /api/admin/reviews/:id` — 评价 CRUD
-- `POST /api/admin/reviews/bulk` — 评价批量导入（Session 14 新增）
+- `POST /api/admin/reviews/bulk` — 评价批量导入
+- `POST/PUT/DELETE /api/admin/articles/:id` — 文章 CRUD Session 15 新增
+- `POST /api/admin/articles/bulk` — 文章批量导入 Session 15 新增
+- `POST/PUT/DELETE /api/admin/faq/:id` — FAQ CRUD Session 15 新增
+- `POST /api/admin/faq/bulk` — FAQ 批量导入 Session 15 新增
 - `POST /api/admin/upload` — 图片上传到 R2（multipart/form-data）
 - `DELETE /api/admin/upload` — 从 R2 删除图片
-- `GET /api/admin/drive/status` — Drive 同步状态（文件夹树+缓存统计）
+- `GET /api/admin/drive/status` — Drive 同步状态
 - `POST /api/admin/drive/refresh` — 清除所有 Drive 缓存
 - `POST /api/admin/drive/refresh/:folderId` — 清除指定文件夹缓存
 
@@ -448,6 +507,7 @@ fuluckpet-photos/  (ID: 1sbFIW5C7YfSw7zVIKhhAyCOuKivD8qUc)
 | 12 | Google Drive 图片同步全部完成：Worker+R2+Drive 方案代码 → R2/KV 创建 → Drive 文件夹+SA 配置 → Worker 部署上线 → 自动压缩功能（>2MB 图片自动缩小）→ 员工操作教程 EMPLOYEE-GUIDE.md |
 | 13 | 子猫モーダル前後ナビ+親猫クリック遷移 → PC版ナビボタン拡大+スクロール修正 → Adminログイン API統合（プライベートモード対応）→ Admin Drive写真管理パネル → 写真管理モーダルにDriveプレビュー追加 → **全站架构升级计划**（动态渲染+知识库+FAQ） |
 | 14 | HANDOVER修正+OGP统一+about评价徽章CSS → **图片迁移R2**（76张扫描→75张上传→Worker `/r2/` 路由→HTML URL全替换→0外链残留）→ **Admin数据持久化KV**（api-client.js+migrate.js+CRUD改造）→ 性能优化（lazy loading）|
+| 15 | **Admin模块化**（~1400行inline JS→12外部模块）→ **Worker articles+FAQ端点** → **FAQ系统**（faq-loader.js动态加载+admin-faq.js管理+种子数据）→ **知识库**（blog.html+blog.css+blog-loader.js 8分类+admin-articles.js三语编辑）→ **全站导航更新**（22个HTML+i18n.js+sitemap.xml）→ i18n langChanged事件 |
 
 ---
 
@@ -470,7 +530,7 @@ git push origin main          # 1-2 分钟自动部署
 
 1. **先 git pull** — 避免冲突。用户可能已经自己 push 了图片
 2. **先 git status** — 检查 images/ 文件夹是否已有新图片
-3. **Admin 是单文件** — `admin/index.html` ~2350 行，CSS/JS 全内联
+3. **Admin 已模块化** — `admin/index.html` ~1160行 HTML/CSS + 12个 JS 模块在 `admin/js/`（Session 15）
 4. **数据存储** — Worker KV（主）+ localStorage（离线 fallback），每次 saveData() 自动同步到 KV
 5. **业主说中文** — 沟通用中文
 6. **网站日语** — i18n 支持 EN/ZH
@@ -489,7 +549,11 @@ git push origin main          # 1-2 分钟自动部署
 19. **员工教程** — `EMPLOYEE-GUIDE.md`，教员工如何用 Google Drive 上传猫咪照片
 20. **Admin 登录已改造** — 先调 Worker API 验证，fallback 到 localStorage；隐私模式可正常使用（Session 13）
 21. **Admin Drive 照片预览** — 照片管理弹窗内自动匹配 Drive 文件夹，显示缩略图网格，封面标记 📌（Session 13）
-22. **⭐ 已完成&下一步** — ✅图片迁移R2 ✅Admin数据KV同步 → 下一步：(1)前端动态渲染(从API加载卡片) (2)知识库+FAQ (3)Admin模块化拆分
-23. **Admin 外部 JS** — `admin/js/api-client.js`（FuluckAPI 对象）和 `admin/js/migrate.js`（FuluckMigrate 对象），在 `<script>` 主块之前加载
-24. **DRIVE_API 变量位置** — `admin/index.html` L1014，`var DRIVE_API = 'https://fuluck-api.mouxue56.workers.dev'`，必须在 `doLogin()` 之前声明
-25. **Drive 文件夹 ID 常量** — kittens: `1bQKvwvfa3jHIuKGzR9nvvZIKB6z5-kF4`，parents: `1GlqXIGEEzupIQ0WHmN4tOvlvCPE7uNuX`
+22. **⭐ 已完成&下一步** — ✅图片迁移R2 ✅Admin数据KV同步 ✅知识库+FAQ ✅Admin模块化 → 下一步：(1)前端动态渲染(从API加载猫咪卡片) (2)FAQ种子数据导入(Admin面板点击"デフォルト読込")
+23. **Admin JS 模块** — 12个外部文件在 `admin/js/`，加载顺序关键：admin-images.js（提供 `t()`, `admLang`）必须在 admin-core.js 之前
+24. **DRIVE_API 变量** — 在 `admin/js/admin-core.js` 中定义
+25. **Drive 文件夹 ID 常量** — 在 `admin/js/admin-drive.js` 中：kittens `1bQKvwvfa3jHIuKGzR9nvvZIKB6z5-kF4`，parents `1GlqXIGEEzupIQ0WHmN4tOvlvCPE7uNuX`
+26. **知识库 8 分类** — health, nutrition, grooming, behavior, breed, kitten, senior, lifestyle
+27. **FAQ 4 分类** — general, purchase, care, health
+28. **i18n langChanged 事件** — `setLanguage()` 触发 `window.dispatchEvent(new CustomEvent('langChanged'))`，faq-loader.js 和 blog-loader.js 监听此事件重新渲染
+29. **localStorage key** — 语言设置用 `fuluckpet-lang`（不是 `fuluck-lang`）

@@ -49,6 +49,13 @@
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
+  <!-- 知識ライブラリ -->
+  <url>
+    <loc>https://fuluckpet.com/blog.html</loc>
+    <lastmod>2026-02-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <!-- お迎えガイド -->
   <url>
     <loc>https://fuluckpet.com/guide/</loc>

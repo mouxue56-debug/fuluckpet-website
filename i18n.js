@@ -20,6 +20,7 @@ const translations = {
     'nav.reviews': 'お客様の声',
     'nav.naming': '子猫の名前ツール',
     'nav.guide': 'お迎えガイド',
+    'nav.blog': '知識ライブラリ',
     'nav.allKittens': '子猫一覧（すべて）',
     'nav.allParents': '親猫紹介（すべて）',
     'parents.moreLink': 'すべての親猫を見る →',
@@ -155,6 +156,11 @@ const translations = {
     'common.backHome': 'ホームに戻る',
     'common.viewKittens': '子猫を見る',
     'common.bookVisit': '見学を予約する',
+
+    // Blog (Knowledge Base)
+    'blog.tag': 'Knowledge Base',
+    'blog.title': '知識ライブラリ',
+    'blog.subtitle': '猫の健康・栄養・ケアについて、ブリーダーが解説します',
 
     // Guide Pages
     // Guide Common
@@ -295,6 +301,7 @@ const translations = {
     'nav.reviews': 'Customer Reviews',
     'nav.naming': 'Kitten Naming Tool',
     'nav.guide': 'Adoption Guide',
+    'nav.blog': 'Knowledge Base',
     'nav.allKittens': 'All Kittens',
     'nav.allParents': 'All Parent Cats',
     'parents.moreLink': 'View All Parent Cats →',
@@ -430,6 +437,11 @@ const translations = {
     'common.backHome': 'Back to Home',
     'common.viewKittens': 'View Kittens',
     'common.bookVisit': 'Book a Visit',
+
+    // Blog (Knowledge Base)
+    'blog.tag': 'Knowledge Base',
+    'blog.title': 'Knowledge Base',
+    'blog.subtitle': 'Expert tips on cat health, nutrition, and care from our breeder',
 
     // Guide Pages
     // Guide Common
@@ -570,6 +582,7 @@ const translations = {
     'nav.reviews': '客户评价',
     'nav.naming': '幼猫起名工具',
     'nav.guide': '接猫指南',
+    'nav.blog': '知识库',
     'nav.allKittens': '幼猫一览（全部）',
     'nav.allParents': '种猫介绍（全部）',
     'parents.moreLink': '查看所有种猫 →',
@@ -705,6 +718,11 @@ const translations = {
     'common.backHome': '返回首页',
     'common.viewKittens': '查看幼猫',
     'common.bookVisit': '预约参观',
+
+    // Blog (Knowledge Base)
+    'blog.tag': 'Knowledge Base',
+    'blog.title': '知识库',
+    'blog.subtitle': '繁殖人为您讲解猫咪健康、营养与护理知识',
 
     // Guide Pages
     // Guide Common
@@ -886,6 +904,8 @@ function setLanguage(lang) {
   try {
     localStorage.setItem('fuluckpet-lang', lang);
   } catch (e) {}
+
+  window.dispatchEvent(new CustomEvent('langChanged', { detail: { lang: lang } }));
 }
 
 /**

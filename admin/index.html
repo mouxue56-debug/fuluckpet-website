@@ -239,6 +239,8 @@
         <div class="nav-section">
           <div class="nav-section-title"><span data-adm-ja="コンテンツ" data-adm-zh="内容">コンテンツ</span></div>
           <div class="nav-item" data-page="reviews"><span class="icon">⭐</span> <span data-adm-ja="お客様の声" data-adm-zh="客户评价">お客様の声</span></div>
+          <div class="nav-item" data-page="faq"><span class="icon">❓</span> <span data-adm-ja="FAQ管理" data-adm-zh="FAQ管理">FAQ管理</span></div>
+          <div class="nav-item" data-page="articles"><span class="icon">📝</span> <span data-adm-ja="知識ライブラリ" data-adm-zh="知识库">知識ライブラリ</span></div>
           <div class="nav-item" data-page="images"><span class="icon">🖼️</span> <span data-adm-ja="画像管理" data-adm-zh="图片管理">画像管理</span></div>
           <div class="nav-item" data-page="drive"><span class="icon">☁️</span> <span data-adm-ja="Drive写真" data-adm-zh="Drive照片">Drive写真</span></div>
           <div class="nav-item" data-page="export"><span class="icon">📤</span> <span data-adm-ja="HTML出力" data-adm-zh="HTML导出">HTML出力</span></div>
@@ -373,6 +375,55 @@
                   <th><span data-adm-ja="操作" data-adm-zh="操作">操作</span></th>
                 </tr></thead>
                 <tbody id="reviewsTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ====== FAQ ====== -->
+        <div class="panel-page" id="page-faq">
+          <div class="data-table">
+            <div class="table-header">
+              <h3 class="table-title"><span data-adm-ja="FAQ一覧" data-adm-zh="FAQ列表">FAQ一覧</span></h3>
+              <div class="table-actions">
+                <button class="top-btn btn-secondary" onclick="seedDefaultFaq()" style="font-size:12px;"><span data-adm-ja="デフォルト読込" data-adm-zh="加载默认">デフォルト読込</span></button>
+                <button class="top-btn btn-primary" onclick="openFaqForm()" style="font-size:12px;">＋ <span data-adm-ja="FAQ追加" data-adm-zh="添加FAQ">FAQ追加</span></button>
+              </div>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead><tr>
+                  <th style="width:60px;"><span data-adm-ja="順序" data-adm-zh="顺序">順序</span></th>
+                  <th><span data-adm-ja="質問" data-adm-zh="问题">質問</span></th>
+                  <th><span data-adm-ja="カテゴリ" data-adm-zh="分类">カテゴリ</span></th>
+                  <th style="width:60px;"><span data-adm-ja="公開" data-adm-zh="公开">公開</span></th>
+                  <th><span data-adm-ja="操作" data-adm-zh="操作">操作</span></th>
+                </tr></thead>
+                <tbody id="faqTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ====== ARTICLES ====== -->
+        <div class="panel-page" id="page-articles">
+          <div class="data-table">
+            <div class="table-header">
+              <h3 class="table-title"><span data-adm-ja="記事一覧" data-adm-zh="文章列表">記事一覧</span></h3>
+              <div class="table-actions">
+                <button class="top-btn btn-primary" onclick="openArticleForm()" style="font-size:12px;">＋ <span data-adm-ja="記事追加" data-adm-zh="添加文章">記事追加</span></button>
+              </div>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead><tr>
+                  <th style="width:60px;"><span data-adm-ja="画像" data-adm-zh="图片">画像</span></th>
+                  <th><span data-adm-ja="タイトル" data-adm-zh="标题">タイトル</span></th>
+                  <th><span data-adm-ja="カテゴリ" data-adm-zh="分类">カテゴリ</span></th>
+                  <th style="width:60px;"><span data-adm-ja="公開" data-adm-zh="公开">公開</span></th>
+                  <th><span data-adm-ja="操作" data-adm-zh="操作">操作</span></th>
+                </tr></thead>
+                <tbody id="articlesTableBody"></tbody>
               </table>
             </div>
           </div>
@@ -962,1406 +1013,157 @@
     </div>
   </div>
 
+  <!-- FAQ Form Modal -->
+  <div class="modal-overlay" id="faqFormModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="faqFormTitle"><span data-adm-ja="FAQ追加" data-adm-zh="添加FAQ">FAQ追加</span></h2>
+        <button class="modal-close" onclick="closeModal('faqFormModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="faqEditId">
+        <div class="form-group">
+          <label class="form-label"><span data-adm-ja="質問（日本語）" data-adm-zh="问题（日语）">質問（日本語）</span> *</label>
+          <input type="text" id="faq_q_ja" class="form-input" placeholder="猫アレルギーですが...">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label"><span data-adm-ja="質問（English）" data-adm-zh="问题（English）">質問（English）</span></label>
+            <input type="text" id="faq_q_en" class="form-input" placeholder="I have cat allergies...">
+          </div>
+          <div class="form-group">
+            <label class="form-label"><span data-adm-ja="質問（中文）" data-adm-zh="问题（中文）">質問（中文）</span></label>
+            <input type="text" id="faq_q_zh" class="form-input" placeholder="我有猫过敏...">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><span data-adm-ja="回答（日本語）" data-adm-zh="回答（日语）">回答（日本語）</span> *</label>
+          <textarea id="faq_a_ja" class="form-textarea" rows="3"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label"><span data-adm-ja="回答（English）" data-adm-zh="回答（English）">回答（English）</span></label>
+            <textarea id="faq_a_en" class="form-textarea" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><span data-adm-ja="回答（中文）" data-adm-zh="回答（中文）">回答（中文）</span></label>
+            <textarea id="faq_a_zh" class="form-textarea" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="form-row-3">
+          <div class="form-group">
+            <label class="form-label"><span data-adm-ja="カテゴリ" data-adm-zh="分类">カテゴリ</span></label>
+            <select id="faq_category" class="form-select">
+              <option value="general">一般 / General</option>
+              <option value="purchase">購入 / Purchase</option>
+              <option value="care">飼育 / Care</option>
+              <option value="health">健康 / Health</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><span data-adm-ja="表示順序" data-adm-zh="显示顺序">表示順序</span></label>
+            <input type="number" id="faq_order" class="form-input" value="1" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label"><span data-adm-ja="公開" data-adm-zh="公开">公開</span></label>
+            <select id="faq_published" class="form-select">
+              <option value="true">公開 / Published</option>
+              <option value="false">下書き / Draft</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal('faqFormModal')"><span data-adm-ja="キャンセル" data-adm-zh="取消">キャンセル</span></button>
+        <button class="btn-save" onclick="saveFaq()"><span data-adm-ja="保存" data-adm-zh="保存">保存</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Article Form Modal -->
+  <div class="modal-overlay" id="articleFormModal">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h2 id="articleFormTitle"><span data-adm-ja="記事追加" data-adm-zh="添加文章">記事追加</span></h2>
+        <button class="modal-close" onclick="closeModal('articleFormModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="articleEditId">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Slug *</label>
+            <input type="text" id="art_slug" class="form-input" placeholder="cat-health-tips">
+          </div>
+          <div class="form-group">
+            <label class="form-label"><span data-adm-ja="カテゴリ" data-adm-zh="分类">カテゴリ</span></label>
+            <select id="art_category" class="form-select">
+              <option value="health">健康管理</option>
+              <option value="nutrition">飲食栄養</option>
+              <option value="grooming">日常ケア</option>
+              <option value="behavior">行動訓練</option>
+              <option value="breed">猫種知識</option>
+              <option value="kitten">子猫育て</option>
+              <option value="senior">シニア猫</option>
+              <option value="lifestyle">猫ライフ</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><span data-adm-ja="タイトル（日本語）" data-adm-zh="标题（日语）">タイトル（日本語）</span> *</label>
+          <input type="text" id="art_title_ja" class="form-input">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label"><span data-adm-ja="タイトル（English）" data-adm-zh="标题（English）">タイトル（English）</span></label>
+            <input type="text" id="art_title_en" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label"><span data-adm-ja="タイトル（中文）" data-adm-zh="标题（中文）">タイトル（中文）</span></label>
+            <input type="text" id="art_title_zh" class="form-input">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><span data-adm-ja="概要（日本語）" data-adm-zh="摘要（日语）">概要（日本語）</span></label>
+          <textarea id="art_excerpt_ja" class="form-textarea" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><span data-adm-ja="本文（日本語・HTML可）" data-adm-zh="正文（日语・可用HTML）">本文（日本語・HTML可）</span> *</label>
+          <textarea id="art_content_ja" class="form-textarea" rows="8"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label"><span data-adm-ja="カバー画像URL" data-adm-zh="封面图URL">カバー画像URL</span></label>
+            <input type="text" id="art_cover" class="form-input" placeholder="https://...">
+          </div>
+          <div class="form-group">
+            <label class="form-label"><span data-adm-ja="公開設定" data-adm-zh="发布设置">公開設定</span></label>
+            <select id="art_published" class="form-select">
+              <option value="true">公開 / Published</option>
+              <option value="false">下書き / Draft</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal('articleFormModal')"><span data-adm-ja="キャンセル" data-adm-zh="取消">キャンセル</span></button>
+        <button class="btn-save" onclick="saveArticle()"><span data-adm-ja="保存" data-adm-zh="保存">保存</span></button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
 <script src="js/api-client.js"></script>
 <script src="js/migrate.js"></script>
-<script>
-// ============================================================
-// INITIAL DATA - Pre-populated from actual website
-// photos: array of image URLs, coverIndex: which photo is the cover
-// ============================================================
-var DEFAULT_KITTENS = [
-  { id:'k1', breederId:'2602-00625', breed:'サイベリアン', gender:'♂', color:'ブルーリンクスポイント ネヴァマスカレード', birthday:'2025-12', price:200000, status:'available', papa:'しろくん', mama:'大蓝ちゃん', isNew:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724780473-b1cd27ac.jpg'], coverIndex:0, note:'', group:'c995680' },
-  { id:'k2', breederId:'2601-01855', breed:'サイベリアン', gender:'♂', color:'シルバータビー トリプルコート', birthday:'2025-12', price:250000, status:'available', papa:'しろくん', mama:'小郭ちゃん', isNew:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724768508-19a4ab1e.jpg'], coverIndex:0, note:'', group:'c995680' },
-  { id:'k3', breederId:'2601-00909', breed:'サイベリアン', gender:'♀', color:'ブルーリンクスポイント ネヴァマスカレード', birthday:'2025-12', price:280000, status:'available', papa:'しろくん', mama:'大蓝ちゃん', isNew:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724781684-5154c156.jpg'], coverIndex:0, note:'', group:'c995680' },
-  { id:'k4', breederId:'2509-01171', breed:'サイベリアン', gender:'♂', color:'レッドリンクスポイント', birthday:'2025-05', price:250000, status:'available', papa:'しろくん', mama:'咬咬ちゃん', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724765546-deb1b3e1.jpg'], coverIndex:0, note:'', group:'c995680' },
-  { id:'k5', breederId:'2511-02287', breed:'サイベリアン', gender:'♂', color:'ブラウンタビー トリプルコート', birthday:'2025-10', price:220000, status:'available', papa:'しろくん', mama:'圆圆ちゃん', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724766657-4486a4c8.jpg'], coverIndex:0, note:'', group:'c995680' },
-  { id:'k6', breederId:'2509-02086', breed:'サイベリアン', gender:'♀', color:'シルバータビー', birthday:'2025-06', price:190000, status:'available', papa:'しろくん', mama:'dodoちゃん', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724774443-2110d506.jpg'], coverIndex:0, note:'', group:'c995680' },
-  { id:'k7', breederId:'2511-01887', breed:'サイベリアン', gender:'♂', color:'ホワイト トリプルコート', birthday:'2025-09', price:250000, status:'available', papa:'しろくん', mama:'小蓝ちゃん', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724767099-daf4c384.jpg'], coverIndex:0, note:'', group:'c995680' },
-  { id:'k8', breederId:'2601-00912', breed:'サイベリアン', gender:'♀', color:'ブルーリンクスポイント ネヴァマスカレード', birthday:'2025-12', price:200000, status:'available', papa:'しろくん', mama:'大蓝ちゃん', isNew:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724769894-834a62aa.jpg'], coverIndex:0, note:'', group:'c995680' },
-  { id:'k9', breederId:'2508-00310', breed:'サイベリアン', gender:'♂', color:'シルバーシェーデッド', birthday:'2025-06', price:220000, status:'available', papa:'しろくん', mama:'Paopaoちゃん', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724782119-53354ad6.jpg'], coverIndex:0, note:'去勢済み', group:'c995680' },
-  { id:'k10', breederId:'2512-01681', breed:'サイベリアン', gender:'♂', color:'ブルーパッチドタビー＆ホワイト', birthday:'2025-10', price:220000, status:'available', papa:'', mama:'', isNew:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724770339-8e9c46b2.jpg'], coverIndex:0, note:'', group:'c995680' },
-  { id:'k11', breederId:'2510-01286', breed:'サイベリアン', gender:'♀', color:'ブラウンタビー トリプルコート', birthday:'2025-07', price:200000, status:'available', papa:'', mama:'', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724777494-1f944081.jpg'], coverIndex:0, note:'', group:'c995680' },
-  { id:'k12', breederId:'2511-00142', breed:'サイベリアン', gender:'♂', color:'ホワイト', birthday:'2025-07', price:200000, status:'available', papa:'', mama:'', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724767492-9b7274a7.jpg'], coverIndex:0, note:'', group:'c995680' },
-  { id:'k13', breederId:'2511-00143', breed:'サイベリアン', gender:'♀', color:'ホワイト', birthday:'2025-07', price:180000, status:'available', papa:'', mama:'', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724762077-cb44f2ab.jpg'], coverIndex:0, note:'', group:'c995680' },
-  { id:'k14', breederId:'2508-02468', breed:'サイベリアン', gender:'♂', color:'シルバー＆ホワイト トリプルコート', birthday:'2025-06', price:190000, status:'available', papa:'', mama:'', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724778894-fa2e1ab5.jpg'], coverIndex:0, note:'去勢済み', group:'c995680' },
-  { id:'k15', breederId:'2509-01027', breed:'サイベリアン', gender:'♂', color:'レッドリンクスポイント トリプルコート', birthday:'2025-05', price:220000, status:'available', papa:'', mama:'', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724777102-302d0e18.jpg'], coverIndex:0, note:'去勢済み', group:'c995680' },
-  { id:'k16', breederId:'2508-03366', breed:'ブリティッシュショートヘア', gender:'♀', color:'ゴールデンシェーデッド', birthday:'2025-05', price:280000, status:'available', papa:'', mama:'', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724790937-cf36f2d3.jpg'], coverIndex:0, note:'', group:'d696506' },
-  { id:'k17', breederId:'2508-03312', breed:'ブリティッシュショートヘア', gender:'♀', color:'チンチラゴールデン ロングヘア', birthday:'2025-05', price:280000, status:'available', papa:'', mama:'', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724794331-f982177a.jpg'], coverIndex:0, note:'', group:'d696506' },
-  { id:'k18', breederId:'2508-03355', breed:'ブリティッシュショートヘア', gender:'♂', color:'ゴールデンシェーデッド', birthday:'2025-05', price:240000, status:'available', papa:'', mama:'', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724797827-261810d4.jpg'], coverIndex:0, note:'', group:'d696506' },
-  { id:'k19', breederId:'2509-00562', breed:'ブリティッシュショートヘア', gender:'♀', color:'ゴールデンシェーデッド＆ホワイト', birthday:'2025-05', price:160000, status:'available', papa:'', mama:'', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724797066-d278551c.jpg'], coverIndex:0, note:'', group:'d696506' },
-  { id:'k20', breederId:'2512-00115', breed:'サイベリアン×ブリティッシュ', gender:'♀', color:'ブラウンタビー＆ホワイト', birthday:'2025-09', price:140000, status:'available', papa:'', mama:'', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724793095-84d370a3.jpg'], coverIndex:0, note:'', group:'d696506' },
-  { id:'k21', breederId:'2509-02907', breed:'ブリティッシュショートヘア', gender:'♀', color:'ブラウンタビー＆ホワイト', birthday:'2025-08', price:160000, status:'available', papa:'', mama:'', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724791404-3dc807cf.jpg'], coverIndex:0, note:'', group:'d696506' },
-  { id:'k22', breederId:'2510-01844', breed:'ブリティッシュショートヘア', gender:'♂', color:'ホワイト', birthday:'2025-08', price:160000, status:'available', papa:'', mama:'', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724793677-ae246e25.jpg'], coverIndex:0, note:'', group:'d696506' },
-  { id:'k23', breederId:'2408-03054', breed:'ブリティッシュロングヘア', gender:'♂', color:'チョコレートゴールデン ロングヘア', birthday:'2024-02', price:290000, status:'reserved', papa:'', mama:'', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724792086-05d4652e.jpg'], coverIndex:0, note:'', group:'d696506' },
-  { id:'k24', breederId:'2512-00112', breed:'サイベリアン×ブリティッシュ', gender:'♂', color:'ホワイト', birthday:'2025-09', price:150000, status:'reserved', papa:'', mama:'', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724795680-33003d85.jpg'], coverIndex:0, note:'', group:'d696506' },
-];
-
-var DEFAULT_PARENTS = [
-  { id:'p1', name:'しろくん', breed:'サイベリアン', gender:'♂', role:'パパ猫', age:'3歳', color:'ホワイト', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724757360-8754519e.jpg'], coverIndex:0, group:'c995680' },
-  { id:'p2', name:'大蓝ちゃん', breed:'サイベリアン', gender:'♀', role:'ママ猫', age:'1歳', color:'ホワイト', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724758769-1575b2eb.jpg'], coverIndex:0, group:'c995680' },
-  { id:'p3', name:'Paopaoちゃん', breed:'サイベリアン', gender:'♀', role:'ママ猫', age:'2歳', color:'シルバー', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724758030-703ef2d7.jpg'], coverIndex:0, group:'c995680' },
-  { id:'p4', name:'小郭ちゃん', breed:'サイベリアン', gender:'♀', role:'ママ猫', age:'2歳', color:'ダイリュートキャリコ', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724756212-b0c6526f.jpg'], coverIndex:0, group:'c995680' },
-  { id:'p5', name:'咬咬ちゃん', breed:'サイベリアン', gender:'♀', role:'ママ猫', age:'2歳', color:'シルバータビー＆ホワイト', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724756790-874c52a3.jpg'], coverIndex:0, group:'c995680' },
-  { id:'p6', name:'dodoちゃん', breed:'サイベリアン', gender:'♀', role:'ママ猫', age:'2歳', color:'シルバー＆ホワイト', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724759631-0726a94c.jpg'], coverIndex:0, group:'c995680' },
-  { id:'p7', name:'小蓝ちゃん', breed:'サイベリアン', gender:'♀', role:'ママ猫', age:'2歳', color:'ホワイト', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724759229-8ff4207f.jpg'], coverIndex:0, group:'c995680' },
-  { id:'p8', name:'圆圆ちゃん', breed:'サイベリアン', gender:'♀', role:'ママ猫', age:'3歳', color:'ホワイト', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724755582-e0f3687b.jpg'], coverIndex:0, group:'c995680' },
-  { id:'p9', name:'李白くん', breed:'ブリティッシュロングヘア', gender:'♂', role:'パパ猫', age:'2歳', color:'ゴールデンポイント', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724787836-be43939e.jpg'], coverIndex:0, group:'d696506' },
-  { id:'p10', name:'Chouちゃん', breed:'ブリティッシュショートヘア', gender:'♀', role:'ママ猫', age:'2歳', color:'チョコレートゴールデン', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724787346-3b1d68c8.jpg'], coverIndex:0, group:'d696506' },
-  { id:'p11', name:'チョコちゃん', breed:'ラグドール', gender:'♀', role:'ママ猫', age:'2歳', color:'シールポイントバイカラー', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724786768-6174bc94.jpg'], coverIndex:0, group:'d696506' },
-  { id:'p12', name:'Jiaくん', breed:'ラグドール', gender:'♂', role:'パパ猫', age:'3歳', color:'シールリンクスポイント', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724786019-a821aa18.jpg'], coverIndex:0, group:'d696506' },
-  { id:'p13', name:'王子くん', breed:'ブリティッシュロングヘア', gender:'♂', role:'パパ猫', age:'3歳', color:'チョコレートゴールデン', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724789070-d8fd874f.jpg'], coverIndex:0, group:'d696506' },
-  { id:'p14', name:'パンちゃん', breed:'ブリティッシュショートヘア', gender:'♀', role:'ママ猫', age:'4歳', color:'チョコレートゴールデン', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724784960-2c3e8238.jpg'], coverIndex:0, group:'d696506' },
-  { id:'p15', name:'壮くん', breed:'ブリティッシュロングヘア', gender:'♂', role:'パパ猫', age:'4歳', color:'チョコレートゴールデン', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724784550-0fe3809c.jpg'], coverIndex:0, group:'d696506' },
-  { id:'p16', name:'Shoちゃん', breed:'ブリティッシュショートヘア', gender:'♀', role:'ママ猫', age:'4歳', color:'チョコレートゴールデン', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724788261-ecb82654.jpg'], coverIndex:0, group:'d696506' },
-];
-
-var DEFAULT_REVIEWS = [
-  { id:'r1', author:'L.A様', region:'大阪府', date:'2026年1月', body:'質問にも丁寧に答えてくださり、引き渡し前には爪切りやシャンプーまで準備してくださいました。とても安心してお迎えすることができました。アフターフォローも手厚く、感謝しています。' },
-  { id:'r2', author:'Kei様', region:'滋賀県', date:'2026年1月', body:'説明がとても分かりやすく、素晴らしいブリーダーさんです。可愛い子猫をお迎えでき、食事やケアについても丁寧にアドバイスいただきました。これからの成長が楽しみです。' },
-  { id:'r3', author:'H.U様', region:'大阪府', date:'2026年1月', body:'初めて猫を飼いましたが、とても丁寧にサポートしていただけました。子猫はすぐにご飯を食べてくれて、人懐こくてとても可愛いです。LINEでの相談にも迅速に対応してくださり助かっています。' },
-  { id:'r4', author:'D.S様', region:'和歌山県', date:'2026年1月', body:'予定変更にも柔軟に対応してくださり、子猫の成長動画も送ってくださいました。ブリーダーさんの猫への愛情がとても伝わります。お迎えした子猫はとても元気で幸せです。' },
-  { id:'r5', author:'ドラム様', region:'大阪府', date:'2025年12月', body:'動物への愛情が本物だと感じられるブリーダーさんです。お迎え初日からすぐに馴染んでくれました。環境が素晴らしく、子猫の社会化もしっかりされています。' },
-  { id:'r6', author:'T様', region:'東京都', date:'2025年12月', body:'遠方からでしたが、LINEビデオ通話で事前に子猫を見せていただきました。実物はさらに可愛く、性格もとても穏やかで大満足です。健康診断書や遺伝子検査結果もしっかりいただけました。' },
-];
-
-// ============================================================
-// DATA MANAGEMENT
-// ============================================================
-var STORAGE_KEY = 'fuluck-admin-data';
-var PASS_KEY = 'fuluck-admin-pass';
-var LOG_KEY = 'fuluck-admin-log';
-var IMAGE_KEY = 'fuluck-admin-images';
-var DEFAULT_PASS = 'fuluck2025';
-var DRIVE_API = 'https://fuluck-api.mouxue56.workers.dev';
-
-// Pagination
-var kittenPage = 1;
-var parentPage = 1;
-var PAGE_SIZE = 10;
-
-function getCoverPhoto(item) {
-  if (!item.photos || item.photos.length === 0) return '';
-  var idx = item.coverIndex || 0;
-  return item.photos[Math.min(idx, item.photos.length - 1)] || '';
-}
-
-function migrateData(d) {
-  if (d.kittens) d.kittens.forEach(function(k) {
-    if (k.coverPhoto !== undefined && k.photos === undefined) {
-      k.photos = k.coverPhoto ? [k.coverPhoto] : [];
-      k.coverIndex = 0;
-      delete k.coverPhoto;
-    }
-    if (!k.photos) { k.photos = []; k.coverIndex = 0; }
-  });
-  if (d.parents) d.parents.forEach(function(p) {
-    if (p.coverPhoto !== undefined && p.photos === undefined) {
-      p.photos = p.coverPhoto ? [p.coverPhoto] : [];
-      p.coverIndex = 0;
-      delete p.coverPhoto;
-    }
-    if (!p.photos) { p.photos = []; p.coverIndex = 0; }
-  });
-  return d;
-}
-
-function loadData() {
-  try {
-    var raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch(e) {}
-  return null;
-}
-
-function saveData(d) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
-  // Sync to KV (non-blocking)
-  if (typeof FuluckAPI !== 'undefined') {
-    ['kittens', 'parents', 'reviews'].forEach(function(type) {
-      if (d[type]) {
-        FuluckAPI.bulkImport(type, d[type]).catch(function() {});
-      }
-    });
-  }
-}
-
-function getData() {
-  var d = loadData();
-  if (!d) {
-    d = { kittens: JSON.parse(JSON.stringify(DEFAULT_KITTENS)), parents: JSON.parse(JSON.stringify(DEFAULT_PARENTS)), reviews: JSON.parse(JSON.stringify(DEFAULT_REVIEWS)) };
-  }
-  d = migrateData(d);
-  saveData(d);
-  return d;
-}
-
-function addLog(msg) {
-  try {
-    var logs = JSON.parse(localStorage.getItem(LOG_KEY) || '[]');
-    logs.unshift({ time: new Date().toLocaleString('ja-JP'), msg: msg });
-    if (logs.length > 30) logs.length = 30;
-    localStorage.setItem(LOG_KEY, JSON.stringify(logs));
-  } catch(e) {}
-}
-
-var data = getData();
-
-// ============================================================
-// LOGIN
-// ============================================================
-function getPass() { return localStorage.getItem(PASS_KEY) || DEFAULT_PASS; }
-
-document.getElementById('loginBtn').addEventListener('click', doLogin);
-document.getElementById('loginPassword').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
-
-function doLogin() {
-  var pwd = document.getElementById('loginPassword').value;
-  var btn = document.getElementById('loginBtn');
-  btn.disabled = true;
-  btn.textContent = '...';
-
-  // Try Worker API auth first, then fallback to local
-  fetch(DRIVE_API + '/api/auth', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ password: pwd })
-  })
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-      if (d.success) {
-        loginSuccess(pwd);
-      } else if (pwd === getPass()) {
-        // Fallback: local password match (for non-Drive features)
-        loginSuccess(pwd);
-      } else {
-        loginFail();
-      }
-    })
-    .catch(function() {
-      // API unreachable — fallback to local auth
-      if (pwd === getPass()) {
-        loginSuccess(pwd);
-      } else {
-        loginFail();
-      }
-    })
-    .finally(function() {
-      btn.disabled = false;
-      btn.textContent = admLang === 'zh' ? '登录' : 'ログイン';
-    });
-}
-
-function loginSuccess(pwd) {
-  sessionStorage.setItem('fuluck-admin-auth', '1');
-  sessionStorage.setItem('fuluck-admin-pwd', pwd);
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('adminLayout').classList.add('active');
-  renderAll();
-  syncFromAPI();
-}
-
-function loginFail() {
-  document.getElementById('loginError').style.display = 'block';
-  document.getElementById('loginPassword').style.borderColor = '#FC8181';
-}
-
-// Get active session password for API calls
-function getSessionPass() {
-  return sessionStorage.getItem('fuluck-admin-pwd') || getPass();
-}
-
-if (sessionStorage.getItem('fuluck-admin-auth') === '1') {
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('adminLayout').classList.add('active');
-  renderAll();
-  syncFromAPI();
-}
-
-document.getElementById('logoutBtn').addEventListener('click', function() {
-  sessionStorage.removeItem('fuluck-admin-auth');
-  sessionStorage.removeItem('fuluck-admin-pwd');
-  location.reload();
-});
-
-// ============================================================
-// NAVIGATION
-// ============================================================
-var pageTitles = {
-  dashboard:'ダッシュボード', kittens:'子猫管理', parents:'親猫管理',
-  reviews:'お客様の声', images:'画像管理', export:'HTML出力', data:'データ管理',
-  guide:'操作ガイド', settings:'パスワード変更'
-};
-
-document.querySelectorAll('.nav-item').forEach(function(item) {
-  item.addEventListener('click', function() {
-    var page = item.dataset.page;
-    document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
-    item.classList.add('active');
-    document.querySelectorAll('.panel-page').forEach(function(p) { p.classList.remove('active'); });
-    document.getElementById('page-' + page).classList.add('active');
-    document.getElementById('pageTitle').textContent = (admLang === 'zh' ? pageTitlesZh[page] : pageTitles[page]) || '';
-    document.getElementById('addNewBtn').style.display = ['kittens','parents','reviews'].indexOf(page) >= 0 ? 'inline-flex' : 'none';
-  });
-});
-
-document.getElementById('addNewBtn').addEventListener('click', function() {
-  var active = document.querySelector('.nav-item.active');
-  var page = active ? active.dataset.page : '';
-  if (page === 'kittens') openKittenForm();
-  else if (page === 'parents') openParentForm();
-  else if (page === 'reviews') openReviewForm();
-});
-
-// ============================================================
-// MODAL & TOAST
-// ============================================================
-function openModal(id) { document.getElementById(id).classList.add('active'); }
-function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-
-function showToast(msg, type) {
-  var t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast ' + (type||'') + ' show';
-  setTimeout(function() { t.classList.remove('show'); }, 3000);
-}
-
-// ============================================================
-// PAGINATION HELPER
-// ============================================================
-function renderPagination(containerId, currentPage, totalPages, onPageChange) {
-  var container = document.getElementById(containerId);
-  if (!container) return;
-  if (totalPages <= 1) { container.innerHTML = ''; return; }
-  container.innerHTML =
-    '<button class="page-prev" ' + (currentPage <= 1 ? 'disabled' : '') + '>« ' + t('前へ','上一页') + '</button>' +
-    '<span class="page-info">' + currentPage + ' / ' + totalPages + ' ' + t('ページ','页') + '</span>' +
-    '<button class="page-next" ' + (currentPage >= totalPages ? 'disabled' : '') + '>' + t('次へ','下一页') + ' »</button>';
-  var prev = container.querySelector('.page-prev');
-  var next = container.querySelector('.page-next');
-  if (prev) prev.addEventListener('click', function() { if (currentPage > 1) onPageChange(currentPage - 1); });
-  if (next) next.addEventListener('click', function() { if (currentPage < totalPages) onPageChange(currentPage + 1); });
-}
-
-// ============================================================
-// RENDER ALL
-// ============================================================
-function renderAll() {
-  data = getData();
-  renderDashboard();
-  renderKittens();
-  renderParents();
-  renderReviews();
-  loadImageConfig();
-  applyAdminLang();
-}
-
-// Try loading data from KV API (async, updates UI if data found)
-function syncFromAPI() {
-  if (typeof FuluckAPI === 'undefined') return;
-  Promise.all([
-    FuluckAPI.get('/api/kittens').catch(function() { return null; }),
-    FuluckAPI.get('/api/parents').catch(function() { return null; }),
-    FuluckAPI.get('/api/reviews').catch(function() { return null; })
-  ]).then(function(results) {
-    var kv_kittens = results[0];
-    var kv_parents = results[1];
-    var kv_reviews = results[2];
-    var changed = false;
-    if (kv_kittens && kv_kittens.length > 0) { data.kittens = kv_kittens; changed = true; }
-    if (kv_parents && kv_parents.length > 0) { data.parents = kv_parents; changed = true; }
-    if (kv_reviews && kv_reviews.length > 0) { data.reviews = kv_reviews; changed = true; }
-    if (changed) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      renderDashboard();
-      renderKittens();
-      renderParents();
-      renderReviews();
-    }
-  });
-}
-
-// ============================================================
-// DASHBOARD
-// ============================================================
-function renderDashboard() {
-  var k = data.kittens;
-  var avail = k.filter(function(x) { return x.status === 'available'; }).length;
-  var reserved = k.filter(function(x) { return x.status === 'reserved'; }).length;
-  var sold = k.filter(function(x) { return x.status === 'sold'; }).length;
-  document.getElementById('statKittens').textContent = k.length;
-  document.getElementById('statParents').textContent = data.parents.length;
-  document.getElementById('statReviews').textContent = data.reviews.length;
-  document.getElementById('statAvailable').textContent = avail;
-
-  document.getElementById('dashboardSummary').innerHTML =
-    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">' +
-    '<div style="text-align:center;padding:20px;background:#C6F6D5;border-radius:8px;"><div style="font-size:24px;font-weight:700;color:#22543D;">' + avail + '</div><div style="font-size:12px;color:#22543D;">' + t('販売中','在售') + '</div></div>' +
-    '<div style="text-align:center;padding:20px;background:#FEFCBF;border-radius:8px;"><div style="font-size:24px;font-weight:700;color:#744210;">' + reserved + '</div><div style="font-size:12px;color:#744210;">' + t('商談中','洽谈中') + '</div></div>' +
-    '<div style="text-align:center;padding:20px;background:#FED7E2;border-radius:8px;"><div style="font-size:24px;font-weight:700;color:#702459;">' + sold + '</div><div style="font-size:12px;color:#702459;">' + t('ご家族決定','已找到家庭') + '</div></div>' +
-    '</div>';
-
-  try {
-    var logs = JSON.parse(localStorage.getItem(LOG_KEY) || '[]');
-    document.getElementById('changeLog').innerHTML = logs.length ? logs.slice(0, 10).map(function(l) {
-      return '<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--text-light);margin-right:12px;">' + l.time + '</span>' + l.msg + '</div>';
-    }).join('') : '<p style="color:var(--text-light);font-size:13px">' + t('まだ変更履歴はありません','暂无修改记录') + '</p>';
-  } catch(e) {}
-}
-
-// ============================================================
-// KITTENS (with pagination)
-// ============================================================
-function renderKittens(filter) {
-  filter = filter || document.getElementById('kittenFilterStatus').value;
-  var items = filter === 'all' ? data.kittens : data.kittens.filter(function(k) { return k.status === filter; });
-  var totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
-  if (kittenPage > totalPages) kittenPage = totalPages;
-  var start = (kittenPage - 1) * PAGE_SIZE;
-  var pageItems = items.slice(start, start + PAGE_SIZE);
-
-  var tbody = document.getElementById('kittensTableBody');
-  tbody.innerHTML = pageItems.map(function(k) {
-    var cover = getCoverPhoto(k);
-    var photoCount = (k.photos || []).length;
-    var statusClass = k.status === 'available' ? 'badge-available' : k.status === 'reserved' ? 'badge-reserved' : 'badge-sold';
-    var statusText = k.status === 'available' ? t('販売中','在售') : k.status === 'reserved' ? t('商談中','洽谈中') : t('ご家族決定','已找到家庭');
-    var genderDisplay = k.gender === '♂' ? t('♂ 男の子','♂ 公') : t('♀ 女の子','♀ 母');
-    var birthdayDisplay = k.birthday ? k.birthday.replace('-', '年') + '月' : '--';
-    return '<tr>' +
-      '<td class="thumb-cell">' + (cover ? '<img src="' + cover + '" class="thumb-img" onclick="openPhotoModal(\'kitten\',\'' + k.id + '\')" title="クリックで写真管理">' : '<div class="thumb-placeholder" onclick="openPhotoModal(\'kitten\',\'' + k.id + '\')" style="cursor:pointer;" title="クリックで写真追加">🐱</div>') + '</td>' +
-      '<td>' + (k.breederId || '--') + '</td>' +
-      '<td>' + k.breed + '</td>' +
-      '<td>' + genderDisplay + '</td>' +
-      '<td style="max-width:150px;">' + k.color + '</td>' +
-      '<td>' + birthdayDisplay + '</td>' +
-      '<td>¥' + (k.price||0).toLocaleString() + '</td>' +
-      '<td><span class="status-badge ' + statusClass + '">' + statusText + '</span>' + (k.isNew ? ' <span style="background:var(--mint);color:white;font-size:10px;padding:1px 6px;border-radius:4px;">NEW</span>' : '') + '</td>' +
-      '<td style="font-size:12px;white-space:nowrap;">' + (k.papa||'--') + ' / ' + (k.mama||'--') + '</td>' +
-      '<td><div class="action-btns">' +
-        '<button class="action-btn photo" onclick="openPhotoModal(\'kitten\',\'' + k.id + '\')">' + t('写真','照片') + (photoCount > 0 ? '(' + photoCount + ')' : '') + '</button>' +
-        (k.video ? '<span style="color:#c4302b;font-size:11px;font-weight:600;" title="' + t('YouTube動画あり','有YouTube视频') + '">▶YT</span>' : '') +
-        '<button class="action-btn edit" onclick="editKitten(\'' + k.id + '\')">' + t('編集','编辑') + '</button>' +
-        '<button class="action-btn delete" onclick="deleteKitten(\'' + k.id + '\')">' + t('削除','删除') + '</button>' +
-      '</div></td>' +
-    '</tr>';
-  }).join('');
-
-  renderPagination('kittenPagination', kittenPage, totalPages, function(p) { kittenPage = p; renderKittens(filter); });
-}
-
-document.getElementById('kittenFilterStatus').addEventListener('change', function() { kittenPage = 1; renderKittens(this.value); });
-
-function openKittenForm(kitten) {
-  document.getElementById('kittenEditId').value = kitten ? kitten.id : '';
-  document.getElementById('kittenFormTitle').textContent = kitten ? t('子猫の編集','编辑子猫') : t('子猫の追加','添加子猫');
-  document.getElementById('kf_breederId').value = kitten ? kitten.breederId : '';
-  document.getElementById('kf_breed').value = kitten ? kitten.breed : 'サイベリアン';
-  document.getElementById('kf_gender').value = kitten ? kitten.gender : '♂';
-  document.getElementById('kf_color').value = kitten ? kitten.color : '';
-  document.getElementById('kf_birthday').value = kitten ? kitten.birthday : '';
-  document.getElementById('kf_price').value = kitten ? kitten.price : '';
-  document.getElementById('kf_status').value = kitten ? kitten.status : 'available';
-  document.getElementById('kf_isNew').value = kitten ? String(kitten.isNew) : 'true';
-  document.getElementById('kf_note').value = kitten ? (kitten.note||'') : '';
-  document.getElementById('kf_video').value = kitten ? (kitten.video||'') : '';
-
-  var papas = data.parents.filter(function(p) { return p.gender === '♂'; });
-  var mamas = data.parents.filter(function(p) { return p.gender === '♀'; });
-  document.getElementById('kf_papa').innerHTML = '<option value="">-- 選択 --</option>' + papas.map(function(p) { return '<option value="' + p.name + '"' + (kitten && kitten.papa === p.name ? ' selected' : '') + '>' + p.name + '</option>'; }).join('');
-  document.getElementById('kf_mama').innerHTML = '<option value="">-- 選択 --</option>' + mamas.map(function(p) { return '<option value="' + p.name + '"' + (kitten && kitten.mama === p.name ? ' selected' : '') + '>' + p.name + '</option>'; }).join('');
-
-  openModal('kittenFormModal');
-}
-
-function editKitten(id) {
-  var kitten = data.kittens.find(function(k) { return k.id === id; });
-  if (kitten) openKittenForm(kitten);
-}
-
-function saveKitten() {
-  var editId = document.getElementById('kittenEditId').value;
-  var obj = {
-    breederId: document.getElementById('kf_breederId').value.trim(),
-    breed: document.getElementById('kf_breed').value,
-    gender: document.getElementById('kf_gender').value,
-    color: document.getElementById('kf_color').value.trim(),
-    birthday: document.getElementById('kf_birthday').value,
-    price: parseInt(document.getElementById('kf_price').value) || 0,
-    status: document.getElementById('kf_status').value,
-    isNew: document.getElementById('kf_isNew').value === 'true',
-    papa: document.getElementById('kf_papa').value,
-    mama: document.getElementById('kf_mama').value,
-    note: document.getElementById('kf_note').value.trim(),
-    video: document.getElementById('kf_video').value.trim(),
-  };
-
-  if (!obj.breederId && !obj.color) { showToast(t('ブリーダーIDまたはカラーを入力してください','请输入繁殖者ID或毛色'), 'error'); return; }
-
-  if (editId) {
-    var idx = data.kittens.findIndex(function(k) { return k.id === editId; });
-    if (idx >= 0) { Object.assign(data.kittens[idx], obj); addLog(t('子猫 ' + obj.breederId + ' を編集しました','编辑了子猫 ' + obj.breederId)); }
-  } else {
-    obj.id = 'k' + Date.now();
-    obj.group = '';
-    obj.photos = [];
-    obj.coverIndex = 0;
-    data.kittens.push(obj);
-    addLog(t('子猫 ' + obj.breederId + ' を追加しました','添加了子猫 ' + obj.breederId));
-  }
-  saveData(data);
-  closeModal('kittenFormModal');
-  renderAll();
-  showToast(t('保存しました','已保存'), 'success');
-}
-
-function deleteKitten(id) {
-  var k = data.kittens.find(function(x) { return x.id === id; });
-  if (!k) return;
-  if (!confirm(t('子猫 ' + k.breederId + ' を削除しますか？','确定删除子猫 ' + k.breederId + '？'))) return;
-  data.kittens = data.kittens.filter(function(x) { return x.id !== id; });
-  saveData(data);
-  addLog(t('子猫 ' + k.breederId + ' を削除しました','删除了子猫 ' + k.breederId));
-  renderAll();
-  showToast(t('削除しました','已删除'), 'success');
-}
-
-// ============================================================
-// PARENTS (with pagination)
-// ============================================================
-function renderParents(filter) {
-  filter = filter || document.getElementById('parentFilterBreed').value;
-  var items = data.parents;
-  if (filter === 'siberian') items = items.filter(function(p) { return p.breed === 'サイベリアン'; });
-  else if (filter === 'british') items = items.filter(function(p) { return p.breed.indexOf('ブリティッシュ') >= 0; });
-  else if (filter === 'ragdoll') items = items.filter(function(p) { return p.breed === 'ラグドール'; });
-
-  var totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
-  if (parentPage > totalPages) parentPage = totalPages;
-  var start = (parentPage - 1) * PAGE_SIZE;
-  var pageItems = items.slice(start, start + PAGE_SIZE);
-
-  var tbody = document.getElementById('parentsTableBody');
-  tbody.innerHTML = pageItems.map(function(p) {
-    var cover = getCoverPhoto(p);
-    var photoCount = (p.photos || []).length;
-    var roleClass = p.role === 'パパ猫' ? 'badge-available' : 'badge-reserved';
-    return '<tr>' +
-      '<td class="thumb-cell">' + (cover ? '<img src="' + cover + '" class="thumb-img" onclick="openPhotoModal(\'parent\',\'' + p.id + '\')" title="クリックで写真管理">' : '<div class="thumb-placeholder" onclick="openPhotoModal(\'parent\',\'' + p.id + '\')" style="cursor:pointer;">🐈</div>') + '</td>' +
-      '<td><strong>' + p.name + '</strong></td>' +
-      '<td>' + p.breed + '</td>' +
-      '<td>' + p.gender + '</td>' +
-      '<td>' + p.color + '</td>' +
-      '<td>' + p.age + '</td>' +
-      '<td><span class="status-badge ' + roleClass + '">' + p.role + '</span></td>' +
-      '<td>' + (p.tested ? '<span style="color:var(--success);font-weight:600;">✓ ' + t('検査済','已检测') + '</span>' : '<span style="color:var(--text-light);">' + t('未検査','未检测') + '</span>') + '</td>' +
-      '<td><div class="action-btns">' +
-        '<button class="action-btn photo" onclick="openPhotoModal(\'parent\',\'' + p.id + '\')">' + t('写真','照片') + (photoCount > 0 ? '(' + photoCount + ')' : '') + '</button>' +
-        '<button class="action-btn edit" onclick="editParent(\'' + p.id + '\')">' + t('編集','编辑') + '</button>' +
-        '<button class="action-btn delete" onclick="deleteParent(\'' + p.id + '\')">' + t('削除','删除') + '</button>' +
-      '</div></td>' +
-    '</tr>';
-  }).join('');
-
-  renderPagination('parentPagination', parentPage, totalPages, function(p) { parentPage = p; renderParents(filter); });
-}
-
-document.getElementById('parentFilterBreed').addEventListener('change', function() { parentPage = 1; renderParents(this.value); });
-
-function openParentForm(parent) {
-  document.getElementById('parentEditId').value = parent ? parent.id : '';
-  document.getElementById('parentFormTitle').textContent = parent ? t('親猫の編集','编辑种猫') : t('親猫の追加','添加种猫');
-  document.getElementById('pf_name').value = parent ? parent.name : '';
-  document.getElementById('pf_breed').value = parent ? parent.breed : 'サイベリアン';
-  document.getElementById('pf_gender').value = parent ? parent.gender : '♂';
-  document.getElementById('pf_color').value = parent ? parent.color : '';
-  document.getElementById('pf_age').value = parent ? parent.age : '';
-  document.getElementById('pf_role').value = parent ? parent.role : 'パパ猫';
-  document.getElementById('pf_tested').value = parent ? String(parent.tested) : 'true';
-  document.getElementById('pf_group').value = parent ? parent.group : 'c995680';
-  openModal('parentFormModal');
-}
-
-function editParent(id) {
-  var parent = data.parents.find(function(p) { return p.id === id; });
-  if (parent) openParentForm(parent);
-}
-
-function saveParent() {
-  var editId = document.getElementById('parentEditId').value;
-  var obj = {
-    name: document.getElementById('pf_name').value.trim(),
-    breed: document.getElementById('pf_breed').value,
-    gender: document.getElementById('pf_gender').value,
-    color: document.getElementById('pf_color').value.trim(),
-    age: document.getElementById('pf_age').value.trim(),
-    role: document.getElementById('pf_role').value,
-    tested: document.getElementById('pf_tested').value === 'true',
-    group: document.getElementById('pf_group').value,
-  };
-  if (!obj.name) { showToast(t('名前を入力してください','请输入名字'), 'error'); return; }
-
-  if (editId) {
-    var idx = data.parents.findIndex(function(p) { return p.id === editId; });
-    if (idx >= 0) { Object.assign(data.parents[idx], obj); addLog(t('親猫 ' + obj.name + ' を編集しました','编辑了种猫 ' + obj.name)); }
-  } else {
-    obj.id = 'p' + Date.now();
-    obj.photos = [];
-    obj.coverIndex = 0;
-    data.parents.push(obj);
-    addLog(t('親猫 ' + obj.name + ' を追加しました','添加了种猫 ' + obj.name));
-  }
-  saveData(data);
-  closeModal('parentFormModal');
-  renderAll();
-  showToast(t('保存しました','已保存'), 'success');
-}
-
-function deleteParent(id) {
-  var p = data.parents.find(function(x) { return x.id === id; });
-  if (!p) return;
-  if (!confirm(t('親猫 ' + p.name + ' を削除しますか？','确定删除种猫 ' + p.name + '？'))) return;
-  data.parents = data.parents.filter(function(x) { return x.id !== id; });
-  saveData(data);
-  addLog(t('親猫 ' + p.name + ' を削除しました','删除了种猫 ' + p.name));
-  renderAll();
-  showToast(t('削除しました','已删除'), 'success');
-}
-
-// ============================================================
-// REVIEWS
-// ============================================================
-function renderReviews() {
-  var tbody = document.getElementById('reviewsTableBody');
-  tbody.innerHTML = data.reviews.map(function(r) {
-    var excerpt = r.body.length > 50 ? r.body.substring(0, 50) + '...' : r.body;
-    return '<tr>' +
-      '<td><strong>' + r.author + '</strong></td>' +
-      '<td>' + r.region + '</td>' +
-      '<td>' + r.date + '</td>' +
-      '<td style="max-width:300px;">' + excerpt + '</td>' +
-      '<td><div class="action-btns">' +
-        '<button class="action-btn edit" onclick="editReview(\'' + r.id + '\')">' + t('編集','编辑') + '</button>' +
-        '<button class="action-btn delete" onclick="deleteReview(\'' + r.id + '\')">' + t('削除','删除') + '</button>' +
-      '</div></td>' +
-    '</tr>';
-  }).join('');
-}
-
-function openReviewForm(review) {
-  document.getElementById('reviewEditId').value = review ? review.id : '';
-  document.getElementById('reviewFormTitle').textContent = review ? t('レビューの編集','编辑评价') : t('レビューの追加','添加评价');
-  document.getElementById('rf_author').value = review ? review.author : '';
-  document.getElementById('rf_region').value = review ? review.region : '';
-  document.getElementById('rf_date').value = review ? review.date : '';
-  document.getElementById('rf_body').value = review ? review.body : '';
-  openModal('reviewFormModal');
-}
-
-function editReview(id) {
-  var review = data.reviews.find(function(r) { return r.id === id; });
-  if (review) openReviewForm(review);
-}
-
-function saveReview() {
-  var editId = document.getElementById('reviewEditId').value;
-  var obj = {
-    author: document.getElementById('rf_author').value.trim(),
-    region: document.getElementById('rf_region').value.trim(),
-    date: document.getElementById('rf_date').value.trim(),
-    body: document.getElementById('rf_body').value.trim(),
-  };
-  if (!obj.author || !obj.body) { showToast(t('お名前と本文を入力してください','请输入姓名和正文'), 'error'); return; }
-
-  if (editId) {
-    var idx = data.reviews.findIndex(function(r) { return r.id === editId; });
-    if (idx >= 0) { Object.assign(data.reviews[idx], obj); addLog(t('レビュー ' + obj.author + ' を編集しました','编辑了评价 ' + obj.author)); }
-  } else {
-    obj.id = 'r' + Date.now();
-    data.reviews.push(obj);
-    addLog(t('レビュー ' + obj.author + ' を追加しました','添加了评价 ' + obj.author));
-  }
-  saveData(data);
-  closeModal('reviewFormModal');
-  renderAll();
-  showToast(t('保存しました','已保存'), 'success');
-}
-
-function deleteReview(id) {
-  var r = data.reviews.find(function(x) { return x.id === id; });
-  if (!r) return;
-  if (!confirm(t('レビュー ' + r.author + ' を削除しますか？','确定删除评价 ' + r.author + '？'))) return;
-  data.reviews = data.reviews.filter(function(x) { return x.id !== id; });
-  saveData(data);
-  addLog(t('レビュー ' + r.author + ' を削除しました','删除了评价 ' + r.author));
-  renderAll();
-  showToast(t('削除しました','已删除'), 'success');
-}
-
-// ============================================================
-// GALLERY / PHOTO MODAL
-// ============================================================
-function openPhotoModal(type, id) {
-  document.getElementById('photo_type').value = type;
-  document.getElementById('photo_id').value = id;
-  document.getElementById('newPhotoUrl').value = '';
-
-  var item;
-  if (type === 'kitten') item = data.kittens.find(function(x) { return x.id === id; });
-  else item = data.parents.find(function(x) { return x.id === id; });
-
-  renderGalleryGrid(item);
-  openModal('photoModal');
-
-  // Load Drive photos for this item
-  loadDrivePhotosForItem(type, item);
-}
-
-function renderGalleryGrid(item) {
-  var grid = document.getElementById('galleryGrid');
-  if (!item || !item.photos || item.photos.length === 0) {
-    grid.innerHTML = '<div class="gallery-empty">📷 ' + t('写真がありません','没有照片') + '<br><small>' + t('下のフォームからURLを追加してください','请在下方表单添加URL') + '</small></div>';
-    return;
-  }
-  var coverIdx = item.coverIndex || 0;
-  grid.innerHTML = item.photos.map(function(url, i) {
-    var isCover = i === coverIdx;
-    return '<div class="gallery-item' + (isCover ? ' cover' : '') + '">' +
-      '<img src="' + url + '" alt="写真 ' + (i+1) + '">' +
-      (isCover ? '<span class="gallery-label">' + t('カバー','封面') + '</span>' : '') +
-      '<button class="gallery-delete" onclick="deleteGalleryPhoto(' + i + ')" title="' + t('削除','删除') + '">✕</button>' +
-      (!isCover ? '<button class="gallery-cover-btn" onclick="setGalleryCover(' + i + ')">★ ' + t('カバーに設定','设为封面') + '</button>' : '') +
-    '</div>';
-  }).join('');
-}
-
-function addGalleryPhoto() {
-  var url = document.getElementById('newPhotoUrl').value.trim();
-  if (!url) { showToast(t('URLを入力してください','请输入URL'), 'error'); return; }
-
-  var type = document.getElementById('photo_type').value;
-  var id = document.getElementById('photo_id').value;
-  var item;
-  if (type === 'kitten') item = data.kittens.find(function(x) { return x.id === id; });
-  else item = data.parents.find(function(x) { return x.id === id; });
-
-  if (!item) return;
-  if (!item.photos) item.photos = [];
-  item.photos.push(url);
-  if (item.photos.length === 1) item.coverIndex = 0;
-
-  saveData(data);
-  renderGalleryGrid(item);
-  renderAll();
-  document.getElementById('newPhotoUrl').value = '';
-  addLog(t((type === 'kitten' ? '子猫 ' + item.breederId : '親猫 ' + item.name) + ' に写真を追加しました', (type === 'kitten' ? '给子猫 ' + item.breederId : '给种猫 ' + item.name) + ' 添加了照片'));
-  showToast(t('写真を追加しました','已添加照片'), 'success');
-}
-
-function deleteGalleryPhoto(index) {
-  var type = document.getElementById('photo_type').value;
-  var id = document.getElementById('photo_id').value;
-  var item;
-  if (type === 'kitten') item = data.kittens.find(function(x) { return x.id === id; });
-  else item = data.parents.find(function(x) { return x.id === id; });
-
-  if (!item || !item.photos) return;
-  if (!confirm(t('この写真を削除しますか？','确定删除这张照片？'))) return;
-
-  item.photos.splice(index, 1);
-  if (item.coverIndex >= item.photos.length) item.coverIndex = Math.max(0, item.photos.length - 1);
-
-  saveData(data);
-  renderGalleryGrid(item);
-  renderAll();
-  addLog(t((type === 'kitten' ? '子猫 ' + item.breederId : '親猫 ' + item.name) + ' の写真を削除しました', (type === 'kitten' ? '删除了子猫 ' + item.breederId : '删除了种猫 ' + item.name) + ' 的照片'));
-  showToast(t('写真を削除しました','已删除照片'), 'success');
-}
-
-function setGalleryCover(index) {
-  var type = document.getElementById('photo_type').value;
-  var id = document.getElementById('photo_id').value;
-  var item;
-  if (type === 'kitten') item = data.kittens.find(function(x) { return x.id === id; });
-  else item = data.parents.find(function(x) { return x.id === id; });
-
-  if (!item) return;
-  item.coverIndex = index;
-
-  saveData(data);
-  renderGalleryGrid(item);
-  renderAll();
-  addLog(t((type === 'kitten' ? '子猫 ' + item.breederId : '親猫 ' + item.name) + ' のカバー写真を変更しました', (type === 'kitten' ? '更改了子猫 ' + item.breederId : '更改了种猫 ' + item.name) + ' 的封面照片'));
-  showToast(t('カバー写真を変更しました','已更改封面照片'), 'success');
-}
-
-// ============================================================
-// HTML CODE GENERATION
-// ============================================================
-function generateKittensHTML() {
-  var kittens = data.kittens.filter(function(k) { return k.group === 'c995680' && ['available','reserved'].indexOf(k.status) >= 0; });
-  var html = '<!-- Generated by Admin Panel - Index Kittens Section -->\n';
-  kittens.forEach(function(k) {
-    var cover = getCoverPhoto(k);
-    var statusClass = k.status === 'available' ? 'st-available' : 'st-reserved';
-    var statusText = k.status === 'available' ? '販売中' : '商談中';
-    var genderFull = k.gender === '♂' ? '♂ 男の子' : '♀ 女の子';
-    var bMonth = k.birthday ? k.birthday.replace('-', '年') + '月生まれ' : '';
-    html +=
-'        <div class="kitten-card" data-status="' + k.status + '" data-price="' + k.price + '" data-birthday="' + k.birthday + '-01" data-images="" data-video="' + (k.video||'').replace(/"/g, '&quot;') + '" data-papa="' + (k.papa||'') + '" data-mama="' + (k.mama||'') + '" data-new="' + k.isNew + '" data-name="" data-breeder-id="' + k.breederId + '">\n' +
-'          <div class="kitten-img">\n' +
-'            <img src="' + cover + '" alt="子猫の写真" loading="lazy" style="width:100%;height:100%;object-fit:cover;">\n' +
-'            <span class="kit-status ' + statusClass + '" data-i18n="kittens.' + k.status + '">' + statusText + '</span>' + (k.isNew ? '\n            <span class="kit-badge-new">NEW</span>' : '') + '\n' +
-'          </div>\n' +
-'          <div class="kitten-body">\n' +
-'            <h3>' + k.breed + '</h3>\n' +
-'            <p class="kit-meta">' + genderFull + ' ・ ' + k.color + '</p>\n' +
-'            <p class="kit-meta">' + bMonth + '</p>' + (k.note ? '\n            <p class="kit-meta" style="font-size:11px;color:var(--text-note);">' + k.note + '</p>' : '') + '\n' +
-'            <p class="kit-price">¥' + k.price.toLocaleString() + ' <span class="tax">（税込）</span></p>\n' +
-'          </div>\n' +
-'        </div>\n';
-  });
-
-  document.getElementById('generatedCode').textContent = html;
-  document.getElementById('generatedCodeTitle').textContent = '子猫セクション HTML（index.html用）';
-  document.getElementById('generatedCodeArea').style.display = 'block';
-  showToast(t('HTMLコードを生成しました','已生成HTML代码'), 'success');
-}
-
-function generateParentsHTML() {
-  var html = '<!-- Generated by Admin Panel - Parents Section -->\n';
-  data.parents.forEach(function(p) {
-    var cover = getCoverPhoto(p);
-    var roleClass = p.role === 'パパ猫' ? 'role-papa' : 'role-mama';
-    html +=
-'        <div class="parent-card" onclick="openParentModal(this)" data-name="' + p.name + '" data-breed="' + p.breed + '" data-gender="' + p.gender + '" data-role="' + p.role + '" data-age="' + p.age + '" data-color="' + p.color + '" data-tested="' + p.tested + '" style="position:relative;">\n' +
-'          <span class="health-tag tag-good" style="position:absolute;top:8px;right:8px;font-size:11px;padding:2px 8px;">✓ 遺伝子検査済</span>\n' +
-'          <img src="' + cover + '" alt="' + p.name + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-lg) var(--radius-lg) 0 0;">\n' +
-'          <div class="parent-body">\n' +
-'            <h3>' + p.name + '</h3>\n' +
-'            <p>' + p.breed + ' ・ ' + p.gender + ' ・ ' + p.color + '</p>\n' +
-'            <p style="font-size:12px;color:var(--text-note);">' + p.age + '</p>\n' +
-'            <span class="parent-role ' + roleClass + '">' + p.role + '</span>\n' +
-'          </div>\n' +
-'        </div>\n';
-  });
-
-  document.getElementById('generatedCode').textContent = html;
-  document.getElementById('generatedCodeTitle').textContent = '親猫セクション HTML（parents.html用）';
-  document.getElementById('generatedCodeArea').style.display = 'block';
-  showToast(t('HTMLコードを生成しました','已生成HTML代码'), 'success');
-}
-
-function generateReviewsHTML() {
-  var html = '<!-- Generated by Admin Panel - Reviews Section -->\n';
-  data.reviews.forEach(function(r) {
-    html +=
-'        <div class="review-card">\n' +
-'          <div class="review-header">\n' +
-'            <div class="review-stars">★★★★★</div>\n' +
-'            <span class="review-platform">みんなの子猫ブリーダー</span>\n' +
-'          </div>\n' +
-'          <p class="review-body">' + r.body + '</p>\n' +
-'          <div class="review-footer">\n' +
-'            <p class="review-author">— ' + r.region + ' ' + r.author + '（' + r.date + '）</p>\n' +
-'            <span class="review-verified">✓ 認証済みレビュー</span>\n' +
-'          </div>\n' +
-'        </div>\n';
-  });
-
-  document.getElementById('generatedCode').textContent = html;
-  document.getElementById('generatedCodeTitle').textContent = 'レビューセクション HTML（reviews.html用）';
-  document.getElementById('generatedCodeArea').style.display = 'block';
-  showToast(t('HTMLコードを生成しました','已生成HTML代码'), 'success');
-}
-
-function copyGeneratedCode() {
-  var code = document.getElementById('generatedCode').textContent;
-  navigator.clipboard.writeText(code).then(function() {
-    showToast(t('コピーしました','已复制'), 'success');
-  }).catch(function() {
-    var ta = document.createElement('textarea');
-    ta.value = code;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    showToast(t('コピーしました','已复制'), 'success');
-  });
-}
-
-// ============================================================
-// DRIVE PHOTOS MANAGEMENT
-// ============================================================
-
-// Drive folder IDs (same as in the HTML pages)
-var DRIVE_KITTENS_FOLDER = '1bQKvwvfa3jHIuKGzR9nvvZIKB6z5-kF4';
-var DRIVE_PARENTS_FOLDER = '1GlqXIGEEzupIQ0WHmN4tOvlvCPE7uNuX';
-var driveSubfoldersCache = {};
-
-function loadDrivePhotosForItem(type, item) {
-  var section = document.getElementById('drivePhotoSection');
-  var grid = document.getElementById('drivePhotoGrid');
-  var status = document.getElementById('drivePhotoStatus');
-  if (!section || !grid || !item) { section && (section.style.display = 'none'); return; }
-
-  // Determine the folder name to search for
-  var folderName = '';
-  var parentFolderId = '';
-  if (type === 'kitten') {
-    folderName = item.breederId || '';
-    parentFolderId = DRIVE_KITTENS_FOLDER;
-  } else {
-    folderName = item.name || '';
-    parentFolderId = DRIVE_PARENTS_FOLDER;
-  }
-
-  if (!folderName || !parentFolderId) {
-    section.style.display = 'none';
-    return;
-  }
-
-  section.style.display = 'block';
-  grid.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-light);">⏳ ' + (admLang === 'zh' ? '加载Drive照片...' : 'Drive写真を読み込み中...') + '</div>';
-  status.textContent = '';
-
-  // Step 1: Get subfolders of the parent folder
-  var cacheKey = 'sub_' + parentFolderId;
-  var p = driveSubfoldersCache[cacheKey]
-    ? Promise.resolve(driveSubfoldersCache[cacheKey])
-    : fetch(DRIVE_API + '/api/drive/folders/' + parentFolderId).then(function(r) { return r.json(); }).then(function(folders) { driveSubfoldersCache[cacheKey] = folders; return folders; });
-
-  p.then(function(folders) {
-    if (!Array.isArray(folders)) { throw new Error('Invalid response'); }
-    var match = folders.find(function(f) { return f.name === folderName; });
-    if (!match) {
-      section.style.display = 'block';
-      grid.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-light);background:var(--bg);border-radius:8px;">📁 ' + (admLang === 'zh' ? 'Drive中未找到文件夹「' + folderName + '」' : 'Driveにフォルダ「' + folderName + '」が見つかりません') + '<br><small style="margin-top:4px;display:block;">' + (admLang === 'zh' ? '请在Google Drive的对应目录下创建此文件夹' : 'Google Driveの該当フォルダの下にこのフォルダを作成してください') + '</small></div>';
-      status.textContent = '❌ ' + (admLang === 'zh' ? '未关联' : '未連携');
-      status.style.color = 'var(--danger-dark)';
-      return;
-    }
-
-    // Step 2: Get images in this subfolder
-    return fetch(DRIVE_API + '/api/drive/images/' + match.id).then(function(r) { return r.json(); }).then(function(images) {
-      if (!Array.isArray(images) || images.length === 0) {
-        grid.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-light);background:var(--bg);border-radius:8px;">📷 ' + (admLang === 'zh' ? '文件夹存在但没有照片' : 'フォルダはありますが写真がありません') + '</div>';
-        status.textContent = '⬜ 0 ' + (admLang === 'zh' ? '张' : '枚');
-        status.style.color = 'var(--text-light)';
-        return;
-      }
-
-      status.textContent = '✅ ' + images.length + (admLang === 'zh' ? ' 张照片' : ' 枚');
-      status.style.color = 'var(--mint-dark)';
-
-      grid.innerHTML = images.map(function(img, idx) {
-        var imgUrl = DRIVE_API + '/api/drive/img/' + img.id;
-        return '<div style="position:relative;border-radius:8px;overflow:hidden;aspect-ratio:1;background:var(--bg);border:' + (idx === 0 ? '3px solid var(--mint)' : '1px solid var(--border)') + ';">' +
-          '<img src="' + imgUrl + '" style="width:100%;height:100%;object-fit:cover;" loading="lazy">' +
-          '<div style="position:absolute;bottom:0;left:0;right:0;padding:4px 6px;background:linear-gradient(transparent,' + (idx === 0 ? 'rgba(125,211,192,0.85)' : 'rgba(0,0,0,0.55)') + ');color:white;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' +
-            (idx === 0 ? '📌 ' : '') + img.name +
-          '</div>' +
-        '</div>';
-      }).join('');
-    });
-  }).catch(function(e) {
-    grid.innerHTML = '<div style="text-align:center;padding:20px;color:var(--danger-dark);">❌ ' + e.message + '</div>';
-    status.textContent = '❌ Error';
-    status.style.color = 'var(--danger-dark)';
-  });
-}
-
-function loadDriveStatus() {
-  var area = document.getElementById('driveStatusArea');
-  var btn = document.getElementById('driveRefreshBtn');
-  if (!area) return;
-  btn && (btn.disabled = true);
-  area.innerHTML = '<div class="settings-card" style="text-align:center;padding:32px;"><p style="font-size:24px;">⏳</p><p>' + (admLang === 'zh' ? '加载中...' : '読み込み中...') + '</p></div>';
-
-  var pass = getSessionPass();
-  fetch(DRIVE_API + '/api/admin/drive/status', { headers: { 'Authorization': 'Bearer ' + pass } })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      if (data.error) { area.innerHTML = '<div class="settings-card" style="color:var(--danger-dark);padding:24px;">❌ ' + data.error + '</div>'; return; }
-      var html = '';
-      var categoryLabels = { kittens: '🐱 ' + (admLang === 'zh' ? '子猫 (kittens)' : '子猫 (kittens)'), parents: '🐈 ' + (admLang === 'zh' ? '种猫 (parents)' : '親猫 (parents)'), gallery: '📸 ' + (admLang === 'zh' ? '毕业猫 (gallery)' : '卒業猫 (gallery)') };
-      Object.keys(data).forEach(function(cat) {
-        var info = data[cat];
-        var subs = info.subfolders || [];
-        html += '<div class="data-table" style="margin-bottom:16px;">';
-        html += '<div class="table-header"><h3 class="table-title">' + (categoryLabels[cat] || cat) + ' <span style="font-weight:400;font-size:13px;color:var(--text-light);">— ' + subs.length + (admLang === 'zh' ? ' 个文件夹' : ' フォルダ') + '</span></h3></div>';
-        if (subs.length === 0) {
-          html += '<div style="padding:24px;color:var(--text-light);text-align:center;">' + (admLang === 'zh' ? '暂无文件夹' : 'フォルダなし') + '</div>';
-        } else {
-          html += '<div style="padding:8px 16px;">';
-          subs.forEach(function(sub) {
-            var hasImages = sub.imageCount > 0;
-            var statusIcon = hasImages ? '✅' : '⬜';
-            html += '<div style="display:flex;align-items:center;gap:12px;padding:12px 8px;border-bottom:1px solid var(--border);flex-wrap:wrap;">';
-            html += '<span style="font-size:16px;">' + statusIcon + '</span>';
-            html += '<span style="font-weight:600;min-width:140px;">' + sub.name + '</span>';
-            html += '<span style="font-size:13px;color:' + (hasImages ? 'var(--mint-dark)' : 'var(--text-light)') + ';font-weight:600;">' + sub.imageCount + (admLang === 'zh' ? ' 张照片' : ' 枚') + '</span>';
-            if (hasImages) {
-              html += '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-left:auto;">';
-              sub.images.forEach(function(img, idx) {
-                html += '<span style="font-size:11px;background:' + (idx === 0 ? 'var(--mint-light)' : 'var(--bg-light)') + ';padding:2px 8px;border-radius:4px;color:' + (idx === 0 ? 'var(--mint-dark)' : 'var(--text-light)') + ';" title="' + (idx === 0 ? (admLang === 'zh' ? '封面图' : 'カバー写真') : '') + '">' + (idx === 0 ? '📌 ' : '') + img.name + '</span>';
-              });
-              html += '</div>';
-            }
-            html += '</div>';
-          });
-          html += '</div>';
-        }
-        html += '</div>';
-      });
-      area.innerHTML = html;
-    })
-    .catch(function(e) {
-      area.innerHTML = '<div class="settings-card" style="color:var(--danger-dark);padding:24px;">❌ ' + (admLang === 'zh' ? '连接失败: ' : '接続エラー: ') + e.message + '</div>';
-    })
-    .finally(function() { btn && (btn.disabled = false); });
-}
-
-function clearDriveCache() {
-  if (!confirm(admLang === 'zh' ? '确定要清除Drive缓存吗？\n清除后照片会在下次访问时重新从Drive加载。' : 'Driveキャッシュをクリアしますか？\nクリア後、次回アクセス時にDriveから再読み込みされます。')) return;
-  var btn = document.getElementById('driveCacheClearBtn');
-  btn && (btn.disabled = true);
-  var pass = getSessionPass();
-  fetch(DRIVE_API + '/api/admin/drive/refresh', {
-    method: 'POST',
-    headers: { 'Authorization': 'Bearer ' + pass, 'Content-Type': 'application/json' }
-  })
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-      if (d.success) {
-        showToast((admLang === 'zh' ? '缓存已清除 (' + d.cleared + ' 条)' : 'キャッシュクリア完了 (' + d.cleared + ' 件)'), 'success');
-        loadDriveStatus();
-      } else {
-        showToast('❌ ' + (d.error || 'Error'), 'error');
-      }
-    })
-    .catch(function(e) { showToast('❌ ' + e.message, 'error'); })
-    .finally(function() { btn && (btn.disabled = false); });
-}
-
-// ============================================================
-// DATA MANAGEMENT
-// ============================================================
-function exportJSON() {
-  var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = 'fuluck-admin-data-' + new Date().toISOString().slice(0,10) + '.json';
-  a.click();
-  URL.revokeObjectURL(url);
-  addLog(t('データをJSONエクスポートしました','已导出JSON数据'));
-  showToast(t('エクスポートしました','已导出'), 'success');
-}
-
-document.getElementById('importFileInput').addEventListener('change', function(e) {
-  if (!e.target.files.length) return;
-  var reader = new FileReader();
-  reader.onload = function(ev) {
-    try {
-      var imported = JSON.parse(ev.target.result);
-      if (!imported.kittens || !imported.parents || !imported.reviews) {
-        showToast(t('無効なデータファイルです','无效的数据文件'), 'error');
-        return;
-      }
-      if (!confirm(t('現在のデータを上書きします。よろしいですか？','将覆盖当前数据。确定吗？'))) return;
-      imported = migrateData(imported);
-      saveData(imported);
-      data = imported;
-      addLog(t('JSONデータをインポートしました','已导入JSON数据'));
-      renderAll();
-      showToast(t('インポートしました','已导入'), 'success');
-    } catch(err) {
-      showToast(t('ファイルの読み込みに失敗しました','文件读取失败'), 'error');
-    }
-  };
-  reader.readAsText(e.target.files[0]);
-  e.target.value = '';
-});
-
-function resetData() {
-  if (!confirm(t('すべてのデータを初期状態に戻します。\n（サイトの実際のデータに復元されます）\n\nよろしいですか？','将所有数据恢复到初始状态。\n（恢复为网站的实际数据）\n\n确定吗？'))) return;
-  localStorage.removeItem(STORAGE_KEY);
-  data = getData();
-  addLog(t('データを初期状態にリセットしました','已将数据恢复到初始状态'));
-  renderAll();
-  showToast(t('データをリセットしました','已重置数据'), 'success');
-}
-
-// ============================================================
-// CLOUD MIGRATION (localStorage → KV)
-// ============================================================
-function runMigration() {
-  if (!confirm(t('ローカルデータをクラウドに移行しますか？\n（クラウドのデータは上書きされます）','将本地数据迁移到云端？\n（云端数据将被覆盖）'))) return;
-  var el = document.getElementById('migrateProgress');
-  el.textContent = t('移行中...','迁移中...');
-  FuluckMigrate.migrate(function(info) {
-    el.textContent = info.msg || '';
-    if (info.done) {
-      if (!info.error) {
-        showToast(t('クラウドに移行しました','已迁移到云端'), 'success');
-        addLog(t('データをクラウド(KV)に移行しました','已将数据迁移到云端(KV)'));
-      } else {
-        showToast(info.error, 'error');
-      }
-    }
-  });
-}
-
-// ============================================================
-// IMAGE MANAGEMENT (Bilingual + URL/Upload + Instagram Link)
-// ============================================================
-var admLang = localStorage.getItem('fuluck-admin-lang') || 'ja';
-var imgLang = admLang; // backward compat
-
-var IMAGE_FIELDS = [
-  { id:'img-hero-main',   label:{ja:'Hero メイン写真',      zh:'首页主图'},          page:'index.html',    tag:'hero-main',  size:'800×600px' },
-  { id:'img-gallery-1',   label:{ja:'卒業猫プレビュー ①',  zh:'毕业猫预览 ①'},     page:'index.html',    tag:'gallery-1',  size:'400×400px' },
-  { id:'img-gallery-2',   label:{ja:'卒業猫プレビュー ②',  zh:'毕业猫预览 ②'},     page:'index.html',    tag:'gallery-2',  size:'400×400px' },
-  { id:'img-gallery-3',   label:{ja:'卒業猫プレビュー ③',  zh:'毕业猫预览 ③'},     page:'index.html',    tag:'gallery-3',  size:'400×400px' },
-  { id:'img-gallery-4',   label:{ja:'卒業猫プレビュー ④',  zh:'毕业猫预览 ④'},     page:'index.html',    tag:'gallery-4',  size:'400×400px' },
-  { id:'img-insta-1',     label:{ja:'Instagram ①',          zh:'Instagram ①'},       page:'index.html',    tag:'insta-1',    size:'400×400px' },
-  { id:'img-insta-2',     label:{ja:'Instagram ②',          zh:'Instagram ②'},       page:'index.html',    tag:'insta-2',    size:'400×400px' },
-  { id:'img-insta-3',     label:{ja:'Instagram ③',          zh:'Instagram ③'},       page:'index.html',    tag:'insta-3',    size:'400×400px' },
-  { id:'img-insta-4',     label:{ja:'Instagram ④',          zh:'Instagram ④'},       page:'index.html',    tag:'insta-4',    size:'400×400px' },
-  { id:'img-sib-main',    label:{ja:'サイベリアン メイン',   zh:'西伯利亚猫主图'},    page:'siberian.html', tag:'sib-main',   size:'600×800px' },
-  { id:'img-sib-group',   label:{ja:'サイベリアン 集合写真', zh:'西伯利亚猫合照'},    page:'siberian.html', tag:'sib-group',  size:'800×450px' },
-  { id:'img-review-1',    label:{ja:'レビュー①（羅方遠）',  zh:'评价截图①（罗方远）'},page:'reviews.html', tag:'review-1',   size:'390×844px' },
-  { id:'img-review-2',    label:{ja:'レビュー②（刘暁棉）',  zh:'评价截图②（刘晓棉）'},page:'reviews.html', tag:'review-2',   size:'390×844px' },
-  { id:'img-award-1',     label:{ja:'受賞バッジ①',          zh:'获奖徽章①'},         page:'about.html',    tag:'award-1',    size:'300×200px' },
-  { id:'img-award-2',     label:{ja:'受賞バッジ②',          zh:'获奖徽章②'},         page:'about.html',    tag:'award-2',    size:'300×200px' },
-  { id:'img-award-3',     label:{ja:'評価バッジ',            zh:'评分徽章'},           page:'about.html',    tag:'award-3',    size:'300×200px' },
-  { id:'img-genetic',     label:{ja:'遺伝子検査証明',        zh:'基因检测证明'},       page:'about.html',    tag:'genetic',    size:'800×450px' },
-  { id:'img-ogp',         label:{ja:'OGP画像',               zh:'OGP图片'},            page:'全ページ',      tag:'ogp',        size:'1200×630px' }
-];
-
-// ── Global Bilingual System ──
-function toggleAdminLang() {
-  admLang = admLang === 'ja' ? 'zh' : 'ja';
-  imgLang = admLang;
-  localStorage.setItem('fuluck-admin-lang', admLang);
-  applyAdminLang();
-  showToast(admLang === 'zh' ? '已切换到中文' : '日本語に切り替えました', 'success');
-}
-
-// Alias for image page compatibility
-function toggleImgLang() { toggleAdminLang(); }
-
-// Login screen language toggle
-function toggleLoginLang() {
-  admLang = admLang === 'ja' ? 'zh' : 'ja';
-  imgLang = admLang;
-  localStorage.setItem('fuluck-admin-lang', admLang);
-  var t = document.getElementById('loginTitle');
-  var s = document.getElementById('loginSub');
-  var b = document.getElementById('loginBtn');
-  var e = document.getElementById('loginError');
-  if (t) t.textContent = admLang === 'zh' ? '福楽猫舍 管理后台' : '福楽キャッテリー 管理画面';
-  if (s) s.textContent = admLang === 'zh' ? '请输入密码登录' : 'パスワードを入力してログインしてください';
-  if (b) b.textContent = admLang === 'zh' ? '登录' : 'ログイン';
-  if (e) e.textContent = admLang === 'zh' ? '密码不正确' : 'パスワードが正しくありません';
-  var pwd = document.getElementById('loginPassword');
-  if (pwd) pwd.placeholder = admLang === 'zh' ? '密码' : 'パスワード';
-}
-
-function applyAdminLang() {
-  // Apply to all [data-adm-ja] elements (global admin)
-  document.querySelectorAll('[data-adm-ja]').forEach(function(el) {
-    var newText = admLang === 'zh' ? el.getAttribute('data-adm-zh') : el.getAttribute('data-adm-ja');
-    if (!newText) return;
-    if ((el.innerHTML||'').indexOf('<') >= 0 && (el.getAttribute('data-adm-zh')||'').indexOf('<') >= 0) {
-      el.innerHTML = newText; // if contains HTML tags
-    } else {
-      el.textContent = newText;
-    }
-  });
-  // Apply to all [data-img-ja] elements (image page)
-  document.querySelectorAll('[data-img-ja]').forEach(function(el) {
-    var t = admLang === 'zh' ? el.getAttribute('data-img-zh') : el.getAttribute('data-img-ja');
-    if ((el.innerHTML||'').indexOf('<') >= 0 && (t||'').indexOf('<') >= 0) {
-      el.innerHTML = t;
-    } else {
-      el.textContent = t;
-    }
-  });
-  // Update toggle buttons
-  var adminBtn = document.getElementById('adminLangBtn');
-  if (adminBtn) adminBtn.innerHTML = admLang === 'ja' ? '🌐 切换中文' : '🌐 日本語に切替';
-  var imgBtn = document.getElementById('imgLangToggle');
-  if (imgBtn) imgBtn.innerHTML = admLang === 'ja' ? '🌐 切换中文' : '🌐 日本語に切替';
-  // Update page title
-  updatePageTitleLang();
-}
-
-function applyImgLang() { applyAdminLang(); }
-
-// Bilingual text helper
-function t(ja, zh) { return admLang === 'zh' ? zh : ja; }
-
-// Page titles bilingual
-var pageTitlesZh = {
-  dashboard:'仪表盘', kittens:'子猫管理', parents:'种猫管理',
-  reviews:'客户评价', images:'图片管理', export:'HTML导出', data:'数据管理',
-  guide:'操作指南', settings:'修改密码'
-};
-
-function updatePageTitleLang() {
-  var active = document.querySelector('.nav-item.active');
-  var page = active ? active.dataset.page : 'dashboard';
-  var title = admLang === 'zh' ? (pageTitlesZh[page] || '') : (pageTitles[page] || '');
-  document.getElementById('pageTitle').textContent = title;
-}
-
-// ── File Upload Handler ──
-function handleImgUpload(fileInput, targetInputId) {
-  var file = fileInput.files[0];
-  if (!file) return;
-  if (!file.type.startsWith('image/')) {
-    showToast(imgLang === 'zh' ? '请选择图片文件' : '画像ファイルを選択してください', 'error');
-    return;
-  }
-  // Convert to base64 data URL for preview & storage
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    var targetInput = document.getElementById(targetInputId);
-    if (targetInput) {
-      targetInput.value = e.target.result;
-      // Show the filename as a hint
-      var row = targetInput.closest('.img-manager-row');
-      var existingHint = row.querySelector('.upload-filename');
-      if (existingHint) existingHint.remove();
-      var hint = document.createElement('small');
-      hint.className = 'upload-filename';
-      hint.style.cssText = 'color:var(--mint-dark);display:block;margin-top:4px;font-size:11px;';
-      hint.textContent = '📎 ' + file.name + ' (' + (file.size / 1024).toFixed(0) + 'KB)';
-      row.appendChild(hint);
-    }
-    showToast('📎 ' + file.name, 'success');
-  };
-  reader.readAsDataURL(file);
-  fileInput.value = '';
-}
-
-// ── Load / Save ──
-function loadImageConfig() {
-  try {
-    var saved = JSON.parse(localStorage.getItem(IMAGE_KEY) || '{}');
-    IMAGE_FIELDS.forEach(function(f) {
-      var el = document.getElementById(f.id);
-      if (el && saved[f.tag]) el.value = saved[f.tag];
-    });
-    // Load Instagram URL
-    var instaUrlEl = document.getElementById('img-insta-url');
-    if (instaUrlEl && saved['insta-url']) instaUrlEl.value = saved['insta-url'];
-  } catch(e) {}
-  updateHeroPreview();
-  applyImgLang();
-}
-
-function updateHeroPreview() {
-  var preview = document.getElementById('preview-hero-main');
-  if (!preview) return;
-  var url = document.getElementById('img-hero-main').value.trim();
-  if (url) {
-    preview.innerHTML = '<img src="' + url + '" onerror="this.parentNode.innerHTML=\'<span class=img-preview-empty>🖼</span>\'">';
-  } else {
-    preview.innerHTML = '<span class="img-preview-empty">🖼</span>';
-  }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-  var heroInput = document.getElementById('img-hero-main');
-  if (heroInput) heroInput.addEventListener('input', updateHeroPreview);
-});
-
-function saveImageConfig() {
-  var config = {};
-  var count = 0;
-  IMAGE_FIELDS.forEach(function(f) {
-    var el = document.getElementById(f.id);
-    if (el && el.value.trim()) {
-      config[f.tag] = el.value.trim();
-      count++;
-    }
-  });
-  // Save Instagram URL
-  var instaUrl = document.getElementById('img-insta-url');
-  if (instaUrl && instaUrl.value.trim()) config['insta-url'] = instaUrl.value.trim();
-  localStorage.setItem(IMAGE_KEY, JSON.stringify(config));
-  addLog(imgLang === 'zh' ? '图片设置已保存（' + count + '张）' : '画像設定を保存しました（' + count + '件）');
-  showToast(imgLang === 'zh' ? '已保存 ' + count + ' 张图片设置' : '画像設定を保存しました（' + count + '件）', 'success');
-}
-
-// ── HTML Code Generation ──
-function generateImageHTML() {
-  var lines = [];
-  lines.push('<!-- ====================================== -->');
-  lines.push('<!-- 画像管理 - 自動生成コード -->');
-  lines.push('<!-- 生成日: ' + new Date().toLocaleString('ja-JP') + ' -->');
-  lines.push('<!-- ====================================== -->');
-  lines.push('');
-
-  var instaUrl = (document.getElementById('img-insta-url') || {}).value || 'https://www.instagram.com/fuluckpet/';
-
-  var pages = {};
-  IMAGE_FIELDS.forEach(function(f) {
-    var el = document.getElementById(f.id);
-    var val = el ? el.value.trim() : '';
-    if (!val) return;
-    // Skip base64 images for HTML generation (they need to be saved as files first)
-    if (val.indexOf('data:') === 0) {
-      lines.push('<!-- ⚠ ' + f.label[imgLang] + ': base64 image - please save as file to images/ folder first -->');
-      return;
-    }
-    if (!pages[f.page]) pages[f.page] = [];
-    pages[f.page].push({ label:f.label[imgLang], tag:f.tag, url:val });
-  });
-
-  Object.keys(pages).forEach(function(page) {
-    lines.push('<!-- === ' + page + ' === -->');
-    pages[page].forEach(function(item) {
-      var alt = item.label + ' - 福楽キャッテリー';
-      var loading = (item.tag === 'hero-main' || item.tag === 'sib-main') ? 'eager' : 'lazy';
-
-      if (item.tag === 'ogp') {
-        lines.push('<!-- OGP meta tag: -->');
-        lines.push('<meta property="og:image" content="' + item.url + '">');
-      } else if (item.tag.indexOf('insta') === 0) {
-        lines.push('<!-- ' + item.label + ' -->');
-        lines.push('<div class="insta-item"><a href="' + instaUrl + '" target="_blank" rel="noopener"><img src="' + item.url + '" alt="Instagram - 福楽キャッテリー" loading="lazy" style="width:100%;height:100%;object-fit:cover;"></a></div>');
-      } else if (item.tag.indexOf('gallery') === 0) {
-        lines.push('<!-- ' + item.label + ' -->');
-        lines.push('<div class="gallery-item"><img src="' + item.url + '" alt="卒業猫 サイベリアン" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius);"></div>');
-      } else if (item.tag.indexOf('review') === 0) {
-        lines.push('<!-- ' + item.label + ' -->');
-        lines.push('<img src="' + item.url + '" alt="みんなの子猫ブリーダー 口コミ" loading="lazy" style="width:100%;border-radius:var(--radius);box-shadow:var(--shadow-card);">');
-      } else if (item.tag.indexOf('award') === 0 || item.tag === 'genetic') {
-        lines.push('<!-- ' + item.label + ' -->');
-        lines.push('<img src="' + item.url + '" alt="' + alt + '" loading="lazy" style="max-width:100%;border-radius:var(--radius);">');
-      } else {
-        lines.push('<!-- ' + item.label + ' -->');
-        lines.push('<img src="' + item.url + '" alt="' + alt + '" loading="' + loading + '" style="width:100%;height:auto;object-fit:cover;border-radius:var(--radius-lg);">');
-      }
-      lines.push('');
-    });
-  });
-
-  var output = lines.join('\n');
-  document.getElementById('imageCodeContent').textContent = output;
-  document.getElementById('imageCodeOutput').style.display = 'block';
-  showToast(imgLang === 'zh' ? 'HTML代码已生成' : 'HTMLコードを生成しました', 'success');
-}
-
-// ── Preview All ──
-function previewAllImages() {
-  var grid = document.getElementById('imagePreviewGrid');
-  grid.innerHTML = '';
-  var count = 0;
-
-  IMAGE_FIELDS.forEach(function(f) {
-    var el = document.getElementById(f.id);
-    var val = el ? el.value.trim() : '';
-    if (!val) return;
-    count++;
-
-    var card = document.createElement('div');
-    card.className = 'preview-card';
-
-    var img = document.createElement('img');
-    img.src = val;
-    img.alt = f.label[imgLang];
-    img.onerror = function() {
-      this.style.display = 'none';
-      var errDiv = this.nextElementSibling;
-      if (errDiv) { errDiv.className = 'preview-status ng'; errDiv.textContent = '❌ ' + (imgLang === 'zh' ? '加载失败' : '読み込み失敗'); }
-    };
-    img.onload = function() {
-      var okDiv = this.nextElementSibling;
-      if (okDiv) { okDiv.className = 'preview-status ok'; okDiv.textContent = '✅ ' + this.naturalWidth + '×' + this.naturalHeight + ' (' + (imgLang === 'zh' ? '推荐' : '推奨') + ' ' + f.size + ')'; }
-    };
-
-    var status = document.createElement('div');
-    status.className = 'preview-status';
-    status.textContent = imgLang === 'zh' ? '加载中…' : '読み込み中…';
-
-    var label = document.createElement('div');
-    label.className = 'preview-label';
-    label.textContent = f.label[imgLang];
-
-    card.appendChild(img);
-    card.appendChild(status);
-    card.appendChild(label);
-    grid.appendChild(card);
-  });
-
-  document.getElementById('imagePreviewArea').style.display = count > 0 ? 'block' : 'none';
-  if (count === 0) {
-    showToast(imgLang === 'zh' ? '没有输入图片URL' : '画像URLが入力されていません', 'error');
-  } else {
-    showToast(count + (imgLang === 'zh' ? ' 张图片预览中…' : '件の画像をプレビュー中…'), 'success');
-  }
-}
-
-// ── Copy Code ──
-function copyImageCode() {
-  var code = document.getElementById('imageCodeContent').textContent;
-  if (!code) { showToast(imgLang === 'zh' ? '请先生成代码' : 'まずコードを生成してください', 'error'); return; }
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(code).then(function() {
-      showToast(imgLang === 'zh' ? '已复制' : 'コピーしました', 'success');
-    });
-  } else {
-    var ta = document.createElement('textarea');
-    ta.value = code;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    showToast(imgLang === 'zh' ? '已复制' : 'コピーしました', 'success');
-  }
-}
-
-// ============================================================
-// PASSWORD
-// ============================================================
-document.getElementById('changePasswordBtn').addEventListener('click', function() {
-  var np = document.getElementById('newPassword').value;
-  var cp = document.getElementById('confirmPassword').value;
-  if (!np) { showToast(t('パスワードを入力してください','请输入密码'), 'error'); return; }
-  if (np !== cp) { showToast(t('パスワードが一致しません','两次密码不一致'), 'error'); return; }
-  localStorage.setItem(PASS_KEY, np);
-  showToast(t('パスワードを変更しました','已修改密码'), 'success');
-  document.getElementById('newPassword').value = '';
-  document.getElementById('confirmPassword').value = '';
-  addLog(t('パスワードを変更しました','已修改密码'));
-});
-
-// ============================================================
-// Initial render (if already logged in)
-// ============================================================
-if (sessionStorage.getItem('fuluck-admin-auth') === '1') {
-  renderAll();
-}
-// Apply saved language to login screen on load
-(function initLoginLang() {
-  if (admLang !== 'zh') return;
-  var tt = document.getElementById('loginTitle');
-  var ss = document.getElementById('loginSub');
-  var bb = document.getElementById('loginBtn');
-  var ee = document.getElementById('loginError');
-  var pp = document.getElementById('loginPassword');
-  if (tt) tt.textContent = '福楽猫舍 管理后台';
-  if (ss) ss.textContent = '请输入密码登录';
-  if (bb) bb.textContent = '登录';
-  if (ee) ee.textContent = '密码不正确';
-  if (pp) pp.placeholder = '密码';
-})();
-</script>
+<script src="js/admin-images.js"></script>
+<script src="js/admin-core.js"></script>
+<script src="js/admin-render.js"></script>
+<script src="js/admin-photos.js"></script>
+<script src="js/admin-export.js"></script>
+<script src="js/admin-drive.js"></script>
+<script src="js/admin-data.js"></script>
+<script src="js/admin-faq.js"></script>
+<script src="js/admin-articles.js"></script>
+<script src="js/admin-settings.js"></script>
 </body>
 </html>

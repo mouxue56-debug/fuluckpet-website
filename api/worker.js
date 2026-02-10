@@ -283,6 +283,29 @@ export default {
         return addCors(json(data || {}));
       }
 
+      // GET /api/articles — 公開：記事一覧（published only, publishedAt DESC）
+      if (path === '/api/articles' && method === 'GET') {
+        const all = (await env.DATA.get('articles', 'json')) || [];
+        const published = all.filter(a => a.published).sort((a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || ''));
+        return addCors(json(published));
+      }
+
+      // GET /api/articles/:slug — 公開：記事詳細（slug検索）
+      if (path.match(/^\/api\/articles\/[^/]+$/) && method === 'GET') {
+        const slug = path.split('/').pop();
+        const all = (await env.DATA.get('articles', 'json')) || [];
+        const article = all.find(a => a.slug === slug && a.published);
+        if (!article) return addCors(notFound());
+        return addCors(json(article));
+      }
+
+      // GET /api/faq — 公開：FAQ一覧（order ASC, published only）
+      if (path === '/api/faq' && method === 'GET') {
+        const all = (await env.DATA.get('faq', 'json')) || [];
+        const published = all.filter(f => f.published).sort((a, b) => (a.order || 0) - (b.order || 0));
+        return addCors(json(published));
+      }
+
       // ===== GOOGLE DRIVE PUBLIC ROUTES =====
 
       // GET /api/drive/folders/:parentFolderId — 子フォルダ一覧
@@ -533,6 +556,94 @@ export default {
       if (path === '/api/admin/settings' && method === 'PUT') {
         const body = await request.json();
         await env.DATA.put('settings', JSON.stringify(body));
+        return addCors(json({ success: true }));
+      }
+
+      // --- Articles CRUD ---
+      const articlesBulk = path === '/api/admin/articles/bulk' && method === 'POST';
+      if (articlesBulk) {
+        const items = await request.json();
+        if (!Array.isArray(items)) return addCors(json({ error: 'Expected array' }, 400));
+        await env.DATA.put('articles', JSON.stringify(items));
+        return addCors(json({ success: true, count: items.length }));
+      }
+
+      if (path === '/api/admin/articles' && method === 'GET') {
+        const data = await env.DATA.get('articles', 'json');
+        return addCors(json(data || []));
+      }
+
+      if (path === '/api/admin/articles' && method === 'POST') {
+        const body = await request.json();
+        const articles = (await env.DATA.get('articles', 'json')) || [];
+        body.id = crypto.randomUUID();
+        body.createdAt = new Date().toISOString();
+        if (body.published && !body.publishedAt) body.publishedAt = body.createdAt;
+        articles.push(body);
+        await env.DATA.put('articles', JSON.stringify(articles));
+        return addCors(json(body, 201));
+      }
+
+      if (path.match(/^\/api\/admin\/articles\/[^/]+$/) && method === 'PUT') {
+        const id = path.split('/').pop();
+        const body = await request.json();
+        let articles = (await env.DATA.get('articles', 'json')) || [];
+        const idx = articles.findIndex(a => a.id === id);
+        if (idx === -1) return addCors(notFound());
+        if (body.published && !articles[idx].publishedAt && !body.publishedAt) body.publishedAt = new Date().toISOString();
+        articles[idx] = { ...articles[idx], ...body, id, updatedAt: new Date().toISOString() };
+        await env.DATA.put('articles', JSON.stringify(articles));
+        return addCors(json(articles[idx]));
+      }
+
+      if (path.match(/^\/api\/admin\/articles\/[^/]+$/) && method === 'DELETE') {
+        const id = path.split('/').pop();
+        let articles = (await env.DATA.get('articles', 'json')) || [];
+        articles = articles.filter(a => a.id !== id);
+        await env.DATA.put('articles', JSON.stringify(articles));
+        return addCors(json({ success: true }));
+      }
+
+      // --- FAQ CRUD ---
+      const faqBulk = path === '/api/admin/faq/bulk' && method === 'POST';
+      if (faqBulk) {
+        const items = await request.json();
+        if (!Array.isArray(items)) return addCors(json({ error: 'Expected array' }, 400));
+        await env.DATA.put('faq', JSON.stringify(items));
+        return addCors(json({ success: true, count: items.length }));
+      }
+
+      if (path === '/api/admin/faq' && method === 'GET') {
+        const data = await env.DATA.get('faq', 'json');
+        return addCors(json(data || []));
+      }
+
+      if (path === '/api/admin/faq' && method === 'POST') {
+        const body = await request.json();
+        const faq = (await env.DATA.get('faq', 'json')) || [];
+        body.id = crypto.randomUUID();
+        body.createdAt = new Date().toISOString();
+        faq.push(body);
+        await env.DATA.put('faq', JSON.stringify(faq));
+        return addCors(json(body, 201));
+      }
+
+      if (path.match(/^\/api\/admin\/faq\/[^/]+$/) && method === 'PUT') {
+        const id = path.split('/').pop();
+        const body = await request.json();
+        let faq = (await env.DATA.get('faq', 'json')) || [];
+        const idx = faq.findIndex(f => f.id === id);
+        if (idx === -1) return addCors(notFound());
+        faq[idx] = { ...faq[idx], ...body, id, updatedAt: new Date().toISOString() };
+        await env.DATA.put('faq', JSON.stringify(faq));
+        return addCors(json(faq[idx]));
+      }
+
+      if (path.match(/^\/api\/admin\/faq\/[^/]+$/) && method === 'DELETE') {
+        const id = path.split('/').pop();
+        let faq = (await env.DATA.get('faq', 'json')) || [];
+        faq = faq.filter(f => f.id !== id);
+        await env.DATA.put('faq', JSON.stringify(faq));
         return addCors(json({ success: true }));
       }
 
