@@ -1,7 +1,7 @@
 # 福楽キャッテリー 网站交接文档
 
 > **本文档供下一个 AI 会话使用，用于快速了解本项目的全部背景。**
-> 最后更新：2026-02-10 Session 15
+> 最后更新：2026-02-10 Session 15b
 
 ---
 
@@ -49,8 +49,9 @@ fuluckpet-website/
 ├── 404.html            # 404 错误页
 ├── style.css           # 全局样式
 ├── blog.css            # 知识库专用样式 Session 15 新增
-├── script.js           # 全局 JS（i18n、导航、动画、modal、YouTube embed、猫咪ナビ）~680行
+├── script.js           # 全局 JS（i18n、导航、动画、modal、YouTube embed、猫咪ナビ）~780行
 ├── i18n.js             # 翻译字典（JA/EN/ZH）+ data-i18n-html 块替换 + langChanged 事件
+├── card-loader.js      # 动态渲染（从 API 加载子猫/种猫/评价卡片）Session 15b 新增
 ├── blog-loader.js      # 知识库前端加载（从 API 渲染文章列表/详情）Session 15 新增
 ├── faq-loader.js       # FAQ 动态加载（从 API 替换静态 FAQ）Session 15 新增
 ├── sitemap.xml         # SEO sitemap（含 blog.html）
@@ -394,14 +395,16 @@ about.html 还有 1 个占位符（基因检测证明），index.html Instagram 
 
 ### P0+ 全站架构升级（Session 13 规划 — 部分完成）
 
-**A. 动态化改造**（部分完成 Session 14）：
+**A. 动态化改造**（✅ 完成 Session 14-15b）：
 1. ✅ Worker 加 bulk import 端点 + `/r2/` 公开路由
 2. ✅ Admin 数据双写（saveData 同步到 localStorage + KV）
 3. ✅ Admin 登录后自动从 KV 拉取数据（syncFromAPI）
 4. ✅ 数据管理面板一键迁移按钮 + 云端加载按钮
-5. ⬜ 前端动态渲染（script.js 从 API 加载猫咪/种猫/评价）
-6. ⬜ HTML 页面改造（删除硬编码卡片，保留容器）
-7. ⬜ drive-loader.js 适配（监听 `cards-rendered` 事件）
+5. ✅ 前端动态渲染 `card-loader.js`（Session 15b）— 从 API 加载子猫/种猫/评价卡片
+6. ✅ `script.js` 重构 — 提取 `window.rebindCards()` 等可重复绑定函数（Session 15b）
+7. ✅ 4个 HTML 页面加载 card-loader.js（index/kittens/parents/reviews）
+8. ✅ KV 种子数据导入（24子猫 + 16种猫 + 6评价 + 6 FAQ）
+9. ⬜ drive-loader.js 适配（监听 `cards-rendered` 事件）
 
 **B. ✅ 知识库 + FAQ 系统 + Admin 模块化**（Session 15 完成）：
 1. ✅ Admin 模块化：~1400行 inline JS 拆分为 12 个外部模块
@@ -508,6 +511,7 @@ fuluckpet-photos/  (ID: 1sbFIW5C7YfSw7zVIKhhAyCOuKivD8qUc)
 | 13 | 子猫モーダル前後ナビ+親猫クリック遷移 → PC版ナビボタン拡大+スクロール修正 → Adminログイン API統合（プライベートモード対応）→ Admin Drive写真管理パネル → 写真管理モーダルにDriveプレビュー追加 → **全站架构升级计划**（动态渲染+知识库+FAQ） |
 | 14 | HANDOVER修正+OGP统一+about评价徽章CSS → **图片迁移R2**（76张扫描→75张上传→Worker `/r2/` 路由→HTML URL全替换→0外链残留）→ **Admin数据持久化KV**（api-client.js+migrate.js+CRUD改造）→ 性能优化（lazy loading）|
 | 15 | **Admin模块化**（~1400行inline JS→12外部模块）→ **Worker articles+FAQ端点** → **FAQ系统**（faq-loader.js动态加载+admin-faq.js管理+种子数据）→ **知识库**（blog.html+blog.css+blog-loader.js 8分类+admin-articles.js三语编辑）→ **全站导航更新**（22个HTML+i18n.js+sitemap.xml）→ i18n langChanged事件 |
+| 15b | **前端动态渲染**：card-loader.js新建（~200行，从API加载子猫/种猫/评价卡片）→ script.js重构（rebindCards/bindKittenCards/bindParentCards/bindAnimations可重复绑定）→ 4个HTML加载card-loader.js → KV种子数据导入（24子猫+16种猫+6评价+6FAQ）→ 保留硬编码HTML做SEO fallback |
 
 ---
 
@@ -549,7 +553,7 @@ git push origin main          # 1-2 分钟自动部署
 19. **员工教程** — `EMPLOYEE-GUIDE.md`，教员工如何用 Google Drive 上传猫咪照片
 20. **Admin 登录已改造** — 先调 Worker API 验证，fallback 到 localStorage；隐私模式可正常使用（Session 13）
 21. **Admin Drive 照片预览** — 照片管理弹窗内自动匹配 Drive 文件夹，显示缩略图网格，封面标记 📌（Session 13）
-22. **⭐ 已完成&下一步** — ✅图片迁移R2 ✅Admin数据KV同步 ✅知识库+FAQ ✅Admin模块化 → 下一步：(1)前端动态渲染(从API加载猫咪卡片) (2)FAQ种子数据导入(Admin面板点击"デフォルト読込")
+22. **⭐ 已完成&下一步** — ✅图片迁移R2 ✅Admin数据KV同步 ✅知识库+FAQ ✅Admin模块化 ✅前端动态渲染 → 下一步：(1)drive-loader.js适配动态卡片 (2)占位符图片替换
 23. **Admin JS 模块** — 12个外部文件在 `admin/js/`，加载顺序关键：admin-images.js（提供 `t()`, `admLang`）必须在 admin-core.js 之前
 24. **DRIVE_API 变量** — 在 `admin/js/admin-core.js` 中定义
 25. **Drive 文件夹 ID 常量** — 在 `admin/js/admin-drive.js` 中：kittens `1bQKvwvfa3jHIuKGzR9nvvZIKB6z5-kF4`，parents `1GlqXIGEEzupIQ0WHmN4tOvlvCPE7uNuX`
@@ -557,3 +561,9 @@ git push origin main          # 1-2 分钟自动部署
 27. **FAQ 4 分类** — general, purchase, care, health
 28. **i18n langChanged 事件** — `setLanguage()` 触发 `window.dispatchEvent(new CustomEvent('langChanged'))`，faq-loader.js 和 blog-loader.js 监听此事件重新渲染
 29. **localStorage key** — 语言设置用 `fuluckpet-lang`（不是 `fuluck-lang`）
+30. **card-loader.js 动态渲染**（Session 15b）— IIFE 模式，从 API 加载数据替换硬编码 HTML 卡片。成功后调用 `window.rebindCards()` 重新绑定事件。API 失败则保留静态 HTML（SEO + 降级）
+31. **script.js rebind 架构**（Session 15b）— 提取 4 个全局函数：`bindKittenCards()`（重绑点击+modal）、`bindParentCards()`（重绑click→openParentModal）、`bindAnimations()`（重绑 IntersectionObserver + glow 效果）、`rebindCards()`（总调用）
+32. **card-loader.js 页面检测** — 通过 DOM 元素判断当前页面：`#kittensGrid`（index），`.page-hero` + title 关键词（kittens/parents/reviews 子页面）
+33. **两个 group** — kittens/parents 按 group 分组：c995680（Siberian）和 d696506（British/Ragdoll），card-loader.js 自动分组渲染到对应网格
+34. **KV 种子数据** — 24子猫 + 16种猫 + 6评价 + 6FAQ 已导入 Worker KV，API 可直接返回数据
+35. **脚本加载顺序**（前端页面）— i18n.js → drive-loader.js → faq-loader.js → card-loader.js → script.js。card-loader.js 必须在 script.js 前加载（先替换 HTML，再绑定事件）

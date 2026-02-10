@@ -102,15 +102,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ===== Kitten filter tabs =====
   const filterBtns = document.querySelectorAll('.filter-btn');
-  const kittenCards = document.querySelectorAll('.kitten-card');
 
   filterBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       filterBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       const filter = btn.dataset.filter;
+      // Use live DOM query so dynamically loaded cards are included
+      const liveCards = document.querySelectorAll('.kitten-card');
 
-      kittenCards.forEach((card, i) => {
+      liveCards.forEach((card, i) => {
         if (filter === 'all' || card.dataset.status === filter) {
           card.classList.remove('hidden');
           card.style.opacity = '0';
@@ -382,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ===== Kitten Modal Navigation (prev/next kitten) =====
-  const allKittenCards = Array.from(document.querySelectorAll('.kitten-card'));
+  let allKittenCards = Array.from(document.querySelectorAll('.kitten-card'));
   let currentKittenIndex = -1;
 
   function openKittenByIndex(idx) {
@@ -759,5 +760,84 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }, { passive: true });
   }
+
+  // ===== Dynamic Card Rebinding (for card-loader.js) =====
+
+  // Re-bind kitten card click events after dynamic rendering
+  window.bindKittenCards = function() {
+    allKittenCards = Array.from(document.querySelectorAll('.kitten-card'));
+    allKittenCards.forEach((card, idx) => {
+      card.addEventListener('click', () => {
+        if (!kittenModal) return;
+        currentKittenIndex = idx;
+        buildCarousel(card);
+        populateModalInfo(card);
+        kittenModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        updateKittenNavButtons();
+      });
+    });
+    updateKittenCount();
+  };
+
+  // Re-bind parent card click events after dynamic rendering
+  window.bindParentCards = function() {
+    document.querySelectorAll('.parent-card').forEach(card => {
+      // Remove inline onclick to avoid double-fire, then bind via JS
+      card.removeAttribute('onclick');
+      card.style.cursor = 'pointer';
+      card.addEventListener('click', () => {
+        if (typeof window.openParentModal === 'function') {
+          window.openParentModal(card);
+        }
+      });
+    });
+  };
+
+  // Re-bind scroll animations for dynamically loaded cards
+  window.bindAnimations = function() {
+    const dynTargets = document.querySelectorAll(
+      '.kitten-card, .parent-card, .review-card'
+    );
+    dynTargets.forEach(el => {
+      // Only set up animation if not already observed
+      if (el.dataset.animated) return;
+      el.dataset.animated = '1';
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(30px)';
+      const parent = el.parentElement;
+      const siblings = parent ? Array.from(parent.children).filter(c => c.tagName === el.tagName) : [];
+      const idx = siblings.indexOf(el);
+      el.dataset.delay = (idx >= 0 ? idx : 0) * 80;
+      observer.observe(el);
+    });
+    // Also add mouse glow effect to new cards
+    document.querySelectorAll('.kitten-card, .review-card').forEach(card => {
+      if (card.querySelector('.card-glow')) return; // already has glow
+      const glow = document.createElement('div');
+      glow.className = 'card-glow';
+      card.appendChild(glow);
+      card.addEventListener('mousemove', e => {
+        const rect = card.getBoundingClientRect();
+        glow.style.left = (e.clientX - rect.left) + 'px';
+        glow.style.top = (e.clientY - rect.top) + 'px';
+      });
+    });
+  };
+
+  // Master rebind function — called by card-loader.js after dynamic rendering
+  window.rebindCards = function() {
+    window.bindKittenCards();
+    window.bindParentCards();
+    window.bindAnimations();
+    // Re-check hash for parent modal auto-open
+    if (window.location.hash.startsWith('#parent-')) {
+      const parentName = decodeURIComponent(window.location.hash.replace('#parent-', ''));
+      const targetCard = document.querySelector(`.parent-card[data-name="${parentName}"]`);
+      if (targetCard && typeof window.openParentModal === 'function') {
+        setTimeout(() => window.openParentModal(targetCard), 300);
+      }
+    }
+  };
 
 });
