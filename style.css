@@ -1415,6 +1415,65 @@ button { font-family: inherit; cursor: pointer; }
   line-height: 1;
 }
 .modal-close:hover { background: rgba(90, 122, 122, 0.15); transform: rotate(90deg); }
+
+/* Kitten Nav: prev/next buttons in modal */
+.modal-kitten-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.92);
+  color: var(--text-heading);
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+.modal-kitten-nav:hover { background: var(--mint); color: white; transform: translateY(-50%) scale(1.1); }
+.modal-kitten-prev { left: -22px; }
+.modal-kitten-next { right: -22px; }
+
+/* Clickable parent chips */
+.modal-parent-chip.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+.modal-parent-chip.clickable:hover {
+  background: var(--mint);
+  color: white;
+  border-color: var(--mint);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(125, 211, 192, 0.3);
+}
+.modal-parent-chip.clickable:hover .parent-chip-icon { color: white; }
+.modal-parent-chip.clickable::after {
+  content: ' →';
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* Drive badge on kitten cards */
+.kit-badge-drive {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(125, 211, 192, 0.9);
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
 .modal-body { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
 .modal-sm .modal-body { grid-template-columns: 0.8fr 1fr; }
 
@@ -1920,6 +1979,9 @@ button { font-family: inherit; cursor: pointer; }
   .modal-body { grid-template-columns: 1fr; }
   .modal-sm .modal-body { grid-template-columns: 1fr; }
   .modal-gallery { border-radius: var(--radius-xl) var(--radius-xl) 0 0; }
+  .modal-kitten-prev { left: 4px; }
+  .modal-kitten-next { right: 4px; }
+  .modal-kitten-nav { width: 36px; height: 36px; font-size: 18px; }
   .awards-grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; }
   .instagram-grid { grid-template-columns: repeat(3, 1fr); }
   .gallery-page-grid { grid-template-columns: repeat(2, 1fr); }

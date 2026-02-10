@@ -327,8 +327,8 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="modal-parents">
         <h4>両親</h4>
         <div class="modal-parent-row">
-          ${papa ? `<div class="modal-parent-chip"><span class="parent-chip-icon">♂</span><span>パパ: ${papa}</span></div>` : ''}
-          ${mama ? `<div class="modal-parent-chip"><span class="parent-chip-icon">♀</span><span>ママ: ${mama}</span></div>` : ''}
+          ${papa ? `<div class="modal-parent-chip clickable" data-parent-name="${papa}"><span class="parent-chip-icon">♂</span><span>パパ: ${papa}</span></div>` : ''}
+          ${mama ? `<div class="modal-parent-chip clickable" data-parent-name="${mama}"><span class="parent-chip-icon">♀</span><span>ママ: ${mama}</span></div>` : ''}
         </div>
       </div>` : ''}
 
@@ -357,17 +357,124 @@ document.addEventListener('DOMContentLoaded', () => {
         <a href="#visit" class="btn btn-secondary modal-visit-btn" onclick="document.getElementById('kittenModal').classList.remove('active');document.body.style.overflow=''">見学を予約</a>
       </div>
     `;
+
+    // Make parent chips clickable — find matching parent card and open modal
+    info.querySelectorAll('.modal-parent-chip.clickable').forEach(chip => {
+      chip.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const parentName = chip.dataset.parentName;
+        if (!parentName) return;
+
+        // Try to find the parent card on this page
+        const parentCard = document.querySelector(`.parent-card[data-name="${parentName}"]`);
+        if (parentCard && typeof window.openParentModal === 'function') {
+          // Close kitten modal, open parent modal
+          kittenModal.classList.remove('active');
+          window.openParentModal(parentCard);
+        } else {
+          // Not on this page — navigate to parents.html with hash
+          kittenModal.classList.remove('active');
+          document.body.style.overflow = '';
+          window.location.href = `parents.html#parent-${encodeURIComponent(parentName)}`;
+        }
+      });
+    });
+  }
+
+  // ===== Kitten Modal Navigation (prev/next kitten) =====
+  const allKittenCards = Array.from(document.querySelectorAll('.kitten-card'));
+  let currentKittenIndex = -1;
+
+  function openKittenByIndex(idx) {
+    if (idx < 0 || idx >= allKittenCards.length) return;
+    // Skip hidden cards (filtered out)
+    let target = idx;
+    const dir = idx > currentKittenIndex ? 1 : -1;
+    while (target >= 0 && target < allKittenCards.length && allKittenCards[target].classList.contains('hidden')) {
+      target += dir;
+    }
+    if (target < 0 || target >= allKittenCards.length) return;
+
+    currentKittenIndex = target;
+    const card = allKittenCards[target];
+    buildCarousel(card);
+    populateModalInfo(card);
+    updateKittenNavButtons();
+  }
+
+  function updateKittenNavButtons() {
+    const prevBtn = kittenModal?.querySelector('.modal-kitten-prev');
+    const nextBtn = kittenModal?.querySelector('.modal-kitten-next');
+    if (!prevBtn || !nextBtn) return;
+
+    // Find prev/next visible card
+    let hasPrev = false, hasNext = false;
+    for (let i = currentKittenIndex - 1; i >= 0; i--) {
+      if (!allKittenCards[i].classList.contains('hidden')) { hasPrev = true; break; }
+    }
+    for (let i = currentKittenIndex + 1; i < allKittenCards.length; i++) {
+      if (!allKittenCards[i].classList.contains('hidden')) { hasNext = true; break; }
+    }
+    prevBtn.style.display = hasPrev ? '' : 'none';
+    nextBtn.style.display = hasNext ? '' : 'none';
+  }
+
+  // Add nav buttons to modal
+  if (kittenModal) {
+    const container = kittenModal.querySelector('.modal-container');
+    if (container) {
+      const prevBtn = document.createElement('button');
+      prevBtn.className = 'modal-kitten-nav modal-kitten-prev';
+      prevBtn.innerHTML = '‹';
+      prevBtn.title = '前の子猫';
+      prevBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        for (let i = currentKittenIndex - 1; i >= 0; i--) {
+          if (!allKittenCards[i].classList.contains('hidden')) { openKittenByIndex(i); break; }
+        }
+      });
+
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'modal-kitten-nav modal-kitten-next';
+      nextBtn.innerHTML = '›';
+      nextBtn.title = '次の子猫';
+      nextBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        for (let i = currentKittenIndex + 1; i < allKittenCards.length; i++) {
+          if (!allKittenCards[i].classList.contains('hidden')) { openKittenByIndex(i); break; }
+        }
+      });
+
+      container.appendChild(prevBtn);
+      container.appendChild(nextBtn);
+    }
   }
 
   // Open kitten modal
-  document.querySelectorAll('.kitten-card').forEach(card => {
+  allKittenCards.forEach((card, idx) => {
     card.addEventListener('click', () => {
       if (!kittenModal) return;
+      currentKittenIndex = idx;
       buildCarousel(card);
       populateModalInfo(card);
       kittenModal.classList.add('active');
       document.body.style.overflow = 'hidden';
+      updateKittenNavButtons();
     });
+  });
+
+  // Keyboard nav: left/right arrow keys for prev/next kitten
+  document.addEventListener('keydown', e => {
+    if (!kittenModal?.classList.contains('active')) return;
+    if (e.key === 'ArrowLeft') {
+      for (let i = currentKittenIndex - 1; i >= 0; i--) {
+        if (!allKittenCards[i].classList.contains('hidden')) { openKittenByIndex(i); break; }
+      }
+    } else if (e.key === 'ArrowRight') {
+      for (let i = currentKittenIndex + 1; i < allKittenCards.length; i++) {
+        if (!allKittenCards[i].classList.contains('hidden')) { openKittenByIndex(i); break; }
+      }
+    }
   });
 
   // Close modal
@@ -466,6 +573,16 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   });
+
+  // ===== Auto-open parent modal from URL hash =====
+  // e.g. parents.html#parent-しろくん → opens しろくん's modal
+  if (window.location.hash.startsWith('#parent-')) {
+    const parentName = decodeURIComponent(window.location.hash.replace('#parent-', ''));
+    const targetCard = document.querySelector(`.parent-card[data-name="${parentName}"]`);
+    if (targetCard && typeof window.openParentModal === 'function') {
+      setTimeout(() => window.openParentModal(targetCard), 500);
+    }
+  }
 
   // ===== FAQ Accordion =====
   document.querySelectorAll('.faq-item').forEach(item => {

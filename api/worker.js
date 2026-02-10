@@ -547,6 +547,33 @@ export default {
         return addCors(json({ success: true }));
       }
 
+      // --- Drive Status (shows all folders and their images for admin review) ---
+      if (path === '/api/admin/drive/status' && method === 'GET') {
+        const rootId = env.GOOGLE_DRIVE_ROOT_FOLDER_ID;
+        if (!rootId) return addCors(json({ error: 'GOOGLE_DRIVE_ROOT_FOLDER_ID not set' }, 500));
+
+        // List top-level folders (kittens, parents, gallery)
+        const topFolders = await driveList(env, rootId, 'folders');
+        const result = {};
+
+        for (const folder of topFolders) {
+          const subfolders = await driveList(env, folder.id, 'folders');
+          const subs = [];
+          for (const sub of subfolders) {
+            const images = await driveList(env, sub.id, 'images');
+            subs.push({
+              name: sub.name,
+              id: sub.id,
+              imageCount: images.length,
+              images: images.map(img => ({ name: img.name, id: img.id })),
+            });
+          }
+          result[folder.name] = { id: folder.id, subfolders: subs };
+        }
+
+        return addCors(json(result));
+      }
+
       // --- Drive Cache Management ---
       if (path === '/api/admin/drive/refresh' && method === 'POST') {
         // Clear all drive-related KV cache entries
