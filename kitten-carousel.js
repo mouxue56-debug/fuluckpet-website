@@ -9,6 +9,14 @@
     try { return localStorage.getItem('fuluckpet-lang') || 'ja'; } catch(e) { return 'ja'; }
   }
 
+  // Breed name mapping: API returns Japanese breed names, need translation for en/zh
+  var BREED_MAP = {
+    'サイベリアン': { en: 'Siberian', zh: '西伯利亚猫' },
+    'ブリティッシュショートヘア': { en: 'British Shorthair', zh: '英国短毛猫' },
+    'ブリティッシュロングヘア': { en: 'British Longhair', zh: '英国长毛猫' },
+    'ラグドール': { en: 'Ragdoll', zh: '布偶猫' }
+  };
+
   var T = {
     ja: {
       heading: 'この子たちが待っています',
@@ -19,8 +27,7 @@
       viewAll: 'すべての子猫を見る →',
       lineBtn: 'LINEで見学予約',
       male: '♂ 男の子',
-      female: '♀ 女の子',
-      breed: { siberian: 'サイベリアン', british: 'ブリティッシュショートヘア', 'british-longhair': 'ブリティッシュロングヘア', ragdoll: 'ラグドール' }
+      female: '♀ 女の子'
     },
     en: {
       heading: 'Meet Our Kittens',
@@ -31,8 +38,7 @@
       viewAll: 'View All Kittens →',
       lineBtn: 'Book a Visit on LINE',
       male: '♂ Male',
-      female: '♀ Female',
-      breed: { siberian: 'Siberian', british: 'British Shorthair', 'british-longhair': 'British Longhair', ragdoll: 'Ragdoll' }
+      female: '♀ Female'
     },
     zh: {
       heading: '这些小可爱等你来',
@@ -43,8 +49,7 @@
       viewAll: '查看所有幼猫 →',
       lineBtn: 'LINE预约参观',
       male: '♂ 公猫',
-      female: '♀ 母猫',
-      breed: { siberian: '西伯利亚猫', british: '英国短毛猫', 'british-longhair': '英国长毛猫', ragdoll: '布偶猫' }
+      female: '♀ 母猫'
     }
   };
 
@@ -118,11 +123,19 @@
         '<div class="kc-track">';
 
     display.forEach(function(k) {
-      var img = k.coverImage || (k.images && k.images[0]) || '';
-      var breed = k.breed || 'siberian';
-      var breedNames = t('breed');
-      var breedName = (breedNames && breedNames[breed]) || breed;
-      var sex = k.sex === 'female' ? t('female') : t('male');
+      // API fields: photos[], coverIndex, breed (Japanese), gender (♂/♀), color, price, status, isNew
+      var photos = k.photos || [];
+      var coverIdx = k.coverIndex || 0;
+      var img = photos[coverIdx] || photos[0] || '';
+      // Skip kittens with no photo
+      if (!img) return;
+      var breedJa = k.breed || '';
+      var lang = getLang();
+      var breedName = breedJa;
+      if (lang !== 'ja' && BREED_MAP[breedJa]) {
+        breedName = BREED_MAP[breedJa][lang] || breedJa;
+      }
+      var sex = k.gender === '♀' ? t('female') : t('male');
       var color = k.color || '';
       var statusText = k.status === 'available' ? t('available') : t('reserved');
       var statusClass = k.status === 'available' ? 'kc-badge-available' : 'kc-badge-reserved';
