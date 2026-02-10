@@ -925,6 +925,20 @@
         <input type="hidden" id="photo_type">
         <input type="hidden" id="photo_id">
         <p style="font-size:13px;color:var(--text-light);margin-bottom:16px;"><span data-adm-ja="写真を追加・削除したり、カバー写真を選択できます。" data-adm-zh="可以添加、删除照片，以及选择封面照片。">写真を追加・削除したり、カバー写真を選択できます。</span></p>
+
+        <!-- Drive Photos Section -->
+        <div id="drivePhotoSection" style="display:none;margin-bottom:24px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <h4 style="margin:0;font-size:14px;color:var(--text);">☁️ <span data-adm-ja="Google Drive 写真" data-adm-zh="Google Drive 照片">Google Drive 写真</span></h4>
+            <span id="drivePhotoStatus" style="font-size:12px;color:var(--text-light);"></span>
+          </div>
+          <div id="drivePhotoGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;"></div>
+          <p style="font-size:11px;color:var(--text-light);margin-top:8px;">
+            <span data-adm-ja="💡 ファイル名順で表示されます。順番を変えるにはDriveでファイル名を変更してください（例: 01.jpg, 02.jpg）。最初の写真がカバーになります。" data-adm-zh="💡 按文件名顺序显示。要调整顺序请在Drive中重命名文件（如: 01.jpg, 02.jpg）。第一张为封面。">💡 ファイル名順で表示されます。順番を変えるにはDriveでファイル名を変更してください（例: 01.jpg, 02.jpg）。最初の写真がカバーになります。</span>
+          </p>
+        </div>
+
+        <h4 style="font-size:14px;color:var(--text);margin-bottom:12px;">📷 <span data-adm-ja="手動追加の写真" data-adm-zh="手动添加的照片">手動追加の写真</span></h4>
         <div id="galleryGrid" class="gallery-grid"></div>
         <div style="margin-top:20px;">
           <label class="form-label"><span data-adm-ja="写真URLを追加" data-adm-zh="添加照片URL">写真URLを追加</span></label>
@@ -1555,6 +1569,9 @@ function openPhotoModal(type, id) {
 
   renderGalleryGrid(item);
   openModal('photoModal');
+
+  // Load Drive photos for this item
+  loadDrivePhotosForItem(type, item);
 }
 
 function renderGalleryGrid(item) {
@@ -1733,6 +1750,83 @@ function copyGeneratedCode() {
 // ============================================================
 // DRIVE PHOTOS MANAGEMENT
 // ============================================================
+
+// Drive folder IDs (same as in the HTML pages)
+var DRIVE_KITTENS_FOLDER = '1bQKvwvfa3jHIuKGzR9nvvZIKB6z5-kF4';
+var DRIVE_PARENTS_FOLDER = '1GlqXIGEEzupIQ0WHmN4tOvlvCPE7uNuX';
+var driveSubfoldersCache = {};
+
+function loadDrivePhotosForItem(type, item) {
+  var section = document.getElementById('drivePhotoSection');
+  var grid = document.getElementById('drivePhotoGrid');
+  var status = document.getElementById('drivePhotoStatus');
+  if (!section || !grid || !item) { section && (section.style.display = 'none'); return; }
+
+  // Determine the folder name to search for
+  var folderName = '';
+  var parentFolderId = '';
+  if (type === 'kitten') {
+    folderName = item.breederId || '';
+    parentFolderId = DRIVE_KITTENS_FOLDER;
+  } else {
+    folderName = item.name || '';
+    parentFolderId = DRIVE_PARENTS_FOLDER;
+  }
+
+  if (!folderName || !parentFolderId) {
+    section.style.display = 'none';
+    return;
+  }
+
+  section.style.display = 'block';
+  grid.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-light);">⏳ ' + (admLang === 'zh' ? '加载Drive照片...' : 'Drive写真を読み込み中...') + '</div>';
+  status.textContent = '';
+
+  // Step 1: Get subfolders of the parent folder
+  var cacheKey = 'sub_' + parentFolderId;
+  var p = driveSubfoldersCache[cacheKey]
+    ? Promise.resolve(driveSubfoldersCache[cacheKey])
+    : fetch(DRIVE_API + '/api/drive/folders/' + parentFolderId).then(function(r) { return r.json(); }).then(function(folders) { driveSubfoldersCache[cacheKey] = folders; return folders; });
+
+  p.then(function(folders) {
+    if (!Array.isArray(folders)) { throw new Error('Invalid response'); }
+    var match = folders.find(function(f) { return f.name === folderName; });
+    if (!match) {
+      section.style.display = 'block';
+      grid.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-light);background:var(--bg);border-radius:8px;">📁 ' + (admLang === 'zh' ? 'Drive中未找到文件夹「' + folderName + '」' : 'Driveにフォルダ「' + folderName + '」が見つかりません') + '<br><small style="margin-top:4px;display:block;">' + (admLang === 'zh' ? '请在Google Drive的对应目录下创建此文件夹' : 'Google Driveの該当フォルダの下にこのフォルダを作成してください') + '</small></div>';
+      status.textContent = '❌ ' + (admLang === 'zh' ? '未关联' : '未連携');
+      status.style.color = 'var(--danger-dark)';
+      return;
+    }
+
+    // Step 2: Get images in this subfolder
+    return fetch(DRIVE_API + '/api/drive/images/' + match.id).then(function(r) { return r.json(); }).then(function(images) {
+      if (!Array.isArray(images) || images.length === 0) {
+        grid.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-light);background:var(--bg);border-radius:8px;">📷 ' + (admLang === 'zh' ? '文件夹存在但没有照片' : 'フォルダはありますが写真がありません') + '</div>';
+        status.textContent = '⬜ 0 ' + (admLang === 'zh' ? '张' : '枚');
+        status.style.color = 'var(--text-light)';
+        return;
+      }
+
+      status.textContent = '✅ ' + images.length + (admLang === 'zh' ? ' 张照片' : ' 枚');
+      status.style.color = 'var(--mint-dark)';
+
+      grid.innerHTML = images.map(function(img, idx) {
+        var imgUrl = DRIVE_API + '/api/drive/img/' + img.id;
+        return '<div style="position:relative;border-radius:8px;overflow:hidden;aspect-ratio:1;background:var(--bg);border:' + (idx === 0 ? '3px solid var(--mint)' : '1px solid var(--border)') + ';">' +
+          '<img src="' + imgUrl + '" style="width:100%;height:100%;object-fit:cover;" loading="lazy">' +
+          '<div style="position:absolute;bottom:0;left:0;right:0;padding:4px 6px;background:linear-gradient(transparent,' + (idx === 0 ? 'rgba(125,211,192,0.85)' : 'rgba(0,0,0,0.55)') + ');color:white;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' +
+            (idx === 0 ? '📌 ' : '') + img.name +
+          '</div>' +
+        '</div>';
+      }).join('');
+    });
+  }).catch(function(e) {
+    grid.innerHTML = '<div style="text-align:center;padding:20px;color:var(--danger-dark);">❌ ' + e.message + '</div>';
+    status.textContent = '❌ Error';
+    status.style.color = 'var(--danger-dark)';
+  });
+}
 
 function loadDriveStatus() {
   var area = document.getElementById('driveStatusArea');
