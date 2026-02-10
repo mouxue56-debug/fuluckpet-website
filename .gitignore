@@ -13,3 +13,9 @@ node_modules/
 # Env
 .env
 .env.*
+
+# Migration temp files
+tools/tmp/
+
+# Temp plans
+PLAN.md

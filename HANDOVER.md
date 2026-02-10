@@ -1,7 +1,7 @@
 # 福楽キャッテリー 网站交接文档
 
 > **本文档供下一个 AI 会话使用，用于快速了解本项目的全部背景。**
-> 最后更新：2026-02-10 Session 13
+> 最后更新：2026-02-10 Session 14
 
 ---
 
@@ -70,7 +70,10 @@ fuluckpet-website/
 │   ├── i18n-guide-body.js  # 正文翻译（14页 × EN/ZH，1323行）
 │   └── *.html ×14      # 各子页面（见第6节 i18n 说明）
 ├── admin/
-│   └── index.html      # 管理后台（~2350行，完全自包含，全面双语，API登录+Drive写真管理）
+│   ├── index.html      # 管理后台（~2370行，全面双语，API登录+KV同步+Drive写真管理）
+│   └── js/
+│       ├── api-client.js  # Worker KV API 调用层（FuluckAPI 对象）
+│       └── migrate.js     # localStorage→KV 一键迁移（FuluckMigrate 对象）
 └── api/
     ├── worker.js        # Cloudflare Worker（已部署 ✅ fuluck-api.mouxue56.workers.dev）
     ├── wrangler.toml    # Worker 配置
@@ -86,7 +89,7 @@ fuluckpet-website/
 | **地址** | https://fuluckpet.com/admin/ |
 | **密码** | `fuluck5632` |
 | **实现** | 单 HTML 文件（~2350行），CSS/JS 全内联，全站中日双语 |
-| **存储** | 浏览器 `localStorage`（离线 fallback）+ Worker KV（主存储，计划中） |
+| **存储** | Worker KV（主存储）+ `localStorage`（离线 fallback）— Session 14 已接入 |
 | **认证** | Worker API 优先验证 + localStorage 兜底；`sessionStorage` 存会话密码 |
 
 ### localStorage Keys
@@ -178,6 +181,8 @@ fuluckpet-website/
 - `loadDriveStatus()` — Drive 同步状态面板（调 `/api/admin/drive/status`）
 - `clearDriveCache()` — 清除 Drive 缓存（调 `/api/admin/drive/refresh`）
 - `loadDrivePhotosForItem(type, item)` — 照片管理弹窗中加载 Drive 照片预览
+- `syncFromAPI()` — 从 Worker KV 拉取最新数据并更新 UI（Session 14）
+- `runMigration()` — 一键迁移 localStorage 到 KV（Session 14）
 
 ---
 
@@ -249,7 +254,7 @@ fuluckpet-website/
 - ✅ robots.txt（屏蔽 admin/api）
 - ✅ GA4（全 8 页）
 - ✅ Search Console 验证 + sitemap
-- ⚠️ `images/ogp.jpg` 尚未创建（社交分享无预览图）
+- ⚠️ `images/ogp.jpg` 尚未创建（社交分享无预览图）— OGP 路径已统一为 `/images/ogp.jpg`（Session 14）
 
 ### 内容优化状态（Session 9）
 - ✅ 价格免责声明（3处：price section、FAQ、JSON-LD）
@@ -272,14 +277,15 @@ fuluckpet-website/
 | 文件 | 位置 | 需要的文件名 | 尺寸 |
 |------|------|-------------|------|
 | index.html | Instagram ×4 | `insta-1~4.jpg` 或 URL | 400×400px |
-| siberian.html | 集合写真 | ~~已有~~ `siberian-group.jpg`（已有文件，但 HTML 还是占位符 `<div class="img-placeholder">`） |
-| about.html | 受赏徽章 ×3 | `award-2025-h1.jpg` / `award-2025-h2.jpg` / `rating-badge.jpg` | 300×200px |
-| about.html | 基因检测证明 | `genetic-test.jpg` | 800×450px |
+| siberian.html | 集合写真 | ✅ `images/siberian-group.jpg`（已替换） |
+| about.html | 受赏徽章 H1 | ✅ `award-2025-h1.png`（已替换） | 300×200px |
+| about.html | 受赏徽章 H2 | ✅ `award-2025-h2.png`（已替换） | 300×200px |
+| about.html | 评价徽章 | ✅ 已改为 CSS 展示（⭐5.00 + 113件，Session 14） | — |
+| about.html | 基因检测证明 | `genetic-test.jpg`（占位符） | 800×450px |
 | 全ページ | OGP | `ogp.jpg` | 1200×630px |
 
-### ⚠️ 注意：siberian.html 集合写真
-`siberian-group.jpg` 文件已在 images/ 文件夹，但 `siberian.html` 第 300 行仍是 `<div class="img-placeholder sib-ph">`。
-**需要替换 HTML 代码**：将占位符 div 替换为 `<img src="images/siberian-group.jpg">`。
+### ✅ siberian.html 集合写真
+已替换为 `<img src="images/siberian-group.jpg">`（Session 14 确认）。
 
 ### 子猫モーダル機能（Session 12-13）
 - **前後ナビボタン**：モーダル内で ‹ › ボタンで前後の子猫に切り替え（キーボード ← → 対応）
@@ -292,29 +298,28 @@ fuluckpet-website/
 `hero-main.jpg`, `siberian-main.jpg`, `siberian-group.jpg`, `hero-main-original.jpg` 存在于本地但尚未 git add/commit/push。
 **业主说他自己操作本地上传**，所以可能已经 push 了，先 `git status` 检查。
 
-### koneko-breeder.com 外链图片（高风险）
-- index.html: 卒業猫预览 ×4 + 子猫 ×9 + 种猫 ×3 = 16 张
-- gallery.html: 36 张
-- kittens.html: 24 张
-- parents.html: 16 张
-- **总计约 92 张图依赖外链**，对方封禁 = 大面积破图
+### ✅ koneko-breeder.com 外链图片（已迁移至 R2 — Session 14）
+- 扫描发现 76 张独立图片（~165 处引用）
+- 75 张成功下载并上传到 R2（1 张源站已 404）
+- 所有 HTML 文件中的外链 URL 已替换为 `fuluck-api.mouxue56.workers.dev/r2/uploads/...`
+- Worker 新增 `/r2/*` 公开路由提供图片服务（30 天 Cache-Control）
+- 迁移工具在 `tools/migrate-images.js`，URL 映射在 `tools/url-map.json`
+- **0 处 koneko-breeder.com 引用残留**（HTML 文件中）
 
 ---
 
 ## 9. 已知风险
 
-### 🔴 高：图片外链
-约 92 张图从 koneko-breeder.com 外链。对方禁止外链或删图 → 网站大面积破图。
-**解决**：替换为 Google Photos 链接或自托管。
+### ✅ ~~高：图片外链~~ — 已解决（Session 14）
+76 张独立图片已全部迁移至 R2，通过 Worker `/r2/` 路由提供服务。0 处外链残留。
 
-### 🟡 中：localStorage 数据（计划解决中）
-管理后台数据仅在浏览器。清缓存/换电脑 = 数据丢失。
-**Session 13 已规划解决方案**：全站动态化改造（Admin → Worker KV API），详见 `.claude/plans/witty-wiggling-journal.md`。
-**当前临时措施**：Admin 登录已改为 Worker API 优先验证，隐私模式可用。
+### ✅ ~~中：localStorage 数据~~ — 已解决（Session 14）
+Admin 数据现在同步到 Worker KV。每次保存自动推送到 KV，登录时自动从 KV 拉取。
+数据管理面板新增"クラウドに移行"按钮可一键迁移。localStorage 保留为离线 fallback。
 
 ### 🟡 中：占位符未替换
-about.html 还有 4 个占位符（受赏徽章 ×3 + 基因检测），index.html Instagram ×4 个占位符。
-siberian.html 集合写真占位符需替换（文件已有）。
+about.html 还有 1 个占位符（基因检测证明），index.html Instagram ×4 个占位符。
+受赏徽章 h1/h2 已有真实图片，评价徽章已改为 CSS 展示（Session 14）。siberian.html 集合写真已替换。
 
 ### 🟢 低：OGP 图片缺失
 `images/ogp.jpg` 不存在。LINE/Twitter 分享无预览。
@@ -328,23 +333,23 @@ siberian.html 集合写真占位符需替换（文件已有）。
 - **用户准备** review-screenshot、award 徽章、genetic-test、instagram、ogp 图片
 
 ### P1 高优先级
-1. **替换 siberian.html 集合写真占位符** — 文件已有（siberian-group.jpg），HTML 需从 `<div class="img-placeholder">` 改为 `<img>`
-2. **替换 about.html 4 个占位符** — 等用户准备好图片文件
+1. ~~替换 siberian.html 集合写真占位符~~ — ✅ 已完成
+2. **替换 about.html 2 个占位符**（评价徽章 + 基因检测）— 等用户准备好图片文件
 3. **替换 index.html Instagram 4 个占位符** — 改为图片+超链接跳转Instagram
 4. **OGP 图片** — 需 1200×630px，用于 LINE/Twitter/Facebook 分享
-5. **替换外链图片** — koneko-breeder.com → Google Photos 或自托管
+5. ~~替换外链图片~~ — ✅ 已迁移到 R2（Session 14）
 6. **review-screenshot-1/2.jpg** — 用户之前上传过截图给 AI，但文件未放到 images/ 文件夹
 
-### P0+ 全站架构升级（Session 13 规划 — 待执行）
+### P0+ 全站架构升级（Session 13 规划 — 部分完成）
 
-**计划文件**：`.claude/plans/witty-wiggling-journal.md`
-
-**A. 动态化改造**：
-1. Worker 加 migrate 端点 → 数据迁移脚本（HTML → KV）
-2. 前端动态渲染（script.js 从 API 加载猫咪/种猫/评价）
-3. HTML 页面改造（删除硬编码卡片，保留容器）
-4. drive-loader.js 适配（监听 `cards-rendered` 事件）
-5. Admin 改为调 API（CRUD 直接写 KV，删除 HTML 导出功能）
+**A. 动态化改造**（部分完成 Session 14）：
+1. ✅ Worker 加 bulk import 端点 + `/r2/` 公开路由
+2. ✅ Admin 数据双写（saveData 同步到 localStorage + KV）
+3. ✅ Admin 登录后自动从 KV 拉取数据（syncFromAPI）
+4. ✅ 数据管理面板一键迁移按钮 + 云端加载按钮
+5. ⬜ 前端动态渲染（script.js 从 API 加载猫咪/种猫/评价）
+6. ⬜ HTML 页面改造（删除硬编码卡片，保留容器）
+7. ⬜ drive-loader.js 适配（监听 `cards-rendered` 事件）
 
 **B. 知识库 + FAQ 系统**：
 1. Worker 加 articles + faq 端点
@@ -385,14 +390,18 @@ siberian.html 集合写真占位符需替换（文件已有）。
 - `GET /api/kittens` — 获取子猫列表
 - `GET /api/parents` — 获取种猫列表
 - `GET /api/reviews` — 获取评价列表
+- `GET /r2/*` — R2 图片公开访问（30天缓存，Session 14 新增）
 - `GET /api/drive/folders/:parentFolderId` — 列出子文件夹（KV 缓存 30 分钟）
 - `GET /api/drive/images/:folderId` — 列出文件夹内图片（KV 缓存 30 分钟）
 - `GET /api/drive/img/:fileId` — 代理图片（R2 永久缓存 + **自动压缩** + Cache-Control 7天）
 
 管理端点（需 `Authorization: Bearer <password>` 认证）：
 - `POST/PUT/DELETE /api/admin/kittens/:id` — 子猫 CRUD
+- `POST /api/admin/kittens/bulk` — 子猫批量导入（Session 14 新增）
 - `POST/PUT/DELETE /api/admin/parents/:id` — 种猫 CRUD
+- `POST /api/admin/parents/bulk` — 种猫批量导入（Session 14 新增）
 - `POST/PUT/DELETE /api/admin/reviews/:id` — 评价 CRUD
+- `POST /api/admin/reviews/bulk` — 评价批量导入（Session 14 新增）
 - `POST /api/admin/upload` — 图片上传到 R2（multipart/form-data）
 - `DELETE /api/admin/upload` — 从 R2 删除图片
 - `GET /api/admin/drive/status` — Drive 同步状态（文件夹树+缓存统计）
@@ -438,6 +447,7 @@ fuluckpet-photos/  (ID: 1sbFIW5C7YfSw7zVIKhhAyCOuKivD8qUc)
 | 11 | Guide 子页面 i18n 正文切换（14页 × EN/ZH）→ Google Drive 图片同步方案规划 |
 | 12 | Google Drive 图片同步全部完成：Worker+R2+Drive 方案代码 → R2/KV 创建 → Drive 文件夹+SA 配置 → Worker 部署上线 → 自动压缩功能（>2MB 图片自动缩小）→ 员工操作教程 EMPLOYEE-GUIDE.md |
 | 13 | 子猫モーダル前後ナビ+親猫クリック遷移 → PC版ナビボタン拡大+スクロール修正 → Adminログイン API統合（プライベートモード対応）→ Admin Drive写真管理パネル → 写真管理モーダルにDriveプレビュー追加 → **全站架构升级计划**（动态渲染+知识库+FAQ） |
+| 14 | HANDOVER修正+OGP统一+about评价徽章CSS → **图片迁移R2**（76张扫描→75张上传→Worker `/r2/` 路由→HTML URL全替换→0外链残留）→ **Admin数据持久化KV**（api-client.js+migrate.js+CRUD改造）→ 性能优化（lazy loading）|
 
 ---
 
@@ -461,14 +471,14 @@ git push origin main          # 1-2 分钟自动部署
 1. **先 git pull** — 避免冲突。用户可能已经自己 push 了图片
 2. **先 git status** — 检查 images/ 文件夹是否已有新图片
 3. **Admin 是单文件** — `admin/index.html` ~2350 行，CSS/JS 全内联
-4. **数据存储** — 当前 localStorage（计划迁移到 Worker KV），多个 key（见第4节表格）
+4. **数据存储** — Worker KV（主）+ localStorage（离线 fallback），每次 saveData() 自动同步到 KV
 5. **业主说中文** — 沟通用中文
 6. **网站日语** — i18n 支持 EN/ZH
 7. **Admin 全站双语** — 用 `data-adm-ja/zh` 属性 + `t(ja,zh)` 函数；画像管理保留 `data-img-ja/zh` 兼容
 8. **YouTube 嵌入** — 子猫 `video` 字段支持 iframe embed/youtu.be/youtube.com URL，modal 自动播放
 9. **照片方案** — 三种来源并存：手动 URL / 直接上传到 R2 / Drive 同步。照片管理弹窗内可预览 Drive 照片（Session 13）
 10. **别改密码** — `fuluck5632`，改前问业主
-11. **外链图片危险** — koneko-breeder.com ~92张图，随时可能挂
+11. ~~外链图片危险~~ — ✅ 已迁移到R2（Session 14），0处外链残留。图片通过 `/r2/uploads/...` 访问
 12. **公开仓库** — 别提交敏感信息
 13. **纯静态** — 改文件 push 就行，没有构建步骤
 14. **LINE URL** — `https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true`
@@ -479,6 +489,7 @@ git push origin main          # 1-2 分钟自动部署
 19. **员工教程** — `EMPLOYEE-GUIDE.md`，教员工如何用 Google Drive 上传猫咪照片
 20. **Admin 登录已改造** — 先调 Worker API 验证，fallback 到 localStorage；隐私模式可正常使用（Session 13）
 21. **Admin Drive 照片预览** — 照片管理弹窗内自动匹配 Drive 文件夹，显示缩略图网格，封面标记 📌（Session 13）
-22. **⭐ 下一步：全站架构升级** — 详见 `.claude/plans/witty-wiggling-journal.md`，分 2 次对话执行。第 1 次：动态化改造（数据迁移+前端动态渲染+Admin API 化）。第 2 次：知识库+FAQ 系统
-23. **DRIVE_API 变量位置** — `admin/index.html` L1014，`var DRIVE_API = 'https://fuluck-api.mouxue56.workers.dev'`，必须在 `doLogin()` 之前声明
-24. **Drive 文件夹 ID 常量** — kittens: `1bQKvwvfa3jHIuKGzR9nvvZIKB6z5-kF4`，parents: `1GlqXIGEEzupIQ0WHmN4tOvlvCPE7uNuX`
+22. **⭐ 已完成&下一步** — ✅图片迁移R2 ✅Admin数据KV同步 → 下一步：(1)前端动态渲染(从API加载卡片) (2)知识库+FAQ (3)Admin模块化拆分
+23. **Admin 外部 JS** — `admin/js/api-client.js`（FuluckAPI 对象）和 `admin/js/migrate.js`（FuluckMigrate 对象），在 `<script>` 主块之前加载
+24. **DRIVE_API 变量位置** — `admin/index.html` L1014，`var DRIVE_API = 'https://fuluck-api.mouxue56.workers.dev'`，必须在 `doLogin()` 之前声明
+25. **Drive 文件夹 ID 常量** — kittens: `1bQKvwvfa3jHIuKGzR9nvvZIKB6z5-kF4`，parents: `1GlqXIGEEzupIQ0WHmN4tOvlvCPE7uNuX`

@@ -378,6 +378,21 @@ export default {
         }));
       }
 
+      // ===== R2 PUBLIC IMAGE SERVING =====
+
+      // GET /r2/* — serve images from R2 bucket
+      if (path.startsWith('/r2/') && method === 'GET') {
+        const key = path.slice(4); // remove '/r2/'
+        const obj = await env.BUCKET.get(key);
+        if (!obj) return addCors(notFound());
+        return addCors(new Response(obj.body, {
+          headers: {
+            'Content-Type': obj.httpMetadata?.contentType || 'image/jpeg',
+            'Cache-Control': 'public, max-age=2592000', // 30 days
+          },
+        }));
+      }
+
       // ===== AUTH CHECK =====
       // POST /api/auth — ログイン確認
       if (path === '/api/auth' && method === 'POST') {
@@ -400,6 +415,16 @@ export default {
       }
 
       // ===== ADMIN ROUTES =====
+
+      // --- Bulk Import (for localStorage → KV migration) ---
+      const bulkMatch = path.match(/^\/api\/admin\/(kittens|parents|reviews)\/bulk$/);
+      if (bulkMatch && method === 'POST') {
+        const type = bulkMatch[1];
+        const items = await request.json();
+        if (!Array.isArray(items)) return addCors(json({ error: 'Expected array' }, 400));
+        await env.DATA.put(type, JSON.stringify(items));
+        return addCors(json({ success: true, count: items.length }));
+      }
 
       // --- Kittens CRUD ---
       if (path === '/api/admin/kittens' && method === 'GET') {

@@ -419,7 +419,7 @@
                 </div>
                 <p class="img-desc"><span data-img-ja="トップページ卒業猫セクションの1枚目。正方形推奨。" data-img-zh="首页毕业猫区域第1张，正方形推荐。">トップページ卒業猫セクションの1枚目。正方形推奨。</span></p>
                 <div class="img-input-group">
-                  <input type="text" id="img-gallery-1" class="form-input" placeholder="https://..." value="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_bb55e8c5f9a5.jpg">
+                  <input type="text" id="img-gallery-1" class="form-input" placeholder="https://..." value="https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724779482-2c5913d5.jpg">
                   <label class="img-upload-btn"><input type="file" accept="image/*" onchange="handleImgUpload(this,'img-gallery-1')"> <span data-img-ja="ファイル選択" data-img-zh="选择文件">ファイル選択</span></label>
                 </div>
               </div>
@@ -430,7 +430,7 @@
                   <span class="img-size-badge">400×400px</span>
                 </div>
                 <div class="img-input-group">
-                  <input type="text" id="img-gallery-2" class="form-input" placeholder="https://..." value="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_f526365b0a70.jpg">
+                  <input type="text" id="img-gallery-2" class="form-input" placeholder="https://..." value="https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724783542-47df32ca.jpg">
                   <label class="img-upload-btn"><input type="file" accept="image/*" onchange="handleImgUpload(this,'img-gallery-2')"> <span data-img-ja="ファイル選択" data-img-zh="选择文件">ファイル選択</span></label>
                 </div>
               </div>
@@ -441,7 +441,7 @@
                   <span class="img-size-badge">400×400px</span>
                 </div>
                 <div class="img-input-group">
-                  <input type="text" id="img-gallery-3" class="form-input" placeholder="https://..." value="https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_b874ae3c23f1.jpg">
+                  <input type="text" id="img-gallery-3" class="form-input" placeholder="https://..." value="https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724778309-3c9eab37.jpg">
                   <label class="img-upload-btn"><input type="file" accept="image/*" onchange="handleImgUpload(this,'img-gallery-3')"> <span data-img-ja="ファイル選択" data-img-zh="选择文件">ファイル選択</span></label>
                 </div>
               </div>
@@ -452,7 +452,7 @@
                   <span class="img-size-badge">400×400px</span>
                 </div>
                 <div class="img-input-group">
-                  <input type="text" id="img-gallery-4" class="form-input" placeholder="https://..." value="https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_1dfb1c5f7bf6.jpg">
+                  <input type="text" id="img-gallery-4" class="form-input" placeholder="https://..." value="https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724790137-1b011a28.jpg">
                   <label class="img-upload-btn"><input type="file" accept="image/*" onchange="handleImgUpload(this,'img-gallery-4')"> <span data-img-ja="ファイル選択" data-img-zh="选择文件">ファイル選択</span></label>
                 </div>
               </div>
@@ -747,6 +747,13 @@
             <input type="file" id="importFileInput" accept=".json" style="display:none">
           </div>
           <div class="settings-card">
+            <h3>☁️ <span data-adm-ja="クラウド同期 (KV)" data-adm-zh="云端同步 (KV)">クラウド同期 (KV)</span></h3>
+            <p style="color:var(--text-light);margin-bottom:16px;font-size:13px;"><span data-adm-ja="ローカルデータをクラウド（Worker KV）に移行します。移行後はブラウザを変えてもデータが保持されます。" data-adm-zh="将本地数据迁移到云端（Worker KV）。迁移后即使更换浏览器数据也不会丢失。">ローカルデータをクラウド（Worker KV）に移行します。移行後はブラウザを変えてもデータが保持されます。</span></p>
+            <button class="top-btn btn-primary" onclick="runMigration()"><span data-adm-ja="クラウドに移行" data-adm-zh="迁移到云端">クラウドに移行</span></button>
+            <button class="top-btn btn-secondary" onclick="syncFromAPI()" style="margin-left:8px;"><span data-adm-ja="クラウドから読込" data-adm-zh="从云端加载">クラウドから読込</span></button>
+            <div id="migrateProgress" style="margin-top:12px;font-size:13px;color:var(--text-light);"></div>
+          </div>
+          <div class="settings-card">
             <h3>🔄 <span data-adm-ja="データリセット" data-adm-zh="数据重置">データリセット</span></h3>
             <p style="color:var(--text-light);margin-bottom:16px;font-size:13px;"><span data-adm-ja="管理データを初期状態（サイトの実際のデータ）に戻します。" data-adm-zh="将管理数据恢复到初始状态（网站的实际数据）。">管理データを初期状態（サイトの実際のデータ）に戻します。</span></p>
             <button class="top-btn btn-danger" onclick="resetData()"><span data-adm-ja="データをリセット" data-adm-zh="重置数据">データをリセット</span></button>
@@ -797,7 +804,7 @@
 
           <div class="guide-step">
             <h4><span class="step-number">8</span> <span data-adm-ja="データの仕組みについて" data-adm-zh="关于数据机制">データの仕組みについて</span></h4>
-            <p><span data-adm-ja="📌 <strong>知っておくべきこと：</strong><br>・このサイトはGitHub Pagesの静的サイトです（データベースなし）<br>・管理画面のデータはブラウザの<strong>localStorage</strong>に保存されています<br>・同じブラウザ・同じPCでのみデータが見えます<br>・ブラウザのキャッシュをクリアするとデータが初期化されます<br>・別のPC/ブラウザで使うには「JSONエクスポート → インポート」してください<br>・サイトURL: <a href='https://fuluckpet.com' target='_blank'>fuluckpet.com</a><br>・管理画面URL: <a href='https://fuluckpet.com/admin/' target='_blank'>fuluckpet.com/admin/</a>" data-adm-zh="📌 <strong>需要了解的事项：</strong><br>・本网站是GitHub Pages的静态网站（没有数据库）<br>・管理后台的数据保存在浏览器的<strong>localStorage</strong>中<br>・只有在同一浏览器、同一台电脑上才能看到数据<br>・清除浏览器缓存会导致数据初始化<br>・在其他电脑/浏览器使用请先「导出JSON → 导入」<br>・网站地址: <a href='https://fuluckpet.com' target='_blank'>fuluckpet.com</a><br>・管理后台地址: <a href='https://fuluckpet.com/admin/' target='_blank'>fuluckpet.com/admin/</a>">📌 <strong>知っておくべきこと：</strong><br>・このサイトはGitHub Pagesの静的サイトです（データベースなし）<br>・管理画面のデータはブラウザの<strong>localStorage</strong>に保存されています<br>・同じブラウザ・同じPCでのみデータが見えます<br>・ブラウザのキャッシュをクリアするとデータが初期化されます<br>・別のPC/ブラウザで使うには「JSONエクスポート → インポート」してください<br>・サイトURL: <a href='https://fuluckpet.com' target='_blank'>fuluckpet.com</a><br>・管理画面URL: <a href='https://fuluckpet.com/admin/' target='_blank'>fuluckpet.com/admin/</a></span></p>
+            <p><span data-adm-ja="📌 <strong>知っておくべきこと：</strong><br>・データは<strong>クラウド（Worker KV）</strong>と<strong>ブラウザ（localStorage）</strong>の両方に保存されます<br>・ログイン時にクラウドから最新データを自動で取得します<br>・保存するたびにクラウドにも自動で同期されます<br>・「データ管理」→「クラウドに移行」で手動同期もできます<br>・ブラウザを変えてもクラウドのデータが自動で反映されます<br>・サイトURL: <a href='https://fuluckpet.com' target='_blank'>fuluckpet.com</a><br>・管理画面URL: <a href='https://fuluckpet.com/admin/' target='_blank'>fuluckpet.com/admin/</a>" data-adm-zh="📌 <strong>需要了解的事项：</strong><br>・数据同时保存在<strong>云端（Worker KV）</strong>和<strong>浏览器（localStorage）</strong>中<br>・登录时会自动从云端获取最新数据<br>・每次保存都会自动同步到云端<br>・可在「数据管理」→「迁移到云端」手动同步<br>・更换浏览器后云端数据会自动加载<br>・网站地址: <a href='https://fuluckpet.com' target='_blank'>fuluckpet.com</a><br>・管理后台地址: <a href='https://fuluckpet.com/admin/' target='_blank'>fuluckpet.com/admin/</a>">📌 <strong>知っておくべきこと：</strong><br>・データは<strong>クラウド（Worker KV）</strong>と<strong>ブラウザ（localStorage）</strong>の両方に保存されます<br>・ログイン時にクラウドから最新データを自動で取得します<br>・保存するたびにクラウドにも自動で同期されます<br>・「データ管理」→「クラウドに移行」で手動同期もできます<br>・ブラウザを変えてもクラウドのデータが自動で反映されます<br>・サイトURL: <a href='https://fuluckpet.com' target='_blank'>fuluckpet.com</a><br>・管理画面URL: <a href='https://fuluckpet.com/admin/' target='_blank'>fuluckpet.com/admin/</a></span></p>
           </div>
         </div>
 
@@ -957,55 +964,57 @@
 
   <div class="toast" id="toast"></div>
 
+<script src="js/api-client.js"></script>
+<script src="js/migrate.js"></script>
 <script>
 // ============================================================
 // INITIAL DATA - Pre-populated from actual website
 // photos: array of image URLs, coverIndex: which photo is the cover
 // ============================================================
 var DEFAULT_KITTENS = [
-  { id:'k1', breederId:'2602-00625', breed:'サイベリアン', gender:'♂', color:'ブルーリンクスポイント ネヴァマスカレード', birthday:'2025-12', price:200000, status:'available', papa:'しろくん', mama:'大蓝ちゃん', isNew:true, photos:['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_bcdb713f28a6.jpg'], coverIndex:0, note:'', group:'c995680' },
-  { id:'k2', breederId:'2601-01855', breed:'サイベリアン', gender:'♂', color:'シルバータビー トリプルコート', birthday:'2025-12', price:250000, status:'available', papa:'しろくん', mama:'小郭ちゃん', isNew:true, photos:['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_5c3c7d28b3c6.jpg'], coverIndex:0, note:'', group:'c995680' },
-  { id:'k3', breederId:'2601-00909', breed:'サイベリアン', gender:'♀', color:'ブルーリンクスポイント ネヴァマスカレード', birthday:'2025-12', price:280000, status:'available', papa:'しろくん', mama:'大蓝ちゃん', isNew:true, photos:['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_f145444950e5.jpg'], coverIndex:0, note:'', group:'c995680' },
-  { id:'k4', breederId:'2509-01171', breed:'サイベリアン', gender:'♂', color:'レッドリンクスポイント', birthday:'2025-05', price:250000, status:'available', papa:'しろくん', mama:'咬咬ちゃん', isNew:false, photos:['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_474a3e0acd95.jpg'], coverIndex:0, note:'', group:'c995680' },
-  { id:'k5', breederId:'2511-02287', breed:'サイベリアン', gender:'♂', color:'ブラウンタビー トリプルコート', birthday:'2025-10', price:220000, status:'available', papa:'しろくん', mama:'圆圆ちゃん', isNew:false, photos:['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_5286e955d406.jpg'], coverIndex:0, note:'', group:'c995680' },
-  { id:'k6', breederId:'2509-02086', breed:'サイベリアン', gender:'♀', color:'シルバータビー', birthday:'2025-06', price:190000, status:'available', papa:'しろくん', mama:'dodoちゃん', isNew:false, photos:['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_a8ee8be38f02.jpg'], coverIndex:0, note:'', group:'c995680' },
-  { id:'k7', breederId:'2511-01887', breed:'サイベリアン', gender:'♂', color:'ホワイト トリプルコート', birthday:'2025-09', price:250000, status:'available', papa:'しろくん', mama:'小蓝ちゃん', isNew:false, photos:['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_53e1c8b9b691.jpg'], coverIndex:0, note:'', group:'c995680' },
-  { id:'k8', breederId:'2601-00912', breed:'サイベリアン', gender:'♀', color:'ブルーリンクスポイント ネヴァマスカレード', birthday:'2025-12', price:200000, status:'available', papa:'しろくん', mama:'大蓝ちゃん', isNew:true, photos:['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_6416db1fca26.jpg'], coverIndex:0, note:'', group:'c995680' },
-  { id:'k9', breederId:'2508-00310', breed:'サイベリアン', gender:'♂', color:'シルバーシェーデッド', birthday:'2025-06', price:220000, status:'available', papa:'しろくん', mama:'Paopaoちゃん', isNew:false, photos:['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_f1fe3e295975.jpg'], coverIndex:0, note:'去勢済み', group:'c995680' },
-  { id:'k10', breederId:'2512-01681', breed:'サイベリアン', gender:'♂', color:'ブルーパッチドタビー＆ホワイト', birthday:'2025-10', price:220000, status:'available', papa:'', mama:'', isNew:true, photos:['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_65cda2df7c23.jpg'], coverIndex:0, note:'', group:'c995680' },
-  { id:'k11', breederId:'2510-01286', breed:'サイベリアン', gender:'♀', color:'ブラウンタビー トリプルコート', birthday:'2025-07', price:200000, status:'available', papa:'', mama:'', isNew:false, photos:['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_b63fb3ed0d40.jpg'], coverIndex:0, note:'', group:'c995680' },
-  { id:'k12', breederId:'2511-00142', breed:'サイベリアン', gender:'♂', color:'ホワイト', birthday:'2025-07', price:200000, status:'available', papa:'', mama:'', isNew:false, photos:['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_55de77e44ae3.jpg'], coverIndex:0, note:'', group:'c995680' },
-  { id:'k13', breederId:'2511-00143', breed:'サイベリアン', gender:'♀', color:'ホワイト', birthday:'2025-07', price:180000, status:'available', papa:'', mama:'', isNew:false, photos:['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_1d50735f1243.jpg'], coverIndex:0, note:'', group:'c995680' },
-  { id:'k14', breederId:'2508-02468', breed:'サイベリアン', gender:'♂', color:'シルバー＆ホワイト トリプルコート', birthday:'2025-06', price:190000, status:'available', papa:'', mama:'', isNew:false, photos:['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_ba3d34ebc731.jpg'], coverIndex:0, note:'去勢済み', group:'c995680' },
-  { id:'k15', breederId:'2509-01027', breed:'サイベリアン', gender:'♂', color:'レッドリンクスポイント トリプルコート', birthday:'2025-05', price:220000, status:'available', papa:'', mama:'', isNew:false, photos:['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_thumb_mob_b0c784c03b06.jpg'], coverIndex:0, note:'去勢済み', group:'c995680' },
-  { id:'k16', breederId:'2508-03366', breed:'ブリティッシュショートヘア', gender:'♀', color:'ゴールデンシェーデッド', birthday:'2025-05', price:280000, status:'available', papa:'', mama:'', isNew:false, photos:['https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_2626e51e5216.jpg'], coverIndex:0, note:'', group:'d696506' },
-  { id:'k17', breederId:'2508-03312', breed:'ブリティッシュショートヘア', gender:'♀', color:'チンチラゴールデン ロングヘア', birthday:'2025-05', price:280000, status:'available', papa:'', mama:'', isNew:false, photos:['https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_ae83160357f5.jpg'], coverIndex:0, note:'', group:'d696506' },
-  { id:'k18', breederId:'2508-03355', breed:'ブリティッシュショートヘア', gender:'♂', color:'ゴールデンシェーデッド', birthday:'2025-05', price:240000, status:'available', papa:'', mama:'', isNew:false, photos:['https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_fef0dac4d322.jpg'], coverIndex:0, note:'', group:'d696506' },
-  { id:'k19', breederId:'2509-00562', breed:'ブリティッシュショートヘア', gender:'♀', color:'ゴールデンシェーデッド＆ホワイト', birthday:'2025-05', price:160000, status:'available', papa:'', mama:'', isNew:false, photos:['https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_fa5d32abfe16.jpg'], coverIndex:0, note:'', group:'d696506' },
-  { id:'k20', breederId:'2512-00115', breed:'サイベリアン×ブリティッシュ', gender:'♀', color:'ブラウンタビー＆ホワイト', birthday:'2025-09', price:140000, status:'available', papa:'', mama:'', isNew:false, photos:['https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_98b9c6bfeaf2.jpg'], coverIndex:0, note:'', group:'d696506' },
-  { id:'k21', breederId:'2509-02907', breed:'ブリティッシュショートヘア', gender:'♀', color:'ブラウンタビー＆ホワイト', birthday:'2025-08', price:160000, status:'available', papa:'', mama:'', isNew:false, photos:['https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_6733bee9a639.jpg'], coverIndex:0, note:'', group:'d696506' },
-  { id:'k22', breederId:'2510-01844', breed:'ブリティッシュショートヘア', gender:'♂', color:'ホワイト', birthday:'2025-08', price:160000, status:'available', papa:'', mama:'', isNew:false, photos:['https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_aad8b700cc92.jpg'], coverIndex:0, note:'', group:'d696506' },
-  { id:'k23', breederId:'2408-03054', breed:'ブリティッシュロングヘア', gender:'♂', color:'チョコレートゴールデン ロングヘア', birthday:'2024-02', price:290000, status:'reserved', papa:'', mama:'', isNew:false, photos:['https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_85a6f25bfdc0.jpg'], coverIndex:0, note:'', group:'d696506' },
-  { id:'k24', breederId:'2512-00112', breed:'サイベリアン×ブリティッシュ', gender:'♂', color:'ホワイト', birthday:'2025-09', price:150000, status:'reserved', papa:'', mama:'', isNew:false, photos:['https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_ed4f2b764841.jpg'], coverIndex:0, note:'', group:'d696506' },
+  { id:'k1', breederId:'2602-00625', breed:'サイベリアン', gender:'♂', color:'ブルーリンクスポイント ネヴァマスカレード', birthday:'2025-12', price:200000, status:'available', papa:'しろくん', mama:'大蓝ちゃん', isNew:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724780473-b1cd27ac.jpg'], coverIndex:0, note:'', group:'c995680' },
+  { id:'k2', breederId:'2601-01855', breed:'サイベリアン', gender:'♂', color:'シルバータビー トリプルコート', birthday:'2025-12', price:250000, status:'available', papa:'しろくん', mama:'小郭ちゃん', isNew:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724768508-19a4ab1e.jpg'], coverIndex:0, note:'', group:'c995680' },
+  { id:'k3', breederId:'2601-00909', breed:'サイベリアン', gender:'♀', color:'ブルーリンクスポイント ネヴァマスカレード', birthday:'2025-12', price:280000, status:'available', papa:'しろくん', mama:'大蓝ちゃん', isNew:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724781684-5154c156.jpg'], coverIndex:0, note:'', group:'c995680' },
+  { id:'k4', breederId:'2509-01171', breed:'サイベリアン', gender:'♂', color:'レッドリンクスポイント', birthday:'2025-05', price:250000, status:'available', papa:'しろくん', mama:'咬咬ちゃん', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724765546-deb1b3e1.jpg'], coverIndex:0, note:'', group:'c995680' },
+  { id:'k5', breederId:'2511-02287', breed:'サイベリアン', gender:'♂', color:'ブラウンタビー トリプルコート', birthday:'2025-10', price:220000, status:'available', papa:'しろくん', mama:'圆圆ちゃん', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724766657-4486a4c8.jpg'], coverIndex:0, note:'', group:'c995680' },
+  { id:'k6', breederId:'2509-02086', breed:'サイベリアン', gender:'♀', color:'シルバータビー', birthday:'2025-06', price:190000, status:'available', papa:'しろくん', mama:'dodoちゃん', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724774443-2110d506.jpg'], coverIndex:0, note:'', group:'c995680' },
+  { id:'k7', breederId:'2511-01887', breed:'サイベリアン', gender:'♂', color:'ホワイト トリプルコート', birthday:'2025-09', price:250000, status:'available', papa:'しろくん', mama:'小蓝ちゃん', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724767099-daf4c384.jpg'], coverIndex:0, note:'', group:'c995680' },
+  { id:'k8', breederId:'2601-00912', breed:'サイベリアン', gender:'♀', color:'ブルーリンクスポイント ネヴァマスカレード', birthday:'2025-12', price:200000, status:'available', papa:'しろくん', mama:'大蓝ちゃん', isNew:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724769894-834a62aa.jpg'], coverIndex:0, note:'', group:'c995680' },
+  { id:'k9', breederId:'2508-00310', breed:'サイベリアン', gender:'♂', color:'シルバーシェーデッド', birthday:'2025-06', price:220000, status:'available', papa:'しろくん', mama:'Paopaoちゃん', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724782119-53354ad6.jpg'], coverIndex:0, note:'去勢済み', group:'c995680' },
+  { id:'k10', breederId:'2512-01681', breed:'サイベリアン', gender:'♂', color:'ブルーパッチドタビー＆ホワイト', birthday:'2025-10', price:220000, status:'available', papa:'', mama:'', isNew:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724770339-8e9c46b2.jpg'], coverIndex:0, note:'', group:'c995680' },
+  { id:'k11', breederId:'2510-01286', breed:'サイベリアン', gender:'♀', color:'ブラウンタビー トリプルコート', birthday:'2025-07', price:200000, status:'available', papa:'', mama:'', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724777494-1f944081.jpg'], coverIndex:0, note:'', group:'c995680' },
+  { id:'k12', breederId:'2511-00142', breed:'サイベリアン', gender:'♂', color:'ホワイト', birthday:'2025-07', price:200000, status:'available', papa:'', mama:'', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724767492-9b7274a7.jpg'], coverIndex:0, note:'', group:'c995680' },
+  { id:'k13', breederId:'2511-00143', breed:'サイベリアン', gender:'♀', color:'ホワイト', birthday:'2025-07', price:180000, status:'available', papa:'', mama:'', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724762077-cb44f2ab.jpg'], coverIndex:0, note:'', group:'c995680' },
+  { id:'k14', breederId:'2508-02468', breed:'サイベリアン', gender:'♂', color:'シルバー＆ホワイト トリプルコート', birthday:'2025-06', price:190000, status:'available', papa:'', mama:'', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724778894-fa2e1ab5.jpg'], coverIndex:0, note:'去勢済み', group:'c995680' },
+  { id:'k15', breederId:'2509-01027', breed:'サイベリアン', gender:'♂', color:'レッドリンクスポイント トリプルコート', birthday:'2025-05', price:220000, status:'available', papa:'', mama:'', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724777102-302d0e18.jpg'], coverIndex:0, note:'去勢済み', group:'c995680' },
+  { id:'k16', breederId:'2508-03366', breed:'ブリティッシュショートヘア', gender:'♀', color:'ゴールデンシェーデッド', birthday:'2025-05', price:280000, status:'available', papa:'', mama:'', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724790937-cf36f2d3.jpg'], coverIndex:0, note:'', group:'d696506' },
+  { id:'k17', breederId:'2508-03312', breed:'ブリティッシュショートヘア', gender:'♀', color:'チンチラゴールデン ロングヘア', birthday:'2025-05', price:280000, status:'available', papa:'', mama:'', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724794331-f982177a.jpg'], coverIndex:0, note:'', group:'d696506' },
+  { id:'k18', breederId:'2508-03355', breed:'ブリティッシュショートヘア', gender:'♂', color:'ゴールデンシェーデッド', birthday:'2025-05', price:240000, status:'available', papa:'', mama:'', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724797827-261810d4.jpg'], coverIndex:0, note:'', group:'d696506' },
+  { id:'k19', breederId:'2509-00562', breed:'ブリティッシュショートヘア', gender:'♀', color:'ゴールデンシェーデッド＆ホワイト', birthday:'2025-05', price:160000, status:'available', papa:'', mama:'', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724797066-d278551c.jpg'], coverIndex:0, note:'', group:'d696506' },
+  { id:'k20', breederId:'2512-00115', breed:'サイベリアン×ブリティッシュ', gender:'♀', color:'ブラウンタビー＆ホワイト', birthday:'2025-09', price:140000, status:'available', papa:'', mama:'', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724793095-84d370a3.jpg'], coverIndex:0, note:'', group:'d696506' },
+  { id:'k21', breederId:'2509-02907', breed:'ブリティッシュショートヘア', gender:'♀', color:'ブラウンタビー＆ホワイト', birthday:'2025-08', price:160000, status:'available', papa:'', mama:'', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724791404-3dc807cf.jpg'], coverIndex:0, note:'', group:'d696506' },
+  { id:'k22', breederId:'2510-01844', breed:'ブリティッシュショートヘア', gender:'♂', color:'ホワイト', birthday:'2025-08', price:160000, status:'available', papa:'', mama:'', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724793677-ae246e25.jpg'], coverIndex:0, note:'', group:'d696506' },
+  { id:'k23', breederId:'2408-03054', breed:'ブリティッシュロングヘア', gender:'♂', color:'チョコレートゴールデン ロングヘア', birthday:'2024-02', price:290000, status:'reserved', papa:'', mama:'', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724792086-05d4652e.jpg'], coverIndex:0, note:'', group:'d696506' },
+  { id:'k24', breederId:'2512-00112', breed:'サイベリアン×ブリティッシュ', gender:'♂', color:'ホワイト', birthday:'2025-09', price:150000, status:'reserved', papa:'', mama:'', isNew:false, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724795680-33003d85.jpg'], coverIndex:0, note:'', group:'d696506' },
 ];
 
 var DEFAULT_PARENTS = [
-  { id:'p1', name:'しろくん', breed:'サイベリアン', gender:'♂', role:'パパ猫', age:'3歳', color:'ホワイト', tested:true, photos:['https://www.koneko-breeder.com/breeder/data/c995680/cat_img_1_thumb_pc_6afed78ede63.jpg'], coverIndex:0, group:'c995680' },
-  { id:'p2', name:'大蓝ちゃん', breed:'サイベリアン', gender:'♀', role:'ママ猫', age:'1歳', color:'ホワイト', tested:true, photos:['https://www.koneko-breeder.com/breeder/data/c995680/cat_img_1_thumb_pc_b5ac7ae2ae72.jpg'], coverIndex:0, group:'c995680' },
-  { id:'p3', name:'Paopaoちゃん', breed:'サイベリアン', gender:'♀', role:'ママ猫', age:'2歳', color:'シルバー', tested:true, photos:['https://www.koneko-breeder.com/breeder/data/c995680/cat_img_1_thumb_pc_b5983dfb7d48.jpg'], coverIndex:0, group:'c995680' },
-  { id:'p4', name:'小郭ちゃん', breed:'サイベリアン', gender:'♀', role:'ママ猫', age:'2歳', color:'ダイリュートキャリコ', tested:true, photos:['https://www.koneko-breeder.com/breeder/data/c995680/cat_img_1_thumb_pc_0afe3b8e56d4.jpg'], coverIndex:0, group:'c995680' },
-  { id:'p5', name:'咬咬ちゃん', breed:'サイベリアン', gender:'♀', role:'ママ猫', age:'2歳', color:'シルバータビー＆ホワイト', tested:true, photos:['https://www.koneko-breeder.com/breeder/data/c995680/cat_img_1_thumb_pc_4422ed265045.jpg'], coverIndex:0, group:'c995680' },
-  { id:'p6', name:'dodoちゃん', breed:'サイベリアン', gender:'♀', role:'ママ猫', age:'2歳', color:'シルバー＆ホワイト', tested:true, photos:['https://www.koneko-breeder.com/breeder/data/c995680/cat_img_1_thumb_pc_ec6352afa910.jpg'], coverIndex:0, group:'c995680' },
-  { id:'p7', name:'小蓝ちゃん', breed:'サイベリアン', gender:'♀', role:'ママ猫', age:'2歳', color:'ホワイト', tested:true, photos:['https://www.koneko-breeder.com/breeder/data/c995680/cat_img_1_thumb_pc_c22631c010d3.jpg'], coverIndex:0, group:'c995680' },
-  { id:'p8', name:'圆圆ちゃん', breed:'サイベリアン', gender:'♀', role:'ママ猫', age:'3歳', color:'ホワイト', tested:true, photos:['https://www.koneko-breeder.com/breeder/data/c995680/cat_img_11_thumb_pc_66a5ccf1ced9.jpg'], coverIndex:0, group:'c995680' },
-  { id:'p9', name:'李白くん', breed:'ブリティッシュロングヘア', gender:'♂', role:'パパ猫', age:'2歳', color:'ゴールデンポイント', tested:true, photos:['https://www.koneko-breeder.com/breeder/data/d696506/cat_img_1_thumb_pc_a2da2f2fef02.jpg'], coverIndex:0, group:'d696506' },
-  { id:'p10', name:'Chouちゃん', breed:'ブリティッシュショートヘア', gender:'♀', role:'ママ猫', age:'2歳', color:'チョコレートゴールデン', tested:true, photos:['https://www.koneko-breeder.com/breeder/data/d696506/cat_img_1_thumb_pc_88eb7b14df97.jpg'], coverIndex:0, group:'d696506' },
-  { id:'p11', name:'チョコちゃん', breed:'ラグドール', gender:'♀', role:'ママ猫', age:'2歳', color:'シールポイントバイカラー', tested:true, photos:['https://www.koneko-breeder.com/breeder/data/d696506/cat_img_1_thumb_pc_741073a29495.jpg'], coverIndex:0, group:'d696506' },
-  { id:'p12', name:'Jiaくん', breed:'ラグドール', gender:'♂', role:'パパ猫', age:'3歳', color:'シールリンクスポイント', tested:true, photos:['https://www.koneko-breeder.com/breeder/data/d696506/cat_img_1_thumb_pc_688006a11852.jpg'], coverIndex:0, group:'d696506' },
-  { id:'p13', name:'王子くん', breed:'ブリティッシュロングヘア', gender:'♂', role:'パパ猫', age:'3歳', color:'チョコレートゴールデン', tested:true, photos:['https://www.koneko-breeder.com/breeder/data/d696506/cat_img_1_thumb_pc_ed89e98d3344.jpg'], coverIndex:0, group:'d696506' },
-  { id:'p14', name:'パンちゃん', breed:'ブリティッシュショートヘア', gender:'♀', role:'ママ猫', age:'4歳', color:'チョコレートゴールデン', tested:true, photos:['https://www.koneko-breeder.com/breeder/data/d696506/cat_img_1_thumb_pc_42a1dc3fd4c1.jpg'], coverIndex:0, group:'d696506' },
-  { id:'p15', name:'壮くん', breed:'ブリティッシュロングヘア', gender:'♂', role:'パパ猫', age:'4歳', color:'チョコレートゴールデン', tested:true, photos:['https://www.koneko-breeder.com/breeder/data/d696506/cat_img_1_thumb_pc_19b6882720e1.jpg'], coverIndex:0, group:'d696506' },
-  { id:'p16', name:'Shoちゃん', breed:'ブリティッシュショートヘア', gender:'♀', role:'ママ猫', age:'4歳', color:'チョコレートゴールデン', tested:true, photos:['https://www.koneko-breeder.com/breeder/data/d696506/cat_img_1_thumb_pc_e1be51891236.jpg'], coverIndex:0, group:'d696506' },
+  { id:'p1', name:'しろくん', breed:'サイベリアン', gender:'♂', role:'パパ猫', age:'3歳', color:'ホワイト', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724757360-8754519e.jpg'], coverIndex:0, group:'c995680' },
+  { id:'p2', name:'大蓝ちゃん', breed:'サイベリアン', gender:'♀', role:'ママ猫', age:'1歳', color:'ホワイト', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724758769-1575b2eb.jpg'], coverIndex:0, group:'c995680' },
+  { id:'p3', name:'Paopaoちゃん', breed:'サイベリアン', gender:'♀', role:'ママ猫', age:'2歳', color:'シルバー', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724758030-703ef2d7.jpg'], coverIndex:0, group:'c995680' },
+  { id:'p4', name:'小郭ちゃん', breed:'サイベリアン', gender:'♀', role:'ママ猫', age:'2歳', color:'ダイリュートキャリコ', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724756212-b0c6526f.jpg'], coverIndex:0, group:'c995680' },
+  { id:'p5', name:'咬咬ちゃん', breed:'サイベリアン', gender:'♀', role:'ママ猫', age:'2歳', color:'シルバータビー＆ホワイト', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724756790-874c52a3.jpg'], coverIndex:0, group:'c995680' },
+  { id:'p6', name:'dodoちゃん', breed:'サイベリアン', gender:'♀', role:'ママ猫', age:'2歳', color:'シルバー＆ホワイト', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724759631-0726a94c.jpg'], coverIndex:0, group:'c995680' },
+  { id:'p7', name:'小蓝ちゃん', breed:'サイベリアン', gender:'♀', role:'ママ猫', age:'2歳', color:'ホワイト', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724759229-8ff4207f.jpg'], coverIndex:0, group:'c995680' },
+  { id:'p8', name:'圆圆ちゃん', breed:'サイベリアン', gender:'♀', role:'ママ猫', age:'3歳', color:'ホワイト', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724755582-e0f3687b.jpg'], coverIndex:0, group:'c995680' },
+  { id:'p9', name:'李白くん', breed:'ブリティッシュロングヘア', gender:'♂', role:'パパ猫', age:'2歳', color:'ゴールデンポイント', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724787836-be43939e.jpg'], coverIndex:0, group:'d696506' },
+  { id:'p10', name:'Chouちゃん', breed:'ブリティッシュショートヘア', gender:'♀', role:'ママ猫', age:'2歳', color:'チョコレートゴールデン', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724787346-3b1d68c8.jpg'], coverIndex:0, group:'d696506' },
+  { id:'p11', name:'チョコちゃん', breed:'ラグドール', gender:'♀', role:'ママ猫', age:'2歳', color:'シールポイントバイカラー', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724786768-6174bc94.jpg'], coverIndex:0, group:'d696506' },
+  { id:'p12', name:'Jiaくん', breed:'ラグドール', gender:'♂', role:'パパ猫', age:'3歳', color:'シールリンクスポイント', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724786019-a821aa18.jpg'], coverIndex:0, group:'d696506' },
+  { id:'p13', name:'王子くん', breed:'ブリティッシュロングヘア', gender:'♂', role:'パパ猫', age:'3歳', color:'チョコレートゴールデン', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724789070-d8fd874f.jpg'], coverIndex:0, group:'d696506' },
+  { id:'p14', name:'パンちゃん', breed:'ブリティッシュショートヘア', gender:'♀', role:'ママ猫', age:'4歳', color:'チョコレートゴールデン', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724784960-2c3e8238.jpg'], coverIndex:0, group:'d696506' },
+  { id:'p15', name:'壮くん', breed:'ブリティッシュロングヘア', gender:'♂', role:'パパ猫', age:'4歳', color:'チョコレートゴールデン', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724784550-0fe3809c.jpg'], coverIndex:0, group:'d696506' },
+  { id:'p16', name:'Shoちゃん', breed:'ブリティッシュショートヘア', gender:'♀', role:'ママ猫', age:'4歳', color:'チョコレートゴールデン', tested:true, photos:['https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724788261-ecb82654.jpg'], coverIndex:0, group:'d696506' },
 ];
 
 var DEFAULT_REVIEWS = [
@@ -1068,6 +1077,14 @@ function loadData() {
 
 function saveData(d) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
+  // Sync to KV (non-blocking)
+  if (typeof FuluckAPI !== 'undefined') {
+    ['kittens', 'parents', 'reviews'].forEach(function(type) {
+      if (d[type]) {
+        FuluckAPI.bulkImport(type, d[type]).catch(function() {});
+      }
+    });
+  }
 }
 
 function getData() {
@@ -1142,6 +1159,7 @@ function loginSuccess(pwd) {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('adminLayout').classList.add('active');
   renderAll();
+  syncFromAPI();
 }
 
 function loginFail() {
@@ -1158,6 +1176,7 @@ if (sessionStorage.getItem('fuluck-admin-auth') === '1') {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('adminLayout').classList.add('active');
   renderAll();
+  syncFromAPI();
 }
 
 document.getElementById('logoutBtn').addEventListener('click', function() {
@@ -1236,6 +1255,31 @@ function renderAll() {
   renderReviews();
   loadImageConfig();
   applyAdminLang();
+}
+
+// Try loading data from KV API (async, updates UI if data found)
+function syncFromAPI() {
+  if (typeof FuluckAPI === 'undefined') return;
+  Promise.all([
+    FuluckAPI.get('/api/kittens').catch(function() { return null; }),
+    FuluckAPI.get('/api/parents').catch(function() { return null; }),
+    FuluckAPI.get('/api/reviews').catch(function() { return null; })
+  ]).then(function(results) {
+    var kv_kittens = results[0];
+    var kv_parents = results[1];
+    var kv_reviews = results[2];
+    var changed = false;
+    if (kv_kittens && kv_kittens.length > 0) { data.kittens = kv_kittens; changed = true; }
+    if (kv_parents && kv_parents.length > 0) { data.parents = kv_parents; changed = true; }
+    if (kv_reviews && kv_reviews.length > 0) { data.reviews = kv_reviews; changed = true; }
+    if (changed) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      renderDashboard();
+      renderKittens();
+      renderParents();
+      renderReviews();
+    }
+  });
 }
 
 // ============================================================
@@ -1948,6 +1992,26 @@ function resetData() {
   addLog(t('データを初期状態にリセットしました','已将数据恢复到初始状态'));
   renderAll();
   showToast(t('データをリセットしました','已重置数据'), 'success');
+}
+
+// ============================================================
+// CLOUD MIGRATION (localStorage → KV)
+// ============================================================
+function runMigration() {
+  if (!confirm(t('ローカルデータをクラウドに移行しますか？\n（クラウドのデータは上書きされます）','将本地数据迁移到云端？\n（云端数据将被覆盖）'))) return;
+  var el = document.getElementById('migrateProgress');
+  el.textContent = t('移行中...','迁移中...');
+  FuluckMigrate.migrate(function(info) {
+    el.textContent = info.msg || '';
+    if (info.done) {
+      if (!info.error) {
+        showToast(t('クラウドに移行しました','已迁移到云端'), 'success');
+        addLog(t('データをクラウド(KV)に移行しました','已将数据迁移到云端(KV)'));
+      } else {
+        showToast(info.error, 'error');
+      }
+    }
+  });
 }
 
 // ============================================================
