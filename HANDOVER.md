@@ -655,3 +655,10 @@ git push origin main          # 1-2 分钟自动部署
 81. **博客列表页i18n（Session 21c-2）** — blog.html的104张文章卡片（纯静态JA HTML）切换语言后标题和简介不变→ 解决方案：(1)`tools/generate-blog-listing-i18n.js`提取脚本从104篇文章的`window._blogArticleI18n`提取EN/ZH标题+生成摘要 (2)`blog-listing-i18n.js`(58.6KB)数据文件含categories/hero/cta/articles (3)`blog-listing-i18n-apply.js`运行时替换脚本（监听langChanged事件，缓存JA原始内容后替换hero/分类标签/分类标题/文章标题·摘要·分类标签/底部CTA）→ blog.html添加2个script标签（defer加载）
 82. **見学予約ページ（Session 21c-2）** — `booking.html`新建：Ice Cream Design System UI（mint渐变hero+白卡表单+sidebar信息卡+LINE替代入口）→ 9字段表单（姓名/邮箱/电话/第一希望日/时间帯/第二希望日/見学方法/気になる子猫/質問）→ `fetch(formResponse, {mode:'no-cors'})`提交到Google Form后端 → 成功/失败UI反馈 + GA4事件跟踪 → placeholder多语言（data-placeholder-ja/en/zh）→ `i18n.js`追加~40个`booking.*`翻译键（JA/EN/ZH）→ 全站32处予約リンク从外部Google Form URL→`/booking.html`内部页面（target="_blank"削除）→ sitemap.xml追加
 83. **⭐ Session 21c-2完成 + 下一步** — ✅博客列表页i18n ✅見学予約ページ三語化 ✅全站予約リンク内部化 → 下一步：(1)GSC 1-2周后验证索引恢复 (2)OGP图片仍待制作
+84. **ブログ7記事追加（Session 22）** — 7篇新SEO博客（trilingual JA/EN/ZH）：siberian-price-guide / siberian-osaka-guide / siberian-allergy-solution / siberian-owner-stories / kansai-breeder-guide / siberian-cost-breakdown / shop-vs-breeder-siberian → blog.html列表更新（breeder 5→9/allergy 6→7/lifestyle 17→19）→ sitemap.xml 7新URL → blog-listing-i18n.js 7条EN/ZH翻译追加
+85. **⚠ 新增博客文章チェックリスト（必ず全項目完了すること）** — 新しいブログ記事を追加する際、以下の**全ステップ**を必ず実行：
+    - (1) `blog/xxx.html` 作成（テンプレート: breeder-vs-petshop.html参照、`window._blogArticleI18n`にEN/ZH翻訳を含む）
+    - (2) `blog.html` に記事カードを追加（該当カテゴリの`blog-grid`内、カテゴリ数カウント更新）
+    - (3) `blog-listing-i18n.js` の `articles` にslug→EN/ZH title+excerpt追加（**これを忘れるとblog.html一覧ページで言語切替時に翻訳されない**）
+    - (4) `sitemap.xml` にURL追加（アルファベット順）
+    - (5) コミット＆プッシュ
