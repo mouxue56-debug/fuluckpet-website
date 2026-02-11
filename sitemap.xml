@@ -162,7 +162,7 @@
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
-                          <!-- 子猫詳細ページ -->
+                            <!-- 子猫詳細ページ -->
   <url>
     <loc>https://fuluckpet.com/kittens/2602-00625.html</loc>
     <lastmod>2026-02-11</lastmod>
@@ -771,6 +771,12 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://fuluckpet.com/blog/kansai-breeder-guide.html</loc>
+    <lastmod>2026-02-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://fuluckpet.com/blog/kitten-and-children.html</loc>
     <lastmod>2026-02-11</lastmod>
     <changefreq>monthly</changefreq>
@@ -821,12 +827,6 @@
   <url>
     <loc>https://fuluckpet.com/blog/kitten-meet-existing-cat.html</loc>
     <lastmod>2026-02-11</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/blog/kansai-breeder-guide.html</loc>
-    <lastmod>2026-02-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -952,7 +952,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/shop-vs-breeder-siberian.html</loc>
-    <lastmod>2026-02-12</lastmod>
+    <lastmod>2026-02-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -964,7 +964,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/siberian-allergy-solution.html</loc>
-    <lastmod>2026-02-12</lastmod>
+    <lastmod>2026-02-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -981,13 +981,13 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://fuluckpet.com/blog/siberian-cost-breakdown.html</loc>
-    <lastmod>2026-02-12</lastmod>
+    <loc>https://fuluckpet.com/blog/siberian-color-types.html</loc>
+    <lastmod>2026-02-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://fuluckpet.com/blog/siberian-color-types.html</loc>
+    <loc>https://fuluckpet.com/blog/siberian-cost-breakdown.html</loc>
     <lastmod>2026-02-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -995,24 +995,6 @@
   <url>
     <loc>https://fuluckpet.com/blog/siberian-grooming-basics.html</loc>
     <lastmod>2026-02-11</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/blog/siberian-osaka-guide.html</loc>
-    <lastmod>2026-02-12</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/blog/siberian-owner-stories.html</loc>
-    <lastmod>2026-02-12</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/blog/siberian-price-guide.html</loc>
-    <lastmod>2026-02-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -1030,6 +1012,24 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/siberian-neva-masquerade.html</loc>
+    <lastmod>2026-02-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/siberian-osaka-guide.html</loc>
+    <lastmod>2026-02-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/siberian-owner-stories.html</loc>
+    <lastmod>2026-02-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/siberian-price-guide.html</loc>
     <lastmod>2026-02-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
