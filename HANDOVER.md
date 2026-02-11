@@ -1,7 +1,7 @@
 # 福楽キャッテリー 网站交接文档
 
 > **本文档供下一个 AI 会话使用，用于快速了解本项目的全部背景。**
-> 最后更新：2026-02-11 Session 20c
+> 最后更新：2026-02-11 Session 21c
 
 ---
 
@@ -429,7 +429,7 @@ about.html 还有 1 个占位符（基因检测证明），index.html Instagram 
 6. ✅ `script.js` 重构 — 提取 `window.rebindCards()` 等可重复绑定函数（Session 15b）
 7. ✅ 4个 HTML 页面加载 card-loader.js（index/kittens/parents/reviews）
 8. ✅ KV 种子数据导入（24子猫 + 16种猫 + 6评价 + 24FAQ + 16文章）
-9. ⬜ drive-loader.js 适配（监听 `cards-rendered` 事件）
+9. ✅ drive-loader.js 适配（Session 21c — 親猫モーダル写真カルーセル + data-images 属性追加）
 
 **B. ✅ 知识库 + FAQ 系统 + Admin 模块化**（Session 15 完成）：
 1. ✅ Admin 模块化：~1400行 inline JS 拆分为 12 个外部模块
@@ -545,6 +545,7 @@ fuluckpet-photos/  (ID: 1sbFIW5C7YfSw7zVIKhhAyCOuKivD8qUc)
 | 19 | **占位符清理**（about.html遗传证书隐藏+index/parents親猫modal文案优化+script.js照片placeholder改善）→ **SEO排查**（noindex扫描全清✅+JSON-LD sameAs补全LINE）→ **预约按钮预留**（index.html见学区+猫咪CTA区+cta-widget.js底栏，`#booking`占位待Google Form创建）→ **分类化CTA**（kitten-carousel.js完全重写，10分类×3语言上下文CTA映射，博客文章按类别展示针对性引导文案）→ **猫咪独立详情页**（generate-site.js扩展，23只猫独立HTML页面`/kittens/{breederId}.html`，含Product JSON-LD+BreadcrumbList+照片画廊+YouTube嵌入+LINE/预约CTA）→ **列表页联动**（card-loader.js添加data-detail-url+script.js kittens.html点击跳转详情页、index.html保持弹窗）→ **hreflang ?lang=改进**（i18n.js URL参数读取+151个HTML文件hreflang添加?lang=en/?lang=zh后缀+generate-site.js模板更新）→ sitemap.xml扩充至151+URL |
 | 21 | **Sitemap补全**：88篇博客HTML不在API→scan-blog-articles.js扫描导入102篇→API共118篇→sitemap 64→166 URL→generate-site.js增加磁盘扫描防漏 → **后台管理全面修复**：YouTube消失bug（saveData错误静默→同步状态指示器+错误toast+发布前强制re-sync）→图片预览19字段全部行内缩略图→DEFAULT_PASS修正→saveKitten初始化video → **奖项徽章动态化**：saveImageConfig同步settings API→about.html动态加载 |
 | 21b | **博客文章三语化**：blog-i18n.js重写（兼容.blog-article HTML，自动包裹内容区域）→ translate-blog-articles.js批量工具（提取/翻译/注入/检查）→ 104篇博客文章注入EN/ZH翻译（window._blogArticleI18n数据，语言切换即时生效）→ **SEO结构化数据**：about.html添加LocalBusiness JSON-LD（奖项award/认证hasCredential/评分aggregateRating）→ EMPLOYEE-GUIDE.md更新（同步状态/YouTube操作/FAQ） |
+| 21c | **見学予約フォーム連携**：Google Form作成（9项目）→全站#booking/見学を予約するボタン→Form URL置換（index×3/script.js modal/cta-widget+kitten-carousel BOOKING_URL/siberian+kittens+parents CTA/24個kitten詳細/generate-site.jsテンプレート）→ **親猫モーダル写真カルーセル**：openParentModal() async化+carousel構築（Drive写真対応）/ parentCardHTML() data-images追加 / parents.html modal-children補完 |
 
 ---
 
@@ -613,7 +614,7 @@ git push origin main          # 1-2 分钟自动部署
 46. **脚本加载顺序更新** — blog.html/faq.html/guide子页面新增 cta-widget.js：i18n.js → blog-loader.js/faq-page-loader.js → cta-widget.js → script.js
 47. **猫咪独立详情页**（Session 19）— generate-site.js 的 `generateKittenDetailPages()` 为每只 available/reserved 猫咪生成独立 HTML（`/kittens/{breederId}.html`）。含 Product JSON-LD + BreadcrumbList + 照片画廊 + YouTube 嵌入 + LINE CTA（自动带猫咪编号）+ 预约按钮 + 同品种推荐轮播。自动清理已售出猫咪页面
 48. **分类化CTA映射**（Session 19）— kitten-carousel.js 完全重写，包含 `CTA_MAP` 对象（10分类×3语言）。博客文章通过 `.blog-meta-cat` 元素检测分类，显示针对性CTA标题和按钮（如过敏类→"アレルギーが心配？"，品种类→"サイベリアンの子猫に会いませんか？"）
-49. **预约按钮占位**（Session 19）— `BOOKING_URL = '#booking'` 在 kitten-carousel.js 第8行 + cta-widget.js。用户创建 Google Form 后只需替换此常量值 + index.html 中2处 `href="#booking"` 即可全站生效
+49. ~~**预约按钮占位**（Session 19）~~ — ✅ Session 21c 已替换为 Google Form URL（见#78）
 50. **hreflang ?lang= 参数**（Session 19）— i18n.js `initI18n()` 读取 URL `?lang=` 参数自动切换语言（优先级：URL参数 > localStorage）。所有151+HTML文件的 en/zh hreflang href 已加 `?lang=en`/`?lang=zh` 后缀
 51. **详情页导航行为**（Session 19）— script.js `bindKittenCards()` 通过 `.page-hero` 检测是否在 kittens.html：是→点击跳转详情页（`data-detail-url`），否→打开弹窗（index.html 保持弹窗行为）
 52. **card-loader.js data-detail-url**（Session 19）— 动态渲染猫咪卡片时自动添加 `data-detail-url="/kittens/{breederId||id}.html"` 属性，供 script.js 判断跳转目标
@@ -641,4 +642,7 @@ git push origin main          # 1-2 分钟自动部署
 74. **博客文章三语化（Session 21b）** — 104篇博客全部注入EN/ZH翻译数据。机制：每篇文章`</body>`前添加`<script>window._blogArticleI18n={en:{title,content},zh:{title,content}}</script>`，blog-i18n.js读取后按语言替换标题和正文。blog-i18n.js已重写兼容`.blog-article`结构（自动创建`.blog-detail-content`包裹层）
 75. **博客翻译工具（Session 21b）** — `tools/translate-blog-articles.js`：`--check`查看翻译状态、`--extract`提取文章到manifest JSON、`--inject`从`tools/blog-translations/`目录注入翻译、`--single <slug>`查看单篇内容。翻译JSON格式：`{slug, en:{title,content}, zh:{title,content}}`
 76. **about.html LocalBusiness JSON-LD（Session 21b）** — 添加含奖项（award数组）、动物取扱業认证（hasCredential）、评分（aggregateRating 5.0/113件）、社交媒体（sameAs）的完整LocalBusiness结构化数据。与index.html的LocalBusiness互补
-77. **⭐ 已完成&下一步更新** — ✅博客三语化完成（104篇×EN/ZH） ✅about.html LocalBusiness JSON-LD ✅EMPLOYEE-GUIDE.md更新 → 下一步：(1)用户创建Google Form后替换`#booking`链接 (2)drive-loader.js适配动态卡片 (3)GSC 1-2周后验证索引恢复
+77. **⭐ Session 21b完成** — ✅博客三语化完成（104篇×EN/ZH） ✅about.html LocalBusiness JSON-LD ✅EMPLOYEE-GUIDE.md更新
+78. **見学予約フォーム連携（Session 21c）** — Google Form（見学予約フォーム/见学预约表，9项目）创建完成。全站`#booking`占位符替换为Form URL：index.html（3处CTA按钮）、script.js（モーダル内予約按钮）、cta-widget.js + kitten-carousel.js（`BOOKING_URL`常量）、siberian/kittens/parents.html（CTAボタン）、24个kitten详情页、generate-site.js模板。所有按钮添加`target="_blank" rel="noopener"`
+79. **親猫モーダル写真カルーセル（Session 21c）** — `openParentModal()`改为async函数，支持Drive照片轮播：读取`data-images`→构建slides/dots/thumbnails→`initCarousel()`绑定控件。无照片时按需从`DriveLoader.loadCardImages()`加载。`parentCardHTML()`添加`data-images`属性（从API数据填充cover photo）。parents.html补充`modal-children`区块（之前缺失）
+80. **⭐ Session 21c完成 + 下一步** — ✅見学予約フォーム全站连接 ✅親猫写真カルーセル ✅drive-loader.js全面适配 → 下一步：(1)GSC 1-2周后验证索引恢复 (2)OGP图片仍待制作
