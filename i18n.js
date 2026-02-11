@@ -212,6 +212,13 @@ const translations = {
     'kitten.bornMonth': '月生まれ',
     'kitten.photoAlt': '子猫の写真',
 
+    // Breed names
+    'breed.siberian': 'サイベリアン',
+    'breed.british-sh': 'ブリティッシュショートヘア',
+    'breed.british-lh': 'ブリティッシュロングヘア',
+    'breed.ragdoll': 'ラグドール',
+
+
     // Common
     'common.home': 'ホーム',
     'common.moreBtn': 'もっと見る',
@@ -554,6 +561,13 @@ const translations = {
     'kitten.bornYear': '/',
     'kitten.bornMonth': '',
     'kitten.photoAlt': 'Kitten photo',
+
+    // Breed names
+    'breed.siberian': 'Siberian',
+    'breed.british-sh': 'British Shorthair',
+    'breed.british-lh': 'British Longhair',
+    'breed.ragdoll': 'Ragdoll',
+
 
     // Common
     'common.home': 'Home',
@@ -898,6 +912,13 @@ const translations = {
     'kitten.bornMonth': '月出生',
     'kitten.photoAlt': '小猫照片',
 
+    // Breed names
+    'breed.siberian': '西伯利亚猫',
+    'breed.british-sh': '英国短毛猫',
+    'breed.british-lh': '英国长毛猫',
+    'breed.ragdoll': '布偶猫',
+
+
     // Common
     'common.home': '首页',
     'common.moreBtn': '查看更多',
@@ -1061,6 +1082,18 @@ function setLanguage(lang) {
           el.textContent = langData[key];
         }
       }
+    }
+  });
+
+  // Birthday formatting (data-i18n-birthday="2025-05")
+  document.querySelectorAll('[data-i18n-birthday]').forEach(el => {
+    var raw = el.getAttribute('data-i18n-birthday');
+    var parts = raw.split('-');
+    if (parts.length >= 2) {
+      var y = parts[0], m = parseInt(parts[1], 10);
+      if (lang === 'en') el.textContent = 'Born ' + y + '/' + m;
+      else if (lang === 'zh') el.textContent = y + '\u5E74' + m + '\u6708\u51FA\u751F';
+      else el.textContent = y + '\u5E74' + m + '\u6708\u751F\u307E\u308C';
     }
   });
 

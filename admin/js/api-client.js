@@ -76,6 +76,11 @@ var FuluckAPI = (function() {
       return request('POST', '/api/admin/' + type + '/bulk', items);
     },
 
+    // Trigger static page regeneration via GitHub Actions
+    publish: function() {
+      return request('POST', '/api/admin/publish');
+    },
+
     // Check API availability
     ping: function() {
       return fetchWithTimeout(BASE + '/api/kittens', { method: 'GET' })

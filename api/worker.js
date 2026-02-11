@@ -197,11 +197,10 @@ function corsOrigin(request, env) {
   return allowed;
 }
 
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
+function json(data, status = 200, cacheControl) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (cacheControl) headers['Cache-Control'] = cacheControl;
+  return new Response(JSON.stringify(data), { status, headers });
 }
 
 function unauthorized() {
@@ -256,38 +255,38 @@ export default {
       // GET /api/kittens — 公開：子猫一覧
       if (path === '/api/kittens' && method === 'GET') {
         const data = await env.DATA.get('kittens', 'json');
-        return addCors(json(data || []));
+        return addCors(json(data || [], 200, 'no-store'));
       }
 
       // GET /api/parents — 公開：親猫一覧
       if (path === '/api/parents' && method === 'GET') {
         const data = await env.DATA.get('parents', 'json');
-        return addCors(json(data || []));
+        return addCors(json(data || [], 200, 'no-store'));
       }
 
       // GET /api/reviews — 公開：レビュー一覧
       if (path === '/api/reviews' && method === 'GET') {
         const data = await env.DATA.get('reviews', 'json');
-        return addCors(json(data || []));
+        return addCors(json(data || [], 200, 'no-store'));
       }
 
       // GET /api/gallery — 公開：ギャラリー一覧
       if (path === '/api/gallery' && method === 'GET') {
         const data = await env.DATA.get('gallery', 'json');
-        return addCors(json(data || []));
+        return addCors(json(data || [], 200, 'public, max-age=3600'));
       }
 
       // GET /api/settings — 公開：サイト設定（SNSリンク等）
       if (path === '/api/settings' && method === 'GET') {
         const data = await env.DATA.get('settings', 'json');
-        return addCors(json(data || {}));
+        return addCors(json(data || {}, 200, 'public, max-age=300'));
       }
 
       // GET /api/articles — 公開：記事一覧（published only, publishedAt DESC）
       if (path === '/api/articles' && method === 'GET') {
         const all = (await env.DATA.get('articles', 'json')) || [];
         const published = all.filter(a => a.published).sort((a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || ''));
-        return addCors(json(published));
+        return addCors(json(published, 200, 'public, max-age=3600'));
       }
 
       // GET /api/articles/:slug — 公開：記事詳細（slug検索）
@@ -296,14 +295,14 @@ export default {
         const all = (await env.DATA.get('articles', 'json')) || [];
         const article = all.find(a => a.slug === slug && a.published);
         if (!article) return addCors(notFound());
-        return addCors(json(article));
+        return addCors(json(article, 200, 'public, max-age=3600'));
       }
 
       // GET /api/faq — 公開：FAQ一覧（order ASC, published only）
       if (path === '/api/faq' && method === 'GET') {
         const all = (await env.DATA.get('faq', 'json')) || [];
         const published = all.filter(f => f.published).sort((a, b) => (a.order || 0) - (b.order || 0));
-        return addCors(json(published));
+        return addCors(json(published, 200, 'public, max-age=3600'));
       }
 
       // ===== GOOGLE DRIVE PUBLIC ROUTES =====
@@ -741,6 +740,25 @@ export default {
         // env.ADMIN_PASSWORD が設定されている場合はそちらが優先される
         await env.DATA.put('admin_password', body.newPassword);
         return addCors(json({ success: true }));
+      }
+
+      // --- Publish: trigger GitHub Actions to regenerate static pages ---
+      if (path === '/api/admin/publish' && method === 'POST') {
+        const ghToken = env.GITHUB_TOKEN;
+        if (!ghToken) return addCors(json({ error: 'GITHUB_TOKEN not configured' }, 500));
+        const ghRes = await fetch('https://api.github.com/repos/mouxue56-debug/fuluckpet-website/dispatches', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'token ' + ghToken,
+            'Accept': 'application/vnd.github.v3+json',
+            'User-Agent': 'fuluck-api-worker',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ event_type: 'regenerate-site' }),
+        });
+        if (ghRes.status === 204) return addCors(json({ success: true }));
+        const errBody = await ghRes.text().catch(() => '');
+        return addCors(json({ error: 'GitHub API error', status: ghRes.status, detail: errBody }, 500));
       }
 
       return addCors(notFound());

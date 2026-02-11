@@ -264,6 +264,7 @@
           <button class="top-btn btn-secondary" onclick="toggleAdminLang()" id="adminLangBtn" style="font-size:12px;">🌐 中文 / 日本語</button>
           <a href="../index.html" target="_blank" class="top-btn btn-secondary"><span data-adm-ja="サイトを表示" data-adm-zh="查看网站">サイトを表示</span></a>
           <button class="top-btn btn-primary" id="addNewBtn" style="display:none">＋ <span data-adm-ja="新規追加" data-adm-zh="新增">新規追加</span></button>
+          <button class="top-btn btn-primary" id="publishBtn" onclick="handlePublish()">📤 <span data-adm-ja="発行する" data-adm-zh="发布更新">発行する</span></button>
         </div>
       </div>
 
@@ -276,6 +277,9 @@
             <div class="stat-card"><div class="stat-icon">🐈</div><div class="stat-value" id="statParents">0</div><div class="stat-label"><span data-adm-ja="親猫" data-adm-zh="种猫">親猫</span></div></div>
             <div class="stat-card"><div class="stat-icon">⭐</div><div class="stat-value" id="statReviews">0</div><div class="stat-label"><span data-adm-ja="レビュー" data-adm-zh="评价">レビュー</span></div></div>
             <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-value" id="statAvailable">0</div><div class="stat-label"><span data-adm-ja="販売中" data-adm-zh="在售">販売中</span></div></div>
+          </div>
+          <div style="background:#F0FFFA;border:1px solid var(--mint);border-radius:var(--radius);padding:16px 20px;margin-bottom:20px;font-size:13px;color:var(--text);">
+            💡 <span data-adm-ja="データを変更した後、右上の「📤 発行する」ボタンをクリックすると、約2分後にサイトが更新されます。" data-adm-zh="修改数据后，点击右上角「📤 发布更新」按钮，约2分钟后网站自动更新。">データを変更した後、右上の「📤 発行する」ボタンをクリックすると、約2分後にサイトが更新されます。</span>
           </div>
           <div class="data-table">
             <div class="table-header"><h3 class="table-title"><span data-adm-ja="ステータス別サマリー" data-adm-zh="状态汇总">ステータス別サマリー</span></h3></div>
@@ -1165,5 +1169,33 @@
 <script src="js/admin-faq.js"></script>
 <script src="js/admin-articles.js"></script>
 <script src="js/admin-settings.js"></script>
+<script>
+// Publish button — triggers GitHub Actions to regenerate static pages
+function handlePublish() {
+  var btn = document.getElementById('publishBtn');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  var span = btn.querySelector('span');
+  var origJa = span.getAttribute('data-adm-ja');
+  var origZh = span.getAttribute('data-adm-zh');
+  var origText = span.textContent;
+  span.textContent = admLang === 'zh' ? '发布中...' : '発行中...';
+  FuluckAPI.publish()
+    .then(function(res) {
+      if (res.success) {
+        showToast(admLang === 'zh' ? '已提交发布，约2分钟后网站更新' : '発行リクエスト送信完了。約2分後にサイトが更新されます', 'success');
+      } else {
+        showToast((admLang === 'zh' ? '发布失败: ' : '発行失敗: ') + (res.error || 'Unknown'), 'error');
+      }
+    })
+    .catch(function(err) {
+      showToast((admLang === 'zh' ? '发布失败: ' : '発行失敗: ') + err.message, 'error');
+    })
+    .finally(function() {
+      btn.disabled = false;
+      span.textContent = origText;
+    });
+}
+</script>
 </body>
 </html>

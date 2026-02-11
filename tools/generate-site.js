@@ -121,6 +121,29 @@ function genderText(gender) {
   return '';
 }
 
+function breedI18nKey(breed) {
+  const map = {
+    'サイベリアン': 'breed.siberian',
+    'ブリティッシュショートヘア': 'breed.british-sh',
+    'ブリティッシュロングヘア': 'breed.british-lh',
+    'ラグドール': 'breed.ragdoll',
+  };
+  return map[breed] || '';
+}
+
+function genderI18nKey(gender) {
+  if (gender === '♂') return 'kitten.male';
+  if (gender === '♀') return 'kitten.female';
+  return '';
+}
+
+function statusI18nKey(status) {
+  if (status === 'available') return 'kitten.available';
+  if (status === 'reserved') return 'kitten.reserved';
+  if (status === 'sold') return 'kitten.sold';
+  return '';
+}
+
 function getCoverPhoto(item) {
   if (!item.photos || item.photos.length === 0) return null;
   const idx = item.coverIndex || 0;
@@ -856,7 +879,7 @@ ${headerHtml}
 
       <!-- Status + New badge -->
       <div class="kitten-detail-status">
-        <span class="kit-status st-${escapeHtml(kitten.status)}">${escapeHtml(st)}</span>${newBadge}
+        <span class="kit-status st-${escapeHtml(kitten.status)}"${statusI18nKey(kitten.status) ? ` data-i18n="${statusI18nKey(kitten.status)}"` : ''}>${escapeHtml(st)}</span>${newBadge}
       </div>
 
       <!-- Price -->
@@ -864,11 +887,11 @@ ${headerHtml}
 
       <!-- Detail table -->
       <table class="kitten-detail-table">
-        <tr><th data-i18n="kitten.breed">品種</th><td>${escapeHtml(kitten.breed || '')}</td></tr>
-        <tr><th data-i18n="kitten.sex">性別</th><td>${escapeHtml(genderFull)}</td></tr>
+        <tr><th data-i18n="kitten.breed">品種</th><td${breedI18nKey(kitten.breed) ? ` data-i18n="${breedI18nKey(kitten.breed)}"` : ''}>${escapeHtml(kitten.breed || '')}</td></tr>
+        <tr><th data-i18n="kitten.sex">性別</th><td${genderI18nKey(kitten.gender) ? ` data-i18n="${genderI18nKey(kitten.gender)}"` : ''}>${escapeHtml(genderFull)}</td></tr>
         <tr><th data-i18n="kitten.color">毛色</th><td>${escapeHtml(kitten.color || '')}</td></tr>
-        <tr><th data-i18n="kitten.birthday">誕生日</th><td>${bd ? escapeHtml(bd) + '生まれ' : ''}</td></tr>
-        <tr><th data-i18n="kitten.status">状態</th><td>${escapeHtml(st)}</td></tr>
+        <tr><th data-i18n="kitten.birthday">誕生日</th><td${kitten.birthday ? ` data-i18n-birthday="${escapeHtml(kitten.birthday)}"` : ''}>${bd ? escapeHtml(bd) + '生まれ' : ''}</td></tr>
+        <tr><th data-i18n="kitten.status">状態</th><td${statusI18nKey(kitten.status) ? ` data-i18n="${statusI18nKey(kitten.status)}"` : ''}>${escapeHtml(st)}</td></tr>
         ${noteRow}
       </table>
 

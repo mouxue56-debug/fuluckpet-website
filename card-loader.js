@@ -28,7 +28,9 @@
       dnaTested: '✓ DNA Tested', verifiedReview: '✓ Verified Review',
       reviewPlatform: 'Minna no Koneko Breeder',
       bornFmt: function(y, m) { return 'Born ' + y + '/' + m; },
-      counter: ''
+      counter: '',
+      breeds: { 'サイベリアン': 'Siberian', 'ブリティッシュショートヘア': 'British Shorthair', 'ブリティッシュロングヘア': 'British Longhair', 'ラグドール': 'Ragdoll' },
+      roles: { 'パパ猫': 'Father', 'ママ猫': 'Mother' }
     },
     zh: {
       available: '可预约', reserved: '已预订', sold: '已出售',
@@ -37,13 +39,25 @@
       dnaTested: '✓ 基因检测完毕', verifiedReview: '✓ 已认证评价',
       reviewPlatform: '大家的幼猫繁殖者',
       bornFmt: function(y, m) { return y + '年' + m + '月出生'; },
-      counter: '只'
+      counter: '只',
+      breeds: { 'サイベリアン': '西伯利亚猫', 'ブリティッシュショートヘア': '英国短毛猫', 'ブリティッシュロングヘア': '英国长毛猫', 'ラグドール': '布偶猫' },
+      roles: { 'パパ猫': '父猫', 'ママ猫': '母猫' }
     }
   };
 
   function ct(key) {
     var lang = getLang();
     return (CARD_I18N[lang] || CARD_I18N.ja)[key] || CARD_I18N.ja[key];
+  }
+
+  function ctBreed(breed) {
+    var t = CARD_I18N[getLang()];
+    return (t && t.breeds && t.breeds[breed]) || breed;
+  }
+
+  function ctRole(role) {
+    var t = CARD_I18N[getLang()];
+    return (t && t.roles && t.roles[role]) || role;
   }
 
   // ===== Utility Functions =====
@@ -105,7 +119,7 @@
         (k.isNew ? '<span class="kit-badge-new">NEW</span>' : '') +
       '</div>' +
       '<div class="kitten-body">' +
-        '<h3>' + escAttr(k.breed) + '</h3>' +
+        '<h3>' + escAttr(ctBreed(k.breed)) + '</h3>' +
         '<p class="kit-meta">' + genderFull + ' ・ ' + escAttr(k.color) + '</p>' +
         '<p class="kit-meta">' + bdayText + '</p>' +
         (k.note ? '<p class="kit-meta" style="font-size:11px;color:var(--text-note);">' + escAttr(k.note) + '</p>' : '') +
@@ -124,9 +138,9 @@
       (cover ? '<img src="' + cover + '" alt="' + escAttr(p.name) + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-lg) var(--radius-lg) 0 0;">' : '') +
       '<div class="parent-body">' +
         '<h3>' + escAttr(p.name) + '</h3>' +
-        '<p>' + escAttr(p.breed) + ' ・ ' + escAttr(p.gender) + ' ・ ' + escAttr(p.color) + '</p>' +
+        '<p>' + escAttr(ctBreed(p.breed)) + ' ・ ' + escAttr(p.gender) + ' ・ ' + escAttr(p.color) + '</p>' +
         '<p style="font-size:12px;color:var(--text-note);">' + escAttr(p.age) + '</p>' +
-        '<span class="parent-role ' + roleClass + '">' + escAttr(p.role) + '</span>' +
+        '<span class="parent-role ' + roleClass + '">' + escAttr(ctRole(p.role)) + '</span>' +
       '</div>' +
     '</div>';
   }
