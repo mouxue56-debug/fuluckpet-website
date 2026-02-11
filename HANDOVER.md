@@ -1,7 +1,7 @@
 # 福楽キャッテリー 网站交接文档
 
 > **本文档供下一个 AI 会话使用，用于快速了解本项目的全部背景。**
-> 最后更新：2026-02-11 Session 20
+> 最后更新：2026-02-11 Session 20b
 
 ---
 
@@ -584,7 +584,7 @@ git push origin main          # 1-2 分钟自动部署
 19. **员工教程** — `EMPLOYEE-GUIDE.md`，教员工如何用 Google Drive 上传猫咪照片
 20. **Admin 登录已改造** — 先调 Worker API 验证，fallback 到 localStorage；隐私模式可正常使用（Session 13）
 21. **Admin Drive 照片预览** — 照片管理弹窗内自动匹配 Drive 文件夹，显示缩略图网格，封面标记 📌（Session 13）
-22. **⭐ 已完成&下一步** — ✅图片迁移R2 ✅Admin数据KV同步 ✅知识库+FAQ ✅Admin模块化 ✅前端动态渲染 ✅内容扩充 ✅全站SEO关键词优化 ✅CTA引流组件 ✅知识库文章出处引用 ✅猫咪独立详情页（Session19） ✅分类化CTA（Session19） ✅hreflang ?lang=改进（Session19） ✅全站语言审计修复（Session20） → 下一步：(1)用户创建Google Form后替换`#booking`链接 (2)drive-loader.js适配动态卡片 (3)占位符图片替换
+22. **⭐ 已完成&下一步** — ✅图片迁移R2 ✅Admin数据KV同步 ✅知识库+FAQ ✅Admin模块化 ✅前端动态渲染 ✅内容扩充 ✅全站SEO关键词优化 ✅CTA引流组件 ✅知识库文章出处引用 ✅猫咪独立详情页（Session19） ✅分类化CTA（Session19） ✅hreflang ?lang=改进（Session19） ✅全站语言审计修复（Session20） ✅API缓存修复（Session20b） ✅GitHub Actions自动重建（Session20b） ✅管理面板发布按钮（Session20b） ✅小猫内容多语言翻译（Session20b） → 下一步：(1)用户配置GitHub Token到Cloudflare Worker (2)用户创建Google Form后替换`#booking`链接 (3)drive-loader.js适配动态卡片 (4)部署worker.js到Cloudflare（wrangler deploy）
 23. **Admin JS 模块** — 12个外部文件在 `admin/js/`，加载顺序关键：admin-images.js（提供 `t()`, `admLang`）必须在 admin-core.js 之前
 24. **DRIVE_API 变量** — 在 `admin/js/admin-core.js` 中定义
 25. **Drive 文件夹 ID 常量** — 在 `admin/js/admin-drive.js` 中：kittens `1bQKvwvfa3jHIuKGzR9nvvZIKB6z5-kF4`，parents `1GlqXIGEEzupIQ0WHmN4tOvlvCPE7uNuX`
@@ -620,3 +620,8 @@ git push origin main          # 1-2 分钟自动部署
 55. **card-loader.js i18n系统（Session 20）** — 顶部添加 `CARD_I18N` 翻译对象 + `ct()` 函数，19处硬编码日语字符串全部国际化。监听 `langChanged` 事件自动重新从API获取数据并刷新卡片。页面检测从 `document.title` 改为 `pathname` 检测以支持多语言
 56. **i18n.js 翻译键完整度（Session 20）** — 修正：`nav.shop` JA从'Shop'改为'ショップ'，`blog.tag` JA/ZH从'Knowledge Base'改为正确语言。新增约50个翻译键覆盖：instagram区/kittens排序筛选/parentModal/gallery链接/voice评价来源/visit配送方式/footer标语法律/kitten详情页标签（品种/性别/毛色/生日/价格/状态/CTA按钮/面包屑等）
 57. **猫咪详情页i18n（Session 20）** — generate-site.js的`buildKittenDetailHtml()`添加data-i18n属性（面包屑用common.home+kitten.breadcrumb.kittens，表格用kitten.breed/sex/color/birthday/status/note，CTA用kitten.lineChat/bookVisit/backToList，父母用parents.papa/mama+kitten.parentInfo，视频用kitten.video，税用kitten.taxIncl）
+58. **API缓存修复（Session 20b）** — Worker API的`json()`函数添加Cache-Control参数：频繁变动数据（kittens/parents/reviews）设为`no-store`，静态数据（articles/faq/gallery/settings）设为`public, max-age=3600`。解决了正常浏览器缓存旧数据而隐私模式正常的问题
+59. **GitHub Actions自动重建（Session 20b）** — 新建`.github/workflows/regenerate-site.yml`：支持repository_dispatch（API触发）、workflow_dispatch（手动触发）、schedule（每天JST 3:00定时）。运行`node tools/generate-site.js`后自动commit+push
+60. **管理面板发布按钮（Session 20b）** — Worker添加`/api/admin/publish`端点（调用GitHub API触发repository_dispatch）；api-client.js添加`publish()`方法；admin/index.html顶栏添加「📤 発行する」按钮（带loading状态+toast反馈）；Dashboard添加操作提示卡片。**需要配置：GitHub Fine-grained Token → Cloudflare Worker `GITHUB_TOKEN` 环境变量**
+61. **小猫内容多语言翻译（Session 20b）** — card-loader.js的CARD_I18N添加breeds/roles映射+ctBreed()/ctRole()函数，品种名（サイベリアン→Siberian/西伯利亚猫等）和角色名翻译；i18n.js添加breed.siberian等翻译键+data-i18n-birthday日期格式化处理；generate-site.js详情页数据值（品种/性别/状态/生日）全部添加data-i18n属性
+62. **员工操作教程更新（Session 20b）** — EMPLOYEE-GUIDE.md全面重写，增加管理面板操作教程（添加/修改/售出小猫）、发布按钮说明、日常工作流程总结
