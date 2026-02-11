@@ -5,7 +5,7 @@
 (function() {
   var API = window.FULUCK_API_BASE || 'https://fuluck-api.mouxue56.workers.dev';
   var LINE_URL = 'https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true';
-  var BOOKING_URL = '#booking'; // Replace with Google Form URL when ready
+  var BOOKING_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScZHJxpxNwU1iGnaNaIFg5JQxVcAIO9KTJP22jPZ3Nyr0MNnw/viewform';
 
   function getLang() {
     try { return localStorage.getItem('fuluckpet-lang') || 'ja'; } catch(e) { return 'ja'; }

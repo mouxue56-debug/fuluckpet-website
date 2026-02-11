@@ -132,8 +132,9 @@
   function parentCardHTML(p) {
     var cover = getCoverPhoto(p);
     var roleClass = p.role === 'パパ猫' ? 'role-papa' : 'role-mama';
+    var dataImages = cover ? escAttr(cover) : '';
 
-    return '<div class="parent-card" data-name="' + escAttr(p.name) + '" data-breed="' + escAttr(p.breed) + '" data-gender="' + escAttr(p.gender) + '" data-role="' + escAttr(p.role) + '" data-age="' + escAttr(p.age) + '" data-color="' + escAttr(p.color) + '" data-tested="' + p.tested + '" style="position:relative;cursor:pointer;">' +
+    return '<div class="parent-card" data-name="' + escAttr(p.name) + '" data-breed="' + escAttr(p.breed) + '" data-gender="' + escAttr(p.gender) + '" data-role="' + escAttr(p.role) + '" data-age="' + escAttr(p.age) + '" data-color="' + escAttr(p.color) + '" data-tested="' + p.tested + '" data-images="' + dataImages + '" style="position:relative;cursor:pointer;">' +
       '<span class="health-tag tag-good" style="position:absolute;top:8px;right:8px;font-size:11px;padding:2px 8px;">' + ct('dnaTested') + '</span>' +
       (cover ? '<img src="' + cover + '" alt="' + escAttr(p.name) + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-lg) var(--radius-lg) 0 0;">' : '') +
       '<div class="parent-body">' +

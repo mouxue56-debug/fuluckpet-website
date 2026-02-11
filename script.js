@@ -355,7 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <p style="text-align:center;font-size:12px;color:var(--text-note);margin-top:6px;">※ 購入前のちょっとした質問だけでもOKです</p>
 
       <div class="modal-actions" style="margin-top:12px">
-        <a href="#visit" class="btn btn-secondary modal-visit-btn" onclick="document.getElementById('kittenModal').classList.remove('active');document.body.style.overflow=''">見学を予約</a>
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLScZHJxpxNwU1iGnaNaIFg5JQxVcAIO9KTJP22jPZ3Nyr0MNnw/viewform" class="btn btn-secondary modal-visit-btn" target="_blank" rel="noopener" onclick="document.getElementById('kittenModal').classList.remove('active');document.body.style.overflow=''">見学を予約</a>
       </div>
     `;
 
@@ -495,7 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const parentModal = document.getElementById('parentModal');
   const parentModalClose = document.getElementById('parentModalClose');
 
-  window.openParentModal = function(card) {
+  window.openParentModal = async function(card) {
     if (!parentModal) return;
     const name = card.dataset.name || '';
     const breed = card.dataset.breed || '';
@@ -512,6 +512,46 @@ document.addEventListener('DOMContentLoaded', () => {
     if (roleEl) {
       roleEl.textContent = role;
       roleEl.className = 'parent-role ' + (gender === '♂' ? 'role-papa' : 'role-mama');
+    }
+
+    // Build photo carousel for parent modal
+    const gallery = parentModal.querySelector('.modal-gallery');
+    if (gallery) {
+      let images = card.dataset.images ? card.dataset.images.split(',').filter(u => u.trim()) : [];
+
+      // If no images yet but has Drive folder, load from Drive
+      if (images.length === 0 && card.dataset.driveFolder && window.DriveLoader) {
+        gallery.innerHTML = '<div class="carousel"><div class="carousel-main"><div class="carousel-slide active"><div class="img-placeholder parent-modal-ph"><span>⏳</span><p>読み込み中...</p></div></div></div></div>';
+        const driveUrls = await window.DriveLoader.loadCardImages(card);
+        if (driveUrls) {
+          images = driveUrls.split(',').filter(u => u.trim());
+        }
+      }
+
+      if (images.length > 0) {
+        let slidesHTML = '';
+        let dotsHTML = '';
+        let thumbsHTML = '';
+        images.forEach((img, i) => {
+          const activeClass = i === 0 ? ' active' : '';
+          slidesHTML += `<div class="carousel-slide${activeClass}"><img src="${img.trim()}" alt="${name} ${i + 1}" loading="lazy"></div>`;
+          dotsHTML += `<span class="dot${activeClass}"></span>`;
+          thumbsHTML += `<div class="thumb${activeClass}"><img src="${img.trim()}" alt="サムネイル ${i + 1}"></div>`;
+        });
+        gallery.innerHTML = `
+          <div class="carousel">
+            <div class="carousel-main">${slidesHTML}</div>
+            <button class="carousel-btn carousel-prev">‹</button>
+            <button class="carousel-btn carousel-next">›</button>
+            <div class="carousel-dots">${dotsHTML}</div>
+          </div>
+          ${images.length > 1 ? `<div class="carousel-thumbs">${thumbsHTML}</div>` : ''}
+        `;
+        initCarousel(gallery);
+      } else {
+        // No photos available — show placeholder
+        gallery.innerHTML = '<div class="carousel"><div class="carousel-main"><div class="carousel-slide active"><div class="img-placeholder parent-modal-ph" style="background:linear-gradient(135deg,#f0faf7,#fef6f0);"><span style="font-size:3rem;opacity:0.4;">🐱</span><p style="opacity:0.5;">写真準備中</p></div></div></div></div>';
+      }
     }
 
     // Update details
