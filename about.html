@@ -69,7 +69,7 @@
     },
     "priceRange": "¥160,000～¥290,000",
     "knowsAbout": ["サイベリアン", "ブリティッシュショートヘア", "ブリティッシュロングヘア", "ラグドール", "低アレルゲン猫", "遺伝子検査"],
-    "award": ["2025年上半期 みんなの子猫ブリーダーアワード 全国1位", "2025年下半期 みんなの子猫ブリーダーアワード 全国2位"],
+    "award": ["2025年上半期 みんなの子猫ブリーダーアワード 全国1位", "2025年下半期 みんなの子猫ブリーダーアワード 全国2位", "2025年下半期 大阪府サイベリアンブリーダー お客様評価1位"],
     "hasCredential": [
       {
         "@type": "EducationalOccupationalCredential",
@@ -211,10 +211,18 @@
         </div>
         <div class="award-card">
           <div class="award-icon">🥈</div>
-          <h3>2025年下半期<br>ブリーダーアワード</h3>
+          <h3>2025年下半期<br>全国第二位</h3>
           <p>みんなの子猫ブリーダーにおいて、2025年下半期 ブリーダーアワード 全国第二位を受賞しました。</p>
           <div class="award-badge-img">
             <img src="images/award-2025-h2.png" alt="2025年下半期 ブリーダーアワード 全国第2位" loading="lazy" style="width:100%;border-radius:var(--radius);">
+          </div>
+        </div>
+        <div class="award-card">
+          <div class="award-icon">🏅</div>
+          <h3>2025年下半期<br>大阪府第一位</h3>
+          <p>みんなの子猫ブリーダーにおいて、2025年下半期 大阪府サイベリアンブリーダー お客様評価第一位を受賞。</p>
+          <div class="award-badge-img">
+            <img src="images/award-2025-h2-osaka.png" alt="2025年下半期 大阪府サイベリアン ブリーダー 第1位" loading="lazy" style="width:100%;border-radius:var(--radius);">
           </div>
         </div>
         <div class="award-card">
@@ -480,6 +488,7 @@
       var badges = document.querySelectorAll('.award-badge-img img');
       if (img['award-1'] && badges[0]) badges[0].src = img['award-1'];
       if (img['award-2'] && badges[1]) badges[1].src = img['award-2'];
+      if (img['award-3'] && badges[2]) badges[2].src = img['award-3'];
       if (img['genetic']) {
         var genImg = document.querySelector('[alt*="遺伝子"]');
         if (genImg) genImg.src = img['genetic'];
