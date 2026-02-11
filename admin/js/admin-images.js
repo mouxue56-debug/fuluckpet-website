@@ -156,7 +156,7 @@ function updatePreviewFor(fieldId) {
   var url = inputEl.value.trim();
   if (url) {
     var isBase64 = url.indexOf('data:') === 0;
-    preview.innerHTML = '<img src="' + url + '" style="max-width:120px;max-height:80px;border-radius:6px;border:1px solid #e0e0e0;object-fit:cover;" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'inline\'"><span style="display:none;color:var(--text-light);font-size:11px;">🖼 ' + t('読み込み失敗','加载失败') + '</span>' + (isBase64 ? '<div style="font-size:10px;color:#e53e3e;margin-top:2px;">' + t('⚠ base64 — images/ に保存推奨','⚠ base64 — 建议保存到images/') + '</div>' : '');
+    preview.innerHTML = '<img src="' + url + '" style="max-width:120px;max-height:80px;border-radius:6px;border:1px solid #e0e0e0;object-fit:cover;" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'inline\'"><span style="display:none;color:var(--text-light);font-size:11px;">🖼 ' + t('読み込み失敗','加载失败') + '</span>' + (isBase64 ? '<div style="font-size:10px;color:var(--mint-dark);margin-top:2px;">' + t('📤 保存時にクラウドへ自動アップロード','📤 保存时将自动上传到云端') + '</div>' : '');
   } else {
     preview.innerHTML = '';
   }
@@ -176,6 +176,19 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
+// Convert a data URI to a File object for upload
+function dataUriToFile(dataUri, filename) {
+  var parts = dataUri.split(',');
+  var mime = parts[0].match(/:(.*?);/)[1];
+  var bstr = atob(parts[1]);
+  var n = bstr.length;
+  var u8arr = new Uint8Array(n);
+  while (n--) u8arr[n] = bstr.charCodeAt(n);
+  var ext = mime.split('/')[1] || 'png';
+  if (ext === 'jpeg') ext = 'jpg';
+  return new File([u8arr], (filename || 'image') + '.' + ext, { type: mime });
+}
+
 function saveImageConfig() {
   var config = {};
   var count = 0;
@@ -191,23 +204,75 @@ function saveImageConfig() {
   if (instaUrl && instaUrl.value.trim()) config['insta-url'] = instaUrl.value.trim();
   localStorage.setItem(IMAGE_KEY, JSON.stringify(config));
 
-  // Also sync to settings API (skip base64 values — too large)
-  var apiConfig = {};
-  Object.keys(config).forEach(function(key) {
-    if (config[key].indexOf('data:') !== 0) apiConfig[key] = config[key];
-  });
-  if (typeof FuluckAPI !== 'undefined') {
-    FuluckAPI.put('/api/admin/settings', { images: apiConfig })
-      .then(function() {
-        showToast(t('画像設定を保存＆クラウド同期しました','图片设置已保存并同步到云端') + '（' + count + t('件','张') + '）', 'success');
-      })
-      .catch(function() {
-        showToast(t('ローカル保存済み（クラウド同期失敗）','已本地保存（云端同步失败）'), 'error');
+  // Upload any base64 images to R2 first, then sync all to settings API
+  if (typeof FuluckAPI !== 'undefined' && typeof FuluckAPI.uploadFile === 'function') {
+    var base64Keys = Object.keys(config).filter(function(key) {
+      return config[key].indexOf('data:') === 0;
+    });
+
+    if (base64Keys.length > 0) {
+      showToast(t(
+        base64Keys.length + '枚の画像をクラウドにアップロード中…',
+        '正在上传 ' + base64Keys.length + ' 张图片到云端…'
+      ), 'success');
+
+      var uploads = base64Keys.map(function(key) {
+        var file = dataUriToFile(config[key], key);
+        return FuluckAPI.uploadFile(file).then(function(result) {
+          // Replace base64 with the R2 public URL
+          config[key] = result.url;
+          // Update the input field and preview
+          var field = IMAGE_FIELDS.filter(function(f) { return f.tag === key; })[0];
+          if (field) {
+            var el = document.getElementById(field.id);
+            if (el) {
+              el.value = result.url;
+              updatePreviewFor(field.id);
+            }
+          }
+          return { key: key, url: result.url };
+        });
       });
+
+      Promise.all(uploads).then(function(results) {
+        // Update localStorage with R2 URLs (no more base64)
+        localStorage.setItem(IMAGE_KEY, JSON.stringify(config));
+        // Now sync all to settings API (all URLs, no base64)
+        syncToSettingsAPI(config, count, results.length);
+      }).catch(function(err) {
+        showToast(t(
+          'アップロード失敗: ' + err.message,
+          '上传失败: ' + err.message
+        ), 'error');
+        // Still sync non-base64 values
+        syncToSettingsAPI(config, count, 0);
+      });
+    } else {
+      // No base64 values — sync directly
+      syncToSettingsAPI(config, count, 0);
+    }
   } else {
     showToast(t('画像設定を保存しました','图片设置已保存') + '（' + count + t('件','张') + '）', 'success');
   }
   addLog(t('画像設定を保存しました（' + count + '件）','图片设置已保存（' + count + '张）'));
+}
+
+function syncToSettingsAPI(config, count, uploadedCount) {
+  // Filter out any remaining base64 (shouldn't happen, but safety)
+  var apiConfig = {};
+  Object.keys(config).forEach(function(key) {
+    if (config[key].indexOf('data:') !== 0) apiConfig[key] = config[key];
+  });
+  FuluckAPI.put('/api/admin/settings', { images: apiConfig })
+    .then(function() {
+      var msg = uploadedCount > 0
+        ? t(uploadedCount + '枚をR2にアップロード＆クラウド同期完了','已上传 ' + uploadedCount + ' 张到R2并同步到云端')
+        : t('画像設定を保存＆クラウド同期しました','图片设置已保存并同步到云端');
+      showToast(msg + '（' + count + t('件','张') + '）', 'success');
+    })
+    .catch(function() {
+      showToast(t('ローカル保存済み（クラウド同期失敗）','已本地保存（云端同步失败）'), 'error');
+    });
 }
 
 function generateImageHTML() {
@@ -226,7 +291,7 @@ function generateImageHTML() {
     var val = el ? el.value.trim() : '';
     if (!val) return;
     if (val.indexOf('data:') === 0) {
-      lines.push('<!-- ⚠ ' + f.label[imgLang] + ': base64 image - please save as file to images/ folder first -->');
+      lines.push('<!-- ⚠ ' + f.label[imgLang] + ': base64 — ' + t('先に「保存」でR2にアップロードしてください','请先点击「保存」上传到R2') + ' -->');
       return;
     }
     if (!pages[f.page]) pages[f.page] = [];

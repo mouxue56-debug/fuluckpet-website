@@ -81,6 +81,26 @@ var FuluckAPI = (function() {
       return request('POST', '/api/admin/publish');
     },
 
+    // Upload file to R2 (multipart/form-data) — returns { url, key }
+    uploadFile: function(file) {
+      var formData = new FormData();
+      formData.append('file', file);
+      var opts = {
+        method: 'POST',
+        headers: { 'Authorization': getAuth() },
+        body: formData
+      };
+      return fetchWithTimeout(BASE + '/api/admin/upload', opts)
+        .then(function(res) {
+          if (!res.ok) {
+            return res.text().then(function(t) {
+              throw new Error('Upload ' + res.status + ': ' + t);
+            });
+          }
+          return res.json();
+        });
+    },
+
     // Check API availability
     ping: function() {
       return fetchWithTimeout(BASE + '/api/kittens', { method: 'GET' })
