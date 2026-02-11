@@ -614,4 +614,4 @@ git push origin main          # 1-2 分钟自动部署
 50. **hreflang ?lang= 参数**（Session 19）— i18n.js `initI18n()` 读取 URL `?lang=` 参数自动切换语言（优先级：URL参数 > localStorage）。所有151+HTML文件的 en/zh hreflang href 已加 `?lang=en`/`?lang=zh` 后缀
 51. **详情页导航行为**（Session 19）— script.js `bindKittenCards()` 通过 `.page-hero` 检测是否在 kittens.html：是→点击跳转详情页（`data-detail-url`），否→打开弹窗（index.html 保持弹窗行为）
 52. **card-loader.js data-detail-url**（Session 19）— 动态渲染猫咪卡片时自动添加 `data-detail-url="/kittens/{breederId||id}.html"` 属性，供 script.js 判断跳转目标
-53. **⚠️ Google搜索零结果** — `site:fuluckpet.com` 搜索结果为0。代码层面已确认无noindex、sitemap格式正确、robots.txt正确。可能原因：(1)Cloudflare Bot Fight Mode误挡Googlebot (2)GSC未提交sitemap (3)网站太新。需用户手动：登录GSC检查爬取错误 + 手动请求编入索引 + 检查Cloudflare WAF设置
+53. **Google搜索排查完成（Session 19）** — GSC检查结果：首页已被索引（2月9日抓取✅）但有Product JSON-LD问题（已修复）；kittens.html 已发现-尚未编入索引；blog.html Google尚未识别。已手动请求3个关键页面编入索引。Cloudflare Bot Fight Mode 确认已关闭✅，不影响Googlebot。根本原因：网站太新，Google正在处理中。sitemap已提交成功（128 URL已发现）
