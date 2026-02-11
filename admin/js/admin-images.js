@@ -182,15 +182,32 @@ function saveImageConfig() {
   IMAGE_FIELDS.forEach(function(f) {
     var el = document.getElementById(f.id);
     if (el && el.value.trim()) {
-      config[f.tag] = el.value.trim();
+      var val = el.value.trim();
+      config[f.tag] = val;
       count++;
     }
   });
   var instaUrl = document.getElementById('img-insta-url');
   if (instaUrl && instaUrl.value.trim()) config['insta-url'] = instaUrl.value.trim();
   localStorage.setItem(IMAGE_KEY, JSON.stringify(config));
-  addLog(imgLang === 'zh' ? '图片设置已保存（' + count + '张）' : '画像設定を保存しました（' + count + '件）');
-  showToast(imgLang === 'zh' ? '已保存 ' + count + ' 张图片设置' : '画像設定を保存しました（' + count + '件）', 'success');
+
+  // Also sync to settings API (skip base64 values — too large)
+  var apiConfig = {};
+  Object.keys(config).forEach(function(key) {
+    if (config[key].indexOf('data:') !== 0) apiConfig[key] = config[key];
+  });
+  if (typeof FuluckAPI !== 'undefined') {
+    FuluckAPI.put('/api/admin/settings', { images: apiConfig })
+      .then(function() {
+        showToast(t('画像設定を保存＆クラウド同期しました','图片设置已保存并同步到云端') + '（' + count + t('件','张') + '）', 'success');
+      })
+      .catch(function() {
+        showToast(t('ローカル保存済み（クラウド同期失敗）','已本地保存（云端同步失败）'), 'error');
+      });
+  } else {
+    showToast(t('画像設定を保存しました','图片设置已保存') + '（' + count + t('件','张') + '）', 'success');
+  }
+  addLog(t('画像設定を保存しました（' + count + '件）','图片设置已保存（' + count + '张）'));
 }
 
 function generateImageHTML() {

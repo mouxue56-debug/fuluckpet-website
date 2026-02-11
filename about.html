@@ -415,5 +415,22 @@
 
   <script src="i18n.js"></script>
   <script src="script.js"></script>
+  <script>
+  // Dynamic award badge images from settings API
+  (function() {
+    var API = 'https://fuluck-api.mouxue56.workers.dev';
+    fetch(API + '/api/settings').then(function(r) { return r.json(); }).then(function(settings) {
+      if (!settings || !settings.images) return;
+      var img = settings.images;
+      var badges = document.querySelectorAll('.award-badge-img img');
+      if (img['award-1'] && badges[0]) badges[0].src = img['award-1'];
+      if (img['award-2'] && badges[1]) badges[1].src = img['award-2'];
+      if (img['genetic']) {
+        var genImg = document.querySelector('[alt*="遺伝子"]');
+        if (genImg) genImg.src = img['genetic'];
+      }
+    }).catch(function() {});
+  })();
+  </script>
 </body>
 </html>
