@@ -934,10 +934,10 @@ ${footerHtml}
     });
   });
   </script>
-  <script src="/i18n.js"></script>
+  <script src="/i18n.js?v=20260211"></script>
   <script src="/kitten-carousel.js"></script>
   <script src="/cta-widget.js"></script>
-  <script src="/script.js"></script>
+  <script src="/script.js?v=20260211"></script>
 </body>
 </html>`;
 }
@@ -973,9 +973,9 @@ function extractDetailTemplate() {
   const footerMarker = '<!-- ========== FOOTER ========== -->';
   const footerIdx = html.indexOf(footerMarker);
   // Everything from footer to just before the scripts
-  const scriptTagIdx = html.indexOf('<script src="i18n.js">', footerIdx);
-  const scriptTagIdx2 = html.indexOf('<script src="/i18n.js">', footerIdx);
-  const endIdx = Math.max(scriptTagIdx, scriptTagIdx2);
+  // Find i18n.js script tag (with or without version param)
+  let endIdx = html.indexOf('<script src="/i18n.js', footerIdx);
+  if (endIdx === -1) endIdx = html.indexOf('<script src="i18n.js', footerIdx);
 
   let footerHtml = '';
   if (footerIdx !== -1) {

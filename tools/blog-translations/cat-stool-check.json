@@ -1,0 +1,11 @@
+{
+  "slug": "cat-stool-check",
+  "en": {
+    "title": "Health Check Through Cat Stool: How to Identify Color, Shape, and Odor",
+    "content": "<p>A cat's stool is an important indicator of their health. Make it a habit to observe during daily litter box cleaning.</p>\n    <h2>Characteristics of Normal Stool</h2>\n    <p>Ideally, stool should be brown to dark brown and firm enough that it slightly changes shape when pressed with a finger. It should be in moderately sized pieces and should not have a strong foul odor.</p>\n    <h2>Stool That Requires Attention</h2>\n    <table><tr><th>Condition</th><th>Possible Cause</th><th>Action</th></tr>\n    <tr><td>Persistent soft stool</td><td>Food change or stress</td><td>Stabilize diet; see a vet if no improvement</td></tr>\n    <tr><td>Watery stool</td><td>Infection or poisoning</td><td>Visit the vet promptly</td></tr>\n    <tr><td>Bloody stool</td><td>Gastrointestinal bleeding</td><td>See the vet immediately</td></tr>\n    <tr><td>Black stool</td><td>Upper GI tract bleeding</td><td>See the vet immediately</td></tr>\n    <tr><td>White specks in stool</td><td>Parasites (tapeworm, etc.)</td><td>Get deworming medication from the vet</td></tr></table>\n    <h2>Extra Caution for Kittens</h2>\n    <p>Kittens have underdeveloped immune systems, and dehydration from diarrhea can progress rapidly. If soft stool persists, consult a veterinarian as soon as possible.</p>"
+  },
+  "zh": {
+    "title": "通过猫咪粪便进行健康检查：颜色、形状和气味的辨别方法",
+    "content": "<p>猫咪的粪便是了解健康状况的重要线索。请养成每天清理猫砂盆时观察的习惯。</p>\n    <h2>正常粪便的特征</h2>\n    <p>理想的粪便为棕色至深棕色，用手指按压时会稍微变形的硬度。大小适中呈条状，没有强烈的臭味。</p>\n    <h2>需要注意的粪便</h2>\n    <table><tr><th>状态</th><th>可能的原因</th><th>应对措施</th></tr>\n    <tr><td>持续软便</td><td>更换猫粮或压力</td><td>稳定饮食，无改善则就医</td></tr>\n    <tr><td>水样便</td><td>感染或中毒</td><td>尽快就医</td></tr>\n    <tr><td>血便</td><td>消化道出血</td><td>立即就医</td></tr>\n    <tr><td>黑色粪便</td><td>上消化道出血</td><td>立即就医</td></tr>\n    <tr><td>混有白色颗粒</td><td>寄生虫（绦虫等）</td><td>到兽医处开驱虫药</td></tr></table>\n    <h2>幼猫尤其需要注意</h2>\n    <p>幼猫免疫力尚未成熟，腹泻引起的脱水可能会迅速恶化。如果软便持续出现，请尽早咨询兽医。</p>"
+  }
+}
