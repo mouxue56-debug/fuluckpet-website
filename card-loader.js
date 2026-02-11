@@ -206,6 +206,8 @@
       if (typeof window.rebindCards === 'function') {
         window.rebindCards();
       }
+      // Notify drive-loader to re-scan cards after dynamic render
+      window.dispatchEvent(new Event('cardsLoaded'));
     }).catch(function(err) {
       // API failed — keep static HTML fallback (SEO + offline)
       console.log('card-loader: API unavailable, using static fallback');
@@ -274,6 +276,7 @@
         if (typeof window.rebindCards === 'function') {
           window.rebindCards();
         }
+        window.dispatchEvent(new Event('cardsLoaded'));
       }).catch(function() {
         console.log('card-loader: kittens API unavailable, using static fallback');
       });
@@ -300,6 +303,7 @@
         if (typeof window.rebindCards === 'function') {
           window.rebindCards();
         }
+        window.dispatchEvent(new Event('cardsLoaded'));
       }).catch(function() {
         console.log('card-loader: parents API unavailable, using static fallback');
       });
@@ -325,7 +329,6 @@
 
   // Re-render cards when language changes
   window.addEventListener('langChanged', function() {
-    // Trigger a re-fetch to rebuild cards with new language
     if (isIndex) {
       Promise.all([
         fetch(API + '/api/kittens').then(function(r) { return r.json(); }),
@@ -349,7 +352,49 @@
           revGrid.innerHTML = reviews.slice(0, 3).map(function(r) { return reviewCardHTML(r); }).join('');
         }
         if (typeof window.rebindCards === 'function') window.rebindCards();
+        window.dispatchEvent(new Event('cardsLoaded'));
       }).catch(function() {});
+    }
+
+    if (isKittensPage) {
+      fetch(API + '/api/kittens').then(function(r) { return r.json(); })
+        .then(function(kittens) {
+          if (!kittens || kittens.length === 0) return;
+          var grids = document.querySelectorAll('.kittens-grid');
+          if (grids.length < 2) return;
+          var sib = kittens.filter(function(k) { return k.group === 'c995680'; });
+          var brit = kittens.filter(function(k) { return k.group === 'd696506'; });
+          if (sib.length > 0) grids[0].innerHTML = sib.map(function(k) { return kittenCardHTML(k, {showImages: true}); }).join('');
+          if (brit.length > 0) grids[1].innerHTML = brit.map(function(k) { return kittenCardHTML(k, {showImages: true}); }).join('');
+          if (typeof window.rebindCards === 'function') window.rebindCards();
+          window.dispatchEvent(new Event('cardsLoaded'));
+        }).catch(function() {});
+    }
+
+    if (isParentsPage) {
+      fetch(API + '/api/parents').then(function(r) { return r.json(); })
+        .then(function(parents) {
+          if (!parents || parents.length === 0) return;
+          var grids = document.querySelectorAll('.parents-grid');
+          if (grids.length < 2) return;
+          var sib = parents.filter(function(p) { return p.group === 'c995680'; });
+          var brit = parents.filter(function(p) { return p.group === 'd696506'; });
+          if (sib.length > 0) grids[0].innerHTML = sib.map(function(p) { return parentCardHTML(p); }).join('');
+          if (brit.length > 0) grids[1].innerHTML = brit.map(function(p) { return parentCardHTML(p); }).join('');
+          if (typeof window.rebindCards === 'function') window.rebindCards();
+          window.dispatchEvent(new Event('cardsLoaded'));
+        }).catch(function() {});
+    }
+
+    if (isReviewsPage) {
+      fetch(API + '/api/reviews').then(function(r) { return r.json(); })
+        .then(function(reviews) {
+          if (!reviews || reviews.length === 0) return;
+          var grid = document.querySelector('.reviews-page-grid');
+          if (!grid) return;
+          grid.innerHTML = reviews.map(function(r) { return reviewCardHTML(r); }).join('');
+          if (typeof window.rebindCards === 'function') window.rebindCards();
+        }).catch(function() {});
     }
   });
 

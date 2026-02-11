@@ -993,6 +993,15 @@ function extractDetailTemplate() {
     }
   }
 
+  // Fix relative paths for detail pages (they live in /kittens/ subdirectory)
+  function toAbsoluteLinks(html) {
+    return html
+      .replace(/href="(?!\/|https?:|#|mailto:)([^"]+)"/g, 'href="/$1"')
+      .replace(/src="(?!\/|https?:|data:)([^"]+)"/g, 'src="/$1"');
+  }
+  headerHtml = toAbsoluteLinks(headerHtml);
+  footerHtml = toAbsoluteLinks(footerHtml);
+
   return { headerHtml, footerHtml };
 }
 
@@ -1018,7 +1027,7 @@ function generateKittenDetailPages(kittens, parents) {
   }
 
   // 4. Clean up old files that don't correspond to current eligible kittens
-  const existingFiles = fs.readdirSync(kittensDir).filter(f => f.endsWith('.html'));
+  const existingFiles = fs.readdirSync(kittensDir).filter(f => f.endsWith('.html') && f !== 'index.html');
   let removedCount = 0;
   for (const f of existingFiles) {
     if (!expectedFiles.has(f)) {
@@ -1114,6 +1123,41 @@ function updateSitemap(articles, kittenDetailPages) {
   console.log(`  sitemap.xml -> ${detailPages.length} kitten detail pages, ${publishedArticles.length} blog articles updated`);
 }
 
+// ── Drive Photo Enrichment ────────────────────────────────────
+
+async function enrichKittensWithDrivePhotos(kittens) {
+  const kittensFolderId = '1bQKvwvfa3jHIuKGzR9nvvZIKB6z5-kF4';
+  let folders;
+  try {
+    folders = await fetchJSON('/api/drive/folders/' + kittensFolderId);
+  } catch (e) {
+    console.log('  [warn] Drive folders fetch failed:', e.message);
+    return;
+  }
+  if (!Array.isArray(folders) || folders.length === 0) return;
+
+  const folderMap = {};
+  for (const f of folders) folderMap[f.name] = f.id;
+
+  let enriched = 0;
+  for (const k of kittens) {
+    const bid = k.breederId;
+    if (!bid || !folderMap[bid]) continue;
+    try {
+      const images = await fetchJSON('/api/drive/images/' + folderMap[bid]);
+      if (Array.isArray(images) && images.length > 0) {
+        k.photos = images.map(img => img.url.startsWith('/')
+          ? API_BASE + img.url : img.url);
+        enriched++;
+        console.log('    Drive: ' + bid + ' -> ' + images.length + ' photos');
+      }
+    } catch (e) {
+      console.log('    [warn] Drive images for ' + bid + ': ' + e.message);
+    }
+  }
+  console.log('  Drive enrichment: ' + enriched + '/' + kittens.length + ' kittens');
+}
+
 // ── Main ──────────────────────────────────────────────────────
 
 async function main() {
@@ -1134,6 +1178,11 @@ async function main() {
   ]);
 
   console.log(`  Fetched: ${kittens.length} kittens, ${parents.length} parents, ${reviews.length} reviews, ${articles.length} articles, ${faq.length} FAQ`);
+  console.log('');
+
+  // Enrich kittens with Drive photos (merge multi-photo arrays)
+  console.log('Enriching kittens with Drive photos...');
+  await enrichKittensWithDrivePhotos(kittens);
   console.log('');
 
   // Generate pages

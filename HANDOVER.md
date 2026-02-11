@@ -1,7 +1,7 @@
 # 福楽キャッテリー 网站交接文档
 
 > **本文档供下一个 AI 会话使用，用于快速了解本项目的全部背景。**
-> 最后更新：2026-02-11 Session 20b
+> 最后更新：2026-02-11 Session 20c
 
 ---
 
@@ -622,6 +622,11 @@ git push origin main          # 1-2 分钟自动部署
 57. **猫咪详情页i18n（Session 20）** — generate-site.js的`buildKittenDetailHtml()`添加data-i18n属性（面包屑用common.home+kitten.breadcrumb.kittens，表格用kitten.breed/sex/color/birthday/status/note，CTA用kitten.lineChat/bookVisit/backToList，父母用parents.papa/mama+kitten.parentInfo，视频用kitten.video，税用kitten.taxIncl）
 58. **API缓存修复（Session 20b）** — Worker API的`json()`函数添加Cache-Control参数：频繁变动数据（kittens/parents/reviews）设为`no-store`，静态数据（articles/faq/gallery/settings）设为`public, max-age=3600`。解决了正常浏览器缓存旧数据而隐私模式正常的问题
 59. **GitHub Actions自动重建（Session 20b）** — 新建`.github/workflows/regenerate-site.yml`：支持repository_dispatch（API触发）、workflow_dispatch（手动触发）、schedule（每天JST 3:00定时）。运行`node tools/generate-site.js`后自动commit+push
-60. **管理面板发布按钮（Session 20b）** — Worker添加`/api/admin/publish`端点（调用GitHub API触发repository_dispatch）；api-client.js添加`publish()`方法；admin/index.html顶栏添加「📤 発行する」按钮（带loading状态+toast反馈）；Dashboard添加操作提示卡片。**需要配置：GitHub Fine-grained Token → Cloudflare Worker `GITHUB_TOKEN` 环境变量**
+60. **管理面板发布按钮（Session 20b）** — Worker添加`/api/admin/publish`端点（调用GitHub API触发repository_dispatch）；api-client.js添加`publish()`方法；admin/index.html顶栏添加「📤 発行する」按钮（带loading状态+toast反馈）；Dashboard添加操作提示卡片。~~需要配置：GitHub Fine-grained Token → Cloudflare Worker `GITHUB_TOKEN` 环境变量~~ ✅ Session 20c 已配置完成
 61. **小猫内容多语言翻译（Session 20b）** — card-loader.js的CARD_I18N添加breeds/roles映射+ctBreed()/ctRole()函数，品种名（サイベリアン→Siberian/西伯利亚猫等）和角色名翻译；i18n.js添加breed.siberian等翻译键+data-i18n-birthday日期格式化处理；generate-site.js详情页数据值（品种/性别/状态/生日）全部添加data-i18n属性
 62. **员工操作教程更新（Session 20b）** — EMPLOYEE-GUIDE.md全面重写，增加管理面板操作教程（添加/修改/售出小猫）、发布按钮说明、日常工作流程总结
+63. **GitHub Token + Cloudflare配置完成（Session 20c）** — 创建 Fine-grained PAT `fuluck-worker-publish`（无过期时间，Actions+Contents权限，限定fuluckpet-website仓库）；Cloudflare Worker设置 `GITHUB_TOKEN` Secret；`wrangler deploy` 完成。发布按钮完全可用
+64. **详情页导航404修复（Session 20c）** — generate-site.js的`extractDetailTemplate()`添加`toAbsoluteLinks()`函数，将header/footer中所有相对链接（`href="kittens.html"`）转为绝对路径（`href="/kittens.html"`），解决从`/kittens/xxxx.html`点击导航404的问题。同时创建`kittens/index.html`重定向页面作为fallback，清理逻辑排除index.html
+65. **详情页Drive照片合并（Session 20c）** — generate-site.js新增`enrichKittensWithDrivePhotos()`函数，在生成静态页面前查询Drive API获取多照片，合并到kitten数据中。目前6只猫有Drive照片（5-6张/只），详情页自动显示缩略图画廊。无Drive照片的猫咪不受影响
+66. **Drive图片加载时序修复（Session 20c）** — card-loader.js在所有页面渲染完成后dispatch `cardsLoaded`事件；drive-loader.js监听该事件后重新扫描卡片并替换Drive图片，解决card-loader替换HTML后drive-loader图片丢失的竞态问题
+67. **动态卡片多语言完善（Session 20c）** — card-loader.js的`langChanged`事件处理扩展到kittens.html和parents.html页面（之前只支持index.html），语言切换时自动重新获取API数据并以新语言渲染卡片

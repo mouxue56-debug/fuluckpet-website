@@ -183,6 +183,12 @@
     init();
   }
 
+  // Re-run after card-loader replaces cards with API data
+  window.addEventListener('cardsLoaded', function() {
+    cache.clear(); // Clear image cache so we don't skip folders
+    init();
+  });
+
   // ===== Expose to global scope (for modal carousel) =====
   window.DriveLoader = {
     getImages,
