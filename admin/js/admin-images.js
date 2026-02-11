@@ -114,6 +114,8 @@ function handleImgUpload(fileInput, targetInputId) {
       hint.style.cssText = 'color:var(--mint-dark);display:block;margin-top:4px;font-size:11px;';
       hint.textContent = '📎 ' + file.name + ' (' + (file.size / 1024).toFixed(0) + 'KB)';
       row.appendChild(hint);
+      // Update inline preview immediately
+      updatePreviewFor(targetInputId);
     }
     showToast('📎 ' + file.name, 'success');
   };
@@ -131,24 +133,47 @@ function loadImageConfig() {
     var instaUrlEl = document.getElementById('img-insta-url');
     if (instaUrlEl && saved['insta-url']) instaUrlEl.value = saved['insta-url'];
   } catch(e) {}
-  updateHeroPreview();
+  updateAllPreviews();
   applyImgLang();
 }
 
-function updateHeroPreview() {
-  var preview = document.getElementById('preview-hero-main');
-  if (!preview) return;
-  var url = document.getElementById('img-hero-main').value.trim();
+function updatePreviewFor(fieldId) {
+  var inputEl = document.getElementById(fieldId);
+  if (!inputEl) return;
+  var previewId = 'preview-' + fieldId.replace('img-', '');
+  var preview = document.getElementById(previewId);
+
+  // Auto-create preview div if it doesn't exist
+  if (!preview) {
+    var inputGroup = inputEl.closest('.img-input-group');
+    if (!inputGroup) return;
+    preview = document.createElement('div');
+    preview.className = 'img-preview';
+    preview.id = previewId;
+    inputGroup.appendChild(preview);
+  }
+
+  var url = inputEl.value.trim();
   if (url) {
-    preview.innerHTML = '<img src="' + url + '" onerror="this.parentNode.innerHTML=\'<span class=img-preview-empty>🖼</span>\'">';
+    var isBase64 = url.indexOf('data:') === 0;
+    preview.innerHTML = '<img src="' + url + '" style="max-width:120px;max-height:80px;border-radius:6px;border:1px solid #e0e0e0;object-fit:cover;" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'inline\'"><span style="display:none;color:var(--text-light);font-size:11px;">🖼 ' + t('読み込み失敗','加载失败') + '</span>' + (isBase64 ? '<div style="font-size:10px;color:#e53e3e;margin-top:2px;">' + t('⚠ base64 — images/ に保存推奨','⚠ base64 — 建议保存到images/') + '</div>' : '');
   } else {
-    preview.innerHTML = '<span class="img-preview-empty">🖼</span>';
+    preview.innerHTML = '';
   }
 }
 
+function updateAllPreviews() {
+  IMAGE_FIELDS.forEach(function(f) {
+    updatePreviewFor(f.id);
+  });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
-  var heroInput = document.getElementById('img-hero-main');
-  if (heroInput) heroInput.addEventListener('input', updateHeroPreview);
+  // Add input listener to ALL image fields for live preview
+  IMAGE_FIELDS.forEach(function(f) {
+    var el = document.getElementById(f.id);
+    if (el) el.addEventListener('input', function() { updatePreviewFor(f.id); });
+  });
 });
 
 function saveImageConfig() {

@@ -13,6 +13,13 @@ function renderAll() {
 
 function syncFromAPI() {
   if (typeof FuluckAPI === 'undefined') return;
+
+  var syncIndicator = document.getElementById('syncStatus');
+  if (syncIndicator) {
+    syncIndicator.textContent = t('☁️ 読み込み中...','☁️ 加载中...');
+    syncIndicator.className = 'sync-status syncing';
+  }
+
   Promise.all([
     FuluckAPI.get('/api/kittens').catch(function() { return null; }),
     FuluckAPI.get('/api/parents').catch(function() { return null; }),
@@ -22,15 +29,38 @@ function syncFromAPI() {
     var kv_parents = results[1];
     var kv_reviews = results[2];
     var changed = false;
-    if (kv_kittens && kv_kittens.length > 0) { data.kittens = kv_kittens; changed = true; }
-    if (kv_parents && kv_parents.length > 0) { data.parents = kv_parents; changed = true; }
-    if (kv_reviews && kv_reviews.length > 0) { data.reviews = kv_reviews; changed = true; }
+
+    // Smart merge: API is source of truth, but preserve local-only fields
+    if (kv_kittens && kv_kittens.length > 0) {
+      data.kittens = kv_kittens;
+      changed = true;
+    }
+    if (kv_parents && kv_parents.length > 0) {
+      data.parents = kv_parents;
+      changed = true;
+    }
+    if (kv_reviews && kv_reviews.length > 0) {
+      data.reviews = kv_reviews;
+      changed = true;
+    }
+
     if (changed) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       renderDashboard();
       renderKittens();
       renderParents();
       renderReviews();
+    }
+
+    if (syncIndicator) {
+      syncIndicator.textContent = t('☁️ 同期済み','☁️ 已同步');
+      syncIndicator.className = 'sync-status synced';
+      setTimeout(function() { syncIndicator.className = 'sync-status'; }, 3000);
+    }
+  }).catch(function() {
+    if (syncIndicator) {
+      syncIndicator.textContent = t('⚠️ オフラインモード','⚠️ 离线模式');
+      syncIndicator.className = 'sync-status sync-error';
     }
   });
 }
@@ -156,6 +186,7 @@ function saveKitten() {
     obj.group = '';
     obj.photos = [];
     obj.coverIndex = 0;
+    if (!obj.video) obj.video = '';
     data.kittens.push(obj);
     addLog(t('子猫 ' + obj.breederId + ' を追加しました','添加了子猫 ' + obj.breederId));
   }

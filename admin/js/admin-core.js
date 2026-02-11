@@ -61,7 +61,7 @@ var STORAGE_KEY = 'fuluck-admin-data';
 var PASS_KEY = 'fuluck-admin-pass';
 var LOG_KEY = 'fuluck-admin-log';
 var IMAGE_KEY = 'fuluck-admin-images';
-var DEFAULT_PASS = 'fuluck2025';
+var DEFAULT_PASS = 'fuluck5632';
 var DRIVE_API = 'https://fuluck-api.mouxue56.workers.dev';
 
 // Pagination state
@@ -106,13 +106,37 @@ function loadData() {
 
 function saveData(d) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
-  if (typeof FuluckAPI !== 'undefined') {
-    ['kittens', 'parents', 'reviews'].forEach(function(type) {
-      if (d[type]) {
-        FuluckAPI.bulkImport(type, d[type]).catch(function() {});
-      }
-    });
+  if (typeof FuluckAPI === 'undefined') return;
+
+  // Show sync status to user
+  var syncIndicator = document.getElementById('syncStatus');
+  if (syncIndicator) {
+    syncIndicator.textContent = t('☁️ 同期中...','☁️ 同步中...');
+    syncIndicator.className = 'sync-status syncing';
   }
+
+  var types = ['kittens', 'parents', 'reviews'];
+  var promises = types.map(function(type) {
+    if (!d[type]) return Promise.resolve();
+    return FuluckAPI.bulkImport(type, d[type]);
+  });
+
+  Promise.all(promises)
+    .then(function() {
+      if (syncIndicator) {
+        syncIndicator.textContent = t('☁️ 同期済み','☁️ 已同步');
+        syncIndicator.className = 'sync-status synced';
+        setTimeout(function() { syncIndicator.className = 'sync-status'; }, 3000);
+      }
+    })
+    .catch(function(err) {
+      console.error('API sync failed:', err);
+      if (syncIndicator) {
+        syncIndicator.textContent = t('⚠️ 同期失敗（ローカル保存済み）','⚠️ 同步失败（已本地保存）');
+        syncIndicator.className = 'sync-status sync-error';
+      }
+      showToast(t('クラウド同期に失敗しました。データはローカルに保存されています。','云端同步失败，数据已保存到本地。'), 'error');
+    });
 }
 
 function getData() {
