@@ -1104,14 +1104,24 @@ function updateSitemap(articles, kittenDetailPages) {
   </url>\n`;
   }
 
-  // Build blog article URLs
+  // Build blog article URLs — union of API articles + disk HTML files
   let blogEntries = `  ${blogMarker}\n`;
   const publishedArticles = (articles || []).filter(a => a.published !== false);
+  const blogSlugs = new Set(publishedArticles.map(a => a.slug).filter(Boolean));
 
-  for (const article of publishedArticles) {
-    if (!article.slug) continue;
+  // Also scan /blog/*.html on disk to catch any articles not in API
+  const blogDir = path.join(SITE_DIR, 'blog');
+  if (fs.existsSync(blogDir)) {
+    const diskFiles = fs.readdirSync(blogDir).filter(f => f.endsWith('.html'));
+    for (const f of diskFiles) {
+      blogSlugs.add(f.replace('.html', ''));
+    }
+  }
+
+  const sortedSlugs = [...blogSlugs].sort();
+  for (const slug of sortedSlugs) {
     blogEntries += `  <url>
-    <loc>${BASE_URL}/blog/${escapeHtml(article.slug)}.html</loc>
+    <loc>${BASE_URL}/blog/${escapeHtml(slug)}.html</loc>
     <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -1120,7 +1130,8 @@ function updateSitemap(articles, kittenDetailPages) {
 
   const output = staticPart + kittenEntries + blogEntries + '</urlset>\n';
   fs.writeFileSync(filepath, output, 'utf-8');
-  console.log(`  sitemap.xml -> ${detailPages.length} kitten detail pages, ${publishedArticles.length} blog articles updated`);
+  const diskOnly = sortedSlugs.length - publishedArticles.length;
+  console.log(`  sitemap.xml -> ${detailPages.length} kitten detail pages, ${sortedSlugs.length} blog articles updated${diskOnly > 0 ? ` (${diskOnly} from disk only)` : ''}`);
 }
 
 // ── Drive Photo Enrichment ────────────────────────────────────
