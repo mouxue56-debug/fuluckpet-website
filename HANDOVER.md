@@ -1,7 +1,7 @@
 # 福楽キャッテリー 网站交接文档
 
 > **本文档供下一个 AI 会话使用，用于快速了解本项目的全部背景。**
-> 最后更新：2026-02-11 Session 18
+> 最后更新：2026-02-11 Session 19
 
 ---
 
@@ -53,12 +53,12 @@ fuluckpet-website/
 ├── script.js           # 全局 JS（i18n、导航、动画、modal、YouTube embed、猫咪ナビ）~780行
 ├── i18n.js             # 翻译字典（JA/EN/ZH）+ data-i18n-html 块替换 + langChanged 事件
 ├── card-loader.js      # 动态渲染（从 API 加载子猫/种猫/评价卡片）Session 15b 新增（Session 16 追加 JSON-LD Product schema）
-├── kitten-carousel.js  # 动态猫咪滚动轮播（API实时数据+照片卡片）Session 18 新增
+├── kitten-carousel.js  # 动态猫咪轮播+分类化CTA（10分类×3语言上下文CTA映射）Session 18 新增，Session 19 重写
 ├── cta-widget.js       # 固定底栏 CTA 组件（子猫募集中+LINE 引流）Session 16 新增
 ├── blog-loader.js      # 知识库前端加载（blog.html列表渲染+slug重定向）Session 17 改造
 ├── faq-loader.js       # FAQ 动态加载（旧版，首页已不使用）Session 15
 ├── faq-page-loader.js  # FAQ 独立页面加载器（faq.html 专用，增强静态HTML）Session 17
-├── sitemap.xml         # SEO sitemap（128个URL，含104篇博客文章）Session 17 扩充
+├── sitemap.xml         # SEO sitemap（151+URL，含104篇博客文章+23猫咪详情页）Session 19 扩充
 ├── robots.txt          # 爬虫规则（屏蔽 /admin/ 和 /api/）
 ├── CNAME               # 自定义域名
 ├── .nojekyll           # 禁用 Jekyll
@@ -66,6 +66,8 @@ fuluckpet-website/
 ├── README.md
 ├── HANDOVER.md         # 本文档
 ├── TUTORIAL.md         # 教学文档（给业主学习）
+├── kittens/            # 猫咪独立详情页（generate-site.js 生成）Session 19 新增
+│   └── *.html ×23      # 每只 available/reserved 猫咪独立页面（Product JSON-LD+BreadcrumbList）
 ├── blog/               # 104篇静态博客文章 Session 17
 │   ├── blog-i18n.js    # 博客文章语言切换（读取 window._blogArticleI18n）
 │   ├── siberian-character.html  # 例：サイベリアンの性格と特徴
@@ -317,7 +319,7 @@ fuluckpet-website/
 - ✅ OGP meta 标签（全页面）
 - ✅ JSON-LD 结构化数据（全页面）— 含 FAQ + 动态 Product schema（Session 16）
 - ✅ canonical URL（全页面）
-- ✅ sitemap.xml（128个URL，含104篇博客文章）Session 17 扩充
+- ✅ sitemap.xml（151+URL，含104篇博客文章+23猫咪详情页）Session 19 扩充
 - ✅ robots.txt（屏蔽 admin/api）
 - ✅ GA4（全页面已嵌入）
 - ✅ Search Console 验证 + sitemap
@@ -325,8 +327,11 @@ fuluckpet-website/
 - ✅ kittens.html 动态 JSON-LD Product schema（每只 available 子猫独立 Product 数据）
 - ✅ **104篇静态博客文章**（Session 17）：每篇独立 `/blog/{slug}.html`，含 BlogPosting JSON-LD + BreadcrumbList
 - ✅ **FAQPage JSON-LD**（Session 17）：faq.html 包含24项静态FAQ + FAQPage结构化数据
-- ✅ **hreflang 标签**（Session 17）：全站129个HTML文件添加 ja/en/zh/x-default
+- ✅ **hreflang 标签**（Session 17/19）：全站151+HTML文件添加 ja/en/zh/x-default + `?lang=` URL参数（Session 19）
 - ✅ **静态博客列表页**（Session 17）：blog.html 包含104篇文章静态卡片，分10个分类
+- ✅ **猫咪独立详情页**（Session 19）：23只猫独立 `/kittens/{breederId}.html`，含 Product JSON-LD + BreadcrumbList
+- ✅ **分类化CTA**（Session 19）：博客文章按10个分类展示针对性引导文案（kitten-carousel.js）
+- ✅ **预约按钮预留**（Session 19）：`#booking` 占位，待用户创建 Google Form 后替换
 - ⚠️ `images/ogp.jpg` 尚未创建（社交分享无预览图）— OGP 路径已统一为 `/images/ogp.jpg`（Session 14）
 
 ### 内容优化状态（Session 9）
@@ -536,6 +541,7 @@ fuluckpet-photos/  (ID: 1sbFIW5C7YfSw7zVIKhhAyCOuKivD8qUc)
 | 16 | **日期移除**：blog-loader.js 移除文章列表+详情的日期显示 → **全站SEO关键词优化**：25+个HTML文件title/description/keywords增加目标关键词（大阪/サイベリアン/ブリーダー/羅方遠/ラホウエン/みんなの子猫ブリーダー/口コミ）→ card-loader.js动态JSON-LD Product schema → **CTA引流组件**：cta-widget.js新建（固定底栏，子猫募集中X匹+LINE按钮，i18n，滚动显隐）→ 17个页面引入cta-widget.js → **知识库出处**：16篇文章追加权威引用（環境省/日本獣医師会/TICA/CFA等） |
 | 17 | **SEO基础设施大升级**：104篇静态博客文章（`/blog/*.html`，含BlogPosting JSON-LD+BreadcrumbList+完整header/footer+LINE CTA+blog-i18n.js语言切换）→ blog.html列表页静态化（10分类×104篇卡片）→ faq.html静态化（24项FAQ+FAQPage JSON-LD结构化数据）→ hreflang标签全站129个文件（ja/en/zh/x-default）→ sitemap.xml扩充至128个URL → blog-loader.js slug重定向+静态链接 |
 | 18 | **日期移除**（104篇博客文章+JSON-LD datePublished/dateModified）→ **kitten-carousel.js**（动态猫咪轮播组件，API实时数据+照片+价格+状态徽章，自动滚动+三语）→ **FAQ页面CTA增强**（猫咪轮播+お迎えガイド/知識ライブラリ引导）→ **OGP图片**（1200×630px品牌宣传图）→ **generate-site.js**（全站静态页面生成脚本，从API数据重新生成kittens/parents/reviews/sitemap） |
+| 19 | **占位符清理**（about.html遗传证书隐藏+index/parents親猫modal文案优化+script.js照片placeholder改善）→ **SEO排查**（noindex扫描全清✅+JSON-LD sameAs补全LINE）→ **预约按钮预留**（index.html见学区+猫咪CTA区+cta-widget.js底栏，`#booking`占位待Google Form创建）→ **分类化CTA**（kitten-carousel.js完全重写，10分类×3语言上下文CTA映射，博客文章按类别展示针对性引导文案）→ **猫咪独立详情页**（generate-site.js扩展，23只猫独立HTML页面`/kittens/{breederId}.html`，含Product JSON-LD+BreadcrumbList+照片画廊+YouTube嵌入+LINE/预约CTA）→ **列表页联动**（card-loader.js添加data-detail-url+script.js kittens.html点击跳转详情页、index.html保持弹窗）→ **hreflang ?lang=改进**（i18n.js URL参数读取+151个HTML文件hreflang添加?lang=en/?lang=zh后缀+generate-site.js模板更新）→ sitemap.xml扩充至151+URL |
 
 ---
 
@@ -577,7 +583,7 @@ git push origin main          # 1-2 分钟自动部署
 19. **员工教程** — `EMPLOYEE-GUIDE.md`，教员工如何用 Google Drive 上传猫咪照片
 20. **Admin 登录已改造** — 先调 Worker API 验证，fallback 到 localStorage；隐私模式可正常使用（Session 13）
 21. **Admin Drive 照片预览** — 照片管理弹窗内自动匹配 Drive 文件夹，显示缩略图网格，封面标记 📌（Session 13）
-22. **⭐ 已完成&下一步** — ✅图片迁移R2 ✅Admin数据KV同步 ✅知识库+FAQ ✅Admin模块化 ✅前端动态渲染 ✅内容扩充（24FAQ+16文章） ✅全站SEO关键词优化（Session16） ✅CTA引流组件（Session16） ✅知识库文章出处引用（Session16） → 下一步：(1)drive-loader.js适配动态卡片 (2)占位符图片替换
+22. **⭐ 已完成&下一步** — ✅图片迁移R2 ✅Admin数据KV同步 ✅知识库+FAQ ✅Admin模块化 ✅前端动态渲染 ✅内容扩充 ✅全站SEO关键词优化 ✅CTA引流组件 ✅知识库文章出处引用 ✅猫咪独立详情页（Session19） ✅分类化CTA（Session19） ✅hreflang ?lang=改进（Session19） → 下一步：(1)用户创建Google Form后替换`#booking`链接 (2)检查GSC/Cloudflare设置 (3)drive-loader.js适配动态卡片 (4)占位符图片替换
 23. **Admin JS 模块** — 12个外部文件在 `admin/js/`，加载顺序关键：admin-images.js（提供 `t()`, `admLang`）必须在 admin-core.js 之前
 24. **DRIVE_API 变量** — 在 `admin/js/admin-core.js` 中定义
 25. **Drive 文件夹 ID 常量** — 在 `admin/js/admin-drive.js` 中：kittens `1bQKvwvfa3jHIuKGzR9nvvZIKB6z5-kF4`，parents `1GlqXIGEEzupIQ0WHmN4tOvlvCPE7uNuX`
@@ -602,3 +608,10 @@ git push origin main          # 1-2 分钟自动部署
 44. **blog 日期已隐藏**（Session 16）— blog-loader.js 不再渲染日期（`formatDate()` 函数保留但不调用）。blog.css 已删除日期相关样式
 45. **JSON-LD Product schema**（Session 16）— card-loader.js 在 kittens.html 渲染后，为每只 available 子猫注入 `@type: Product` JSON-LD，包含品种/性别/颜色/价格/大阪等 SEO 关键词
 46. **脚本加载顺序更新** — blog.html/faq.html/guide子页面新增 cta-widget.js：i18n.js → blog-loader.js/faq-page-loader.js → cta-widget.js → script.js
+47. **猫咪独立详情页**（Session 19）— generate-site.js 的 `generateKittenDetailPages()` 为每只 available/reserved 猫咪生成独立 HTML（`/kittens/{breederId}.html`）。含 Product JSON-LD + BreadcrumbList + 照片画廊 + YouTube 嵌入 + LINE CTA（自动带猫咪编号）+ 预约按钮 + 同品种推荐轮播。自动清理已售出猫咪页面
+48. **分类化CTA映射**（Session 19）— kitten-carousel.js 完全重写，包含 `CTA_MAP` 对象（10分类×3语言）。博客文章通过 `.blog-meta-cat` 元素检测分类，显示针对性CTA标题和按钮（如过敏类→"アレルギーが心配？"，品种类→"サイベリアンの子猫に会いませんか？"）
+49. **预约按钮占位**（Session 19）— `BOOKING_URL = '#booking'` 在 kitten-carousel.js 第8行 + cta-widget.js。用户创建 Google Form 后只需替换此常量值 + index.html 中2处 `href="#booking"` 即可全站生效
+50. **hreflang ?lang= 参数**（Session 19）— i18n.js `initI18n()` 读取 URL `?lang=` 参数自动切换语言（优先级：URL参数 > localStorage）。所有151+HTML文件的 en/zh hreflang href 已加 `?lang=en`/`?lang=zh` 后缀
+51. **详情页导航行为**（Session 19）— script.js `bindKittenCards()` 通过 `.page-hero` 检测是否在 kittens.html：是→点击跳转详情页（`data-detail-url`），否→打开弹窗（index.html 保持弹窗行为）
+52. **card-loader.js data-detail-url**（Session 19）— 动态渲染猫咪卡片时自动添加 `data-detail-url="/kittens/{breederId||id}.html"` 属性，供 script.js 判断跳转目标
+53. **⚠️ Google搜索零结果** — `site:fuluckpet.com` 搜索结果为0。代码层面已确认无noindex、sitemap格式正确、robots.txt正确。可能原因：(1)Cloudflare Bot Fight Mode误挡Googlebot (2)GSC未提交sitemap (3)网站太新。需用户手动：登录GSC检查爬取错误 + 手动请求编入索引 + 检查Cloudflare WAF设置

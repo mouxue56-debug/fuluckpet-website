@@ -471,21 +471,577 @@ function generateReviews(reviews) {
   console.log(`  reviews.html -> ${reviews.length} reviews`);
 }
 
+// ── Generate Kitten Detail Pages ──────────────────────────────
+
+/**
+ * Extract YouTube video ID from various URL/embed formats
+ */
+function extractYouTubeId(video) {
+  if (!video) return null;
+  // Match youtube.com/watch?v=ID
+  let m = video.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+  if (m) return m[1];
+  // If it's an iframe, extract from src
+  if (video.includes('<iframe')) {
+    m = video.match(/src="[^"]*(?:youtube\.com\/embed\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+/**
+ * Build the full HTML for a kitten detail page
+ */
+function buildKittenDetailHtml(kitten, headerHtml, footerHtml) {
+  const fileId = kitten.breederId || kitten.id;
+  const gt = genderText(kitten.gender);
+  const genderFull = kitten.gender ? `${kitten.gender} ${gt}` : '';
+  const st = statusText(kitten.status);
+  const bd = formatBirthday(kitten.birthday);
+  const pr = formatPrice(kitten.price);
+  const coverPhoto = getCoverPhoto(kitten);
+  const photos = kitten.photos || [];
+  const pageUrl = `${BASE_URL}/kittens/${fileId}.html`;
+
+  const titleText = `${kitten.breed || ''} ${genderFull} ${kitten.color || ''}`.trim();
+  const pageTitle = `${titleText}｜子猫詳細｜福楽キャッテリー`;
+  const metaDesc = `大阪の福楽キャッテリーの${kitten.breed || ''}の子猫。${kitten.color || ''}、${genderFull}、${bd ? bd + '生まれ' : ''}。¥${pr}（税込）${st}。`;
+
+  // Schema availability
+  const schemaAvailability = kitten.status === 'available'
+    ? 'https://schema.org/InStock'
+    : 'https://schema.org/LimitedAvailability';
+
+  // Product JSON-LD
+  const productJsonLd = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": titleText,
+    "description": `大阪の福楽キャッテリー（ブリーダー：羅方遠）の${kitten.breed || ''}の子猫。${kitten.color || ''}、${genderFull}、${bd ? bd + '生まれ' : ''}。`,
+    "image": photos,
+    "brand": { "@type": "Brand", "name": "福楽キャッテリー" },
+    "offers": {
+      "@type": "Offer",
+      "price": String(kitten.price || 0),
+      "priceCurrency": "JPY",
+      "availability": schemaAvailability,
+      "url": pageUrl,
+      "seller": {
+        "@type": "Organization",
+        "name": "福楽キャッテリー"
+      }
+    }
+  });
+
+  // Breadcrumb JSON-LD
+  const breadcrumbJsonLd = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "ホーム", "item": `${BASE_URL}/` },
+      { "@type": "ListItem", "position": 2, "name": "子猫一覧", "item": `${BASE_URL}/kittens.html` },
+      { "@type": "ListItem", "position": 3, "name": titleText, "item": pageUrl }
+    ]
+  });
+
+  // Thumbnails HTML
+  let thumbsHtml = '';
+  if (photos.length > 1) {
+    thumbsHtml = `
+      <div class="kitten-detail-thumbs">
+        ${photos.map((p, i) => `<img src="${escapeHtml(p)}" alt="${escapeHtml(kitten.breed || '')} ${i + 1}" class="kitten-detail-thumb${i === (kitten.coverIndex || 0) ? ' active' : ''}" data-idx="${i}" loading="lazy">`).join('\n        ')}
+      </div>`;
+  }
+
+  // Video section
+  let videoHtml = '';
+  const ytId = extractYouTubeId(kitten.video);
+  if (ytId) {
+    videoHtml = `
+    <!-- Video -->
+    <div class="kitten-detail-video">
+      <h2>動画</h2>
+      <div class="kitten-detail-video-wrap">
+        <iframe src="https://www.youtube.com/embed/${ytId}" title="${escapeHtml(titleText)} 動画" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+      </div>
+    </div>`;
+  }
+
+  // Parents info
+  let parentsHtml = '';
+  if (kitten.papa || kitten.mama) {
+    let parentsInner = '';
+    if (kitten.papa) parentsInner += `<p>パパ猫: <a href="/parents.html">${escapeHtml(kitten.papa)}</a></p>`;
+    if (kitten.mama) parentsInner += `<p>ママ猫: <a href="/parents.html">${escapeHtml(kitten.mama)}</a></p>`;
+    parentsHtml = `
+    <!-- Parents -->
+    <div class="kitten-detail-parents">
+      <h2>両親情報</h2>
+      ${parentsInner}
+    </div>`;
+  }
+
+  // Note row
+  const noteRow = kitten.note
+    ? `<tr><th>備考</th><td>${escapeHtml(kitten.note)}</td></tr>`
+    : '';
+
+  // New badge
+  const newBadge = kitten.isNew ? ' <span class="kit-badge-new">NEW</span>' : '';
+
+  return `<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHtml(pageTitle)}</title>
+  <meta name="description" content="${escapeHtml(metaDesc)}">
+  <meta property="og:title" content="${escapeHtml(pageTitle)}">
+  <meta property="og:description" content="${escapeHtml(metaDesc)}">
+  <meta property="og:type" content="product">
+  <meta property="og:image" content="${escapeHtml(coverPhoto)}">
+  <meta property="og:url" content="${escapeHtml(pageUrl)}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#7DD3C0">
+  <link rel="canonical" href="${escapeHtml(pageUrl)}">
+  <link rel="alternate" hreflang="ja" href="${escapeHtml(pageUrl)}">
+  <link rel="alternate" hreflang="en" href="${escapeHtml(pageUrl)}?lang=en">
+  <link rel="alternate" hreflang="zh" href="${escapeHtml(pageUrl)}?lang=zh">
+  <link rel="alternate" hreflang="x-default" href="${escapeHtml(pageUrl)}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐱</text></svg>">
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
+  <script type="application/ld+json">
+  ${productJsonLd}
+  </script>
+  <script type="application/ld+json">
+  ${breadcrumbJsonLd}
+  </script>
+  <style>
+  /* ── Kitten Detail Page Styles ── */
+  .kitten-detail-hero {
+    padding: 0 0 24px;
+  }
+  .kitten-detail-gallery {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .kitten-detail-main-img {
+    width: 100%;
+    aspect-ratio: 4/3;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--bg-cream);
+  }
+  .kitten-detail-main-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .kitten-detail-thumbs {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .kitten-detail-thumb {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s, box-shadow 0.2s;
+    flex-shrink: 0;
+    border: 2px solid transparent;
+  }
+  .kitten-detail-thumb:hover,
+  .kitten-detail-thumb.active {
+    opacity: 1;
+    border-color: var(--mint);
+    box-shadow: 0 0 0 2px var(--mint);
+  }
+  .kitten-detail-info {
+    padding: 32px 0 48px;
+  }
+  .kitten-detail-info h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin: 0 0 12px;
+    color: var(--text-main);
+  }
+  .kitten-detail-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .kitten-detail-price {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--strawberry);
+    margin: 0 0 24px;
+  }
+  .kitten-detail-price .tax {
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: var(--text-note);
+  }
+  .kitten-detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 32px;
+  }
+  .kitten-detail-table th,
+  .kitten-detail-table td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.95rem;
+  }
+  .kitten-detail-table th {
+    width: 100px;
+    color: var(--text-note);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .kitten-detail-parents {
+    margin-bottom: 32px;
+  }
+  .kitten-detail-parents h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 12px;
+    color: var(--text-main);
+  }
+  .kitten-detail-parents p {
+    margin: 4px 0;
+    font-size: 0.95rem;
+  }
+  .kitten-detail-parents a {
+    color: var(--mint-dark, var(--mint));
+    text-decoration: underline;
+  }
+  .kitten-detail-video {
+    margin-bottom: 32px;
+  }
+  .kitten-detail-video h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 12px;
+    color: var(--text-main);
+  }
+  .kitten-detail-video-wrap {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: #000;
+  }
+  .kitten-detail-video-wrap iframe {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+  }
+  .kitten-detail-cta {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 32px;
+  }
+  .kitten-detail-cta .btn {
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 24px;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .kitten-detail-cta .btn-line {
+    background: #06c755;
+    color: #fff;
+  }
+  .kitten-detail-cta .btn-line:hover {
+    background: #05b34c;
+    transform: translateY(-1px);
+  }
+  .kitten-detail-cta .btn-secondary {
+    background: var(--mint);
+    color: #fff;
+  }
+  .kitten-detail-cta .btn-secondary:hover {
+    filter: brightness(1.05);
+    transform: translateY(-1px);
+  }
+  .kitten-detail-cta .btn-outline {
+    background: transparent;
+    border: 2px solid var(--border);
+    color: var(--text-main);
+  }
+  .kitten-detail-cta .btn-outline:hover {
+    border-color: var(--mint);
+    color: var(--mint);
+  }
+  .breadcrumb {
+    padding: 16px 0;
+    font-size: 0.85rem;
+    color: var(--text-note);
+  }
+  .breadcrumb a {
+    color: var(--text-note);
+    text-decoration: none;
+  }
+  .breadcrumb a:hover {
+    color: var(--mint);
+    text-decoration: underline;
+  }
+  @media (min-width: 768px) {
+    .kitten-detail-cta {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+    .kitten-detail-thumb {
+      width: 88px;
+      height: 88px;
+    }
+    .kitten-detail-info h1 {
+      font-size: 2rem;
+    }
+  }
+  </style>
+</head>
+<body>
+
+  <!-- Scroll Progress Bar -->
+  <div class="scroll-progress"></div>
+
+${headerHtml}
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb">
+    <div class="container">
+      <a href="/">ホーム</a> &gt; <a href="/kittens.html">子猫一覧</a> &gt; ${escapeHtml(titleText)}
+    </div>
+  </nav>
+
+  <!-- Hero photo section -->
+  <section class="kitten-detail-hero">
+    <div class="container">
+      <div class="kitten-detail-gallery">
+        <div class="kitten-detail-main-img">
+          <img id="mainPhoto" src="${escapeHtml(coverPhoto)}" alt="${escapeHtml(kitten.breed || '')} ${escapeHtml(kitten.color || '')}">
+        </div>
+        ${thumbsHtml}
+      </div>
+    </div>
+  </section>
+
+  <!-- Info section -->
+  <section class="kitten-detail-info">
+    <div class="container">
+      <h1>${escapeHtml(titleText)}</h1>
+
+      <!-- Status + New badge -->
+      <div class="kitten-detail-status">
+        <span class="kit-status st-${escapeHtml(kitten.status)}">${escapeHtml(st)}</span>${newBadge}
+      </div>
+
+      <!-- Price -->
+      <p class="kitten-detail-price">&yen;${pr} <span class="tax">（税込）</span></p>
+
+      <!-- Detail table -->
+      <table class="kitten-detail-table">
+        <tr><th>品種</th><td>${escapeHtml(kitten.breed || '')}</td></tr>
+        <tr><th>性別</th><td>${escapeHtml(genderFull)}</td></tr>
+        <tr><th>毛色</th><td>${escapeHtml(kitten.color || '')}</td></tr>
+        <tr><th>誕生日</th><td>${bd ? escapeHtml(bd) + '生まれ' : ''}</td></tr>
+        <tr><th>状態</th><td>${escapeHtml(st)}</td></tr>
+        ${noteRow}
+      </table>
+
+      ${parentsHtml}
+
+      ${videoHtml}
+
+      <!-- CTA buttons -->
+      <div class="kitten-detail-cta">
+        <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="btn btn-line" target="_blank" rel="noopener">
+          LINEでこの子について相談
+        </a>
+        <a href="/index.html#visit" class="btn btn-secondary">
+          見学を予約する
+        </a>
+        <a href="/kittens.html" class="btn btn-outline">
+          ← 子猫一覧に戻る
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Related kittens carousel placeholder -->
+  <section class="section">
+    <div class="container">
+      <div class="kitten-carousel-mount"></div>
+    </div>
+  </section>
+
+${footerHtml}
+
+  <script>
+  // Thumbnail click → swap main photo
+  document.querySelectorAll('.kitten-detail-thumb').forEach(function(thumb) {
+    thumb.addEventListener('click', function() {
+      var mainImg = document.getElementById('mainPhoto');
+      if (mainImg) mainImg.src = this.src;
+      document.querySelectorAll('.kitten-detail-thumb').forEach(function(t) { t.classList.remove('active'); });
+      this.classList.add('active');
+    });
+  });
+  </script>
+  <script src="/i18n.js"></script>
+  <script src="/kitten-carousel.js"></script>
+  <script src="/cta-widget.js"></script>
+  <script src="/script.js"></script>
+</body>
+</html>`;
+}
+
+/**
+ * Extract header (nav only, no page-hero) and footer from kittens.html
+ * for use in kitten detail pages.
+ */
+function extractDetailTemplate() {
+  const filepath = path.join(SITE_DIR, 'kittens.html');
+  const html = fs.readFileSync(filepath, 'utf-8');
+
+  // Header: from <header> to end of </div> (mobileNav)
+  // We want: header element + mobile nav
+  const headerStart = html.indexOf('<!-- ========== HEADER ========== -->');
+  const mobileNavEnd = html.indexOf('</div>', html.indexOf('class="mobile-nav"'));
+  // Find the closing </div> of mobile-nav (need to find the right one)
+  // mobile-nav has nested divs, so find the block properly
+  const mobileNavMarker = '<!-- ========== MOBILE NAV ========== -->';
+  const mobileNavIdx = html.indexOf(mobileNavMarker);
+
+  // Find the PAGE HERO marker to know where header ends
+  const pageHeroMarker = '<!-- ========== PAGE HERO ========== -->';
+  const pageHeroIdx = html.indexOf(pageHeroMarker);
+
+  let headerHtml = '';
+  if (headerStart !== -1 && pageHeroIdx !== -1) {
+    // Everything from HEADER comment to just before PAGE HERO, trimmed
+    headerHtml = html.substring(headerStart, pageHeroIdx).trim();
+  }
+
+  // Footer: from FOOTER comment to closing </footer>, plus fixed LINE button and back-to-top
+  const footerMarker = '<!-- ========== FOOTER ========== -->';
+  const footerIdx = html.indexOf(footerMarker);
+  // Everything from footer to just before the scripts
+  const scriptTagIdx = html.indexOf('<script src="i18n.js">', footerIdx);
+  const scriptTagIdx2 = html.indexOf('<script src="/i18n.js">', footerIdx);
+  const endIdx = Math.max(scriptTagIdx, scriptTagIdx2);
+
+  let footerHtml = '';
+  if (footerIdx !== -1) {
+    // Grab from footer marker to end of the back-to-top button
+    const backToTopEnd = html.indexOf('</button>', html.indexOf('id="backToTop"'));
+    if (backToTopEnd !== -1) {
+      footerHtml = html.substring(footerIdx, backToTopEnd + '</button>'.length);
+    } else {
+      // Fallback: grab from footer marker to just before first script tag
+      if (endIdx !== -1) {
+        footerHtml = html.substring(footerIdx, endIdx).trim();
+      } else {
+        footerHtml = html.substring(footerIdx, html.indexOf('</body>')).trim();
+      }
+    }
+  }
+
+  return { headerHtml, footerHtml };
+}
+
+function generateKittenDetailPages(kittens, parents) {
+  const kittensDir = path.join(SITE_DIR, 'kittens');
+
+  // 1. Create /kittens/ directory if not exists
+  if (!fs.existsSync(kittensDir)) {
+    fs.mkdirSync(kittensDir, { recursive: true });
+  }
+
+  // 2. Filter eligible kittens: available or reserved, with at least 1 photo
+  const eligible = kittens.filter(k =>
+    (k.status === 'available' || k.status === 'reserved') &&
+    k.photos && k.photos.length > 0
+  );
+
+  // 3. Build set of expected filenames
+  const expectedFiles = new Set();
+  for (const k of eligible) {
+    const fileId = k.breederId || k.id;
+    expectedFiles.add(`${fileId}.html`);
+  }
+
+  // 4. Clean up old files that don't correspond to current eligible kittens
+  const existingFiles = fs.readdirSync(kittensDir).filter(f => f.endsWith('.html'));
+  let removedCount = 0;
+  for (const f of existingFiles) {
+    if (!expectedFiles.has(f)) {
+      fs.unlinkSync(path.join(kittensDir, f));
+      removedCount++;
+    }
+  }
+
+  // 5. Extract header/footer template from kittens.html
+  const { headerHtml, footerHtml } = extractDetailTemplate();
+
+  // 6. Generate each detail page
+  let generatedCount = 0;
+  for (const k of eligible) {
+    const fileId = k.breederId || k.id;
+    const outputPath = path.join(kittensDir, `${fileId}.html`);
+    const html = buildKittenDetailHtml(k, headerHtml, footerHtml);
+    fs.writeFileSync(outputPath, html, 'utf-8');
+    generatedCount++;
+  }
+
+  console.log(`  kittens/ -> ${generatedCount} detail pages generated, ${removedCount} old pages removed`);
+  return eligible; // Return for sitemap use
+}
+
 // ── Update Sitemap ────────────────────────────────────────────
 
-function updateSitemap(articles) {
+function updateSitemap(articles, kittenDetailPages) {
   const filepath = path.join(SITE_DIR, 'sitemap.xml');
   const existing = fs.readFileSync(filepath, 'utf-8');
   const today = todayISO();
 
-  // Extract the static (non-blog) portion: everything before "<!-- ブログ記事 -->"
+  // Extract the static (non-blog) portion: everything before "<!-- 子猫詳細ページ -->" or "<!-- ブログ記事 -->"
+  const kittenDetailMarker = '<!-- 子猫詳細ページ -->';
   const blogMarker = '<!-- ブログ記事 -->';
+
   let staticPart;
-  const markerIdx = existing.indexOf(blogMarker);
-  if (markerIdx !== -1) {
-    staticPart = existing.substring(0, markerIdx);
+  const kittenMarkerIdx = existing.indexOf(kittenDetailMarker);
+  const blogMarkerIdx = existing.indexOf(blogMarker);
+
+  if (kittenMarkerIdx !== -1) {
+    staticPart = existing.substring(0, kittenMarkerIdx);
+  } else if (blogMarkerIdx !== -1) {
+    staticPart = existing.substring(0, blogMarkerIdx);
   } else {
-    // No blog marker found - everything before </urlset>
+    // No markers found - everything before </urlset>
     staticPart = existing.substring(0, existing.indexOf('</urlset>'));
   }
 
@@ -503,6 +1059,19 @@ function updateSitemap(articles) {
     `$1${today}`
   );
 
+  // Build kitten detail page URLs
+  let kittenEntries = `  ${kittenDetailMarker}\n`;
+  const detailPages = kittenDetailPages || [];
+  for (const k of detailPages) {
+    const fileId = k.breederId || k.id;
+    kittenEntries += `  <url>
+    <loc>${BASE_URL}/kittens/${escapeHtml(fileId)}.html</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>\n`;
+  }
+
   // Build blog article URLs
   let blogEntries = `  ${blogMarker}\n`;
   const publishedArticles = (articles || []).filter(a => a.published !== false);
@@ -517,9 +1086,9 @@ function updateSitemap(articles) {
   </url>\n`;
   }
 
-  const output = staticPart + blogEntries + '</urlset>\n';
+  const output = staticPart + kittenEntries + blogEntries + '</urlset>\n';
   fs.writeFileSync(filepath, output, 'utf-8');
-  console.log(`  sitemap.xml -> ${publishedArticles.length} blog articles updated`);
+  console.log(`  sitemap.xml -> ${detailPages.length} kitten detail pages, ${publishedArticles.length} blog articles updated`);
 }
 
 // ── Main ──────────────────────────────────────────────────────
@@ -553,6 +1122,14 @@ async function main() {
     console.log('  [skip] kittens.html (no data)');
   }
 
+  // Generate kitten detail pages (individual pages per kitten)
+  let kittenDetailPages = [];
+  if (kittens.length > 0) {
+    kittenDetailPages = generateKittenDetailPages(kittens, parents);
+  } else {
+    console.log('  [skip] kittens/ detail pages (no data)');
+  }
+
   if (parents.length > 0) {
     generateParents(parents);
   } else {
@@ -566,7 +1143,7 @@ async function main() {
   }
 
   // Always update sitemap (even with 0 articles, keeps static pages updated)
-  updateSitemap(articles);
+  updateSitemap(articles, kittenDetailPages);
 
   // Future capabilities (not yet implemented)
   console.log('  [future] blog.html — 104 article cards (not yet implemented)');

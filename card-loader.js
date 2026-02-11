@@ -56,7 +56,8 @@
     var bdayText = fmtBday(k.birthday);
     var priceText = fmtPrice(k.price);
 
-    return '<div class="kitten-card" data-status="' + escAttr(k.status) + '" data-price="' + k.price + '" data-birthday="' + escAttr(fmtBdayAttr(k.birthday)) + '" data-images="' + dataImages + '" data-video="' + escAttr(k.video || '') + '" data-papa="' + escAttr(k.papa || '') + '" data-mama="' + escAttr(k.mama || '') + '" data-new="' + k.isNew + '" data-name="" data-breeder-id="' + escAttr(k.breederId || '') + '">' +
+    var detailUrl = '/kittens/' + (k.breederId || k.id) + '.html';
+    return '<div class="kitten-card" data-status="' + escAttr(k.status) + '" data-price="' + k.price + '" data-birthday="' + escAttr(fmtBdayAttr(k.birthday)) + '" data-images="' + dataImages + '" data-video="' + escAttr(k.video || '') + '" data-papa="' + escAttr(k.papa || '') + '" data-mama="' + escAttr(k.mama || '') + '" data-new="' + k.isNew + '" data-name="" data-breeder-id="' + escAttr(k.breederId || '') + '" data-detail-url="' + escAttr(detailUrl) + '">' +
       '<div class="kitten-img">' +
         (cover ? '<img src="' + cover + '" alt="子猫の写真" loading="lazy" style="width:100%;height:100%;object-fit:cover;">' : '<div class="img-placeholder"><span>🐱</span></div>') +
         '<span class="kit-status ' + statusClass + '">' + statusText + '</span>' +

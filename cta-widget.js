@@ -18,10 +18,11 @@
     try { return localStorage.getItem('fuluckpet-lang') || 'ja'; } catch(e) { return 'ja'; }
   }
 
+  var BOOKING_URL = '#booking'; // Replace with Google Form URL when ready
   var T = {
-    ja: { available: '子猫募集中', count: '{n}匹', view: '子猫を見る', line: 'LINEで相談' },
-    en: { available: 'Kittens Available', count: '{n}', view: 'View Kittens', line: 'LINE Chat' },
-    zh: { available: '幼猫接受预约', count: '{n}只', view: '查看幼猫', line: 'LINE咨询' }
+    ja: { available: '子猫募集中', count: '{n}匹', view: '子猫を見る', line: 'LINEで相談', book: '📅 予約' },
+    en: { available: 'Kittens Available', count: '{n}', view: 'View Kittens', line: 'LINE Chat', book: '📅 Book' },
+    zh: { available: '幼猫接受预约', count: '{n}只', view: '查看幼猫', line: 'LINE咨询', book: '📅 预约' }
   };
 
   function t(key) {
@@ -44,6 +45,9 @@
         '<a href="/kittens.html" class="cta-widget-kittens">' +
           '<span class="cta-widget-paw">🐱</span>' +
           '<span>' + availText + '</span>' +
+        '</a>' +
+        '<a href="' + BOOKING_URL + '" class="cta-widget-book">' +
+          t('book') +
         '</a>' +
         '<a href="' + LINE_URL + '" target="_blank" rel="noopener noreferrer" class="cta-widget-line">' +
           LINE_SVG + ' ' + t('line') +

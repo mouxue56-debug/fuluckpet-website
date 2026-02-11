@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (images.length === 0 && !videoEmbedUrl) {
       // Fallback placeholder
-      slidesHTML = '<div class="carousel-slide active"><div class="img-placeholder kit-modal-ph"><span>🐱</span><p>写真準備中</p></div></div>';
+      slidesHTML = '<div class="carousel-slide active"><div class="img-placeholder kit-modal-ph" style="background:linear-gradient(135deg,#f0faf7,#fef6f0);"><span style="font-size:3rem;opacity:0.4;">🐱</span><p style="opacity:0.5;">写真を読み込み中...</p></div></div>';
       dotsHTML = '<span class="dot active"></span>';
       thumbsHTML = '<div class="thumb active"><div class="img-placeholder thumb-ph"><span>🐱</span></div></div>';
     } else if (images.length === 0 && videoEmbedUrl) {
@@ -764,10 +764,20 @@ document.addEventListener('DOMContentLoaded', () => {
   // ===== Dynamic Card Rebinding (for card-loader.js) =====
 
   // Re-bind kitten card click events after dynamic rendering
+  // On kittens.html (has .page-hero): navigate to detail page if available
+  // On index.html: open modal as before
+  var isKittensPage = !!document.querySelector('.page-hero');
   window.bindKittenCards = function() {
     allKittenCards = Array.from(document.querySelectorAll('.kitten-card'));
     allKittenCards.forEach((card, idx) => {
       card.addEventListener('click', () => {
+        var detailUrl = card.getAttribute('data-detail-url');
+        if (isKittensPage && detailUrl) {
+          // Navigate to individual kitten detail page
+          window.location.href = detailUrl;
+          return;
+        }
+        // Fallback: open modal (index.html or no detail URL)
         if (!kittenModal) return;
         currentKittenIndex = idx;
         buildCarousel(card);

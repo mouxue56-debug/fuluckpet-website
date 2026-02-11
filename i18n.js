@@ -130,6 +130,7 @@ const translations = {
     'visit.lineTitle': 'LINEでお気軽にお問い合わせ',
     'visit.lineDesc': '見学のご予約・ご質問はLINEから',
     'visit.lineBtn': 'LINEで友達追加',
+    'visit.bookBtn': '📅 見学を予約する',
 
     // Law Notice
     'law.title': '動物愛護管理法に基づく対面販売',
@@ -417,6 +418,7 @@ const translations = {
     'visit.lineTitle': 'Contact Us via LINE',
     'visit.lineDesc': 'Reservations & inquiries through LINE',
     'visit.lineBtn': 'Add Us on LINE',
+    'visit.bookBtn': '📅 Book a Visit',
 
     // Law Notice
     'law.title': 'In-Person Sales (Animal Protection Law)',
@@ -704,6 +706,7 @@ const translations = {
     'visit.lineTitle': '通过LINE轻松咨询',
     'visit.lineDesc': '预约参观和咨询请通过LINE',
     'visit.lineBtn': '添加LINE好友',
+    'visit.bookBtn': '📅 预约见学',
 
     // Law Notice
     'law.title': '动物爱护管理法·面对面销售',
@@ -936,13 +939,19 @@ function initI18n() {
     });
   });
 
+  // Check URL parameter first (?lang=en, ?lang=zh)
+  var urlParams = new URLSearchParams(window.location.search);
+  var urlLang = urlParams.get('lang');
+
   var savedLang = null;
   try {
     savedLang = localStorage.getItem('fuluckpet-lang');
   } catch (e) {}
 
-  if (savedLang && translations[savedLang]) {
-    setLanguage(savedLang);
+  // URL parameter takes priority over saved preference
+  var activeLang = (urlLang && translations[urlLang]) ? urlLang : savedLang;
+  if (activeLang && translations[activeLang]) {
+    setLanguage(activeLang);
   }
 }
 
