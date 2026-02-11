@@ -12,7 +12,7 @@ const translations = {
     'nav.parents': '親猫紹介',
     'nav.visit': '見学案内',
     'nav.faq': 'よくある質問',
-    'nav.shop': 'Shop',
+    'nav.shop': 'ショップ',
     'nav.more': 'もっと見る',
     'nav.siberian': 'サイベリアンの魅力',
     'nav.aboutPage': '受賞歴・認定',
@@ -49,6 +49,13 @@ const translations = {
     'about.card3.desc': '生後60日頃からシャワーとドライヤーの練習を開始。お迎え前には爪切り・シャンプーを実施し、新しいご家族との生活にスムーズに馴染めるよう準備します。',
     'about.card4.title': '充実のアフターサポート',
     'about.card4.desc': 'お迎え後もLINEで育て方や体調に関するご相談に対応。いつでもお気軽にご連絡ください。ずっと寄り添うパートナーでありたいと考えています。',
+    'about.siberianLink': 'サイベリアンについて詳しく見る →',
+    'about.awardsLink': '受賞歴・認定を見る →',
+
+    // Instagram
+    'instagram.title': '最新のInstagram',
+    'instagram.desc': '日々の猫舎の様子をお届けしています。',
+    'instagram.follow': 'Instagramをフォロー',
 
     // Kittens
     'kittens.title': '子猫一覧',
@@ -59,12 +66,18 @@ const translations = {
     'kittens.sold': 'ご家族決定',
     'kittens.soldText': 'ご家族が決まりました',
     'kittens.cta': '気になる子がいたらお問い合わせ',
+    'kittens.sort': '並び替え:',
+    'kittens.priceRange': '価格帯: ¥160,000～¥290,000（税込）',
+    'kittens.loadMore': 'もっと見る',
 
     // Parents
     'parents.title': '親猫紹介',
     'parents.desc': '優秀な血統と愛情深い性格を持つ、当舎自慢の親猫たちです。',
     'parents.papa': 'パパ猫',
     'parents.mama': 'ママ猫',
+    'parentModal.intro': '紹介',
+    'parentModal.defaultDesc': '親猫の詳細情報です。',
+    'parentModal.children': 'この子の子猫たち',
 
     // Flow
     'flow.title': 'お迎えの流れ',
@@ -90,6 +103,8 @@ const translations = {
     'voice.r3.text': '初めて猫を飼いましたが、とても丁寧にサポートしていただけました。子猫はすぐにご飯を食べてくれて、人懐こくてとても可愛いです。',
     'voice.r3.author': '— 大阪府 H.U様',
     'voice.more': 'もっと見る',
+    'voice.moreLink': 'もっと見る →',
+    'voice.source': '出典：みんなの子猫ブリーダー',
 
     // FAQ
     'faq.title': 'よくある質問',
@@ -115,6 +130,7 @@ const translations = {
     // Gallery
     'gallery.title': '卒業猫ギャラリー',
     'gallery.desc': '新しいご家族の元で幸せに暮らす卒業猫たちをご紹介します。',
+    'gallery.moreLink': 'もっと見る →',
 
     // Visit
     'visit.title': '見学案内',
@@ -131,6 +147,14 @@ const translations = {
     'visit.lineDesc': '見学のご予約・ご質問はLINEから',
     'visit.lineBtn': 'LINEで友達追加',
     'visit.bookBtn': '📅 見学を予約する',
+    'visit.delivery': 'お届け方法',
+    'visit.lawNotice': '動物愛護管理法の規定により、ご購入前に必ずキャッテリーにお越しいただくか、LINEビデオ通話にて子猫と対面していただく必要がございます。対面説明後にご契約・お届けとなります。',
+    'visit.d1.title': '空輸（全国対応）',
+    'visit.d1.desc': '空港でのお受け取り。専用キャリーでお届けします。',
+    'visit.d2.title': '陸送（関西圏）',
+    'visit.d2.desc': '大阪・兵庫・京都・奈良近郊はお届け可能です。',
+    'visit.d3.title': '直接お迎え',
+    'visit.d3.desc': '猫舎にお越しいただき、直接お迎えいただけます。',
 
     // Law Notice
     'law.title': '動物愛護管理法に基づく対面販売',
@@ -140,6 +164,8 @@ const translations = {
     'footer.navTitle': 'ナビゲーション',
     'footer.legalTitle': '動物取扱業表示',
     'footer.pagesTitle': '詳しく見る',
+    'footer.tagline': 'サイベリアン｜大阪・福楽キャッテリー',
+    'footer.lawNotice': '動物愛護管理法に基づき、販売時には事前に対面による現物確認・説明が義務付けられています。ご購入前に必ず見学（対面またはビデオ通話）をお願いしております。',
 
     // Secondary Pages
     'siberian.pageTitle': 'サイベリアンの魅力',
@@ -157,6 +183,35 @@ const translations = {
     'trust.license': '第一種動物取扱業 登録済',
     'trust.support': 'お迎え後も生涯LINEサポート',
 
+    // Kitten Detail Pages
+    'kitten.basicInfo': '基本情報',
+    'kitten.breed': '品種',
+    'kitten.sex': '性別',
+    'kitten.color': '毛色',
+    'kitten.birthday': '誕生日',
+    'kitten.price': '価格（税込）',
+    'kitten.status': '状態',
+    'kitten.health': '健康情報',
+    'kitten.dnaTested': '遺伝子検査済み',
+    'kitten.vaccinated': 'ワクチン接種済み',
+    'kitten.lineChat': 'この子についてLINEで相談',
+    'kitten.bookVisit': '見学を予約する',
+    'kitten.backToList': '← 子猫一覧に戻る',
+    'kitten.parentInfo': '親猫情報',
+    'kitten.recommended': 'おすすめの子猫',
+    'kitten.video': '動画',
+    'kitten.note': '備考',
+    'kitten.breadcrumb.kittens': '子猫一覧',
+    'kitten.male': '♂ 男の子',
+    'kitten.female': '♀ 女の子',
+    'kitten.available': '販売中',
+    'kitten.reserved': '商談中',
+    'kitten.sold': 'ご家族決定',
+    'kitten.taxIncl': '（税込）',
+    'kitten.bornYear': '年',
+    'kitten.bornMonth': '月生まれ',
+    'kitten.photoAlt': '子猫の写真',
+
     // Common
     'common.home': 'ホーム',
     'common.moreBtn': 'もっと見る',
@@ -165,7 +220,7 @@ const translations = {
     'common.bookVisit': '見学を予約する',
 
     // Blog (Knowledge Base)
-    'blog.tag': 'Knowledge Base',
+    'blog.tag': '知識ライブラリ',
     'blog.title': '猫の飼い方｜知識ライブラリ',
     'blog.subtitle': '猫の健康管理・食事・しつけなど、ブリーダーが分かりやすく解説します',
 
@@ -337,6 +392,13 @@ const translations = {
     'about.card3.desc': 'Starting around 60 days old, we begin shower and dryer training. Before adoption, nail trimming and shampooing help kittens adjust to their new homes.',
     'about.card4.title': 'Comprehensive After-Care',
     'about.card4.desc': 'After adoption, we provide ongoing consultations via LINE about care and health. Please feel free to reach out anytime.',
+    'about.siberianLink': 'Learn More About Siberians →',
+    'about.awardsLink': 'View Awards & Certifications →',
+
+    // Instagram
+    'instagram.title': 'Latest on Instagram',
+    'instagram.desc': 'Follow our daily cattery life.',
+    'instagram.follow': 'Follow on Instagram',
 
     // Kittens
     'kittens.title': 'Available Kittens',
@@ -347,12 +409,18 @@ const translations = {
     'kittens.sold': 'Adopted',
     'kittens.soldText': 'Found a loving family',
     'kittens.cta': 'Interested? Contact us today',
+    'kittens.sort': 'Sort:',
+    'kittens.priceRange': 'Price range: ¥160,000–¥290,000 (tax incl.)',
+    'kittens.loadMore': 'Load More',
 
     // Parents
     'parents.title': 'Parent Cats',
     'parents.desc': 'Our proud parent cats with excellent pedigrees and loving personalities.',
     'parents.papa': 'Father',
     'parents.mama': 'Mother',
+    'parentModal.intro': 'Introduction',
+    'parentModal.defaultDesc': 'Details about this parent cat.',
+    'parentModal.children': 'Kittens from this parent',
 
     // Flow
     'flow.title': 'Adoption Process',
@@ -378,6 +446,8 @@ const translations = {
     'voice.r3.text': 'This was our first cat, and the support was incredible. Our kitten started eating right away and is so affectionate and adorable!',
     'voice.r3.author': '— H.U from Osaka',
     'voice.more': 'See More',
+    'voice.moreLink': 'See More →',
+    'voice.source': 'Source: Minna no Koneko Breeder',
 
     // FAQ
     'faq.title': 'Frequently Asked Questions',
@@ -403,6 +473,7 @@ const translations = {
     // Gallery
     'gallery.title': 'Alumni Gallery',
     'gallery.desc': 'Meet the kittens happily living with their new families.',
+    'gallery.moreLink': 'See More →',
 
     // Visit
     'visit.title': 'Visit Information',
@@ -419,6 +490,14 @@ const translations = {
     'visit.lineDesc': 'Reservations & inquiries through LINE',
     'visit.lineBtn': 'Add Us on LINE',
     'visit.bookBtn': '📅 Book a Visit',
+    'visit.delivery': 'Delivery Methods',
+    'visit.lawNotice': 'Under the Animal Protection Law, an in-person meeting (on-site or via LINE video call) is required before purchase. After the meeting, contracts and delivery arrangements will be made.',
+    'visit.d1.title': 'Air Transport (Nationwide)',
+    'visit.d1.desc': 'Pick up at the airport. Delivered in a dedicated carrier.',
+    'visit.d2.title': 'Ground Delivery (Kansai Area)',
+    'visit.d2.desc': 'Available for Osaka, Hyogo, Kyoto, and Nara areas.',
+    'visit.d3.title': 'Direct Pickup',
+    'visit.d3.desc': 'Visit our cattery and pick up your kitten directly.',
 
     // Law Notice
     'law.title': 'In-Person Sales (Animal Protection Law)',
@@ -428,6 +507,8 @@ const translations = {
     'footer.navTitle': 'Navigation',
     'footer.legalTitle': 'Animal Dealer Registration',
     'footer.pagesTitle': 'Learn More',
+    'footer.tagline': 'Siberian Cat | Fuluck Cattery, Osaka',
+    'footer.lawNotice': 'Under the Animal Protection Law, an in-person meeting for verification and explanation is required before purchase. Please arrange a visit (in-person or video call) before purchasing.',
 
     // Secondary Pages
     'siberian.pageTitle': 'The Appeal of Siberian Cats',
@@ -444,6 +525,35 @@ const translations = {
     'trust.rating': '5.00 Rating / 113 Reviews',
     'trust.license': 'Licensed Animal Dealer',
     'trust.support': 'Lifetime LINE Support After Adoption',
+
+    // Kitten Detail Pages
+    'kitten.basicInfo': 'Basic Info',
+    'kitten.breed': 'Breed',
+    'kitten.sex': 'Sex',
+    'kitten.color': 'Color',
+    'kitten.birthday': 'Birthday',
+    'kitten.price': 'Price (tax incl.)',
+    'kitten.status': 'Status',
+    'kitten.health': 'Health Info',
+    'kitten.dnaTested': 'DNA Tested',
+    'kitten.vaccinated': 'Vaccinated',
+    'kitten.lineChat': 'Ask about this kitten on LINE',
+    'kitten.bookVisit': 'Book a Visit',
+    'kitten.backToList': '← Back to Kittens',
+    'kitten.parentInfo': 'Parent Info',
+    'kitten.recommended': 'Recommended Kittens',
+    'kitten.video': 'Video',
+    'kitten.note': 'Notes',
+    'kitten.breadcrumb.kittens': 'Kittens',
+    'kitten.male': '♂ Male',
+    'kitten.female': '♀ Female',
+    'kitten.available': 'Available',
+    'kitten.reserved': 'Reserved',
+    'kitten.sold': 'Adopted',
+    'kitten.taxIncl': '(tax incl.)',
+    'kitten.bornYear': '/',
+    'kitten.bornMonth': '',
+    'kitten.photoAlt': 'Kitten photo',
 
     // Common
     'common.home': 'Home',
@@ -625,6 +735,13 @@ const translations = {
     'about.card3.desc': '从约60天大开始进行洗浴和吹干训练。出窝前进行修甲和洗浴护理，帮助幼猫顺利适应新家。',
     'about.card4.title': '完善的售后支持',
     'about.card4.desc': '接猫回家后，您可以随时通过LINE咨询饲养和健康方面的问题。我们希望成为陪伴您一生的伙伴。',
+    'about.siberianLink': '了解更多西伯利亚猫 →',
+    'about.awardsLink': '查看获奖·认证 →',
+
+    // Instagram
+    'instagram.title': '最新Instagram动态',
+    'instagram.desc': '每日分享猫舍日常生活。',
+    'instagram.follow': '关注Instagram',
 
     // Kittens
     'kittens.title': '幼猫一览',
@@ -635,12 +752,18 @@ const translations = {
     'kittens.sold': '已找到家庭',
     'kittens.soldText': '已找到温暖的家',
     'kittens.cta': '心动了？快来咨询吧',
+    'kittens.sort': '排序：',
+    'kittens.priceRange': '价格范围：¥160,000～¥290,000（含税）',
+    'kittens.loadMore': '加载更多',
 
     // Parents
     'parents.title': '种猫介绍',
     'parents.desc': '拥有优秀血统和温柔性格的优质种猫。',
     'parents.papa': '猫爸爸',
     'parents.mama': '猫妈妈',
+    'parentModal.intro': '简介',
+    'parentModal.defaultDesc': '关于这只种猫的详细信息。',
+    'parentModal.children': '这只种猫的幼猫',
 
     // Flow
     'flow.title': '领养流程',
@@ -666,6 +789,8 @@ const translations = {
     'voice.r3.text': '第一次养猫，得到了非常耐心的支持。小猫马上就开始吃饭了，又亲人又可爱！',
     'voice.r3.author': '— 大阪府 H.U',
     'voice.more': '查看更多',
+    'voice.moreLink': '查看更多 →',
+    'voice.source': '来源：大家的幼猫繁殖者',
 
     // FAQ
     'faq.title': '常见问题',
@@ -691,6 +816,7 @@ const translations = {
     // Gallery
     'gallery.title': '毕业猫相册',
     'gallery.desc': '看看在新家庭中幸福生活的毕业猫咪们。',
+    'gallery.moreLink': '查看更多 →',
 
     // Visit
     'visit.title': '参观指南',
@@ -707,6 +833,14 @@ const translations = {
     'visit.lineDesc': '预约参观和咨询请通过LINE',
     'visit.lineBtn': '添加LINE好友',
     'visit.bookBtn': '📅 预约见学',
+    'visit.delivery': '配送方式',
+    'visit.lawNotice': '根据动物爱护管理法规定，购买前必须亲自到猫舍或通过LINE视频通话与幼猫见面。面谈后方可签约和配送。',
+    'visit.d1.title': '空运（全国）',
+    'visit.d1.desc': '在机场领取。使用专用航空箱配送。',
+    'visit.d2.title': '陆运（关西地区）',
+    'visit.d2.desc': '大阪、兵库、京都、奈良周边可配送。',
+    'visit.d3.title': '自行接猫',
+    'visit.d3.desc': '亲自到猫舍接猫回家。',
 
     // Law Notice
     'law.title': '动物爱护管理法·面对面销售',
@@ -716,6 +850,8 @@ const translations = {
     'footer.navTitle': '导航',
     'footer.legalTitle': '动物经营许可信息',
     'footer.pagesTitle': '了解更多',
+    'footer.tagline': '西伯利亚猫｜大阪·福楽猫舍',
+    'footer.lawNotice': '根据动物爱护管理法，销售前必须进行面对面的实物确认和说明。购买前请务必安排参观（面对面或视频通话）。',
 
     // Secondary Pages
     'siberian.pageTitle': '西伯利亚猫的魅力',
@@ -733,6 +869,35 @@ const translations = {
     'trust.license': '第一种动物经营许可 已登记',
     'trust.support': '接猫后终身LINE咨询支持',
 
+    // Kitten Detail Pages
+    'kitten.basicInfo': '基本信息',
+    'kitten.breed': '品种',
+    'kitten.sex': '性别',
+    'kitten.color': '毛色',
+    'kitten.birthday': '生日',
+    'kitten.price': '价格（含税）',
+    'kitten.status': '状态',
+    'kitten.health': '健康信息',
+    'kitten.dnaTested': '基因检测完毕',
+    'kitten.vaccinated': '已接种疫苗',
+    'kitten.lineChat': '通过LINE咨询这只猫咪',
+    'kitten.bookVisit': '预约见学',
+    'kitten.backToList': '← 返回幼猫列表',
+    'kitten.parentInfo': '亲猫信息',
+    'kitten.recommended': '推荐幼猫',
+    'kitten.video': '视频',
+    'kitten.note': '备注',
+    'kitten.breadcrumb.kittens': '幼猫一览',
+    'kitten.male': '♂ 男孩',
+    'kitten.female': '♀ 女孩',
+    'kitten.available': '可预约',
+    'kitten.reserved': '已预订',
+    'kitten.sold': '已出售',
+    'kitten.taxIncl': '（含税）',
+    'kitten.bornYear': '年',
+    'kitten.bornMonth': '月出生',
+    'kitten.photoAlt': '小猫照片',
+
     // Common
     'common.home': '首页',
     'common.moreBtn': '查看更多',
@@ -741,7 +906,7 @@ const translations = {
     'common.bookVisit': '预约参观',
 
     // Blog (Knowledge Base)
-    'blog.tag': 'Knowledge Base',
+    'blog.tag': '知识库',
     'blog.title': '养猫指南｜知识库',
     'blog.subtitle': '专业繁殖人为您讲解猫咪健康管理、饮食、护理与行为知识',
 

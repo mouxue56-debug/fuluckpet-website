@@ -560,7 +560,7 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml) {
     videoHtml = `
     <!-- Video -->
     <div class="kitten-detail-video">
-      <h2>動画</h2>
+      <h2 data-i18n="kitten.video">動画</h2>
       <div class="kitten-detail-video-wrap">
         <iframe src="https://www.youtube.com/embed/${ytId}" title="${escapeHtml(titleText)} 動画" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
       </div>
@@ -571,19 +571,19 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml) {
   let parentsHtml = '';
   if (kitten.papa || kitten.mama) {
     let parentsInner = '';
-    if (kitten.papa) parentsInner += `<p>パパ猫: <a href="/parents.html">${escapeHtml(kitten.papa)}</a></p>`;
-    if (kitten.mama) parentsInner += `<p>ママ猫: <a href="/parents.html">${escapeHtml(kitten.mama)}</a></p>`;
+    if (kitten.papa) parentsInner += `<p><span data-i18n="parents.papa">パパ猫</span>: <a href="/parents.html">${escapeHtml(kitten.papa)}</a></p>`;
+    if (kitten.mama) parentsInner += `<p><span data-i18n="parents.mama">ママ猫</span>: <a href="/parents.html">${escapeHtml(kitten.mama)}</a></p>`;
     parentsHtml = `
     <!-- Parents -->
     <div class="kitten-detail-parents">
-      <h2>両親情報</h2>
+      <h2 data-i18n="kitten.parentInfo">両親情報</h2>
       ${parentsInner}
     </div>`;
   }
 
   // Note row
   const noteRow = kitten.note
-    ? `<tr><th>備考</th><td>${escapeHtml(kitten.note)}</td></tr>`
+    ? `<tr><th data-i18n="kitten.note">備考</th><td>${escapeHtml(kitten.note)}</td></tr>`
     : '';
 
   // New badge
@@ -833,7 +833,7 @@ ${headerHtml}
   <!-- Breadcrumb -->
   <nav class="breadcrumb">
     <div class="container">
-      <a href="/">ホーム</a> &gt; <a href="/kittens.html">子猫一覧</a> &gt; ${escapeHtml(titleText)}
+      <a href="/" data-i18n="common.home">ホーム</a> &gt; <a href="/kittens.html" data-i18n="kitten.breadcrumb.kittens">子猫一覧</a> &gt; ${escapeHtml(titleText)}
     </div>
   </nav>
 
@@ -860,15 +860,15 @@ ${headerHtml}
       </div>
 
       <!-- Price -->
-      <p class="kitten-detail-price">&yen;${pr} <span class="tax">（税込）</span></p>
+      <p class="kitten-detail-price">&yen;${pr} <span class="tax" data-i18n="kitten.taxIncl">（税込）</span></p>
 
       <!-- Detail table -->
       <table class="kitten-detail-table">
-        <tr><th>品種</th><td>${escapeHtml(kitten.breed || '')}</td></tr>
-        <tr><th>性別</th><td>${escapeHtml(genderFull)}</td></tr>
-        <tr><th>毛色</th><td>${escapeHtml(kitten.color || '')}</td></tr>
-        <tr><th>誕生日</th><td>${bd ? escapeHtml(bd) + '生まれ' : ''}</td></tr>
-        <tr><th>状態</th><td>${escapeHtml(st)}</td></tr>
+        <tr><th data-i18n="kitten.breed">品種</th><td>${escapeHtml(kitten.breed || '')}</td></tr>
+        <tr><th data-i18n="kitten.sex">性別</th><td>${escapeHtml(genderFull)}</td></tr>
+        <tr><th data-i18n="kitten.color">毛色</th><td>${escapeHtml(kitten.color || '')}</td></tr>
+        <tr><th data-i18n="kitten.birthday">誕生日</th><td>${bd ? escapeHtml(bd) + '生まれ' : ''}</td></tr>
+        <tr><th data-i18n="kitten.status">状態</th><td>${escapeHtml(st)}</td></tr>
         ${noteRow}
       </table>
 
@@ -878,13 +878,13 @@ ${headerHtml}
 
       <!-- CTA buttons -->
       <div class="kitten-detail-cta">
-        <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="btn btn-line" target="_blank" rel="noopener">
+        <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="btn btn-line" target="_blank" rel="noopener" data-i18n="kitten.lineChat">
           LINEでこの子について相談
         </a>
-        <a href="/index.html#visit" class="btn btn-secondary">
+        <a href="/index.html#visit" class="btn btn-secondary" data-i18n="kitten.bookVisit">
           見学を予約する
         </a>
-        <a href="/kittens.html" class="btn btn-outline">
+        <a href="/kittens.html" class="btn btn-outline" data-i18n="kitten.backToList">
           ← 子猫一覧に戻る
         </a>
       </div>

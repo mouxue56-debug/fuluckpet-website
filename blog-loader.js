@@ -105,7 +105,8 @@
     listContainer.style.display = 'none';
     if (filterContainer) filterContainer.style.display = 'none';
     detailContainer.style.display = 'block';
-    document.title = title + ' | 福楽キャッテリー';
+    var brandName = getLang() === 'zh' ? '福楽猫舍' : getLang() === 'en' ? 'Fuluck Cattery' : '福楽キャッテリー';
+    document.title = title + ' | ' + brandName;
 
     detailContainer.innerHTML =
       '<a href="blog.html" class="blog-back">&larr; ' + (getLang() === 'zh' ? '返回列表' : getLang() === 'en' ? 'Back to list' : '一覧に戻る') + '</a>' +
@@ -128,7 +129,8 @@
     .catch(function() {
       // Static cards remain visible as fallback — only show error if no static cards
       if (!listContainer.querySelector('.blog-card')) {
-        listContainer.innerHTML = '<div class="blog-empty">Failed to load articles</div>';
+        var errMsg = getLang() === 'zh' ? '文章加载失败' : getLang() === 'en' ? 'Failed to load articles' : '記事の読み込みに失敗しました';
+        listContainer.innerHTML = '<div class="blog-empty">' + errMsg + '</div>';
       }
     });
 

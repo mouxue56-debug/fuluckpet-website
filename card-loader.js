@@ -6,6 +6,46 @@
 (function() {
   var API = window.FULUCK_API_BASE || 'https://fuluck-api.mouxue56.workers.dev';
 
+  // ===== i18n for card-loader =====
+  function getLang() {
+    try { return localStorage.getItem('fuluckpet-lang') || 'ja'; } catch(e) { return 'ja'; }
+  }
+
+  var CARD_I18N = {
+    ja: {
+      available: '販売中', reserved: '商談中', sold: 'ご家族決定',
+      male: '♂ 男の子', female: '♀ 女の子',
+      photoAlt: '子猫の写真', taxIncl: '（税込）',
+      dnaTested: '✓ 遺伝子検査済', verifiedReview: '✓ 認証済みレビュー',
+      reviewPlatform: 'みんなの子猫ブリーダー',
+      bornFmt: function(y, m) { return y + '年' + m + '月生まれ'; },
+      counter: '匹'
+    },
+    en: {
+      available: 'Available', reserved: 'Reserved', sold: 'Adopted',
+      male: '♂ Male', female: '♀ Female',
+      photoAlt: 'Kitten photo', taxIncl: '(tax incl.)',
+      dnaTested: '✓ DNA Tested', verifiedReview: '✓ Verified Review',
+      reviewPlatform: 'Minna no Koneko Breeder',
+      bornFmt: function(y, m) { return 'Born ' + y + '/' + m; },
+      counter: ''
+    },
+    zh: {
+      available: '可预约', reserved: '已预订', sold: '已出售',
+      male: '♂ 男孩', female: '♀ 女孩',
+      photoAlt: '小猫照片', taxIncl: '（含税）',
+      dnaTested: '✓ 基因检测完毕', verifiedReview: '✓ 已认证评价',
+      reviewPlatform: '大家的幼猫繁殖者',
+      bornFmt: function(y, m) { return y + '年' + m + '月出生'; },
+      counter: '只'
+    }
+  };
+
+  function ct(key) {
+    var lang = getLang();
+    return (CARD_I18N[lang] || CARD_I18N.ja)[key] || CARD_I18N.ja[key];
+  }
+
   // ===== Utility Functions =====
 
   function getCoverPhoto(item) {
@@ -15,13 +55,14 @@
   }
 
   function fmtBday(bday) {
-    // "2025-12" → "2025年12月生まれ", "2024-02" → "2024年2月生まれ"
     if (!bday) return '';
     var parts = bday.split('-');
     if (parts.length < 2) return '';
     var y = parts[0];
     var m = parseInt(parts[1], 10);
-    return y + '年' + m + '月生まれ';
+    var lang = getLang();
+    var t = CARD_I18N[lang] || CARD_I18N.ja;
+    return t.bornFmt(y, m);
   }
 
   function fmtBdayAttr(bday) {
@@ -50,8 +91,8 @@
   function kittenCardHTML(k, opts) {
     var cover = getCoverPhoto(k);
     var statusClass = k.status === 'available' ? 'st-available' : k.status === 'reserved' ? 'st-reserved' : 'st-sold';
-    var statusText = k.status === 'available' ? '販売中' : k.status === 'reserved' ? '商談中' : 'ご家族決定';
-    var genderFull = k.gender === '♂' ? '♂ 男の子' : '♀ 女の子';
+    var statusText = k.status === 'available' ? ct('available') : k.status === 'reserved' ? ct('reserved') : ct('sold');
+    var genderFull = k.gender === '♂' ? ct('male') : ct('female');
     var dataImages = opts && opts.showImages && cover ? escAttr(cover) : '';
     var bdayText = fmtBday(k.birthday);
     var priceText = fmtPrice(k.price);
@@ -59,7 +100,7 @@
     var detailUrl = '/kittens/' + (k.breederId || k.id) + '.html';
     return '<div class="kitten-card" data-status="' + escAttr(k.status) + '" data-price="' + k.price + '" data-birthday="' + escAttr(fmtBdayAttr(k.birthday)) + '" data-images="' + dataImages + '" data-video="' + escAttr(k.video || '') + '" data-papa="' + escAttr(k.papa || '') + '" data-mama="' + escAttr(k.mama || '') + '" data-new="' + k.isNew + '" data-name="" data-breeder-id="' + escAttr(k.breederId || '') + '" data-detail-url="' + escAttr(detailUrl) + '">' +
       '<div class="kitten-img">' +
-        (cover ? '<img src="' + cover + '" alt="子猫の写真" loading="lazy" style="width:100%;height:100%;object-fit:cover;">' : '<div class="img-placeholder"><span>🐱</span></div>') +
+        (cover ? '<img src="' + cover + '" alt="' + ct('photoAlt') + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;">' : '<div class="img-placeholder"><span>🐱</span></div>') +
         '<span class="kit-status ' + statusClass + '">' + statusText + '</span>' +
         (k.isNew ? '<span class="kit-badge-new">NEW</span>' : '') +
       '</div>' +
@@ -68,7 +109,7 @@
         '<p class="kit-meta">' + genderFull + ' ・ ' + escAttr(k.color) + '</p>' +
         '<p class="kit-meta">' + bdayText + '</p>' +
         (k.note ? '<p class="kit-meta" style="font-size:11px;color:var(--text-note);">' + escAttr(k.note) + '</p>' : '') +
-        '<p class="kit-price">' + priceText + ' <span class="tax">（税込）</span></p>' +
+        '<p class="kit-price">' + priceText + ' <span class="tax">' + ct('taxIncl') + '</span></p>' +
       '</div>' +
     '</div>';
   }
@@ -79,7 +120,7 @@
     var roleClass = p.role === 'パパ猫' ? 'role-papa' : 'role-mama';
 
     return '<div class="parent-card" data-name="' + escAttr(p.name) + '" data-breed="' + escAttr(p.breed) + '" data-gender="' + escAttr(p.gender) + '" data-role="' + escAttr(p.role) + '" data-age="' + escAttr(p.age) + '" data-color="' + escAttr(p.color) + '" data-tested="' + p.tested + '" style="position:relative;cursor:pointer;">' +
-      '<span class="health-tag tag-good" style="position:absolute;top:8px;right:8px;font-size:11px;padding:2px 8px;">✓ 遺伝子検査済</span>' +
+      '<span class="health-tag tag-good" style="position:absolute;top:8px;right:8px;font-size:11px;padding:2px 8px;">' + ct('dnaTested') + '</span>' +
       (cover ? '<img src="' + cover + '" alt="' + escAttr(p.name) + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-lg) var(--radius-lg) 0 0;">' : '') +
       '<div class="parent-body">' +
         '<h3>' + escAttr(p.name) + '</h3>' +
@@ -95,12 +136,12 @@
     return '<div class="review-card">' +
       '<div class="review-header">' +
         '<div class="review-stars">★★★★★</div>' +
-        '<span class="review-platform">みんなの子猫ブリーダー</span>' +
+        '<span class="review-platform">' + ct('reviewPlatform') + '</span>' +
       '</div>' +
       '<p class="review-body">' + escAttr(r.body) + '</p>' +
       '<div class="review-footer">' +
         '<p class="review-author">— ' + escAttr(r.region) + ' ' + escAttr(r.author) + '（' + escAttr(r.date) + '）</p>' +
-        '<span class="review-verified">✓ 認証済みレビュー</span>' +
+        '<span class="review-verified">' + ct('verifiedReview') + '</span>' +
       '</div>' +
     '</div>';
   }
@@ -109,9 +150,11 @@
 
   var kittensGrid = document.getElementById('kittensGrid');   // index.html
   var isIndex = !!kittensGrid && !document.querySelector('.page-hero');
-  var isKittensPage = document.title.indexOf('子猫') >= 0 && !!document.querySelector('.page-hero');
-  var isParentsPage = document.title.indexOf('親猫') >= 0 && !!document.querySelector('.page-hero');
-  var isReviewsPage = document.title.indexOf('お客様') >= 0 && !!document.querySelector('.page-hero');
+  var pageHero = !!document.querySelector('.page-hero');
+  var pathname = window.location.pathname;
+  var isKittensPage = pageHero && (pathname.indexOf('kittens') >= 0 || document.title.indexOf('子猫') >= 0);
+  var isParentsPage = pageHero && (pathname.indexOf('parents') >= 0 || document.title.indexOf('親猫') >= 0);
+  var isReviewsPage = pageHero && (pathname.indexOf('reviews') >= 0 || document.title.indexOf('お客様') >= 0);
 
   // ===== index.html — Load kittens + parents + reviews =====
   if (isIndex) {
@@ -178,12 +221,14 @@
 
         // Update section header counts
         var headers = document.querySelectorAll('.sec-title');
+        var ctr = ct('counter');
         headers.forEach(function(h) {
           var text = h.textContent;
-          if (text.indexOf('サイベリアン') >= 0) {
-            h.textContent = 'サイベリアン (' + sib.length + '匹)';
+          if (text.indexOf('サイベリアン') >= 0 || text.indexOf('Siberian') >= 0) {
+            var baseName = text.replace(/\s*\(.*\)/, '').trim();
+            h.textContent = baseName + ' (' + sib.length + ctr + ')';
           } else if (text.indexOf('ブリティッシュ') >= 0 || text.indexOf('British') >= 0) {
-            h.textContent = h.textContent.replace(/\(\d+匹\)/, '(' + brit.length + '匹)');
+            h.textContent = h.textContent.replace(/\(\d+[匹只]*\)/, '(' + brit.length + ctr + ')');
           }
         });
 
@@ -263,5 +308,35 @@
         console.log('card-loader: reviews API unavailable, using static fallback');
       });
   }
+
+  // Re-render cards when language changes
+  window.addEventListener('langChanged', function() {
+    // Trigger a re-fetch to rebuild cards with new language
+    if (isIndex) {
+      Promise.all([
+        fetch(API + '/api/kittens').then(function(r) { return r.json(); }),
+        fetch(API + '/api/parents').then(function(r) { return r.json(); }),
+        fetch(API + '/api/reviews').then(function(r) { return r.json(); })
+      ]).then(function(results) {
+        var kittens = results[0] || [];
+        var parents = results[1] || [];
+        var reviews = results[2] || [];
+        var sib = kittens.filter(function(k) { return k.group === 'c995680' && k.status !== 'sold'; });
+        if (sib.length > 0 && kittensGrid) {
+          kittensGrid.innerHTML = sib.map(function(k) { return kittenCardHTML(k, {showImages: false}); }).join('');
+        }
+        var parGrid = document.querySelector('#parents .parents-grid');
+        var sibParents = parents.filter(function(p) { return p.group === 'c995680'; }).slice(0, 3);
+        if (sibParents.length > 0 && parGrid) {
+          parGrid.innerHTML = sibParents.map(function(p) { return parentCardHTML(p); }).join('');
+        }
+        var revGrid = document.querySelector('#reviews .reviews-grid');
+        if (reviews.length > 0 && revGrid) {
+          revGrid.innerHTML = reviews.slice(0, 3).map(function(r) { return reviewCardHTML(r); }).join('');
+        }
+        if (typeof window.rebindCards === 'function') window.rebindCards();
+      }).catch(function() {});
+    }
+  });
 
 })();
