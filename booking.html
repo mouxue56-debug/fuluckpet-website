@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>見学予約｜大阪のサイベリアン専門ブリーダー｜福楽キャッテリー</title>
+  <meta name="description" content="福楽キャッテリーの見学予約フォームです。対面見学・LINEビデオ通話、お好きな方法でご予約ください。大阪のサイベリアン専門ブリーダー。">
+  <meta name="keywords" content="見学予約,キャッテリー見学,猫舎見学,サイベリアン,大阪,ブリーダー,福楽キャッテリー,羅方遠,ラホウエン">
+  <meta property="og:title" content="見学予約｜大阪のサイベリアン専門ブリーダー｜福楽キャッテリー">
+  <meta property="og:description" content="福楽キャッテリーの見学予約フォームです。対面見学・LINEビデオ通話、お好きな方法でご予約ください。">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="/images/ogp.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#7DD3C0">
+  <link rel="canonical" href="https://fuluckpet.com/booking.html">
+  <link rel="alternate" hreflang="ja" href="https://fuluckpet.com/booking.html">
+  <link rel="alternate" hreflang="en" href="https://fuluckpet.com/booking.html?lang=en">
+  <link rel="alternate" hreflang="zh" href="https://fuluckpet.com/booking.html?lang=zh">
+  <link rel="alternate" hreflang="x-default" href="https://fuluckpet.com/booking.html">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐱</text></svg>">
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
+  <script type="application/ld+json">
+  { "@context":"https://schema.org", "@type":"BreadcrumbList", "itemListElement":[
+    {"@type":"ListItem","position":1,"name":"ホーム","item":"https://fuluckpet.com/"},
+    {"@type":"ListItem","position":2,"name":"見学予約","item":"https://fuluckpet.com/booking.html"}
+  ]}
+  </script>
+
+  <style>
+    /* ===== Booking Page Styles (Ice Cream Design) ===== */
+    .booking-hero {
+      background: linear-gradient(135deg, var(--mint-milk) 0%, var(--blueberry-milk) 50%, var(--taro-milk) 100%);
+      padding: 120px 0 60px;
+      text-align: center;
+    }
+    .booking-hero h1 {
+      font-size: clamp(1.8rem, 4vw, 2.4rem);
+      font-weight: 700;
+      color: var(--text-heading);
+      margin-bottom: 12px;
+    }
+    .booking-hero p {
+      font-size: 1.05rem;
+      color: var(--text-body);
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.8;
+    }
+
+    .booking-section {
+      padding: 60px 0 80px;
+    }
+
+    .booking-layout {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 40px;
+      align-items: start;
+    }
+
+    /* Form Card */
+    .booking-form-card {
+      background: var(--bg-white);
+      border-radius: var(--radius-lg);
+      padding: 40px;
+      box-shadow: var(--shadow-card);
+    }
+    .booking-form-card h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text-heading);
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text-heading);
+      margin-bottom: 6px;
+    }
+    .form-group label .required {
+      color: #E57373;
+      font-size: 0.8rem;
+      margin-left: 4px;
+    }
+    .form-group .hint {
+      display: block;
+      font-size: 0.82rem;
+      color: var(--text-note);
+      margin-top: 2px;
+      margin-bottom: 6px;
+    }
+
+    .booking-input,
+    .booking-select,
+    .booking-textarea {
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 1rem;
+      font-family: inherit;
+      border: 2px solid #E0E8E8;
+      border-radius: var(--radius-sm);
+      background: var(--bg-white);
+      color: var(--text-body);
+      transition: all 0.3s var(--ease-out);
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .booking-input:focus,
+    .booking-select:focus,
+    .booking-textarea:focus {
+      border-color: var(--mint);
+      box-shadow: 0 0 0 4px rgba(125, 211, 192, 0.15);
+    }
+    .booking-input::placeholder,
+    .booking-textarea::placeholder {
+      color: #B8C8C8;
+    }
+    .booking-select {
+      background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%2390A8A8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 40px;
+    }
+    .booking-textarea {
+      min-height: 100px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .booking-submit {
+      width: 100%;
+      padding: 16px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: white;
+      background: linear-gradient(135deg, var(--mint) 0%, var(--mint-dark) 100%);
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.3s var(--ease-out);
+      margin-top: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+    .booking-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(125, 211, 192, 0.35);
+    }
+    .booking-submit:active {
+      transform: translateY(0);
+    }
+    .booking-submit:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .booking-submit .spinner {
+      display: none;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Success / Error messages */
+    .booking-result {
+      display: none;
+      padding: 24px;
+      border-radius: var(--radius-sm);
+      margin-top: 16px;
+      text-align: center;
+    }
+    .booking-result.success {
+      display: block;
+      background: linear-gradient(135deg, var(--mint-milk) 0%, #E8FFF5 100%);
+      border: 2px solid var(--mint);
+    }
+    .booking-result.success .result-icon { font-size: 2rem; margin-bottom: 8px; }
+    .booking-result.success h3 { color: var(--mint-dark); font-size: 1.1rem; margin-bottom: 6px; }
+    .booking-result.success p { color: var(--text-body); font-size: 0.92rem; }
+    .booking-result.error {
+      display: block;
+      background: #FFF5F5;
+      border: 2px solid #E57373;
+    }
+    .booking-result.error h3 { color: #D32F2F; font-size: 1.1rem; margin-bottom: 6px; }
+    .booking-result.error p { color: var(--text-body); font-size: 0.92rem; }
+
+    /* Sidebar */
+    .booking-sidebar {
+      position: sticky;
+      top: 100px;
+    }
+
+    .info-card {
+      background: var(--bg-white);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      box-shadow: var(--shadow-card);
+      margin-bottom: 20px;
+    }
+    .info-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-heading);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .info-card ul {
+      list-style: none;
+      padding: 0;
+    }
+    .info-card ul li {
+      padding: 8px 0;
+      font-size: 0.92rem;
+      color: var(--text-body);
+      border-bottom: 1px solid #F0F4F4;
+      display: flex;
+      align-items: start;
+      gap: 8px;
+      line-height: 1.6;
+    }
+    .info-card ul li:last-child { border-bottom: none; }
+    .info-card ul li .icon { flex-shrink: 0; }
+
+    .line-card {
+      background: linear-gradient(135deg, #E8FFF5 0%, var(--mint-milk) 100%);
+      border: 2px solid var(--mint);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      text-align: center;
+    }
+    .line-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-heading);
+      margin-bottom: 8px;
+    }
+    .line-card p {
+      font-size: 0.88rem;
+      color: var(--text-body);
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+    .line-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: white;
+      background: var(--line-green);
+      border-radius: 50px;
+      transition: all 0.3s var(--ease-out);
+    }
+    .line-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(6, 199, 85, 0.3);
+      color: white;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .booking-layout {
+        grid-template-columns: 1fr;
+      }
+      .booking-sidebar {
+        position: static;
+      }
+      .booking-form-card {
+        padding: 28px 20px;
+      }
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+      .booking-hero {
+        padding: 100px 0 40px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Scroll Progress Bar -->
+  <div class="scroll-progress"></div>
+
+  <!-- ========== HEADER ========== -->
+  <header class="header" id="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">🐾</span>
+        <span class="logo-text">福楽キャッテリー</span>
+      </a>
+
+      <nav class="nav" id="nav">
+        <a href="index.html#about" class="nav-link" data-i18n="nav.about">猫舎について</a>
+        <a href="index.html#kittens" class="nav-link" data-i18n="nav.kittens">子猫一覧</a>
+        <a href="index.html#parents" class="nav-link" data-i18n="nav.parents">親猫紹介</a>
+        <a href="index.html#visit" class="nav-link" data-i18n="nav.visit">見学案内</a>
+        <a href="index.html#faq" class="nav-link" data-i18n="nav.faq">よくある質問</a>
+        <a href="guide/" class="nav-link" data-i18n="nav.guide">お迎えガイド</a>
+        <a href="blog.html" class="nav-link" data-i18n="nav.blog">知識ライブラリ</a>
+        <div class="nav-dropdown">
+          <button class="nav-link nav-dropdown-toggle" data-i18n="nav.more">もっと見る <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <div class="nav-dropdown-menu">
+            <a href="siberian.html" class="nav-dropdown-item" data-i18n="nav.siberian">サイベリアンの魅力</a>
+            <a href="about.html" class="nav-dropdown-item" data-i18n="nav.aboutPage">受賞歴・認定</a>
+            <a href="kittens.html" class="nav-dropdown-item" data-i18n="nav.allKittens">子猫一覧（すべて）</a>
+            <a href="parents.html" class="nav-dropdown-item" data-i18n="nav.allParents">親猫紹介（すべて）</a>
+            <a href="gallery.html" class="nav-dropdown-item" data-i18n="nav.gallery">卒業猫ギャラリー</a>
+            <a href="reviews.html" class="nav-dropdown-item" data-i18n="nav.reviews">お客様の声</a>
+            <div class="nav-dropdown-divider"></div>
+            <a href="https://catnamegive.mouxue56.workers.dev" target="_blank" rel="noopener" class="nav-dropdown-item" data-i18n="nav.naming">子猫の名前ツール</a>
+          </div>
+        </div>
+      </nav>
+
+      <div class="header-right">
+        <div class="lang-switch">
+          <button class="lang-btn active" data-lang="ja">JP</button>
+          <button class="lang-btn" data-lang="en">EN</button>
+          <button class="lang-btn" data-lang="zh">中</button>
+        </div>
+
+        <div class="header-sns">
+          <a href="https://www.instagram.com/fuluckpet/" class="sns-icon" aria-label="Instagram" target="_blank" rel="noopener">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
+          </a>
+          <a href="https://www.youtube.com/channel/UCuVbvcbkbXs6MaBN2G1Zx1A" class="sns-icon" aria-label="YouTube" target="_blank" rel="noopener">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.94 2C5.12 20 12 20 12 20s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="currentColor" stroke="none"/></svg>
+          </a>
+          <a href="https://www.tiktok.com/@fuluckpet" class="sns-icon" aria-label="TikTok" target="_blank" rel="noopener">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1 0-5.78 2.92 2.92 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 3 15.57 6.33 6.33 0 0 0 9.37 22a6.33 6.33 0 0 0 6.33-6.33V9.18a8.16 8.16 0 0 0 3.89.98V6.73a4.85 4.85 0 0 1-.01-.04z"/></svg>
+          </a>
+        </div>
+
+        <button class="hamburger" id="hamburger" aria-label="メニュー">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========== MOBILE NAV ========== -->
+  <div class="mobile-nav" id="mobileNav">
+    <nav>
+      <a href="index.html#about" class="mobile-nav-link" data-i18n="nav.about">猫舎について</a>
+      <a href="index.html#kittens" class="mobile-nav-link" data-i18n="nav.kittens">子猫一覧</a>
+      <a href="index.html#parents" class="mobile-nav-link" data-i18n="nav.parents">親猫紹介</a>
+      <a href="index.html#visit" class="mobile-nav-link" data-i18n="nav.visit">見学案内</a>
+      <a href="index.html#faq" class="mobile-nav-link" data-i18n="nav.faq">よくある質問</a>
+      <a href="siberian.html" class="mobile-nav-link" data-i18n="nav.siberian">サイベリアン</a>
+      <a href="kittens.html" class="mobile-nav-link" data-i18n="nav.allKittens">子猫一覧（すべて）</a>
+      <a href="parents.html" class="mobile-nav-link" data-i18n="nav.allParents">親猫紹介（すべて）</a>
+      <a href="gallery.html" class="mobile-nav-link" data-i18n="nav.gallery">ギャラリー</a>
+      <a href="reviews.html" class="mobile-nav-link" data-i18n="nav.reviews">お客様の声</a>
+      <a href="about.html" class="mobile-nav-link" data-i18n="nav.aboutPage">受賞歴・認定</a>
+      <a href="guide/" class="mobile-nav-link" data-i18n="nav.guide">お迎えガイド</a>
+      <a href="blog.html" class="mobile-nav-link" data-i18n="nav.blog">知識ライブラリ</a>
+      <a href="https://catnamegive.mouxue56.workers.dev" target="_blank" rel="noopener" class="mobile-nav-link" data-i18n="nav.naming">子猫の名前ツール</a>
+    </nav>
+    <div class="mobile-nav-bottom">
+      <div class="lang-switch mobile-lang">
+        <button class="lang-btn active" data-lang="ja">JP</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="zh">中</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== HERO ========== -->
+  <section class="booking-hero">
+    <div class="container">
+      <h1 data-i18n="booking.title">📅 見学予約</h1>
+      <p data-i18n="booking.subtitle">対面見学・LINEビデオ通話、お好きな方法でご予約ください。<br>お気軽にどうぞ。</p>
+    </div>
+  </section>
+
+  <!-- ========== MAIN ========== -->
+  <section class="booking-section">
+    <div class="container">
+      <div class="booking-layout">
+
+        <!-- Form -->
+        <div class="booking-form-card">
+          <h2>📝 <span data-i18n="booking.formTitle">予約フォーム</span></h2>
+
+          <form id="bookingForm" novalidate>
+            <!-- Name -->
+            <div class="form-group">
+              <label for="bk-name"><span data-i18n="booking.name">お名前</span><span class="required">*</span></label>
+              <input type="text" id="bk-name" class="booking-input" required data-placeholder-ja="例：田中 太郎" data-placeholder-en="e.g. Taro Tanaka" data-placeholder-zh="例：田中 太郎" placeholder="例：田中 太郎">
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+              <label for="bk-email"><span data-i18n="booking.email">メールアドレス</span><span class="required">*</span></label>
+              <input type="email" id="bk-email" class="booking-input" required placeholder="example@email.com">
+            </div>
+
+            <!-- Phone -->
+            <div class="form-group">
+              <label for="bk-phone"><span data-i18n="booking.phone">電話番号</span></label>
+              <input type="tel" id="bk-phone" class="booking-input" data-placeholder-ja="例：090-1234-5678" data-placeholder-en="e.g. 090-1234-5678" data-placeholder-zh="例：090-1234-5678" placeholder="例：090-1234-5678">
+            </div>
+
+            <!-- Date + Time Row -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="bk-date"><span data-i18n="booking.date">第一希望日</span><span class="required">*</span></label>
+                <input type="date" id="bk-date" class="booking-input" required>
+              </div>
+              <div class="form-group">
+                <label for="bk-time"><span data-i18n="booking.time">ご希望の時間帯</span></label>
+                <select id="bk-time" class="booking-select">
+                  <option value="" data-i18n="booking.timePlaceholder">選択してください</option>
+                  <option value="午前（10:00〜12:00）" data-i18n="booking.timeMorning">午前（10:00〜12:00）</option>
+                  <option value="午後（13:00〜15:00）" data-i18n="booking.timeAfternoon">午後（13:00〜15:00）</option>
+                  <option value="夕方（15:00〜17:00）" data-i18n="booking.timeEvening">夕方（15:00〜17:00）</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Date 2 -->
+            <div class="form-group">
+              <label for="bk-date2"><span data-i18n="booking.date2">第二希望日</span></label>
+              <span class="hint" data-i18n="booking.date2Hint">日程調整のため、第二希望もご記入いただけると助かります。</span>
+              <input type="date" id="bk-date2" class="booking-input">
+            </div>
+
+            <!-- Visit Type -->
+            <div class="form-group">
+              <label for="bk-method"><span data-i18n="booking.method">見学方法</span><span class="required">*</span></label>
+              <select id="bk-method" class="booking-select" required>
+                <option value="" data-i18n="booking.methodPlaceholder">選択してください</option>
+                <option value="対面見学（来場）" data-i18n="booking.methodInPerson">対面見学（来場）</option>
+                <option value="LINEビデオ通話" data-i18n="booking.methodVideo">LINEビデオ通話</option>
+                <option value="どちらでも可" data-i18n="booking.methodEither">どちらでも可</option>
+              </select>
+            </div>
+
+            <!-- Interested Kitten -->
+            <div class="form-group">
+              <label for="bk-kitten"><span data-i18n="booking.kitten">気になる子猫</span></label>
+              <span class="hint" data-i18n="booking.kittenHint">子猫の名前や掲載番号をお書きください（複数可）。</span>
+              <input type="text" id="bk-kitten" class="booking-input" data-placeholder-ja="例：ムーン、c995680-8" data-placeholder-en="e.g. Moon, c995680-8" data-placeholder-zh="例：Moon、c995680-8" placeholder="例：ムーン、c995680-8">
+            </div>
+
+            <!-- Message -->
+            <div class="form-group">
+              <label for="bk-message"><span data-i18n="booking.message">ご質問・ご要望</span></label>
+              <textarea id="bk-message" class="booking-textarea" rows="4" data-placeholder-ja="ご質問やご要望があればお気軽にどうぞ" data-placeholder-en="Any questions or requests" data-placeholder-zh="如有任何问题或要求请随意填写" placeholder="ご質問やご要望があればお気軽にどうぞ"></textarea>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="booking-submit" id="bookingSubmit">
+              <span class="btn-text" data-i18n="booking.submit">📩 予約を送信する</span>
+              <span class="spinner"></span>
+            </button>
+          </form>
+
+          <!-- Success -->
+          <div id="bookingSuccess" class="booking-result">
+            <div class="result-icon">🎉</div>
+            <h3 data-i18n="booking.successTitle">予約を送信しました！</h3>
+            <p data-i18n="booking.successDesc">24時間以内にメールまたはLINEでご連絡いたします。お待ちくださいませ。</p>
+          </div>
+
+          <!-- Error -->
+          <div id="bookingError" class="booking-result">
+            <h3 data-i18n="booking.errorTitle">送信に失敗しました</h3>
+            <p data-i18n="booking.errorDesc">申し訳ございません。LINEまたはお電話でご連絡ください。</p>
+          </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="booking-sidebar">
+
+          <!-- Visit Info Card -->
+          <div class="info-card">
+            <h3>📍 <span data-i18n="booking.infoTitle">見学について</span></h3>
+            <ul>
+              <li><span class="icon">🕐</span><span data-i18n="booking.infoTime">完全予約制（前日までにご連絡ください）</span></li>
+              <li><span class="icon">📷</span><span data-i18n="booking.infoVideo">対面見学・LINEビデオ通話対応</span></li>
+              <li><span class="icon">⏱️</span><span data-i18n="booking.infoDuration">見学時間：約30分〜1時間</span></li>
+              <li><span class="icon">👨‍👩‍👧</span><span data-i18n="booking.infoFamily">ご家族でのご来訪も歓迎です</span></li>
+              <li><span class="icon">📍</span><span data-i18n="booking.infoLocation">大阪市城東区東中浜<br>（詳細住所はご予約時にお伝えします）</span></li>
+            </ul>
+          </div>
+
+          <!-- Law Notice Card -->
+          <div class="info-card">
+            <h3>📋 <span data-i18n="booking.lawTitle">対面販売について</span></h3>
+            <ul>
+              <li><span data-i18n="booking.lawText">動物愛護管理法の規定により、ご購入前に必ず対面（来場またはLINEビデオ通話）での説明と現物確認が必要です。</span></li>
+            </ul>
+          </div>
+
+          <!-- LINE Alternative Card -->
+          <div class="line-card">
+            <h3 data-i18n="booking.lineTitle">LINEでも予約OK</h3>
+            <p data-i18n="booking.lineDesc">フォームが苦手な方は、LINEからお気軽にメッセージください。</p>
+            <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" target="_blank" rel="noopener" class="line-btn">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596a.626.626 0 0 1-.199.031c-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.271.173-.508.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+              <span data-i18n="booking.lineBtn">LINEで予約する</span>
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="footer" id="footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="f-logo">
+            <span class="logo-icon">🐾</span>
+            <span class="f-logo-text">福楽キャッテリー</span>
+          </div>
+          <p class="f-tagline">サイベリアン｜大阪・福楽キャッテリー</p>
+          <div class="f-sns">
+            <a href="https://www.instagram.com/fuluckpet/" class="sns-icon" aria-label="Instagram"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg></a>
+            <a href="https://www.youtube.com/channel/UCuVbvcbkbXs6MaBN2G1Zx1A" class="sns-icon" aria-label="YouTube"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.94 2C5.12 20 12 20 12 20s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="currentColor" stroke="none"/></svg></a>
+            <a href="https://www.tiktok.com/@fuluckpet" class="sns-icon" aria-label="TikTok"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1 0-5.78 2.92 2.92 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 3 15.57 6.33 6.33 0 0 0 9.37 22a6.33 6.33 0 0 0 6.33-6.33V9.18a8.16 8.16 0 0 0 3.89.98V6.73a4.85 4.85 0 0 1-.01-.04z"/></svg></a>
+            <a href="https://fukurakupet.stores.jp/" target="_blank" rel="noopener" class="sns-icon" aria-label="Shop"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></a>
+          </div>
+        </div>
+        <div class="footer-links">
+          <h4 data-i18n="footer.navTitle">ナビゲーション</h4>
+          <a href="index.html#about" data-i18n="nav.about">猫舎について</a>
+          <a href="siberian.html" data-i18n="nav.siberian">サイベリアンの魅力</a>
+          <a href="index.html#kittens" data-i18n="nav.kittens">子猫一覧</a>
+          <a href="index.html#parents" data-i18n="nav.parents">親猫紹介</a>
+          <a href="about.html" data-i18n="nav.aboutPage">受賞歴・認定</a>
+          <a href="guide/" data-i18n="nav.guide">お迎えガイド</a>
+          <a href="blog.html" data-i18n="nav.blog">知識ライブラリ</a>
+          <a href="kittens.html" data-i18n="nav.allKittens">子猫一覧（すべて）</a>
+          <a href="parents.html" data-i18n="nav.allParents">親猫紹介（すべて）</a>
+          <a href="gallery.html" data-i18n="nav.gallery">卒業猫ギャラリー</a>
+          <a href="reviews.html" data-i18n="nav.reviews">お客様の声</a>
+          <a href="https://catnamegive.mouxue56.workers.dev" target="_blank" rel="noopener" data-i18n="nav.naming">子猫の名前ツール</a>
+          <a href="index.html#visit" data-i18n="nav.visit">見学案内</a>
+        </div>
+        <div class="footer-legal">
+          <h4>動物取扱業表示</h4>
+          <div class="legal-box">
+            <p><strong>福楽キャッテリー（第一種動物取扱業）</strong></p>
+            <p>福楽株式会社 代表取締役 羅 方遠</p>
+            <p>登録番号: 220012A / 有効期限: ~2027年4月26日</p>
+            <p>所在地: 大阪府大阪市城東区東中浜 6-10-7</p>
+          </div>
+          <div class="legal-box">
+            <p><strong>Fulluck Kitty（第一種動物取扱業）</strong></p>
+            <p>代表: 刘 暁棉</p>
+            <p>登録番号: 240051A / 有効期限: ~2029年7月16日</p>
+            <p>所在地: 大阪市城東区東中浜 2-6-23</p>
+          </div>
+          <div class="law-notice-compact">
+            <div class="law-notice-title">📋 動物愛護管理法に基づく対面販売</div>
+            <p>法律の規定により、ご購入前に対面での説明と現物確認が必要です。</p>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2025 サイベリアン｜大阪・福楽キャッテリー（福楽株式会社）All Rights Reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========== FIXED LINE BUTTON ========== -->
+  <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="fixed-line" aria-label="LINEでお問い合わせ" id="fixedLine" target="_blank" rel="noopener">
+    <span class="fixed-line-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596a.626.626 0 0 1-.199.031c-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.271.173-.508.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg></span>
+    <span class="fixed-line-content"><span class="fixed-line-label">見学予約・ご相談</span><span class="fixed-line-cta">LINEで相談 🐾</span></span>
+  </a>
+
+  <!-- Back to Top -->
+  <button class="back-to-top" id="backToTop" aria-label="ページ上部へ戻る">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <script src="i18n.js"></script>
+  <script src="script.js"></script>
+  <script>
+  // ===== Booking Form Submission to Google Form =====
+  (function() {
+    var FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScZHJxpxNwU1iGnaNaIFg5JQxVcAIO9KTJP22jPZ3Nyr0MNnw/formResponse';
+
+    // Google Form entry IDs
+    var FIELDS = {
+      name:    'entry.327563203',
+      email:   'entry.1278358805',
+      phone:   'entry.431080355',
+      date:    'entry.21320529',
+      time:    'entry.2044849220',
+      date2:   'entry.1350193949',
+      method:  'entry.1618377404',
+      kitten:  'entry.1596148586',
+      message: 'entry.266680632'
+    };
+
+    var form = document.getElementById('bookingForm');
+    var submitBtn = document.getElementById('bookingSubmit');
+    var successEl = document.getElementById('bookingSuccess');
+    var errorEl = document.getElementById('bookingError');
+
+    // Placeholder i18n
+    function updatePlaceholders() {
+      var lang = 'ja';
+      try { lang = localStorage.getItem('fuluckpet-lang') || 'ja'; } catch(e) {}
+      document.querySelectorAll('[data-placeholder-' + lang + ']').forEach(function(el) {
+        el.placeholder = el.getAttribute('data-placeholder-' + lang);
+      });
+      // Also update select option text via data-i18n (handled by i18n.js)
+    }
+    updatePlaceholders();
+    window.addEventListener('langChanged', updatePlaceholders);
+
+    if (!form) return;
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      // Validate
+      var name = document.getElementById('bk-name').value.trim();
+      var email = document.getElementById('bk-email').value.trim();
+      var date = document.getElementById('bk-date').value;
+      var method = document.getElementById('bk-method').value;
+
+      if (!name || !email || !date || !method) {
+        // Highlight missing fields
+        form.querySelectorAll('[required]').forEach(function(el) {
+          if (!el.value.trim()) {
+            el.style.borderColor = '#E57373';
+            el.addEventListener('input', function handler() {
+              el.style.borderColor = '';
+              el.removeEventListener('input', handler);
+            });
+          }
+        });
+        return;
+      }
+
+      // Show loading
+      submitBtn.disabled = true;
+      submitBtn.querySelector('.btn-text').style.display = 'none';
+      submitBtn.querySelector('.spinner').style.display = 'block';
+      errorEl.className = 'booking-result';
+      successEl.className = 'booking-result';
+
+      // Build form data
+      var formData = new FormData();
+      formData.append(FIELDS.name, name);
+      formData.append(FIELDS.email, email);
+      formData.append(FIELDS.phone, document.getElementById('bk-phone').value.trim());
+      formData.append(FIELDS.date, date);
+      formData.append(FIELDS.time, document.getElementById('bk-time').value);
+      formData.append(FIELDS.date2, document.getElementById('bk-date2').value);
+      formData.append(FIELDS.method, method);
+      formData.append(FIELDS.kitten, document.getElementById('bk-kitten').value.trim());
+      formData.append(FIELDS.message, document.getElementById('bk-message').value.trim());
+
+      // Submit via no-cors (Google Form doesn't allow CORS)
+      fetch(FORM_URL, {
+        method: 'POST',
+        body: formData,
+        mode: 'no-cors'
+      }).then(function() {
+        // no-cors always returns opaque response, treat as success
+        form.style.display = 'none';
+        successEl.className = 'booking-result success';
+
+        // GA4 event
+        if (typeof gtag === 'function') {
+          gtag('event', 'booking_submit', { event_category: 'booking', event_label: method });
+        }
+      }).catch(function() {
+        submitBtn.disabled = false;
+        submitBtn.querySelector('.btn-text').style.display = '';
+        submitBtn.querySelector('.spinner').style.display = 'none';
+        errorEl.className = 'booking-result error';
+      });
+    });
+  })();
+  </script>
+</body>
+</html>

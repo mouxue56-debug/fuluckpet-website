@@ -355,7 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <p style="text-align:center;font-size:12px;color:var(--text-note);margin-top:6px;">※ 購入前のちょっとした質問だけでもOKです</p>
 
       <div class="modal-actions" style="margin-top:12px">
-        <a href="https://docs.google.com/forms/d/e/1FAIpQLScZHJxpxNwU1iGnaNaIFg5JQxVcAIO9KTJP22jPZ3Nyr0MNnw/viewform" class="btn btn-secondary modal-visit-btn" target="_blank" rel="noopener" onclick="document.getElementById('kittenModal').classList.remove('active');document.body.style.overflow=''">見学を予約</a>
+        <a href="/booking.html" class="btn btn-secondary modal-visit-btn" onclick="document.getElementById('kittenModal').classList.remove('active');document.body.style.overflow=''">見学を予約</a>
       </div>
     `;
 

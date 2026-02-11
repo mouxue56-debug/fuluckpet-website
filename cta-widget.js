@@ -18,7 +18,7 @@
     try { return localStorage.getItem('fuluckpet-lang') || 'ja'; } catch(e) { return 'ja'; }
   }
 
-  var BOOKING_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScZHJxpxNwU1iGnaNaIFg5JQxVcAIO9KTJP22jPZ3Nyr0MNnw/viewform';
+  var BOOKING_URL = '/booking.html';
   var T = {
     ja: { available: '子猫募集中', count: '{n}匹', view: '子猫を見る', line: 'LINEで相談', book: '📅 予約' },
     en: { available: 'Kittens Available', count: '{n}', view: 'View Kittens', line: 'LINE Chat', book: '📅 Book' },

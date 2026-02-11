@@ -1,7 +1,7 @@
 # 福楽キャッテリー 网站交接文档
 
 > **本文档供下一个 AI 会话使用，用于快速了解本项目的全部背景。**
-> 最后更新：2026-02-11 Session 21c
+> 最后更新：2026-02-11 Session 21c-2
 
 ---
 
@@ -47,6 +47,7 @@ fuluckpet-website/
 ├── parents.html        # 种猫介绍（親猫紹介）
 ├── blog.html           # 知識ライブラリ列表页（104篇静态卡片，10分类）Session 17 静态化
 ├── faq.html            # FAQ 独立页面（24项静态HTML + FAQPage JSON-LD）Session 17 静态化
+├── booking.html        # 見学予約ページ（三語対応フォーム→Google Form POST）Session 21c-2 新増
 ├── 404.html            # 404 错误页
 ├── style.css           # 全局样式
 ├── blog.css            # 知识库专用样式 Session 15 新增（Session 16 追加 .article-sources 引用块样式）
@@ -56,9 +57,11 @@ fuluckpet-website/
 ├── kitten-carousel.js  # 动态猫咪轮播+分类化CTA（10分类×3语言上下文CTA映射）Session 18 新增，Session 19 重写
 ├── cta-widget.js       # 固定底栏 CTA 组件（子猫募集中+LINE 引流）Session 16 新增
 ├── blog-loader.js      # 知识库前端加载（blog.html列表渲染+slug重定向）Session 17 改造
+├── blog-listing-i18n.js    # 博客列表页翻译数据（104篇EN/ZH标题+摘要，auto-generated）Session 21c-2
+├── blog-listing-i18n-apply.js # 博客列表页运行时翻译（监听langChanged，替换hero/分类/卡片）Session 21c-2
 ├── faq-loader.js       # FAQ 动态加载（旧版，首页已不使用）Session 15
 ├── faq-page-loader.js  # FAQ 独立页面加载器（faq.html 专用，增强静态HTML）Session 17
-├── sitemap.xml         # SEO sitemap（151+URL，含104篇博客文章+23猫咪详情页）Session 19 扩充
+├── sitemap.xml         # SEO sitemap（167+URL，含104篇博客文章+23猫咪详情页+booking）Session 21c-2 追加
 ├── robots.txt          # 爬虫规则（屏蔽 /admin/ 和 /api/）
 ├── CNAME               # 自定义域名
 ├── .nojekyll           # 禁用 Jekyll
@@ -102,6 +105,8 @@ fuluckpet-website/
 │       └── admin-settings.js # 密码设置 + 初始化
 ├── tools/
 │   ├── generate-site.js # 全站静态页面生成脚本（从API数据重新生成HTML）Session 18 新增
+│   ├── generate-blog-listing-i18n.js # 博客列表页翻译数据提取（→blog-listing-i18n.js）Session 21c-2
+│   ├── translate-blog-articles.js # 博客文章翻译工具（提取/注入EN/ZH）Session 21b
 │   ├── migrate-images.js # 图片迁移脚本（Session 14，已完成）
 │   └── url-map.json     # URL映射表（76条）
 └── api/
@@ -546,6 +551,7 @@ fuluckpet-photos/  (ID: 1sbFIW5C7YfSw7zVIKhhAyCOuKivD8qUc)
 | 21 | **Sitemap补全**：88篇博客HTML不在API→scan-blog-articles.js扫描导入102篇→API共118篇→sitemap 64→166 URL→generate-site.js增加磁盘扫描防漏 → **后台管理全面修复**：YouTube消失bug（saveData错误静默→同步状态指示器+错误toast+发布前强制re-sync）→图片预览19字段全部行内缩略图→DEFAULT_PASS修正→saveKitten初始化video → **奖项徽章动态化**：saveImageConfig同步settings API→about.html动态加载 |
 | 21b | **博客文章三语化**：blog-i18n.js重写（兼容.blog-article HTML，自动包裹内容区域）→ translate-blog-articles.js批量工具（提取/翻译/注入/检查）→ 104篇博客文章注入EN/ZH翻译（window._blogArticleI18n数据，语言切换即时生效）→ **SEO结构化数据**：about.html添加LocalBusiness JSON-LD（奖项award/认证hasCredential/评分aggregateRating）→ EMPLOYEE-GUIDE.md更新（同步状态/YouTube操作/FAQ） |
 | 21c | **見学予約フォーム連携**：Google Form作成（9项目）→全站#booking/見学を予約するボタン→Form URL置換（index×3/script.js modal/cta-widget+kitten-carousel BOOKING_URL/siberian+kittens+parents CTA/24個kitten詳細/generate-site.jsテンプレート）→ **親猫モーダル写真カルーセル**：openParentModal() async化+carousel構築（Drive写真対応）/ parentCardHTML() data-images追加 / parents.html modal-children補完 |
+| 21c-2 | **博客列表页i18n**：generate-blog-listing-i18n.js提取脚本（104篇文章EN/ZH标题+摘要）→blog-listing-i18n.js数据文件（58.6KB）→blog-listing-i18n-apply.js运行时替换脚本（hero/分类/文章卡片/CTA翻译+JA缓存恢复）→ **見学予約ページ**：booking.html新建（9字段表单→Google Form POST+no-cors、Ice Cream Design System UI、sidebar信息卡+LINE替代入口）→i18n.js追加~40个booking.*翻译键（JA/EN/ZH）→全站32处予約リンクをbooking.htmlに変更（外部Form URL→内部ページ、target="_blank"削除）→sitemap.xml追加booking.html |
 
 ---
 
@@ -645,4 +651,7 @@ git push origin main          # 1-2 分钟自动部署
 77. **⭐ Session 21b完成** — ✅博客三语化完成（104篇×EN/ZH） ✅about.html LocalBusiness JSON-LD ✅EMPLOYEE-GUIDE.md更新
 78. **見学予約フォーム連携（Session 21c）** — Google Form（見学予約フォーム/见学预约表，9项目）创建完成。全站`#booking`占位符替换为Form URL：index.html（3处CTA按钮）、script.js（モーダル内予約按钮）、cta-widget.js + kitten-carousel.js（`BOOKING_URL`常量）、siberian/kittens/parents.html（CTAボタン）、24个kitten详情页、generate-site.js模板。所有按钮添加`target="_blank" rel="noopener"`
 79. **親猫モーダル写真カルーセル（Session 21c）** — `openParentModal()`改为async函数，支持Drive照片轮播：读取`data-images`→构建slides/dots/thumbnails→`initCarousel()`绑定控件。无照片时按需从`DriveLoader.loadCardImages()`加载。`parentCardHTML()`添加`data-images`属性（从API数据填充cover photo）。parents.html补充`modal-children`区块（之前缺失）
-80. **⭐ Session 21c完成 + 下一步** — ✅見学予約フォーム全站连接 ✅親猫写真カルーセル ✅drive-loader.js全面适配 → 下一步：(1)GSC 1-2周后验证索引恢复 (2)OGP图片仍待制作
+80. **⭐ Session 21c完成** — ✅見学予約フォーム全站连接 ✅親猫写真カルーセル ✅drive-loader.js全面适配
+81. **博客列表页i18n（Session 21c-2）** — blog.html的104张文章卡片（纯静态JA HTML）切换语言后标题和简介不变→ 解决方案：(1)`tools/generate-blog-listing-i18n.js`提取脚本从104篇文章的`window._blogArticleI18n`提取EN/ZH标题+生成摘要 (2)`blog-listing-i18n.js`(58.6KB)数据文件含categories/hero/cta/articles (3)`blog-listing-i18n-apply.js`运行时替换脚本（监听langChanged事件，缓存JA原始内容后替换hero/分类标签/分类标题/文章标题·摘要·分类标签/底部CTA）→ blog.html添加2个script标签（defer加载）
+82. **見学予約ページ（Session 21c-2）** — `booking.html`新建：Ice Cream Design System UI（mint渐变hero+白卡表单+sidebar信息卡+LINE替代入口）→ 9字段表单（姓名/邮箱/电话/第一希望日/时间帯/第二希望日/見学方法/気になる子猫/質問）→ `fetch(formResponse, {mode:'no-cors'})`提交到Google Form后端 → 成功/失败UI反馈 + GA4事件跟踪 → placeholder多语言（data-placeholder-ja/en/zh）→ `i18n.js`追加~40个`booking.*`翻译键（JA/EN/ZH）→ 全站32处予約リンク从外部Google Form URL→`/booking.html`内部页面（target="_blank"削除）→ sitemap.xml追加
+83. **⭐ Session 21c-2完成 + 下一步** — ✅博客列表页i18n ✅見学予約ページ三語化 ✅全站予約リンク内部化 → 下一步：(1)GSC 1-2周后验证索引恢复 (2)OGP图片仍待制作

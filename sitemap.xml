@@ -64,6 +64,13 @@
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
+  <!-- 見学予約 -->
+  <url>
+    <loc>https://fuluckpet.com/booking.html</loc>
+    <lastmod>2026-02-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <!-- お迎えガイド -->
   <url>
     <loc>https://fuluckpet.com/guide/</loc>
