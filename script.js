@@ -424,7 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (kittenModal) {
     const prevBtn = document.createElement('button');
     prevBtn.className = 'modal-kitten-nav modal-kitten-prev';
-    prevBtn.innerHTML = '‹';
+    prevBtn.innerHTML = '‹ 前';
     prevBtn.title = '前の子猫';
     prevBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -435,7 +435,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const nextBtn = document.createElement('button');
     nextBtn.className = 'modal-kitten-nav modal-kitten-next';
-    nextBtn.innerHTML = '›';
+    nextBtn.innerHTML = '次 ›';
     nextBtn.title = '次の子猫';
     nextBtn.addEventListener('click', (e) => {
       e.stopPropagation();

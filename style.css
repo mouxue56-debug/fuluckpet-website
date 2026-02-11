@@ -1985,9 +1985,32 @@ button { font-family: inherit; cursor: pointer; }
   .modal-sm .modal-body { grid-template-columns: 1fr; }
   .modal-gallery { border-radius: var(--radius-xl) var(--radius-xl) 0 0; overflow-y: visible; }
   .modal-info { overflow-y: visible; }
-  .modal-kitten-prev { left: 4px; }
-  .modal-kitten-next { right: 4px; }
-  .modal-kitten-nav { width: 40px; height: 40px; font-size: 20px; }
+  .modal-close {
+    width: 48px;
+    height: 48px;
+    font-size: 28px;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    top: 12px;
+    right: 12px;
+  }
+  .modal-kitten-nav {
+    width: auto;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 18px;
+    font-size: 14px;
+    background: var(--mint);
+    color: white;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+  }
+  .modal-kitten-prev { left: 8px; }
+  .modal-kitten-next { right: 8px; }
+  .carousel-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+  }
   .awards-grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; }
   .instagram-grid { grid-template-columns: repeat(3, 1fr); }
   .gallery-page-grid { grid-template-columns: repeat(2, 1fr); }
