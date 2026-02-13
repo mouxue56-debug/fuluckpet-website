@@ -1216,7 +1216,7 @@
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
   </button>
 
-  <script src="/i18n.js?v=20260214b"></script>
+  <script src="/i18n.js?v=20260214c"></script>
   <script src="/script.js?v=20260214"></script>
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <script>
@@ -1587,8 +1587,9 @@
         if (data.error) throw new Error(data.error);
         generatedText = data;
         currentCardLang = data.ja ? 'ja' : 'zh';
-        renderResult();
         showScreen('result');
+        // Must render after screen is visible so offsetWidth > 0 for preview scaling
+        requestAnimationFrame(function() { renderResult(); });
 
         if (typeof gtag === 'function') {
           gtag('event', 'story_generate', { event_category: 'story', event_label: formData.name });
