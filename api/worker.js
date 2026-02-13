@@ -23,6 +23,8 @@
  *   CORS_ORIGIN               = 許可するオリジン (例: https://fuluckpet.com)
  *   GOOGLE_SA_KEY             = Google Service Account JSON (Encrypted Secret)
  *   GOOGLE_DRIVE_ROOT_FOLDER_ID = Google Drive ルートフォルダ ID (Encrypted Secret)
+ *   GEMINI_API_KEY             = Google Gemini API Key (Story Card AI generation)
+ *   QIANWEN_API_KEY            = Alibaba Qianwen API Key (Story Card AI generation)
  */
 
 // ===== Google Drive Integration =====
@@ -184,6 +186,155 @@ async function driveDownloadResized(env, fileId, width) {
   return null; // Resize failed, caller should fall back to original
 }
 
+// ===== AI Story Generation Helpers =====
+
+function buildJaPrompt(data) {
+  return `あなたはペットの温かい文章を書くライターです。
+以下の情報をもとに、SNSでシェアするための猫ちゃんお迎え記念の文章を作成してください。
+
+猫ちゃんの情報：
+- 名前：${data.name}
+- 性別：${data.gender || '不明'}
+- 猫種：サイベリアン
+- 毛色：${data.color || '不明'}
+- お迎え日：${data.date || '最近'}
+- 性格・第一印象：${data.personality || '（未記入）'}
+- 名前の由来：${data.nameReason || '（未記入）'}
+- 一番嬉しかった瞬間：${data.happyMoment || '（未記入）'}
+- 他のペット：${data.otherPets || 'いない'}
+- 猫ちゃんへのメッセージ：${data.message || '（未記入）'}
+
+以下の2つのバージョンを、必ずJSON形式で出力してください（他のテキストは不要）：
+{
+  "instagram": "（Instagram投稿用、100〜200文字。温かく親しみやすい口調。「サイベリアン」と「大阪・福楽キャッテリー」を自然に入れてください。最後に関連ハッシュタグを3〜5個追加。例：#サイベリアン #シベリア猫 #猫のいる暮らし #福楽キャッテリー #猫好きさんと繋がりたい）",
+  "short": "（短い一言、50文字以内。シンプルで心温まるフレーズ）"
+}
+
+注意：
+- 飼い主本人が書いたような自然な文章にしてください
+- キャッテリーの情報はさりげなく、宣伝っぽくならないように
+- 読んだ人が「いいな、私も飼いたい」と思う文章を目指してください
+- 必ず上記のJSON形式のみ出力してください`;
+}
+
+function buildZhPrompt(data) {
+  return `你是一位温暖有文采的宠物内容写手。
+请根据以下信息，生成一段适合在社交媒体分享的猫咪迎接纪念文案。
+
+猫咪信息：
+- 名字：${data.name}
+- 性别：${data.gender || '未知'}
+- 猫种：西伯利亚猫（サイベリアン）
+- 毛色：${data.color || '未知'}
+- 迎接日期：${data.date || '最近'}
+- 性格/第一印象：${data.personality || '（未填写）'}
+- 起名理由：${data.nameReason || '（未填写）'}
+- 最开心的瞬间：${data.happyMoment || '（未填写）'}
+- 家里其他宠物：${data.otherPets || '没有'}
+- 想说的话：${data.message || '（未填写）'}
+
+请生成以下2个版本，必须以JSON格式输出（不要输出其他文字）：
+{
+  "xiaohongshu": "（小红书/朋友圈用，100-200字。温暖亲切的语气。自然地提到'西伯利亚猫'和'大阪福楽猫舍'。末尾加3-5个相关话题标签，如 #西伯利亚猫 #日本猫舍 #新猫到家 #福楽猫舍）",
+  "short": "（朋友圈短文案，50字以内。简短甜蜜，适合配图发送）"
+}
+
+注意：
+- 语气要自然真实，像猫主人自己写的，不要有广告感
+- 猫舍信息要自然融入，不要刻意推销
+- 文案要让读者觉得"好羡慕，我也想养一只"
+- 必须只输出上述JSON格式`;
+}
+
+// Extract JSON from AI response that may contain markdown code blocks
+function extractJson(text) {
+  // Try direct parse first
+  try { return JSON.parse(text); } catch(e) {}
+  // Try extracting from ```json ... ``` blocks
+  const match = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (match) {
+    try { return JSON.parse(match[1].trim()); } catch(e) {}
+  }
+  // Try finding first { ... } block
+  const braceMatch = text.match(/\{[\s\S]*\}/);
+  if (braceMatch) {
+    try { return JSON.parse(braceMatch[0]); } catch(e) {}
+  }
+  return null;
+}
+
+async function callGemini(env, prompt) {
+  const key = env.GEMINI_API_KEY;
+  if (!key) throw new Error('GEMINI_API_KEY not configured');
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${key}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.8,
+          maxOutputTokens: 1024,
+          responseMimeType: 'application/json',
+        },
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Gemini API error: ${res.status} ${errText}`);
+  }
+
+  const data = await res.json();
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error('Gemini returned empty response');
+
+  const parsed = extractJson(text);
+  if (!parsed) throw new Error('Failed to parse Gemini JSON response');
+  return parsed;
+}
+
+async function callQianwen(env, prompt) {
+  const key = env.QIANWEN_API_KEY;
+  if (!key) throw new Error('QIANWEN_API_KEY not configured');
+
+  const res = await fetch(
+    'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${key}`,
+      },
+      body: JSON.stringify({
+        model: 'qwen-turbo',
+        messages: [
+          { role: 'system', content: '你是一位温暖有文采的宠物内容写手。请严格按JSON格式输出。' },
+          { role: 'user', content: prompt },
+        ],
+        temperature: 0.8,
+        max_tokens: 1024,
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Qianwen API error: ${res.status} ${errText}`);
+  }
+
+  const data = await res.json();
+  const text = data.choices?.[0]?.message?.content;
+  if (!text) throw new Error('Qianwen returned empty response');
+
+  const parsed = extractJson(text);
+  if (!parsed) throw new Error('Failed to parse Qianwen JSON response');
+  return parsed;
+}
+
 const CORS_HEADERS = {
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
@@ -303,6 +454,60 @@ export default {
         const all = (await env.DATA.get('faq', 'json')) || [];
         const published = all.filter(f => f.published).sort((a, b) => (a.order || 0) - (b.order || 0));
         return addCors(json(published, 200, 'public, max-age=3600'));
+      }
+
+      // ===== STORY CARD AI GENERATION (PUBLIC) =====
+
+      // POST /api/story/generate — AI文案生成（Gemini JA + Qianwen ZH 並列）
+      if (path === '/api/story/generate' && method === 'POST') {
+        const body = await request.json();
+        if (!body.name) return addCors(json({ error: 'name is required' }, 400));
+
+        const jaPrompt = buildJaPrompt(body);
+        const zhPrompt = buildZhPrompt(body);
+
+        // Call both APIs in parallel
+        const [jaResult, zhResult] = await Promise.allSettled([
+          callGemini(env, jaPrompt),
+          callQianwen(env, zhPrompt),
+        ]);
+
+        const result = { ja: null, zh: null };
+
+        // Process JA (Gemini)
+        if (jaResult.status === 'fulfilled') {
+          result.ja = jaResult.value;
+        }
+
+        // Process ZH (Qianwen)
+        if (zhResult.status === 'fulfilled') {
+          result.zh = zhResult.value;
+        }
+
+        // Fallback: if one failed, try the other API for the missing language
+        if (!result.ja && result.zh) {
+          // Use Qianwen to also generate JA
+          try {
+            const fallbackJa = await callQianwen(env, jaPrompt);
+            result.ja = fallbackJa;
+          } catch(e) { /* both failed for JA */ }
+        }
+        if (!result.zh && result.ja) {
+          // Use Gemini to also generate ZH
+          try {
+            const fallbackZh = await callGemini(env, zhPrompt);
+            result.zh = fallbackZh;
+          } catch(e) { /* both failed for ZH */ }
+        }
+
+        // If both completely failed
+        if (!result.ja && !result.zh) {
+          const jaErr = jaResult.status === 'rejected' ? jaResult.reason.message : '';
+          const zhErr = zhResult.status === 'rejected' ? zhResult.reason.message : '';
+          return addCors(json({ error: 'AI generation failed', detail: { ja: jaErr, zh: zhErr } }, 500));
+        }
+
+        return addCors(json(result, 200, 'no-store'));
       }
 
       // ===== GOOGLE DRIVE PUBLIC ROUTES =====

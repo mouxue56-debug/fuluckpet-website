@@ -12,6 +12,8 @@ CORS_ORIGIN = "*"
 #   ADMIN_PASSWORD            — 管理画面パスワード
 #   GOOGLE_SA_KEY             — Google Service Account JSON（全内容をペースト）
 #   GOOGLE_DRIVE_ROOT_FOLDER_ID — Google Drive ルートフォルダ ID
+#   GEMINI_API_KEY             — Google Gemini API Key（ストーリーカードAI生成用）
+#   QIANWEN_API_KEY            — Alibaba Qianwen API Key（ストーリーカードAI生成用）
 
 # R2 バケット (画像ストレージ)
 [[r2_buckets]]

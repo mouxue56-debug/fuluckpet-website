@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>うちの子ストーリーカード｜大阪のサイベリアン専門ブリーダー｜福楽キャッテリー</title>
+  <meta name="description" content="福楽キャッテリーからお迎えした猫ちゃんの写真とAI文章で、世界に1枚のストーリーカードを作ろう！Instagram・小红书・朋友圈にシェア。">
+  <meta name="keywords" content="猫ストーリーカード,サイベリアン,大阪,ブリーダー,福楽キャッテリー,猫お迎え記念,UGC,猫写真カード">
+  <meta property="og:title" content="うちの子ストーリーカード｜福楽キャッテリー">
+  <meta property="og:description" content="お迎えした猫ちゃんの写真とAI文章で、世界に1枚のストーリーカードを作ろう！">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="/images/ogp.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#D4A574">
+  <link rel="canonical" href="https://fuluckpet.com/story/">
+  <link rel="alternate" hreflang="ja" href="https://fuluckpet.com/story/">
+  <link rel="alternate" hreflang="en" href="https://fuluckpet.com/story/?lang=en">
+  <link rel="alternate" hreflang="zh" href="https://fuluckpet.com/story/?lang=zh">
+  <link rel="alternate" hreflang="x-default" href="https://fuluckpet.com/story/">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Klee+One:wght@400&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐱</text></svg>">
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
+  <script type="application/ld+json">
+  { "@context":"https://schema.org", "@type":"BreadcrumbList", "itemListElement":[
+    {"@type":"ListItem","position":1,"name":"ホーム","item":"https://fuluckpet.com/"},
+    {"@type":"ListItem","position":2,"name":"ストーリーカード","item":"https://fuluckpet.com/story/"}
+  ]}
+  </script>
+
+  <style>
+    /* ===== Story Card Generator Styles (Style A: Warm Healing) ===== */
+    :root {
+      --story-bg: #FFF8F0;
+      --story-accent: #D4A574;
+      --story-accent-dark: #B8895A;
+      --story-text: #5C4A3A;
+      --story-text-light: #9A8676;
+      --story-card-bg: #FFFAF5;
+      --story-frame: #E8D5C0;
+    }
+
+    /* Hero / Welcome */
+    .story-hero {
+      background: linear-gradient(135deg, #FFF8F0 0%, #FDECD2 50%, #FFF0E6 100%);
+      padding: 140px 0 80px;
+      text-align: center;
+      min-height: 70vh;
+      display: flex;
+      align-items: center;
+    }
+    .story-hero .container {
+      max-width: 600px;
+    }
+    .story-hero-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      display: block;
+      animation: pawBounce 2s ease-in-out infinite;
+    }
+    @keyframes pawBounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .story-hero h1 {
+      font-family: 'Klee One', 'Noto Serif JP', serif;
+      font-size: clamp(1.8rem, 5vw, 2.6rem);
+      font-weight: 400;
+      color: var(--story-text);
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+    .story-hero p {
+      font-size: 1.05rem;
+      color: var(--story-text-light);
+      margin-bottom: 8px;
+      line-height: 1.8;
+    }
+    .story-hero .brand-tag {
+      font-size: 0.85rem;
+      color: var(--story-accent);
+      margin-bottom: 40px;
+      display: block;
+    }
+    .story-start-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--story-accent);
+      color: white;
+      border: none;
+      padding: 16px 48px;
+      border-radius: var(--radius-lg);
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s var(--ease-out);
+      box-shadow: 0 4px 20px rgba(212, 165, 116, 0.3);
+    }
+    .story-start-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 28px rgba(212, 165, 116, 0.45);
+      background: var(--story-accent-dark);
+    }
+
+    /* Form Section */
+    .story-section {
+      padding: 60px 0 80px;
+      background: var(--story-bg);
+    }
+    .story-section .container {
+      max-width: 640px;
+    }
+    .story-form-card {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: 40px;
+      box-shadow: var(--shadow-card);
+    }
+    .story-form-card h2 {
+      font-family: 'Klee One', serif;
+      font-size: 1.5rem;
+      color: var(--story-text);
+      margin-bottom: 28px;
+      text-align: center;
+    }
+    .story-form-group {
+      margin-bottom: 20px;
+    }
+    .story-form-group label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--story-text);
+      margin-bottom: 6px;
+    }
+    .story-form-group .required {
+      color: #E57373;
+      margin-left: 4px;
+    }
+    .story-form-group .hint {
+      font-size: 0.8rem;
+      color: var(--story-text-light);
+      margin-top: 4px;
+    }
+    .story-form-group .optional-tag {
+      font-size: 0.75rem;
+      color: var(--story-accent);
+      background: rgba(212, 165, 116, 0.1);
+      padding: 2px 8px;
+      border-radius: 8px;
+      margin-left: 8px;
+      font-weight: 400;
+    }
+    .story-input,
+    .story-select,
+    .story-textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid var(--story-frame);
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+      color: var(--story-text);
+      background: var(--story-card-bg);
+      transition: border-color 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+      font-family: inherit;
+      box-sizing: border-box;
+    }
+    .story-input:focus,
+    .story-select:focus,
+    .story-textarea:focus {
+      outline: none;
+      border-color: var(--story-accent);
+      box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.15);
+    }
+    .story-textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    .story-form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    /* Photo Upload */
+    .photo-upload-area {
+      border: 2px dashed var(--story-frame);
+      border-radius: var(--radius-md);
+      padding: 32px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s var(--ease-out);
+      background: var(--story-card-bg);
+      position: relative;
+    }
+    .photo-upload-area:hover {
+      border-color: var(--story-accent);
+      background: #FFF5EB;
+    }
+    .photo-upload-area.has-photo {
+      padding: 12px;
+      border-style: solid;
+      border-color: var(--story-accent);
+    }
+    .photo-upload-icon {
+      font-size: 48px;
+      display: block;
+      margin-bottom: 12px;
+    }
+    .photo-upload-text {
+      color: var(--story-text-light);
+      font-size: 0.9rem;
+    }
+    .photo-upload-text strong {
+      color: var(--story-accent);
+    }
+    .photo-preview {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: var(--radius-sm);
+      display: none;
+    }
+    .photo-upload-area.has-photo .photo-preview { display: block; }
+    .photo-upload-area.has-photo .photo-upload-icon,
+    .photo-upload-area.has-photo .photo-upload-text { display: none; }
+    .photo-change-hint {
+      display: none;
+      font-size: 0.8rem;
+      color: var(--story-text-light);
+      margin-top: 8px;
+    }
+    .photo-upload-area.has-photo .photo-change-hint { display: block; }
+    #photoInput { display: none; }
+
+    /* Generate Button */
+    .story-generate-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      background: var(--story-accent);
+      color: white;
+      border: none;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s var(--ease-out);
+      box-shadow: 0 4px 20px rgba(212, 165, 116, 0.3);
+      margin-top: 28px;
+    }
+    .story-generate-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 28px rgba(212, 165, 116, 0.45);
+      background: var(--story-accent-dark);
+    }
+    .story-generate-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Loading */
+    .story-loading {
+      padding: 140px 0;
+      text-align: center;
+      background: var(--story-bg);
+      min-height: 60vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .loading-animation {
+      margin-bottom: 24px;
+    }
+    .loading-paws {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+    }
+    .loading-paws span {
+      font-size: 32px;
+      animation: pawFade 1.5s ease-in-out infinite;
+    }
+    .loading-paws span:nth-child(2) { animation-delay: 0.3s; }
+    .loading-paws span:nth-child(3) { animation-delay: 0.6s; }
+    @keyframes pawFade {
+      0%, 100% { opacity: 0.3; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1.1); }
+    }
+    .loading-text {
+      font-family: 'Klee One', serif;
+      font-size: 1.2rem;
+      color: var(--story-text);
+      margin-bottom: 8px;
+    }
+    .loading-hint {
+      font-size: 0.9rem;
+      color: var(--story-text-light);
+    }
+
+    /* Result Section */
+    .story-result {
+      padding: 60px 0 100px;
+      background: var(--story-bg);
+    }
+    .story-result .container {
+      max-width: 720px;
+    }
+    .result-title {
+      font-family: 'Klee One', serif;
+      font-size: 1.6rem;
+      color: var(--story-text);
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    /* Language Tabs */
+    .card-lang-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+    .card-lang-tab {
+      padding: 10px 28px;
+      border: 2px solid var(--story-frame);
+      border-radius: 999px;
+      background: white;
+      color: var(--story-text-light);
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s var(--ease-out);
+    }
+    .card-lang-tab.active {
+      background: var(--story-accent);
+      border-color: var(--story-accent);
+      color: white;
+    }
+    .card-lang-tab:hover:not(.active) {
+      border-color: var(--story-accent);
+      color: var(--story-text);
+    }
+
+    /* Card Preview */
+    .card-preview-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+    .card-preview-wrapper {
+      width: 100%;
+      max-width: 360px;
+      aspect-ratio: 3 / 4;
+      overflow: hidden;
+      border-radius: var(--radius-lg);
+      box-shadow: 0 8px 40px rgba(92, 74, 58, 0.15);
+      position: relative;
+    }
+    .card-preview-inner {
+      width: 1080px;
+      height: 1440px;
+      transform: scale(var(--preview-scale, 0.333));
+      transform-origin: top left;
+    }
+
+    /* Text Display */
+    .text-display-card {
+      background: white;
+      border-radius: var(--radius-md);
+      padding: 24px;
+      width: 100%;
+      box-shadow: var(--shadow-soft);
+    }
+    .text-display-label {
+      font-size: 0.8rem;
+      color: var(--story-text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+    .text-display-content {
+      font-size: 0.95rem;
+      color: var(--story-text);
+      line-height: 1.8;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* Action Buttons */
+    .result-actions {
+      display: flex;
+      gap: 12px;
+      width: 100%;
+      margin-top: 8px;
+    }
+    .result-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 20px;
+      border-radius: var(--radius-md);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s var(--ease-out);
+      border: none;
+    }
+    .result-btn-primary {
+      background: var(--story-accent);
+      color: white;
+      box-shadow: 0 4px 16px rgba(212, 165, 116, 0.3);
+    }
+    .result-btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(212, 165, 116, 0.45);
+      background: var(--story-accent-dark);
+    }
+    .result-btn-secondary {
+      background: white;
+      color: var(--story-text);
+      border: 2px solid var(--story-frame);
+    }
+    .result-btn-secondary:hover {
+      border-color: var(--story-accent);
+      color: var(--story-accent);
+    }
+
+    /* Share Hint */
+    .share-hint {
+      text-align: center;
+      margin-top: 24px;
+      padding: 16px;
+      background: rgba(212, 165, 116, 0.08);
+      border-radius: var(--radius-md);
+      font-size: 0.85rem;
+      color: var(--story-text-light);
+      line-height: 1.6;
+    }
+    .share-hint strong {
+      color: var(--story-accent);
+    }
+
+    /* Retry Button */
+    .retry-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 24px;
+      padding: 10px 24px;
+      background: transparent;
+      color: var(--story-text-light);
+      border: 1px solid var(--story-frame);
+      border-radius: 999px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s var(--ease-out);
+    }
+    .retry-btn:hover {
+      border-color: var(--story-accent);
+      color: var(--story-text);
+    }
+
+    /* Hidden card for html2canvas */
+    #card-canvas {
+      position: absolute;
+      left: -9999px;
+      top: 0;
+      width: 1080px;
+      height: 1440px;
+      background: var(--story-card-bg);
+      font-family: 'Klee One', 'Noto Sans JP', 'Noto Sans SC', sans-serif;
+      overflow: hidden;
+    }
+    .card-photo-area {
+      width: 100%;
+      height: 60%;
+      position: relative;
+      overflow: hidden;
+    }
+    .card-photo {
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    .card-photo-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 160px;
+      background: linear-gradient(transparent, rgba(255,248,240,0.9));
+    }
+    .card-text-area {
+      padding: 36px 56px 24px;
+      text-align: center;
+      height: 30%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .card-cat-name {
+      font-family: 'Klee One', serif;
+      font-size: 52px;
+      color: var(--story-accent);
+      margin-bottom: 16px;
+      line-height: 1.2;
+    }
+    .card-ai-text {
+      font-size: 28px;
+      line-height: 1.7;
+      color: var(--story-text);
+      margin-bottom: 16px;
+      padding: 0 20px;
+    }
+    .card-date {
+      font-size: 22px;
+      color: var(--story-text-light);
+    }
+    .card-brand-bar {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 10%;
+      background: rgba(232, 213, 192, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      font-size: 20px;
+      color: var(--story-text-light);
+    }
+    .card-brand-bar .brand-paw {
+      font-size: 28px;
+    }
+    .card-brand-bar .brand-name {
+      font-family: 'Klee One', serif;
+      font-size: 22px;
+    }
+    .card-brand-bar .brand-ig {
+      font-size: 18px;
+      opacity: 0.7;
+    }
+
+    /* Error Toast */
+    .story-error {
+      background: #FFF0F0;
+      border: 1px solid #E57373;
+      color: #D32F2F;
+      padding: 16px;
+      border-radius: var(--radius-sm);
+      text-align: center;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .story-hero { padding: 120px 20px 60px; min-height: auto; }
+      .story-form-card { padding: 24px; }
+      .story-form-row { grid-template-columns: 1fr; }
+      .result-actions { flex-direction: column; }
+      .card-preview-wrapper { max-width: 300px; }
+      .story-section { padding: 40px 0 60px; }
+      .story-result { padding: 40px 0 80px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Scroll Progress Bar -->
+  <div class="scroll-progress"></div>
+
+  <!-- ========== HEADER ========== -->
+  <header class="header" id="header">
+    <div class="header-inner">
+      <a href="/index.html" class="logo">
+        <span class="logo-icon">🐾</span>
+        <span class="logo-text">福楽キャッテリー</span>
+      </a>
+
+      <nav class="nav" id="nav">
+        <a href="/index.html#about" class="nav-link" data-i18n="nav.about">猫舎について</a>
+        <a href="/index.html#kittens" class="nav-link" data-i18n="nav.kittens">子猫一覧</a>
+        <a href="/index.html#parents" class="nav-link" data-i18n="nav.parents">親猫紹介</a>
+        <a href="/index.html#visit" class="nav-link" data-i18n="nav.visit">見学案内</a>
+        <a href="/index.html#faq" class="nav-link" data-i18n="nav.faq">よくある質問</a>
+        <a href="/guide/" class="nav-link" data-i18n="nav.guide">お迎えガイド</a>
+        <a href="/blog.html" class="nav-link" data-i18n="nav.blog">知識ライブラリ</a>
+        <div class="nav-dropdown">
+          <button class="nav-link nav-dropdown-toggle" data-i18n="nav.more">もっと見る <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <div class="nav-dropdown-menu">
+            <a href="/siberian.html" class="nav-dropdown-item" data-i18n="nav.siberian">サイベリアンの魅力</a>
+            <a href="/about.html" class="nav-dropdown-item" data-i18n="nav.aboutPage">受賞歴・認定</a>
+            <a href="/kittens.html" class="nav-dropdown-item" data-i18n="nav.allKittens">子猫一覧（すべて）</a>
+            <a href="/parents.html" class="nav-dropdown-item" data-i18n="nav.allParents">親猫紹介（すべて）</a>
+            <a href="/gallery.html" class="nav-dropdown-item" data-i18n="nav.gallery">卒業猫ギャラリー</a>
+            <a href="/reviews.html" class="nav-dropdown-item" data-i18n="nav.reviews">お客様の声</a>
+            <div class="nav-dropdown-divider"></div>
+            <a href="https://catnamegive.mouxue56.workers.dev" target="_blank" rel="noopener" class="nav-dropdown-item" data-i18n="nav.naming">子猫の名前ツール</a>
+          </div>
+        </div>
+      </nav>
+
+      <div class="header-right">
+        <div class="lang-switch">
+          <button class="lang-btn active" data-lang="ja">JP</button>
+          <button class="lang-btn" data-lang="en">EN</button>
+          <button class="lang-btn" data-lang="zh">中</button>
+        </div>
+
+        <div class="header-sns">
+          <a href="https://www.instagram.com/fuluckpet/" class="sns-icon" aria-label="Instagram" target="_blank" rel="noopener">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
+          </a>
+          <a href="https://www.youtube.com/channel/UCuVbvcbkbXs6MaBN2G1Zx1A" class="sns-icon" aria-label="YouTube" target="_blank" rel="noopener">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.94 2C5.12 20 12 20 12 20s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="currentColor" stroke="none"/></svg>
+          </a>
+          <a href="https://www.tiktok.com/@fuluckpet" class="sns-icon" aria-label="TikTok" target="_blank" rel="noopener">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1 0-5.78 2.92 2.92 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 3 15.57 6.33 6.33 0 0 0 9.37 22a6.33 6.33 0 0 0 6.33-6.33V9.18a8.16 8.16 0 0 0 3.89.98V6.73a4.85 4.85 0 0 1-.01-.04z"/></svg>
+          </a>
+        </div>
+
+        <button class="hamburger" id="hamburger" aria-label="メニュー">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========== MOBILE NAV ========== -->
+  <div class="mobile-nav" id="mobileNav">
+    <nav>
+      <a href="/index.html#about" class="mobile-nav-link" data-i18n="nav.about">猫舎について</a>
+      <a href="/index.html#kittens" class="mobile-nav-link" data-i18n="nav.kittens">子猫一覧</a>
+      <a href="/index.html#parents" class="mobile-nav-link" data-i18n="nav.parents">親猫紹介</a>
+      <a href="/index.html#visit" class="mobile-nav-link" data-i18n="nav.visit">見学案内</a>
+      <a href="/index.html#faq" class="mobile-nav-link" data-i18n="nav.faq">よくある質問</a>
+      <a href="/siberian.html" class="mobile-nav-link" data-i18n="nav.siberian">サイベリアン</a>
+      <a href="/kittens.html" class="mobile-nav-link" data-i18n="nav.allKittens">子猫一覧（すべて）</a>
+      <a href="/parents.html" class="mobile-nav-link" data-i18n="nav.allParents">親猫紹介（すべて）</a>
+      <a href="/gallery.html" class="mobile-nav-link" data-i18n="nav.gallery">ギャラリー</a>
+      <a href="/reviews.html" class="mobile-nav-link" data-i18n="nav.reviews">お客様の声</a>
+      <a href="/about.html" class="mobile-nav-link" data-i18n="nav.aboutPage">受賞歴・認定</a>
+      <a href="/guide/" class="mobile-nav-link" data-i18n="nav.guide">お迎えガイド</a>
+      <a href="/blog.html" class="mobile-nav-link" data-i18n="nav.blog">知識ライブラリ</a>
+      <a href="https://catnamegive.mouxue56.workers.dev" target="_blank" rel="noopener" class="mobile-nav-link" data-i18n="nav.naming">子猫の名前ツール</a>
+    </nav>
+    <div class="mobile-nav-bottom">
+      <div class="lang-switch mobile-lang">
+        <button class="lang-btn active" data-lang="ja">JP</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="zh">中</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== STEP 1: WELCOME ========== -->
+  <section class="story-hero" id="step-welcome">
+    <div class="container">
+      <span class="story-hero-icon">🐾</span>
+      <h1 data-i18n="story.title">うちの子ストーリーカード</h1>
+      <p data-i18n="story.subtitle">お迎えした猫ちゃんの写真とAI文章で、<br>世界に1枚のカードを作ろう！</p>
+      <span class="brand-tag">サイベリアン｜大阪・福楽キャッテリー</span>
+      <button class="story-start-btn" id="startBtn" data-i18n="story.start">カードを作る</button>
+    </div>
+  </section>
+
+  <!-- ========== STEP 2: FORM ========== -->
+  <section class="story-section" id="step-form" style="display:none">
+    <div class="container">
+      <div class="story-form-card">
+        <h2 data-i18n="story.formTitle">🐱 猫ちゃんの情報</h2>
+        <div id="formError" class="story-error"></div>
+
+        <form id="storyForm" novalidate>
+          <!-- Name -->
+          <div class="story-form-group">
+            <label for="story-name"><span data-i18n="story.name">猫ちゃんのお名前</span><span class="required">*</span></label>
+            <input type="text" id="story-name" class="story-input" required
+              data-placeholder-ja="例：ゆき、モカ、レオ"
+              data-placeholder-en="e.g. Yuki, Mocha, Leo"
+              data-placeholder-zh="例：雪儿、摩卡、里奥"
+              placeholder="例：ゆき、モカ、レオ">
+          </div>
+
+          <!-- Gender & Color -->
+          <div class="story-form-row">
+            <div class="story-form-group">
+              <label for="story-gender"><span data-i18n="story.gender">性別</span><span class="required">*</span></label>
+              <select id="story-gender" class="story-select" required>
+                <option value="" data-i18n="story.genderPlaceholder">選択してください</option>
+                <option value="男の子" data-i18n="story.genderMale">男の子</option>
+                <option value="女の子" data-i18n="story.genderFemale">女の子</option>
+              </select>
+            </div>
+            <div class="story-form-group">
+              <label for="story-color"><span data-i18n="story.color">毛色</span></label>
+              <select id="story-color" class="story-select">
+                <option value="" data-i18n="story.colorPlaceholder">選択してください</option>
+                <option value="白">白</option>
+                <option value="茶トラ">茶トラ</option>
+                <option value="シルバー">シルバー</option>
+                <option value="ゴールデン">ゴールデン</option>
+                <option value="ブラウン">ブラウン</option>
+                <option value="その他" data-i18n="story.colorOther">その他</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Custom color (shown when その他 selected) -->
+          <div class="story-form-group" id="customColorGroup" style="display:none">
+            <label for="story-color-custom"><span data-i18n="story.colorCustom">毛色を入力</span></label>
+            <input type="text" id="story-color-custom" class="story-input"
+              data-placeholder-ja="毛色を入力してください"
+              data-placeholder-en="Enter coat color"
+              data-placeholder-zh="请输入毛色"
+              placeholder="毛色を入力してください">
+          </div>
+
+          <!-- Date -->
+          <div class="story-form-group">
+            <label for="story-date"><span data-i18n="story.date">お迎え日</span><span class="required">*</span></label>
+            <input type="date" id="story-date" class="story-input" required>
+          </div>
+
+          <!-- Photo Upload -->
+          <div class="story-form-group">
+            <label><span data-i18n="story.photo">写真をアップロード</span><span class="required">*</span></label>
+            <p class="hint" data-i18n="story.photoHint">お気に入りの1枚を選んでください（JPG/PNG、10MB以下）</p>
+            <div class="photo-upload-area" id="photoArea">
+              <span class="photo-upload-icon">📷</span>
+              <p class="photo-upload-text" data-i18n="story.photoClick">タップして写真を選択</p>
+              <img class="photo-preview" id="photoPreview" alt="Preview">
+              <p class="photo-change-hint" data-i18n="story.photoChange">タップして写真を変更</p>
+            </div>
+            <input type="file" id="photoInput" accept="image/jpeg,image/png,image/webp">
+          </div>
+
+          <!-- Optional fields -->
+          <div class="story-form-group">
+            <label for="story-personality"><span data-i18n="story.personality">性格・特徴</span><span class="optional-tag" data-i18n="story.optional">任意</span></label>
+            <textarea id="story-personality" class="story-textarea" rows="2"
+              data-placeholder-ja="例：甘えん坊、好奇心旺盛、おっとり"
+              data-placeholder-en="e.g. Affectionate, curious, calm"
+              data-placeholder-zh="例：爱撒娇、好奇心强、温柔"
+              placeholder="例：甘えん坊、好奇心旺盛、おっとり"></textarea>
+          </div>
+
+          <div class="story-form-group">
+            <label for="story-name-reason"><span data-i18n="story.nameReason">名前の由来</span><span class="optional-tag" data-i18n="story.optional">任意</span></label>
+            <input type="text" id="story-name-reason" class="story-input"
+              data-placeholder-ja="この名前にした理由"
+              data-placeholder-en="Why did you choose this name?"
+              data-placeholder-zh="为什么取这个名字？"
+              placeholder="この名前にした理由">
+          </div>
+
+          <div class="story-form-group">
+            <label for="story-happy"><span data-i18n="story.happyMoment">嬉しかったエピソード</span><span class="optional-tag" data-i18n="story.optional">任意</span></label>
+            <textarea id="story-happy" class="story-textarea" rows="2"
+              data-placeholder-ja="迎えてから一番嬉しかった瞬間"
+              data-placeholder-en="Your happiest moment since adoption"
+              data-placeholder-zh="迎接后最开心的瞬间"
+              placeholder="迎えてから一番嬉しかった瞬間"></textarea>
+          </div>
+
+          <div class="story-form-group">
+            <label for="story-pets"><span data-i18n="story.otherPets">他にいるペット</span><span class="optional-tag" data-i18n="story.optional">任意</span></label>
+            <select id="story-pets" class="story-select">
+              <option value="" data-i18n="story.petsNone">いない</option>
+              <option value="犬がいる" data-i18n="story.petsDog">犬がいる</option>
+              <option value="猫がいる" data-i18n="story.petsCat">猫がいる</option>
+              <option value="その他" data-i18n="story.petsOther">その他</option>
+            </select>
+          </div>
+
+          <div class="story-form-group">
+            <label for="story-message"><span data-i18n="story.message">猫ちゃんへのメッセージ</span><span class="optional-tag" data-i18n="story.optional">任意</span></label>
+            <textarea id="story-message" class="story-textarea" rows="2"
+              data-placeholder-ja="猫ちゃんに伝えたい一言"
+              data-placeholder-en="A message to your cat"
+              data-placeholder-zh="想对猫咪说的话"
+              placeholder="猫ちゃんに伝えたい一言"></textarea>
+          </div>
+
+          <button type="submit" class="story-generate-btn" id="generateBtn">
+            <span class="btn-text" data-i18n="story.generate">✨ AIでカードを作成</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== STEP 3: LOADING ========== -->
+  <section class="story-loading" id="step-loading" style="display:none">
+    <div class="container">
+      <div class="loading-animation">
+        <div class="loading-paws">
+          <span>🐾</span>
+          <span>🐾</span>
+          <span>🐾</span>
+        </div>
+      </div>
+      <p class="loading-text" data-i18n="story.loading">AIが文章を作成中...</p>
+      <p class="loading-hint" data-i18n="story.loadingHint">少々お待ちください（約10秒）</p>
+    </div>
+  </section>
+
+  <!-- ========== STEP 4: RESULT ========== -->
+  <section class="story-result" id="step-result" style="display:none">
+    <div class="container">
+      <h2 class="result-title" data-i18n="story.resultTitle">カードが完成しました！</h2>
+
+      <!-- Language tabs -->
+      <div class="card-lang-tabs">
+        <button class="card-lang-tab active" data-lang="ja" data-i18n="story.tabJa">日本語版</button>
+        <button class="card-lang-tab" data-lang="zh" data-i18n="story.tabZh">中文版</button>
+      </div>
+
+      <div class="card-preview-container">
+        <!-- Card visual preview (scaled down) -->
+        <div class="card-preview-wrapper">
+          <div class="card-preview-inner" id="card-preview"></div>
+        </div>
+
+        <!-- Full text for copying -->
+        <div class="text-display-card">
+          <p class="text-display-label" id="textLabel">Instagram / SNS</p>
+          <div class="text-display-content" id="copyText"></div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="result-actions">
+          <button class="result-btn result-btn-primary" id="downloadBtn">
+            <span data-i18n="story.download">📥 画像をダウンロード</span>
+          </button>
+          <button class="result-btn result-btn-secondary" id="copyBtn" data-original-text="">
+            <span data-i18n="story.copyText">📋 テキストをコピー</span>
+          </button>
+        </div>
+
+        <!-- Share hint -->
+        <div class="share-hint" data-i18n="story.shareHint">Instagramに投稿する際は <strong>@fuluckpet</strong> をタグ付けしてね！</div>
+      </div>
+
+      <!-- Retry -->
+      <div style="text-align:center">
+        <button class="retry-btn" id="retryBtn" data-i18n="story.retry">🔄 もう1枚作る</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== HIDDEN CARD CANVAS (1080x1440) ========== -->
+  <div id="card-canvas">
+    <div class="card-photo-area">
+      <div class="card-photo" id="cardPhoto"></div>
+      <div class="card-photo-overlay"></div>
+    </div>
+    <div class="card-text-area">
+      <div class="card-cat-name" id="cardName"></div>
+      <div class="card-ai-text" id="cardText"></div>
+      <div class="card-date" id="cardDate"></div>
+    </div>
+    <div class="card-brand-bar">
+      <span class="brand-paw">🐾</span>
+      <span class="brand-name">サイベリアン｜大阪・福楽キャッテリー</span>
+      <span class="brand-ig">@fuluckpet</span>
+    </div>
+  </div>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="footer" id="footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="f-logo">
+            <span class="logo-icon">🐾</span>
+            <span class="f-logo-text">福楽キャッテリー</span>
+          </div>
+          <p class="f-tagline">サイベリアン｜大阪・福楽キャッテリー</p>
+          <div class="f-sns">
+            <a href="https://www.instagram.com/fuluckpet/" class="sns-icon" aria-label="Instagram"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg></a>
+            <a href="https://www.youtube.com/channel/UCuVbvcbkbXs6MaBN2G1Zx1A" class="sns-icon" aria-label="YouTube"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.94 2C5.12 20 12 20 12 20s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="currentColor" stroke="none"/></svg></a>
+            <a href="https://www.tiktok.com/@fuluckpet" class="sns-icon" aria-label="TikTok"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1 0-5.78 2.92 2.92 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 3 15.57 6.33 6.33 0 0 0 9.37 22a6.33 6.33 0 0 0 6.33-6.33V9.18a8.16 8.16 0 0 0 3.89.98V6.73a4.85 4.85 0 0 1-.01-.04z"/></svg></a>
+            <a href="https://fukurakupet.stores.jp/" target="_blank" rel="noopener" class="sns-icon" aria-label="Shop"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></a>
+          </div>
+        </div>
+        <div class="footer-links">
+          <h4 data-i18n="footer.navTitle">ナビゲーション</h4>
+          <a href="/index.html#about" data-i18n="nav.about">猫舎について</a>
+          <a href="/siberian.html" data-i18n="nav.siberian">サイベリアンの魅力</a>
+          <a href="/index.html#kittens" data-i18n="nav.kittens">子猫一覧</a>
+          <a href="/index.html#parents" data-i18n="nav.parents">親猫紹介</a>
+          <a href="/about.html" data-i18n="nav.aboutPage">受賞歴・認定</a>
+          <a href="/guide/" data-i18n="nav.guide">お迎えガイド</a>
+          <a href="/blog.html" data-i18n="nav.blog">知識ライブラリ</a>
+          <a href="/kittens.html" data-i18n="nav.allKittens">子猫一覧（すべて）</a>
+          <a href="/parents.html" data-i18n="nav.allParents">親猫紹介（すべて）</a>
+          <a href="/gallery.html" data-i18n="nav.gallery">卒業猫ギャラリー</a>
+          <a href="/reviews.html" data-i18n="nav.reviews">お客様の声</a>
+          <a href="https://catnamegive.mouxue56.workers.dev" target="_blank" rel="noopener" data-i18n="nav.naming">子猫の名前ツール</a>
+          <a href="/index.html#visit" data-i18n="nav.visit">見学案内</a>
+        </div>
+        <div class="footer-legal">
+          <h4>動物取扱業表示</h4>
+          <div class="legal-box">
+            <p><strong>福楽キャッテリー（第一種動物取扱業）</strong></p>
+            <p>福楽株式会社 代表取締役 羅 方遠</p>
+            <p>登録番号: 220012A / 有効期限: ~2027年4月26日</p>
+            <p>所在地: 大阪府大阪市城東区東中浜 6-10-7</p>
+          </div>
+          <div class="legal-box">
+            <p><strong>Fulluck Kitty（第一種動物取扱業）</strong></p>
+            <p>代表: 刘 暁棉</p>
+            <p>登録番号: 240051A / 有効期限: ~2029年7月16日</p>
+            <p>所在地: 大阪市城東区東中浜 2-6-23</p>
+          </div>
+          <div class="law-notice-compact">
+            <div class="law-notice-title">📋 動物愛護管理法に基づく対面販売</div>
+            <p>法律の規定により、ご購入前に対面での説明と現物確認が必要です。</p>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2025 サイベリアン｜大阪・福楽キャッテリー（福楽株式会社）All Rights Reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========== FIXED LINE BUTTON ========== -->
+  <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="fixed-line" aria-label="LINEでお問い合わせ" id="fixedLine" target="_blank" rel="noopener">
+    <span class="fixed-line-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596a.626.626 0 0 1-.199.031c-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.271.173-.508.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg></span>
+    <span class="fixed-line-content"><span class="fixed-line-label">見学予約・ご相談</span><span class="fixed-line-cta">LINEで相談 🐾</span></span>
+  </a>
+
+  <!-- Back to Top -->
+  <button class="back-to-top" id="backToTop" aria-label="ページ上部へ戻る">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <script src="/i18n.js?v=20260214"></script>
+  <script src="/script.js?v=20260214"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <script>
+  // ===== Story Card Generator Logic =====
+  (function() {
+    var API = 'https://fuluck-api.mouxue56.workers.dev';
+    var uploadedPhoto = null; // base64 data URL
+    var generatedText = null; // { ja: {...}, zh: {...} }
+    var currentCardLang = 'ja';
+
+    // --- Step Navigation ---
+    function showStep(step) {
+      ['welcome', 'form', 'loading', 'result'].forEach(function(s) {
+        var el = document.getElementById('step-' + s);
+        if (el) el.style.display = s === step ? '' : 'none';
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // --- Placeholder i18n ---
+    function updatePlaceholders() {
+      var lang = 'ja';
+      try { lang = localStorage.getItem('fuluckpet-lang') || 'ja'; } catch(e) {}
+      document.querySelectorAll('[data-placeholder-' + lang + ']').forEach(function(el) {
+        el.placeholder = el.getAttribute('data-placeholder-' + lang);
+      });
+    }
+    updatePlaceholders();
+    window.addEventListener('langChanged', updatePlaceholders);
+
+    // --- Set default date to today ---
+    var dateInput = document.getElementById('story-date');
+    if (dateInput) {
+      var today = new Date().toISOString().split('T')[0];
+      dateInput.value = today;
+    }
+
+    // --- Custom color toggle ---
+    var colorSelect = document.getElementById('story-color');
+    var customColorGroup = document.getElementById('customColorGroup');
+    if (colorSelect) {
+      colorSelect.addEventListener('change', function() {
+        customColorGroup.style.display = this.value === 'その他' ? '' : 'none';
+      });
+    }
+
+    // --- Photo Upload ---
+    var photoArea = document.getElementById('photoArea');
+    var photoInput = document.getElementById('photoInput');
+    var photoPreview = document.getElementById('photoPreview');
+
+    photoArea.addEventListener('click', function() { photoInput.click(); });
+
+    // Drag & drop
+    photoArea.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      photoArea.style.borderColor = 'var(--story-accent)';
+    });
+    photoArea.addEventListener('dragleave', function() {
+      if (!uploadedPhoto) photoArea.style.borderColor = '';
+    });
+    photoArea.addEventListener('drop', function(e) {
+      e.preventDefault();
+      if (e.dataTransfer.files.length) handlePhoto(e.dataTransfer.files[0]);
+    });
+
+    photoInput.addEventListener('change', function() {
+      if (this.files.length) handlePhoto(this.files[0]);
+    });
+
+    function handlePhoto(file) {
+      // Validate
+      var validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      if (validTypes.indexOf(file.type) === -1) {
+        alert('JPG, PNG, WebP のみ対応しています');
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        alert('10MB以下の画像を選んでください');
+        return;
+      }
+
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        // Resize if too large for canvas
+        resizeImage(e.target.result, 2000, function(dataUrl) {
+          uploadedPhoto = dataUrl;
+          photoPreview.src = dataUrl;
+          photoArea.classList.add('has-photo');
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Client-side image resize
+    function resizeImage(dataUrl, maxWidth, callback) {
+      var img = new Image();
+      img.onload = function() {
+        if (img.width <= maxWidth) {
+          callback(dataUrl);
+          return;
+        }
+        var canvas = document.createElement('canvas');
+        var ratio = maxWidth / img.width;
+        canvas.width = maxWidth;
+        canvas.height = img.height * ratio;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        callback(canvas.toDataURL('image/jpeg', 0.9));
+      };
+      img.src = dataUrl;
+    }
+
+    // --- Start Button ---
+    document.getElementById('startBtn').addEventListener('click', function() {
+      showStep('form');
+    });
+
+    // --- Form Submit ---
+    document.getElementById('storyForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      var name = document.getElementById('story-name').value.trim();
+      var gender = document.getElementById('story-gender').value;
+      var date = document.getElementById('story-date').value;
+
+      // Validate required
+      var errorEl = document.getElementById('formError');
+      errorEl.style.display = 'none';
+
+      if (!name || !gender || !date || !uploadedPhoto) {
+        var msgs = [];
+        if (!name) msgs.push('猫ちゃんの名前');
+        if (!gender) msgs.push('性別');
+        if (!date) msgs.push('お迎え日');
+        if (!uploadedPhoto) msgs.push('写真');
+        errorEl.textContent = msgs.join('、') + ' を入力してください';
+        errorEl.style.display = 'block';
+
+        // Highlight required fields
+        document.querySelectorAll('#storyForm [required]').forEach(function(el) {
+          if (!el.value.trim()) {
+            el.style.borderColor = '#E57373';
+            el.addEventListener('input', function handler() {
+              el.style.borderColor = '';
+              el.removeEventListener('input', handler);
+            });
+          }
+        });
+        if (!uploadedPhoto) {
+          photoArea.style.borderColor = '#E57373';
+        }
+        return;
+      }
+
+      // Get color value
+      var color = document.getElementById('story-color').value;
+      if (color === 'その他') {
+        color = document.getElementById('story-color-custom').value.trim() || 'その他';
+      }
+
+      var payload = {
+        name: name,
+        gender: gender,
+        color: color,
+        date: date,
+        personality: document.getElementById('story-personality').value.trim(),
+        nameReason: document.getElementById('story-name-reason').value.trim(),
+        happyMoment: document.getElementById('story-happy').value.trim(),
+        otherPets: document.getElementById('story-pets').value,
+        message: document.getElementById('story-message').value.trim()
+      };
+
+      showStep('loading');
+
+      fetch(API + '/api/story/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(function(r) {
+        if (!r.ok) throw new Error('API error: ' + r.status);
+        return r.json();
+      })
+      .then(function(data) {
+        if (data.error) throw new Error(data.error);
+        generatedText = data;
+
+        // Default to JA tab, but if JA is null and ZH exists, show ZH
+        if (!data.ja && data.zh) {
+          currentCardLang = 'zh';
+        } else {
+          currentCardLang = 'ja';
+        }
+
+        renderResult();
+        showStep('result');
+
+        // GA4
+        if (typeof gtag === 'function') {
+          gtag('event', 'story_generate', { event_category: 'story', event_label: payload.name });
+        }
+      })
+      .catch(function(err) {
+        console.error('Story generation error:', err);
+        showStep('form');
+        errorEl.textContent = '生成に失敗しました。もう一度お試しください。';
+        errorEl.style.display = 'block';
+      });
+    });
+
+    // --- Render Result ---
+    function renderResult() {
+      // Update tab active states
+      document.querySelectorAll('.card-lang-tab').forEach(function(tab) {
+        tab.classList.toggle('active', tab.dataset.lang === currentCardLang);
+      });
+
+      // Hide tabs if only one language available
+      var tabContainer = document.querySelector('.card-lang-tabs');
+      if (generatedText.ja && generatedText.zh) {
+        tabContainer.style.display = '';
+      } else {
+        tabContainer.style.display = 'none';
+      }
+
+      renderCardForLang(currentCardLang);
+    }
+
+    function renderCardForLang(lang) {
+      var text = lang === 'ja' ? generatedText.ja : generatedText.zh;
+      if (!text) {
+        // Fallback to the other language
+        text = generatedText.ja || generatedText.zh;
+        lang = generatedText.ja ? 'ja' : 'zh';
+      }
+
+      var shortText = text.short || '';
+      var longText = lang === 'ja' ? (text.instagram || '') : (text.xiaohongshu || '');
+
+      var catName = document.getElementById('story-name').value.trim();
+      var catDate = document.getElementById('story-date').value;
+
+      // Format date nicely
+      var dateStr = catDate;
+      try {
+        var d = new Date(catDate + 'T00:00:00');
+        if (lang === 'ja') {
+          dateStr = d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日 お迎え';
+        } else {
+          dateStr = d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日 迎接纪念';
+        }
+      } catch(e) {}
+
+      // --- Hidden card for download ---
+      document.getElementById('cardPhoto').style.backgroundImage = 'url(' + uploadedPhoto + ')';
+      document.getElementById('cardName').textContent = catName;
+      document.getElementById('cardText').textContent = shortText;
+      document.getElementById('cardDate').textContent = dateStr;
+
+      // --- Visible preview (clone to preview div) ---
+      var previewEl = document.getElementById('card-preview');
+      var canvasEl = document.getElementById('card-canvas');
+      previewEl.innerHTML = canvasEl.innerHTML;
+
+      // Apply styles from canvas to preview
+      previewEl.style.cssText = canvasEl.style.cssText;
+      previewEl.style.position = 'relative';
+      previewEl.style.left = '0';
+
+      // Copy dynamic values to preview
+      var previewPhoto = previewEl.querySelector('.card-photo');
+      if (previewPhoto) previewPhoto.style.backgroundImage = 'url(' + uploadedPhoto + ')';
+      var previewName = previewEl.querySelector('.card-cat-name');
+      if (previewName) previewName.textContent = catName;
+      var previewText = previewEl.querySelector('.card-ai-text');
+      if (previewText) previewText.textContent = shortText;
+      var previewDate = previewEl.querySelector('.card-date');
+      if (previewDate) previewDate.textContent = dateStr;
+
+      // Calculate preview scale based on wrapper width
+      var wrapper = document.querySelector('.card-preview-wrapper');
+      if (wrapper) {
+        var scale = wrapper.offsetWidth / 1080;
+        wrapper.style.setProperty('--preview-scale', scale);
+        wrapper.style.height = (1440 * scale) + 'px';
+      }
+
+      // --- Long text display ---
+      document.getElementById('copyText').textContent = longText;
+      document.getElementById('textLabel').textContent = lang === 'ja' ? 'Instagram / SNS' : '小红书 / 朋友圈';
+    }
+
+    // --- Tab Switching ---
+    document.querySelectorAll('.card-lang-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        currentCardLang = this.dataset.lang;
+        renderResult();
+      });
+    });
+
+    // --- Download Image ---
+    document.getElementById('downloadBtn').addEventListener('click', function() {
+      var btn = this;
+      btn.disabled = true;
+      btn.style.opacity = '0.6';
+
+      // Wait for fonts to be ready
+      document.fonts.ready.then(function() {
+        setTimeout(function() {
+          var canvasEl = document.getElementById('card-canvas');
+          // Temporarily make visible for html2canvas
+          canvasEl.style.left = '0';
+          canvasEl.style.position = 'fixed';
+          canvasEl.style.top = '0';
+          canvasEl.style.zIndex = '-1';
+
+          html2canvas(canvasEl, {
+            width: 1080,
+            height: 1440,
+            scale: 1,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#FFFAF5',
+            logging: false
+          }).then(function(canvas) {
+            canvasEl.style.left = '-9999px';
+            canvasEl.style.position = 'absolute';
+            canvasEl.style.zIndex = '';
+
+            var link = document.createElement('a');
+            link.download = 'fuluckpet-story-' + Date.now() + '.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+
+            btn.disabled = false;
+            btn.style.opacity = '';
+
+            // GA4
+            if (typeof gtag === 'function') {
+              gtag('event', 'story_download', { event_category: 'story' });
+            }
+          }).catch(function(err) {
+            console.error('html2canvas error:', err);
+            canvasEl.style.left = '-9999px';
+            canvasEl.style.position = 'absolute';
+            canvasEl.style.zIndex = '';
+            btn.disabled = false;
+            btn.style.opacity = '';
+            alert('画像の生成に失敗しました。もう一度お試しください。');
+          });
+        }, 500);
+      });
+    });
+
+    // --- Copy Text ---
+    document.getElementById('copyBtn').addEventListener('click', function() {
+      var btn = this;
+      var text = document.getElementById('copyText').textContent;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() {
+          showCopiedFeedback(btn);
+        }).catch(function() {
+          fallbackCopy(text, btn);
+        });
+      } else {
+        fallbackCopy(text, btn);
+      }
+
+      // GA4
+      if (typeof gtag === 'function') {
+        gtag('event', 'story_copy', { event_category: 'story' });
+      }
+    });
+
+    function fallbackCopy(text, btn) {
+      var textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.left = '-9999px';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showCopiedFeedback(btn);
+      } catch(e) {
+        alert('コピーに失敗しました。テキストを長押しして手動でコピーしてください。');
+      }
+      document.body.removeChild(textarea);
+    }
+
+    function showCopiedFeedback(btn) {
+      var span = btn.querySelector('span');
+      var originalText = span.textContent;
+      span.textContent = '✅ コピーしました！';
+      btn.style.borderColor = 'var(--story-accent)';
+      btn.style.color = 'var(--story-accent)';
+      setTimeout(function() {
+        span.textContent = originalText;
+        btn.style.borderColor = '';
+        btn.style.color = '';
+      }, 2000);
+    }
+
+    // --- Retry ---
+    document.getElementById('retryBtn').addEventListener('click', function() {
+      generatedText = null;
+      currentCardLang = 'ja';
+      showStep('form');
+    });
+
+    // --- Preview scale on resize ---
+    window.addEventListener('resize', function() {
+      if (generatedText) {
+        var wrapper = document.querySelector('.card-preview-wrapper');
+        if (wrapper) {
+          var scale = wrapper.offsetWidth / 1080;
+          wrapper.style.setProperty('--preview-scale', scale);
+          wrapper.style.height = (1440 * scale) + 'px';
+        }
+      }
+    });
+  })();
+  </script>
+</body>
+</html>

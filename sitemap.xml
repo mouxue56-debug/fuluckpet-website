@@ -8,6 +8,13 @@
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
+  <!-- ストーリーカード -->
+  <url>
+    <loc>https://fuluckpet.com/story/</loc>
+    <lastmod>2026-02-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
   <!-- サイベリアンの魅力 -->
   <url>
     <loc>https://fuluckpet.com/siberian.html</loc>
