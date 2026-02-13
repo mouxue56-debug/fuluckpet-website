@@ -461,57 +461,7 @@
     }
     .gender-card.selected .check-badge { display: block; }
 
-    /* ===== Step 3: Color Chips + Date ===== */
-    .color-chip-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      margin-bottom: 24px;
-    }
-    .color-chip {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 14px;
-      border: 2px solid var(--story-frame);
-      border-radius: var(--radius-md);
-      background: white;
-      cursor: pointer;
-      transition: all 0.25s var(--ease-out);
-      font-size: 0.9rem;
-      color: var(--story-text);
-    }
-    .color-chip:hover { border-color: var(--story-accent); }
-    .color-chip.selected {
-      border-color: var(--story-accent);
-      background: #FFF5EB;
-      font-weight: 600;
-    }
-    .color-chip.ai-suggested {
-      box-shadow: 0 0 0 2px rgba(212, 165, 116, 0.3);
-    }
-    .color-chip-emoji { font-size: 1.1rem; flex-shrink: 0; }
-    .color-custom-input {
-      display: none;
-      margin-top: 10px;
-    }
-    .color-custom-input.visible { display: block; }
-    .color-custom-input input {
-      width: 100%;
-      padding: 10px 14px;
-      border: 2px solid var(--story-frame);
-      border-radius: var(--radius-sm);
-      font-size: 0.95rem;
-      color: var(--story-text);
-      background: var(--story-card-bg);
-      box-sizing: border-box;
-    }
-    .color-custom-input input:focus {
-      outline: none;
-      border-color: var(--story-accent);
-    }
-
-    .date-group { margin-top: 0; }
+    .date-group { margin-top: 16px; }
     .date-group label {
       display: block;
       font-size: 0.9rem;
@@ -878,11 +828,9 @@
       .result-actions { flex-direction: column; }
       .card-preview-wrapper { max-width: 300px; }
       .sample-cards { justify-content: flex-start; padding: 8px 16px 16px; }
-      .color-chip-grid { grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 400px) {
       .pet-card-grid { grid-template-columns: repeat(2, 1fr); }
-      .color-chip-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -980,7 +928,7 @@
     <div class="container">
       <span class="story-hero-icon">🐾</span>
       <h1 data-i18n="story.title">うちの子ストーリーカード</h1>
-      <p class="hero-sub" data-i18n="story.subtitle">出会いの瞬間を、世界にひとつのカードに。</p>
+      <p class="hero-sub" data-i18n="story.subtitle">写真1枚でAIが特別なカードを作るよ✨</p>
       <span class="brand-tag">サイベリアン｜大阪・福楽キャッテリー</span>
 
       <div class="sample-section">
@@ -1023,8 +971,6 @@
     <div class="prog-dot" data-step="3">3</div>
     <div class="prog-line"><div class="prog-line-fill"></div></div>
     <div class="prog-dot" data-step="4">4</div>
-    <div class="prog-line"><div class="prog-line-fill"></div></div>
-    <div class="prog-dot" data-step="5">5</div>
   </div>
 
   <!-- ========== WIZARD STEPS ========== -->
@@ -1035,8 +981,8 @@
       <!-- Step 1: Photo -->
       <div class="step-panel active" id="step-1">
         <div class="step-card">
-          <p class="step-prompt" data-i18n="story.step1Prompt">まず、お気に入りの1枚を見せて！📸</p>
-          <p class="step-sub" data-i18n="story.step1Sub">猫ちゃんの写真をアップロードしてね。AIが毛色や特徴を読み取るよ。</p>
+          <p class="step-prompt" data-i18n="story.step1Prompt">一番かわいく撮れたやつ、見せて〜📸</p>
+          <p class="step-sub" data-i18n="story.step1Sub">写真1枚だけでOK！AIが自動で読み取るよ</p>
 
           <div class="photo-upload-area" id="photoArea">
             <span class="photo-upload-icon">📷</span>
@@ -1058,12 +1004,12 @@
         </div>
       </div>
 
-      <!-- Step 2: Name + Gender -->
+      <!-- Step 2: Name + Gender + Date -->
       <div class="step-panel" id="step-2">
         <div class="step-card">
           <button class="step-back-btn" data-back>← <span data-i18n="story.back">戻る</span></button>
-          <p class="step-prompt" id="step2Prompt" data-i18n="story.step2Prompt">素敵な子！名前を教えて 🐱</p>
-          <p class="step-sub" data-i18n="story.step2Sub">お迎えした猫ちゃんのお名前と性別を選んでね。</p>
+          <p class="step-prompt" id="step2Prompt" data-i18n="story.step2Prompt">この子のこと教えて〜🐱</p>
+          <p class="step-sub" data-i18n="story.step2Sub">名前と性別、いつおうちに来たか教えてね</p>
 
           <input type="text" class="name-input" id="catName"
             data-placeholder-ja="にゃんこの名前"
@@ -1085,59 +1031,37 @@
             </div>
           </div>
 
-          <button class="step-next-btn" id="step2Next" disabled data-i18n="story.next">次へ</button>
-        </div>
-      </div>
-
-      <!-- Step 3: Color + Date -->
-      <div class="step-panel" id="step-3">
-        <div class="step-card">
-          <button class="step-back-btn" data-back>← <span data-i18n="story.back">戻る</span></button>
-          <p class="step-prompt" id="step3Prompt" data-i18n="story.step3Prompt">毛色を確認してね 🎨</p>
-          <p class="step-sub" data-i18n="story.step3Sub">AIが検出した毛色を確認して、お迎え日も教えてね。</p>
-
-          <div class="color-chip-grid" id="colorGrid">
-            <!-- Populated by JS -->
-          </div>
-          <div class="color-custom-input" id="colorCustom">
-            <input type="text" id="colorCustomInput"
-              data-placeholder-ja="毛色を入力"
-              data-placeholder-en="Enter coat color"
-              data-placeholder-zh="输入毛色"
-              placeholder="毛色を入力">
-          </div>
-
           <div class="date-group">
             <label data-i18n="story.date">🏠 お迎え日</label>
             <input type="date" id="catDate">
           </div>
 
-          <button class="step-next-btn" id="step3Next" disabled data-i18n="story.next">次へ</button>
+          <button class="step-next-btn" id="step2Next" disabled data-i18n="story.next">次へ</button>
         </div>
       </div>
 
-      <!-- Step 4: Other Pets -->
-      <div class="step-panel" id="step-4">
+      <!-- Step 3: Other Pets -->
+      <div class="step-panel" id="step-3">
         <div class="step-card">
           <button class="step-back-btn" data-back>← <span data-i18n="story.back">戻る</span></button>
-          <p class="step-prompt" id="step4Prompt" data-i18n="story.step4Prompt">おうちに兄弟はいる？ 🏠</p>
-          <p class="step-sub" data-i18n="story.step4Sub">他のペットを教えてね（複数選択OK）</p>
+          <p class="step-prompt" id="step3Prompt" data-i18n="story.step3Prompt">おうちに先輩ペットいる？🐾</p>
+          <p class="step-sub" data-i18n="story.step3Sub">いたらタップ！いなければそのまま次へ</p>
 
           <div class="pet-card-grid" id="petGrid">
             <!-- Populated by JS -->
           </div>
 
-          <button class="step-next-btn" id="step4Next" data-i18n="story.next">次へ</button>
-          <button class="step-skip-btn" data-skip="5" data-i18n="story.skip">スキップ ></button>
+          <button class="step-next-btn" id="step3Next" data-i18n="story.next">次へ</button>
+          <button class="step-skip-btn" data-skip="4" data-i18n="story.skip">スキップ ></button>
         </div>
       </div>
 
-      <!-- Step 5: Personality + Story -->
-      <div class="step-panel" id="step-5">
+      <!-- Step 4: Personality + Story -->
+      <div class="step-panel" id="step-4">
         <div class="step-card">
           <button class="step-back-btn" data-back>← <span data-i18n="story.back">戻る</span></button>
-          <p class="step-prompt" id="step5Prompt" data-i18n="story.step5Prompt">最後に、性格やエピソードを教えて 💕</p>
-          <p class="step-sub" data-i18n="story.step5Sub">スキップしても大丈夫！AIが写真からいい感じに仕上げるよ。</p>
+          <p class="step-prompt" id="step4Prompt" data-i18n="story.step4Prompt">どんな子？エピソードもあれば 💕</p>
+          <p class="step-sub" data-i18n="story.step4Sub">書かなくてもAIがいい感じに仕上げるよ〜</p>
 
           <div class="trait-chips" id="traitChips">
             <!-- Populated by JS -->
@@ -1301,22 +1225,9 @@
     var API = 'https://fuluck-api.mouxue56.workers.dev';
     var currentStep = 0; // 0=welcome
     var formData = { photo: null, photoSmall: null, aiAnalysis: null, name: '', gender: '', color: '', date: '', pets: [], traits: [], story: '' };
+    var totalSteps = 4;
     var generatedText = null;
     var currentCardLang = 'ja';
-
-    // --- Color options ---
-    var COLOR_OPTIONS = [
-      { value: 'ブラウンタビー', emoji: '🤎', key: 'story.colorBrownTabby' },
-      { value: 'シルバータビー', emoji: '🩶', key: 'story.colorSilverTabby' },
-      { value: 'ゴールデンタビー', emoji: '🟡', key: 'story.colorGoldenTabby' },
-      { value: 'ブルー', emoji: '🩵', key: 'story.colorBlue' },
-      { value: 'ホワイト', emoji: '🤍', key: 'story.colorWhite' },
-      { value: 'クリーム', emoji: '🧡', key: 'story.colorCream' },
-      { value: 'レッド', emoji: '❤️', key: 'story.colorRed' },
-      { value: 'ブラック', emoji: '🖤', key: 'story.colorBlack' },
-      { value: 'ネヴァマスカレード', emoji: '🩷', key: 'story.colorNeva' },
-      { value: 'その他', emoji: '🐾', key: 'story.colorOther' },
-    ];
 
     // --- Pet options ---
     var PET_OPTIONS = [
@@ -1356,7 +1267,7 @@
     function goToStep(step) {
       currentStep = step;
       // Update panels
-      for (var i = 1; i <= 5; i++) {
+      for (var i = 1; i <= totalSteps; i++) {
         var panel = document.getElementById('step-' + i);
         if (panel) panel.classList.toggle('active', i === step);
       }
@@ -1382,72 +1293,13 @@
       var name = formData.name || '';
       var suffix = formData.gender === '女の子' ? 'ちゃん' : formData.gender === '男の子' ? 'くん' : 'ちゃん';
       var nameDisplay = name ? name + suffix : '';
-      // Step 3 prompt
+      // Step 3 prompt (pets)
       var s3 = document.getElementById('step3Prompt');
-      if (s3 && nameDisplay) s3.textContent = nameDisplay + 'の毛色を確認してね 🎨';
-      // Step 4 prompt
+      if (s3 && nameDisplay) s3.textContent = nameDisplay + 'のおうちに先輩ペットいる？🐾';
+      // Step 4 prompt (traits/story)
       var s4 = document.getElementById('step4Prompt');
-      if (s4 && nameDisplay) s4.textContent = nameDisplay + 'には兄弟がいる？ 🏠';
-      // Step 5 prompt
-      var s5 = document.getElementById('step5Prompt');
-      if (s5 && nameDisplay) s5.textContent = '最後に、' + nameDisplay + 'の性格やエピソードを教えて 💕';
+      if (s4 && nameDisplay) s4.textContent = nameDisplay + 'ってどんな子？エピソードもあれば 💕';
     }
-
-    // --- Populate color grid ---
-    function buildColorGrid() {
-      var grid = document.getElementById('colorGrid');
-      grid.innerHTML = '';
-      COLOR_OPTIONS.forEach(function(opt) {
-        var chip = document.createElement('div');
-        chip.className = 'color-chip';
-        chip.dataset.value = opt.value;
-        chip.innerHTML = '<span class="color-chip-emoji">' + opt.emoji + '</span><span data-i18n="' + opt.key + '">' + opt.value + '</span>';
-        chip.addEventListener('click', function() { selectColor(opt.value); });
-        grid.appendChild(chip);
-      });
-    }
-    buildColorGrid();
-
-    function selectColor(value) {
-      formData.color = value;
-      document.querySelectorAll('.color-chip').forEach(function(c) {
-        c.classList.toggle('selected', c.dataset.value === value);
-      });
-      var customBox = document.getElementById('colorCustom');
-      customBox.classList.toggle('visible', value === 'その他');
-      updateStep3Btn();
-    }
-
-    function preselectColor(aiColor) {
-      if (!aiColor) return;
-      var matched = null;
-      COLOR_OPTIONS.forEach(function(opt) {
-        if (opt.value !== 'その他' && aiColor.indexOf(opt.value) !== -1) matched = opt.value;
-      });
-      // Try partial match
-      if (!matched) {
-        var keywords = { 'ブラウン': 'ブラウンタビー', 'シルバー': 'シルバータビー', 'ゴールデン': 'ゴールデンタビー', 'ブルー': 'ブルー', '白': 'ホワイト', 'ホワイト': 'ホワイト', 'クリーム': 'クリーム', 'レッド': 'レッド', '赤': 'レッド', '黒': 'ブラック', 'ブラック': 'ブラック', 'ネヴァ': 'ネヴァマスカレード', 'ポイント': 'ネヴァマスカレード' };
-        Object.keys(keywords).forEach(function(kw) {
-          if (!matched && aiColor.indexOf(kw) !== -1) matched = keywords[kw];
-        });
-      }
-      if (matched) {
-        selectColor(matched);
-        // Mark as AI-suggested
-        document.querySelectorAll('.color-chip').forEach(function(c) {
-          if (c.dataset.value === matched) c.classList.add('ai-suggested');
-        });
-      }
-    }
-
-    function updateStep3Btn() {
-      var btn = document.getElementById('step3Next');
-      var hasColor = formData.color && (formData.color !== 'その他' || document.getElementById('colorCustomInput').value.trim());
-      btn.disabled = !hasColor;
-    }
-
-    // Color custom input listener
-    document.getElementById('colorCustomInput').addEventListener('input', updateStep3Btn);
 
     // --- Populate pet grid ---
     function buildPetGrid() {
@@ -1585,11 +1437,13 @@
         if (data.error) throw new Error(data.error);
 
         formData.aiAnalysis = data;
+        // Store AI color directly — no manual selection needed
+        if (data.color) formData.color = data.color;
         // Show result chips
         if (data.color) {
           var c = document.createElement('span');
           c.className = 'ai-chip ai-chip-color';
-          c.textContent = '毛色: ' + data.color;
+          c.textContent = '🎨 ' + data.color;
           chips.appendChild(c);
         }
         if (data.traits && data.traits.length) {
@@ -1640,20 +1494,16 @@
       // Personalize step 2 prompt with AI color
       if (formData.aiAnalysis && formData.aiAnalysis.color) {
         var p = document.getElementById('step2Prompt');
-        p.textContent = formData.aiAnalysis.color + 'の素敵な子！名前を教えて 🐱';
+        p.textContent = formData.aiAnalysis.color + 'の子だね〜！教えて 🐱';
       }
     });
 
-    // Step 2 → 3
+    // Step 2 → 3 (name + gender + date)
     document.getElementById('step2Next').addEventListener('click', function() {
       formData.name = document.getElementById('catName').value.trim();
+      formData.date = document.getElementById('catDate').value;
       if (!formData.name || !formData.gender) return;
-
       goToStep(3);
-      // Pre-select AI color
-      if (formData.aiAnalysis && formData.aiAnalysis.color) {
-        preselectColor(formData.aiAnalysis.color);
-      }
     });
 
     // Name + Gender validation
@@ -1677,19 +1527,9 @@
       document.getElementById('step2Next').disabled = !(formData.name && formData.gender);
     }
 
-    // Step 3 → 4
+    // Step 3 → 4 (pets → traits/story)
     document.getElementById('step3Next').addEventListener('click', function() {
-      if (formData.color === 'その他') {
-        formData.color = document.getElementById('colorCustomInput').value.trim() || 'その他';
-      }
-      formData.date = document.getElementById('catDate').value;
       goToStep(4);
-    });
-
-    // Step 4 → 5
-    document.getElementById('step4Next').addEventListener('click', function() {
-      goToStep(5);
-      // Build trait chips with AI traits
       var aiTraits = (formData.aiAnalysis && formData.aiAnalysis.traits) || [];
       buildTraitChips(aiTraits);
     });
@@ -1706,7 +1546,7 @@
       btn.addEventListener('click', function() {
         var target = parseInt(btn.dataset.skip);
         goToStep(target);
-        if (target === 5) {
+        if (target === 4) {
           var aiTraits = (formData.aiAnalysis && formData.aiAnalysis.traits) || [];
           buildTraitChips(aiTraits);
         }
@@ -1757,7 +1597,7 @@
       .catch(function(err) {
         console.error('Story generation error:', err);
         showScreen('wizard');
-        goToStep(5);
+        goToStep(4);
         var errorEl = document.getElementById('wizardError');
         errorEl.textContent = '生成に失敗しました。もう一度お試しください。';
         errorEl.style.display = 'block';
@@ -1919,14 +1759,11 @@
       document.getElementById('aiAnalysisBox').classList.remove('visible');
       document.getElementById('catName').value = '';
       document.querySelectorAll('.gender-card').forEach(function(c) { c.classList.remove('selected'); });
-      document.querySelectorAll('.color-chip').forEach(function(c) { c.classList.remove('selected', 'ai-suggested'); });
-      document.getElementById('colorCustom').classList.remove('visible');
       document.querySelectorAll('.pet-card').forEach(function(c) { c.classList.remove('selected'); });
       document.getElementById('catStory').value = '';
       dateInput.value = new Date().toISOString().split('T')[0];
       document.getElementById('step1Next').disabled = true;
       document.getElementById('step2Next').disabled = true;
-      document.getElementById('step3Next').disabled = true;
 
       showScreen('wizard');
       goToStep(1);

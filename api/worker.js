@@ -335,18 +335,19 @@ async function callQianwen(env, prompt) {
   return parsed;
 }
 
-// Gemini Vision — analyze cat photo for color / traits / pose
-async function callGeminiVision(env, base64Data, mimeType) {
-  const key = env.GEMINI_API_KEY;
-  if (!key) throw new Error('GEMINI_API_KEY not configured');
-
-  const prompt = `この猫の写真を分析して、以下のJSON形式で出力してください（他のテキストは不要）：
+// Shared prompt for photo analysis (used by both Gemini & Qianwen Vision)
+const PHOTO_ANALYSIS_PROMPT = `この猫の写真を分析して、以下のJSON形式で出力してください（他のテキストは不要）：
 {
   "color": "（毛色を日本語で1つ。例：シルバータビー、ブラウンタビー、ホワイト、ブルー、ゴールデンタビー、クリーム、レッド、ブラック、ネヴァマスカレード）",
   "traits": ["（猫の表情や雰囲気から感じる性格を3つ。例：甘えん坊、好奇心旺盛、おっとり、やんちゃ、人懐っこい、マイペース、元気いっぱい、穏やか）"],
   "pose": "（猫の姿勢を簡潔に。例：くつろいでいる、こちらを見つめている、遊んでいる、眠そう）"
 }
 注意：必ず上記のJSON形式のみ出力してください。`;
+
+// Gemini Vision — analyze cat photo for color / traits / pose
+async function callGeminiVision(env, base64Data, mimeType) {
+  const key = env.GEMINI_API_KEY;
+  if (!key) throw new Error('GEMINI_API_KEY not configured');
 
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${key}`,
@@ -356,7 +357,7 @@ async function callGeminiVision(env, base64Data, mimeType) {
       body: JSON.stringify({
         contents: [{
           parts: [
-            { text: prompt },
+            { text: PHOTO_ANALYSIS_PROMPT },
             { inlineData: { mimeType, data: base64Data } },
           ],
         }],
@@ -380,6 +381,49 @@ async function callGeminiVision(env, base64Data, mimeType) {
 
   const parsed = extractJson(text);
   if (!parsed) throw new Error('Failed to parse Gemini Vision JSON response');
+  return parsed;
+}
+
+// Qianwen Vision fallback — uses qwen-vl-plus via OpenAI-compatible endpoint
+async function callQianwenVision(env, base64Data, mimeType) {
+  const key = env.QIANWEN_API_KEY;
+  if (!key) throw new Error('QIANWEN_API_KEY not configured');
+
+  const dataUri = `data:${mimeType};base64,${base64Data}`;
+  const res = await fetch(
+    'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${key}`,
+      },
+      body: JSON.stringify({
+        model: 'qwen-vl-plus',
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image_url', image_url: { url: dataUri } },
+            { type: 'text', text: PHOTO_ANALYSIS_PROMPT },
+          ],
+        }],
+        temperature: 0.4,
+        max_tokens: 512,
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Qianwen Vision API error: ${res.status} ${errText}`);
+  }
+
+  const data = await res.json();
+  const text = data.choices?.[0]?.message?.content;
+  if (!text) throw new Error('Qianwen Vision returned empty response');
+
+  const parsed = extractJson(text);
+  if (!parsed) throw new Error('Failed to parse Qianwen Vision JSON response');
   return parsed;
 }
 
@@ -524,11 +568,17 @@ export default {
         if (base64Data.length > 5_500_000) {
           return addCors(json({ error: 'Image too large. Please use a smaller photo.' }, 400));
         }
+        // Try Gemini first, fallback to Qianwen Vision
         try {
           const result = await callGeminiVision(env, base64Data, mimeType);
           return addCors(json(result, 200, 'no-store'));
-        } catch (err) {
-          return addCors(json({ error: 'Photo analysis failed', detail: err.message }, 500));
+        } catch (geminiErr) {
+          try {
+            const result = await callQianwenVision(env, base64Data, mimeType);
+            return addCors(json(result, 200, 'no-store'));
+          } catch (qwErr) {
+            return addCors(json({ error: 'Photo analysis failed', detail: geminiErr.message + ' | Fallback: ' + qwErr.message }, 500));
+          }
         }
       }
 
