@@ -7,7 +7,7 @@
   <meta name="description" content="福楽キャッテリーからお迎えした猫ちゃんの写真とAI文章で、世界に1枚のストーリーカードを作ろう！Instagram・小红书・朋友圈にシェア。">
   <meta name="keywords" content="猫ストーリーカード,サイベリアン,大阪,ブリーダー,福楽キャッテリー,猫お迎え記念,UGC,猫写真カード">
   <meta property="og:title" content="うちの子ストーリーカード｜福楽キャッテリー">
-  <meta property="og:description" content="お迎えした猫ちゃんの写真とAI文章で、世界に1枚のストーリーカードを作ろう！">
+  <meta property="og:description" content="お迎えした猫ちゃんの写真とAI文章で、世界に1枚のカードを作ろう！">
   <meta property="og:type" content="website">
   <meta property="og:image" content="/images/ogp.jpg">
   <meta name="twitter:card" content="summary_large_image">
@@ -33,7 +33,7 @@
   </script>
 
   <style>
-    /* ===== Story Card Generator Styles (Style A: Warm Healing) ===== */
+    /* ===== Story Card V2: Conversational Wizard ===== */
     :root {
       --story-bg: #FFF8F0;
       --story-accent: #D4A574;
@@ -42,23 +42,21 @@
       --story-text-light: #9A8676;
       --story-card-bg: #FFFAF5;
       --story-frame: #E8D5C0;
+      --story-mint: #7DD3C0;
+      --story-pink: #F9B8D0;
+      --story-blue: #B8D4F0;
     }
 
-    /* Hero / Welcome */
+    /* ===== Welcome Hero ===== */
     .story-hero {
       background: linear-gradient(135deg, #FFF8F0 0%, #FDECD2 50%, #FFF0E6 100%);
-      padding: 140px 0 80px;
+      padding: 120px 0 60px;
       text-align: center;
-      min-height: 70vh;
-      display: flex;
-      align-items: center;
     }
-    .story-hero .container {
-      max-width: 600px;
-    }
+    .story-hero .container { max-width: 700px; }
     .story-hero-icon {
-      font-size: 64px;
-      margin-bottom: 16px;
+      font-size: 56px;
+      margin-bottom: 12px;
       display: block;
       animation: pawBounce 2s ease-in-out infinite;
     }
@@ -67,14 +65,14 @@
       50% { transform: translateY(-10px); }
     }
     .story-hero h1 {
-      font-family: 'Klee One', 'Noto Serif JP', serif;
+      font-family: 'Klee One', serif;
       font-size: clamp(1.8rem, 5vw, 2.6rem);
       font-weight: 400;
       color: var(--story-text);
-      margin-bottom: 16px;
+      margin-bottom: 12px;
       line-height: 1.4;
     }
-    .story-hero p {
+    .story-hero .hero-sub {
       font-size: 1.05rem;
       color: var(--story-text-light);
       margin-bottom: 8px;
@@ -83,9 +81,67 @@
     .story-hero .brand-tag {
       font-size: 0.85rem;
       color: var(--story-accent);
-      margin-bottom: 40px;
+      margin-bottom: 32px;
       display: block;
     }
+
+    /* Sample Cards */
+    .sample-section {
+      margin-bottom: 36px;
+    }
+    .sample-section h3 {
+      font-family: 'Klee One', serif;
+      font-size: 1rem;
+      color: var(--story-text-light);
+      margin-bottom: 16px;
+    }
+    .sample-cards {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      overflow-x: auto;
+      padding: 8px 0 16px;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x mandatory;
+    }
+    .sample-card {
+      flex: 0 0 180px;
+      height: 240px;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: 0 6px 24px rgba(92, 74, 58, 0.12);
+      position: relative;
+      scroll-snap-align: center;
+      transition: transform 0.3s var(--ease-out);
+    }
+    .sample-card:hover { transform: translateY(-4px) rotate(-1deg); }
+    .sample-card:nth-child(2):hover { transform: translateY(-4px) rotate(1deg); }
+    .sample-card img {
+      width: 100%;
+      height: 65%;
+      object-fit: cover;
+    }
+    .sample-card-text {
+      padding: 10px 12px;
+      background: var(--story-card-bg);
+      height: 35%;
+    }
+    .sample-card-name {
+      font-family: 'Klee One', serif;
+      font-size: 1rem;
+      color: var(--story-accent);
+      margin-bottom: 4px;
+    }
+    .sample-card-caption {
+      font-size: 0.7rem;
+      color: var(--story-text-light);
+      line-height: 1.4;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
     .story-start-btn {
       display: inline-flex;
       align-items: center;
@@ -107,125 +163,184 @@
       background: var(--story-accent-dark);
     }
 
-    /* Form Section */
-    .story-section {
-      padding: 60px 0 80px;
+    /* ===== Progress Bar ===== */
+    .story-progress {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      gap: 0;
+      padding: 16px 20px;
       background: var(--story-bg);
+      position: sticky;
+      top: 72px;
+      z-index: 50;
     }
-    .story-section .container {
-      max-width: 640px;
+    .story-progress.visible { display: flex; }
+    .prog-dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--story-frame);
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--story-text-light);
+      transition: all 0.4s var(--ease-out);
+      flex-shrink: 0;
     }
-    .story-form-card {
+    .prog-dot.active {
+      border-color: var(--story-accent);
+      background: var(--story-accent);
+      color: white;
+      transform: scale(1.1);
+    }
+    .prog-dot.done {
+      border-color: var(--story-accent);
+      background: var(--story-accent);
+      color: white;
+    }
+    .prog-line {
+      width: 40px;
+      height: 2px;
+      background: var(--story-frame);
+      position: relative;
+      flex-shrink: 0;
+    }
+    .prog-line-fill {
+      position: absolute;
+      left: 0; top: 0;
+      height: 100%;
+      width: 0%;
+      background: var(--story-accent);
+      transition: width 0.4s var(--ease-out);
+    }
+    .prog-line.done .prog-line-fill { width: 100%; }
+
+    /* ===== Step Container ===== */
+    .story-wizard {
+      padding: 40px 0 80px;
+      background: var(--story-bg);
+      min-height: 60vh;
+      display: none;
+    }
+    .story-wizard.visible { display: block; }
+    .story-wizard .container { max-width: 640px; }
+
+    .step-card {
       background: white;
       border-radius: var(--radius-lg);
-      padding: 40px;
+      padding: 36px 32px;
       box-shadow: var(--shadow-card);
+      position: relative;
     }
-    .story-form-card h2 {
-      font-family: 'Klee One', serif;
-      font-size: 1.5rem;
-      color: var(--story-text);
-      margin-bottom: 28px;
-      text-align: center;
-    }
-    .story-form-group {
-      margin-bottom: 20px;
-    }
-    .story-form-group label {
-      display: block;
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--story-text);
-      margin-bottom: 6px;
-    }
-    .story-form-group .required {
-      color: #E57373;
-      margin-left: 4px;
-    }
-    .story-form-group .hint {
-      font-size: 0.8rem;
+    .step-back-btn {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: none;
+      border: none;
       color: var(--story-text-light);
-      margin-top: 4px;
-    }
-    .story-form-group .optional-tag {
-      font-size: 0.75rem;
-      color: var(--story-accent);
-      background: rgba(212, 165, 116, 0.1);
-      padding: 2px 8px;
-      border-radius: 8px;
-      margin-left: 8px;
-      font-weight: 400;
-    }
-    .story-input,
-    .story-select,
-    .story-textarea {
-      width: 100%;
-      padding: 12px 16px;
-      border: 2px solid var(--story-frame);
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px;
       border-radius: var(--radius-sm);
-      font-size: 1rem;
+      transition: all 0.2s;
+    }
+    .step-back-btn:hover { color: var(--story-text); background: rgba(0,0,0,0.03); }
+
+    .step-prompt {
+      font-family: 'Klee One', serif;
+      font-size: clamp(1.3rem, 4vw, 1.6rem);
       color: var(--story-text);
-      background: var(--story-card-bg);
-      transition: border-color 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
-      font-family: inherit;
-      box-sizing: border-box;
+      text-align: center;
+      margin-bottom: 8px;
+      line-height: 1.5;
+      padding-top: 8px;
     }
-    .story-input:focus,
-    .story-select:focus,
-    .story-textarea:focus {
-      outline: none;
-      border-color: var(--story-accent);
-      box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.15);
-    }
-    .story-textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
-    .story-form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
+    .step-sub {
+      font-size: 0.9rem;
+      color: var(--story-text-light);
+      text-align: center;
+      margin-bottom: 28px;
+      line-height: 1.6;
     }
 
-    /* Photo Upload */
-    .photo-upload-area {
-      border: 2px dashed var(--story-frame);
+    .step-next-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      background: var(--story-accent);
+      color: white;
+      border: none;
+      padding: 15px;
       border-radius: var(--radius-md);
-      padding: 32px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s var(--ease-out);
+      box-shadow: 0 4px 16px rgba(212, 165, 116, 0.25);
+      margin-top: 24px;
+    }
+    .step-next-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(212, 165, 116, 0.4);
+      background: var(--story-accent-dark);
+    }
+    .step-next-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .step-skip-btn {
+      display: block;
+      margin: 12px auto 0;
+      background: none;
+      border: none;
+      color: var(--story-text-light);
+      font-size: 0.85rem;
+      cursor: pointer;
+      padding: 8px 16px;
+      transition: color 0.2s;
+    }
+    .step-skip-btn:hover { color: var(--story-text); }
+
+    /* Step panels - only one visible at a time */
+    .step-panel { display: none; }
+    .step-panel.active { display: block; }
+
+    /* ===== Step 1: Photo Upload ===== */
+    .photo-upload-area {
+      border: 3px dashed var(--story-frame);
+      border-radius: var(--radius-lg);
+      padding: 40px 20px;
       text-align: center;
       cursor: pointer;
       transition: all 0.3s var(--ease-out);
       background: var(--story-card-bg);
       position: relative;
+      min-height: 180px;
     }
-    .photo-upload-area:hover {
-      border-color: var(--story-accent);
-      background: #FFF5EB;
-    }
+    .photo-upload-area:hover { border-color: var(--story-accent); background: #FFF5EB; }
     .photo-upload-area.has-photo {
       padding: 12px;
       border-style: solid;
       border-color: var(--story-accent);
     }
-    .photo-upload-icon {
-      font-size: 48px;
-      display: block;
-      margin-bottom: 12px;
-    }
-    .photo-upload-text {
-      color: var(--story-text-light);
-      font-size: 0.9rem;
-    }
-    .photo-upload-text strong {
-      color: var(--story-accent);
-    }
+    .photo-upload-icon { font-size: 48px; display: block; margin-bottom: 12px; }
+    .photo-upload-text { color: var(--story-text-light); font-size: 0.95rem; }
+    .photo-upload-text strong { color: var(--story-accent); }
     .photo-preview {
       max-width: 100%;
-      max-height: 300px;
-      border-radius: var(--radius-sm);
+      max-height: 280px;
+      border-radius: var(--radius-md);
       display: none;
     }
-    .photo-upload-area.has-photo .photo-preview { display: block; }
+    .photo-upload-area.has-photo .photo-preview { display: block; margin: 0 auto; }
     .photo-upload-area.has-photo .photo-upload-icon,
     .photo-upload-area.has-photo .photo-upload-text { display: none; }
     .photo-change-hint {
@@ -237,52 +352,311 @@
     .photo-upload-area.has-photo .photo-change-hint { display: block; }
     #photoInput { display: none; }
 
-    /* Generate Button */
-    .story-generate-btn {
+    /* AI Analysis feedback */
+    .ai-analysis-box {
+      margin-top: 16px;
+      display: none;
+    }
+    .ai-analysis-box.visible { display: block; }
+    .ai-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: var(--story-text-light);
+      font-size: 0.9rem;
+      padding: 12px;
+    }
+    .ai-loading .paw-walk {
+      display: inline-block;
+      animation: pawWalk 1.2s ease-in-out infinite;
+    }
+    @keyframes pawWalk {
+      0%, 100% { transform: translateX(-8px); opacity: 0.5; }
+      50% { transform: translateX(8px); opacity: 1; }
+    }
+    .ai-result-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      display: none;
+    }
+    .ai-result-chips.visible { display: flex; }
+    .ai-chip {
+      padding: 6px 14px;
+      border-radius: 100px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+    .ai-chip-color { background: #EDE7F6; color: #5E35B1; }
+    .ai-chip-trait { background: #FCE4EC; color: #C62828; }
+
+    /* ===== Step 2: Name + Gender ===== */
+    .name-input {
+      width: 100%;
+      padding: 14px 18px;
+      border: 2px solid var(--story-frame);
+      border-radius: var(--radius-md);
+      font-size: 1.3rem;
+      color: var(--story-text);
+      background: var(--story-card-bg);
+      text-align: center;
+      font-family: 'Klee One', serif;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      box-sizing: border-box;
+    }
+    .name-input:focus {
+      outline: none;
+      border-color: var(--story-accent);
+      box-shadow: 0 0 0 4px rgba(212, 165, 116, 0.12);
+    }
+    .name-input::placeholder { color: #C8B8A8; font-size: 1rem; }
+    .name-hint {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--story-text-light);
+      margin-top: 6px;
+      margin-bottom: 20px;
+    }
+
+    .gender-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 4px;
+    }
+    .gender-card {
+      padding: 24px 16px;
+      border: 2px solid transparent;
+      border-radius: var(--radius-lg);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s var(--ease-out);
+      position: relative;
+    }
+    .gender-card-boy { background: #EBF2FC; }
+    .gender-card-girl { background: #FCEEF3; }
+    .gender-card.selected {
+      transform: scale(1.03);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+    .gender-card-boy.selected { border-color: #6B9BD2; }
+    .gender-card-girl.selected { border-color: #D4789C; }
+    .gender-card:not(.selected) { opacity: 1; }
+    .gender-card .peer-selected { opacity: 0.55; }
+    .gender-card-emoji { font-size: 40px; display: block; margin-bottom: 8px; }
+    .gender-card-label { font-size: 1rem; font-weight: 600; color: var(--story-text); }
+    .gender-card .check-badge {
+      display: none;
+      position: absolute;
+      top: 8px; right: 8px;
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: var(--story-accent);
+      color: white;
+      font-size: 14px;
+      line-height: 24px;
+      text-align: center;
+    }
+    .gender-card.selected .check-badge { display: block; }
+
+    /* ===== Step 3: Color Chips + Date ===== */
+    .color-chip-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .color-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 14px;
+      border: 2px solid var(--story-frame);
+      border-radius: var(--radius-md);
+      background: white;
+      cursor: pointer;
+      transition: all 0.25s var(--ease-out);
+      font-size: 0.9rem;
+      color: var(--story-text);
+    }
+    .color-chip:hover { border-color: var(--story-accent); }
+    .color-chip.selected {
+      border-color: var(--story-accent);
+      background: #FFF5EB;
+      font-weight: 600;
+    }
+    .color-chip.ai-suggested {
+      box-shadow: 0 0 0 2px rgba(212, 165, 116, 0.3);
+    }
+    .color-chip-emoji { font-size: 1.1rem; flex-shrink: 0; }
+    .color-custom-input {
+      display: none;
+      margin-top: 10px;
+    }
+    .color-custom-input.visible { display: block; }
+    .color-custom-input input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 2px solid var(--story-frame);
+      border-radius: var(--radius-sm);
+      font-size: 0.95rem;
+      color: var(--story-text);
+      background: var(--story-card-bg);
+      box-sizing: border-box;
+    }
+    .color-custom-input input:focus {
+      outline: none;
+      border-color: var(--story-accent);
+    }
+
+    .date-group { margin-top: 0; }
+    .date-group label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--story-text);
+      margin-bottom: 6px;
+    }
+    .date-group input[type="date"] {
+      width: 100%;
+      padding: 12px 14px;
+      border: 2px solid var(--story-frame);
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+      color: var(--story-text);
+      background: var(--story-card-bg);
+      box-sizing: border-box;
+    }
+    .date-group input[type="date"]:focus {
+      outline: none;
+      border-color: var(--story-accent);
+    }
+
+    /* ===== Step 4: Pet Multi-Select ===== */
+    .pet-card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .pet-card {
+      padding: 16px 8px;
+      border: 2px solid var(--story-frame);
+      border-radius: var(--radius-md);
+      background: white;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s var(--ease-out);
+      position: relative;
+    }
+    .pet-card:hover { border-color: var(--story-accent); }
+    .pet-card.selected {
+      border-color: var(--story-accent);
+      background: #FFF5EB;
+    }
+    .pet-card-emoji { font-size: 32px; display: block; margin-bottom: 4px; }
+    .pet-card-label { font-size: 0.75rem; color: var(--story-text); line-height: 1.3; }
+    .pet-card .check-badge {
+      display: none;
+      position: absolute;
+      top: 4px; right: 4px;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--story-accent);
+      color: white;
+      font-size: 11px;
+      line-height: 20px;
+      text-align: center;
+    }
+    .pet-card.selected .check-badge { display: block; }
+
+    /* ===== Step 5: Traits + Story ===== */
+    .trait-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .trait-chip {
+      padding: 8px 18px;
+      border: 2px solid var(--story-frame);
+      border-radius: 100px;
+      background: white;
+      font-size: 0.85rem;
+      color: var(--story-text);
+      cursor: pointer;
+      transition: all 0.25s var(--ease-out);
+    }
+    .trait-chip:hover { border-color: var(--story-accent); }
+    .trait-chip.selected {
+      border-color: var(--story-accent);
+      background: var(--story-accent);
+      color: white;
+    }
+    .trait-chip.ai-suggested { box-shadow: 0 0 0 2px rgba(212, 165, 116, 0.25); }
+
+    .story-textarea {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid var(--story-frame);
+      border-radius: var(--radius-md);
+      font-size: 0.95rem;
+      color: var(--story-text);
+      background: var(--story-card-bg);
+      resize: vertical;
+      min-height: 100px;
+      font-family: inherit;
+      line-height: 1.6;
+      box-sizing: border-box;
+    }
+    .story-textarea:focus {
+      outline: none;
+      border-color: var(--story-accent);
+      box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.12);
+    }
+    .story-textarea::placeholder { color: #C8B8A8; }
+
+    .generate-btn {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
       width: 100%;
-      background: var(--story-accent);
-      color: white;
+      background: linear-gradient(135deg, #F9B8D0 0%, #FFDAB8 50%, #FFE5A0 100%);
+      color: var(--story-text);
       border: none;
-      padding: 16px;
+      padding: 18px;
       border-radius: var(--radius-md);
-      font-size: 1.1rem;
-      font-weight: 600;
+      font-size: 1.15rem;
+      font-weight: 700;
       cursor: pointer;
       transition: all 0.3s var(--ease-out);
-      box-shadow: 0 4px 20px rgba(212, 165, 116, 0.3);
-      margin-top: 28px;
+      box-shadow: 0 4px 20px rgba(249, 184, 208, 0.3);
+      margin-top: 24px;
     }
-    .story-generate-btn:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 28px rgba(212, 165, 116, 0.45);
-      background: var(--story-accent-dark);
-    }
-    .story-generate-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
+    .generate-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 30px rgba(249, 184, 208, 0.45);
     }
 
-    /* Loading */
+    /* ===== Loading ===== */
     .story-loading {
-      padding: 140px 0;
+      padding: 80px 0;
       text-align: center;
       background: var(--story-bg);
-      min-height: 60vh;
-      display: flex;
+      min-height: 50vh;
+      display: none;
       align-items: center;
       justify-content: center;
     }
-    .loading-animation {
-      margin-bottom: 24px;
-    }
+    .story-loading.visible { display: flex; }
     .loading-paws {
       display: flex;
       justify-content: center;
       gap: 16px;
+      margin-bottom: 24px;
     }
     .loading-paws span {
       font-size: 32px;
@@ -305,14 +679,14 @@
       color: var(--story-text-light);
     }
 
-    /* Result Section */
+    /* ===== Result Section ===== */
     .story-result {
       padding: 60px 0 100px;
       background: var(--story-bg);
+      display: none;
     }
-    .story-result .container {
-      max-width: 720px;
-    }
+    .story-result.visible { display: block; }
+    .story-result .container { max-width: 720px; }
     .result-title {
       font-family: 'Klee One', serif;
       font-size: 1.6rem;
@@ -320,8 +694,6 @@
       text-align: center;
       margin-bottom: 32px;
     }
-
-    /* Language Tabs */
     .card-lang-tabs {
       display: flex;
       justify-content: center;
@@ -344,12 +716,6 @@
       border-color: var(--story-accent);
       color: white;
     }
-    .card-lang-tab:hover:not(.active) {
-      border-color: var(--story-accent);
-      color: var(--story-text);
-    }
-
-    /* Card Preview */
     .card-preview-container {
       display: flex;
       flex-direction: column;
@@ -371,8 +737,6 @@
       transform: scale(var(--preview-scale, 0.333));
       transform-origin: top left;
     }
-
-    /* Text Display */
     .text-display-card {
       background: white;
       border-radius: var(--radius-md);
@@ -394,8 +758,6 @@
       white-space: pre-wrap;
       word-break: break-word;
     }
-
-    /* Action Buttons */
     .result-actions {
       display: flex;
       gap: 12px;
@@ -423,20 +785,14 @@
     }
     .result-btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 24px rgba(212, 165, 116, 0.45);
       background: var(--story-accent-dark);
     }
     .result-btn-secondary {
       background: white;
       color: var(--story-text);
-      border: 2px solid var(--story-frame);
+      border: 2px solid var(--story-frame) !important;
     }
-    .result-btn-secondary:hover {
-      border-color: var(--story-accent);
-      color: var(--story-accent);
-    }
-
-    /* Share Hint */
+    .result-btn-secondary:hover { border-color: var(--story-accent) !important; color: var(--story-accent); }
     .share-hint {
       text-align: center;
       margin-top: 24px;
@@ -447,11 +803,7 @@
       color: var(--story-text-light);
       line-height: 1.6;
     }
-    .share-hint strong {
-      color: var(--story-accent);
-    }
-
-    /* Retry Button */
+    .share-hint strong { color: var(--story-accent); }
     .retry-btn {
       display: inline-flex;
       align-items: center;
@@ -466,10 +818,7 @@
       cursor: pointer;
       transition: all 0.3s var(--ease-out);
     }
-    .retry-btn:hover {
-      border-color: var(--story-accent);
-      color: var(--story-text);
-    }
+    .retry-btn:hover { border-color: var(--story-accent); color: var(--story-text); }
 
     /* Hidden card for html2canvas */
     #card-canvas {
@@ -482,25 +831,10 @@
       font-family: 'Klee One', 'Noto Sans JP', 'Noto Sans SC', sans-serif;
       overflow: hidden;
     }
-    .card-photo-area {
-      width: 100%;
-      height: 60%;
-      position: relative;
-      overflow: hidden;
-    }
-    .card-photo {
-      width: 100%;
-      height: 100%;
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-    }
+    .card-photo-area { width: 100%; height: 60%; position: relative; overflow: hidden; }
+    .card-photo { width: 100%; height: 100%; background-size: cover; background-position: center; }
     .card-photo-overlay {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 160px;
+      position: absolute; bottom: 0; left: 0; right: 0; height: 160px;
       background: linear-gradient(transparent, rgba(255,248,240,0.9));
     }
     .card-text-area {
@@ -511,70 +845,44 @@
       flex-direction: column;
       justify-content: center;
     }
-    .card-cat-name {
-      font-family: 'Klee One', serif;
-      font-size: 52px;
-      color: var(--story-accent);
-      margin-bottom: 16px;
-      line-height: 1.2;
-    }
-    .card-ai-text {
-      font-size: 28px;
-      line-height: 1.7;
-      color: var(--story-text);
-      margin-bottom: 16px;
-      padding: 0 20px;
-    }
-    .card-date {
-      font-size: 22px;
-      color: var(--story-text-light);
-    }
+    .card-cat-name { font-family: 'Klee One', serif; font-size: 52px; color: var(--story-accent); margin-bottom: 16px; }
+    .card-ai-text { font-size: 28px; line-height: 1.7; color: var(--story-text); margin-bottom: 16px; padding: 0 20px; }
+    .card-date { font-size: 22px; color: var(--story-text-light); }
     .card-brand-bar {
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      height: 10%;
+      position: absolute; bottom: 0; width: 100%; height: 10%;
       background: rgba(232, 213, 192, 0.15);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 24px;
-      font-size: 20px;
-      color: var(--story-text-light);
+      display: flex; align-items: center; justify-content: center; gap: 24px;
+      font-size: 20px; color: var(--story-text-light);
     }
-    .card-brand-bar .brand-paw {
-      font-size: 28px;
-    }
-    .card-brand-bar .brand-name {
-      font-family: 'Klee One', serif;
-      font-size: 22px;
-    }
-    .card-brand-bar .brand-ig {
-      font-size: 18px;
-      opacity: 0.7;
-    }
+    .card-brand-bar .brand-paw { font-size: 28px; }
+    .card-brand-bar .brand-name { font-family: 'Klee One', serif; font-size: 22px; }
+    .card-brand-bar .brand-ig { font-size: 18px; opacity: 0.7; }
 
-    /* Error Toast */
+    /* Error */
     .story-error {
       background: #FFF0F0;
       border: 1px solid #E57373;
       color: #D32F2F;
-      padding: 16px;
+      padding: 14px;
       border-radius: var(--radius-sm);
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       display: none;
+      font-size: 0.9rem;
     }
 
     /* Responsive */
     @media (max-width: 900px) {
-      .story-hero { padding: 120px 20px 60px; min-height: auto; }
-      .story-form-card { padding: 24px; }
-      .story-form-row { grid-template-columns: 1fr; }
+      .story-hero { padding: 110px 20px 40px; }
+      .step-card { padding: 28px 20px; }
       .result-actions { flex-direction: column; }
       .card-preview-wrapper { max-width: 300px; }
-      .story-section { padding: 40px 0 60px; }
-      .story-result { padding: 40px 0 80px; }
+      .sample-cards { justify-content: flex-start; padding: 8px 16px 16px; }
+      .color-chip-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 400px) {
+      .pet-card-grid { grid-template-columns: repeat(2, 1fr); }
+      .color-chip-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -667,196 +975,230 @@
     </div>
   </div>
 
-  <!-- ========== STEP 1: WELCOME ========== -->
-  <section class="story-hero" id="step-welcome">
+  <!-- ========== WELCOME ========== -->
+  <section class="story-hero" id="screen-welcome">
     <div class="container">
       <span class="story-hero-icon">🐾</span>
       <h1 data-i18n="story.title">うちの子ストーリーカード</h1>
-      <p data-i18n="story.subtitle">お迎えした猫ちゃんの写真とAI文章で、<br>世界に1枚のカードを作ろう！</p>
+      <p class="hero-sub" data-i18n="story.subtitle">出会いの瞬間を、世界にひとつのカードに。</p>
       <span class="brand-tag">サイベリアン｜大阪・福楽キャッテリー</span>
+
+      <div class="sample-section">
+        <h3 data-i18n="story.sampleTitle">こんなカードが作れます</h3>
+        <div class="sample-cards">
+          <div class="sample-card">
+            <img src="https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724780473-b1cd27ac.jpg" alt="Sample" loading="lazy">
+            <div class="sample-card-text">
+              <div class="sample-card-name">ゆき</div>
+              <div class="sample-card-caption">真っ白なふわふわが我が家にやってきた日。</div>
+            </div>
+          </div>
+          <div class="sample-card">
+            <img src="https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724768508-19a4ab1e.jpg" alt="Sample" loading="lazy">
+            <div class="sample-card-text">
+              <div class="sample-card-name">モカ</div>
+              <div class="sample-card-caption">初めて目が合った瞬間、運命を感じました。</div>
+            </div>
+          </div>
+          <div class="sample-card">
+            <img src="https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724781684-5154c156.jpg" alt="Sample" loading="lazy">
+            <div class="sample-card-text">
+              <div class="sample-card-name">レオ</div>
+              <div class="sample-card-caption">やんちゃで甘えん坊な新しい家族。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <button class="story-start-btn" id="startBtn" data-i18n="story.start">カードを作る</button>
     </div>
   </section>
 
-  <!-- ========== STEP 2: FORM ========== -->
-  <section class="story-section" id="step-form" style="display:none">
+  <!-- ========== PROGRESS BAR ========== -->
+  <div class="story-progress" id="progressBar">
+    <div class="prog-dot active" data-step="1">1</div>
+    <div class="prog-line"><div class="prog-line-fill"></div></div>
+    <div class="prog-dot" data-step="2">2</div>
+    <div class="prog-line"><div class="prog-line-fill"></div></div>
+    <div class="prog-dot" data-step="3">3</div>
+    <div class="prog-line"><div class="prog-line-fill"></div></div>
+    <div class="prog-dot" data-step="4">4</div>
+    <div class="prog-line"><div class="prog-line-fill"></div></div>
+    <div class="prog-dot" data-step="5">5</div>
+  </div>
+
+  <!-- ========== WIZARD STEPS ========== -->
+  <section class="story-wizard" id="screen-wizard">
     <div class="container">
-      <div class="story-form-card">
-        <h2 data-i18n="story.formTitle">🐱 猫ちゃんの情報</h2>
-        <div id="formError" class="story-error"></div>
+      <div id="wizardError" class="story-error"></div>
 
-        <form id="storyForm" novalidate>
-          <!-- Name -->
-          <div class="story-form-group">
-            <label for="story-name"><span data-i18n="story.name">猫ちゃんのお名前</span><span class="required">*</span></label>
-            <input type="text" id="story-name" class="story-input" required
-              data-placeholder-ja="例：ゆき、モカ、レオ"
-              data-placeholder-en="e.g. Yuki, Mocha, Leo"
-              data-placeholder-zh="例：雪儿、摩卡、里奥"
-              placeholder="例：ゆき、モカ、レオ">
+      <!-- Step 1: Photo -->
+      <div class="step-panel active" id="step-1">
+        <div class="step-card">
+          <p class="step-prompt" data-i18n="story.step1Prompt">まず、お気に入りの1枚を見せて！📸</p>
+          <p class="step-sub" data-i18n="story.step1Sub">猫ちゃんの写真をアップロードしてね。AIが毛色や特徴を読み取るよ。</p>
+
+          <div class="photo-upload-area" id="photoArea">
+            <span class="photo-upload-icon">📷</span>
+            <p class="photo-upload-text" data-i18n="story.photoClick">タップして写真を選ぶ</p>
+            <img class="photo-preview" id="photoPreview" alt="Preview">
+            <p class="photo-change-hint" data-i18n="story.photoChange">タップして写真を変更</p>
+          </div>
+          <input type="file" id="photoInput" accept="image/*">
+
+          <div class="ai-analysis-box" id="aiAnalysisBox">
+            <div class="ai-loading" id="aiLoading">
+              <span class="paw-walk">🐾</span>
+              <span data-i18n="story.analyzing">AIが分析中...</span>
+            </div>
+            <div class="ai-result-chips" id="aiResultChips"></div>
           </div>
 
-          <!-- Gender & Color -->
-          <div class="story-form-row">
-            <div class="story-form-group">
-              <label for="story-gender"><span data-i18n="story.gender">性別</span><span class="required">*</span></label>
-              <select id="story-gender" class="story-select" required>
-                <option value="" data-i18n="story.genderPlaceholder">選択してください</option>
-                <option value="男の子" data-i18n="story.genderMale">男の子</option>
-                <option value="女の子" data-i18n="story.genderFemale">女の子</option>
-              </select>
+          <button class="step-next-btn" id="step1Next" disabled data-i18n="story.next">次へ</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Name + Gender -->
+      <div class="step-panel" id="step-2">
+        <div class="step-card">
+          <button class="step-back-btn" data-back>← <span data-i18n="story.back">戻る</span></button>
+          <p class="step-prompt" id="step2Prompt" data-i18n="story.step2Prompt">素敵な子！名前を教えて 🐱</p>
+          <p class="step-sub" data-i18n="story.step2Sub">お迎えした猫ちゃんのお名前と性別を選んでね。</p>
+
+          <input type="text" class="name-input" id="catName"
+            data-placeholder-ja="にゃんこの名前"
+            data-placeholder-en="Your cat's name"
+            data-placeholder-zh="猫咪的名字"
+            placeholder="にゃんこの名前">
+          <p class="name-hint" data-i18n="story.nameHint">例：ゆき、モカ、レオ</p>
+
+          <div class="gender-cards">
+            <div class="gender-card gender-card-boy" data-value="男の子">
+              <span class="check-badge">✓</span>
+              <span class="gender-card-emoji">♂</span>
+              <span class="gender-card-label" data-i18n="story.genderMale">男の子</span>
             </div>
-            <div class="story-form-group">
-              <label for="story-color"><span data-i18n="story.color">毛色</span></label>
-              <select id="story-color" class="story-select">
-                <option value="" data-i18n="story.colorPlaceholder">選択してください</option>
-                <option value="白">白</option>
-                <option value="茶トラ">茶トラ</option>
-                <option value="シルバー">シルバー</option>
-                <option value="ゴールデン">ゴールデン</option>
-                <option value="ブラウン">ブラウン</option>
-                <option value="その他" data-i18n="story.colorOther">その他</option>
-              </select>
+            <div class="gender-card gender-card-girl" data-value="女の子">
+              <span class="check-badge">✓</span>
+              <span class="gender-card-emoji">♀</span>
+              <span class="gender-card-label" data-i18n="story.genderFemale">女の子</span>
             </div>
           </div>
 
-          <!-- Custom color (shown when その他 selected) -->
-          <div class="story-form-group" id="customColorGroup" style="display:none">
-            <label for="story-color-custom"><span data-i18n="story.colorCustom">毛色を入力</span></label>
-            <input type="text" id="story-color-custom" class="story-input"
-              data-placeholder-ja="毛色を入力してください"
+          <button class="step-next-btn" id="step2Next" disabled data-i18n="story.next">次へ</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Color + Date -->
+      <div class="step-panel" id="step-3">
+        <div class="step-card">
+          <button class="step-back-btn" data-back>← <span data-i18n="story.back">戻る</span></button>
+          <p class="step-prompt" id="step3Prompt" data-i18n="story.step3Prompt">毛色を確認してね 🎨</p>
+          <p class="step-sub" data-i18n="story.step3Sub">AIが検出した毛色を確認して、お迎え日も教えてね。</p>
+
+          <div class="color-chip-grid" id="colorGrid">
+            <!-- Populated by JS -->
+          </div>
+          <div class="color-custom-input" id="colorCustom">
+            <input type="text" id="colorCustomInput"
+              data-placeholder-ja="毛色を入力"
               data-placeholder-en="Enter coat color"
-              data-placeholder-zh="请输入毛色"
-              placeholder="毛色を入力してください">
+              data-placeholder-zh="输入毛色"
+              placeholder="毛色を入力">
           </div>
 
-          <!-- Date -->
-          <div class="story-form-group">
-            <label for="story-date"><span data-i18n="story.date">お迎え日</span><span class="required">*</span></label>
-            <input type="date" id="story-date" class="story-input" required>
+          <div class="date-group">
+            <label data-i18n="story.date">🏠 お迎え日</label>
+            <input type="date" id="catDate">
           </div>
 
-          <!-- Photo Upload -->
-          <div class="story-form-group">
-            <label><span data-i18n="story.photo">写真をアップロード</span><span class="required">*</span></label>
-            <p class="hint" data-i18n="story.photoHint">お気に入りの1枚を選んでください（JPG/PNG、10MB以下）</p>
-            <div class="photo-upload-area" id="photoArea">
-              <span class="photo-upload-icon">📷</span>
-              <p class="photo-upload-text" data-i18n="story.photoClick">タップして写真を選択</p>
-              <img class="photo-preview" id="photoPreview" alt="Preview">
-              <p class="photo-change-hint" data-i18n="story.photoChange">タップして写真を変更</p>
-            </div>
-            <input type="file" id="photoInput" accept="image/jpeg,image/png,image/webp">
+          <button class="step-next-btn" id="step3Next" disabled data-i18n="story.next">次へ</button>
+        </div>
+      </div>
+
+      <!-- Step 4: Other Pets -->
+      <div class="step-panel" id="step-4">
+        <div class="step-card">
+          <button class="step-back-btn" data-back>← <span data-i18n="story.back">戻る</span></button>
+          <p class="step-prompt" id="step4Prompt" data-i18n="story.step4Prompt">おうちに兄弟はいる？ 🏠</p>
+          <p class="step-sub" data-i18n="story.step4Sub">他のペットを教えてね（複数選択OK）</p>
+
+          <div class="pet-card-grid" id="petGrid">
+            <!-- Populated by JS -->
           </div>
 
-          <!-- Optional fields -->
-          <div class="story-form-group">
-            <label for="story-personality"><span data-i18n="story.personality">性格・特徴</span><span class="optional-tag" data-i18n="story.optional">任意</span></label>
-            <textarea id="story-personality" class="story-textarea" rows="2"
-              data-placeholder-ja="例：甘えん坊、好奇心旺盛、おっとり"
-              data-placeholder-en="e.g. Affectionate, curious, calm"
-              data-placeholder-zh="例：爱撒娇、好奇心强、温柔"
-              placeholder="例：甘えん坊、好奇心旺盛、おっとり"></textarea>
+          <button class="step-next-btn" id="step4Next" data-i18n="story.next">次へ</button>
+          <button class="step-skip-btn" data-skip="5" data-i18n="story.skip">スキップ ></button>
+        </div>
+      </div>
+
+      <!-- Step 5: Personality + Story -->
+      <div class="step-panel" id="step-5">
+        <div class="step-card">
+          <button class="step-back-btn" data-back>← <span data-i18n="story.back">戻る</span></button>
+          <p class="step-prompt" id="step5Prompt" data-i18n="story.step5Prompt">最後に、性格やエピソードを教えて 💕</p>
+          <p class="step-sub" data-i18n="story.step5Sub">スキップしても大丈夫！AIが写真からいい感じに仕上げるよ。</p>
+
+          <div class="trait-chips" id="traitChips">
+            <!-- Populated by JS -->
           </div>
 
-          <div class="story-form-group">
-            <label for="story-name-reason"><span data-i18n="story.nameReason">名前の由来</span><span class="optional-tag" data-i18n="story.optional">任意</span></label>
-            <input type="text" id="story-name-reason" class="story-input"
-              data-placeholder-ja="この名前にした理由"
-              data-placeholder-en="Why did you choose this name?"
-              data-placeholder-zh="为什么取这个名字？"
-              placeholder="この名前にした理由">
-          </div>
+          <textarea class="story-textarea" id="catStory" rows="4"
+            data-placeholder-ja="例：うちに来た初日、すぐにお膝の上で寝てくれました..."
+            data-placeholder-en="e.g. On the first day home, she fell asleep on my lap..."
+            data-placeholder-zh="例：到家第一天就趴在膝盖上睡着了..."
+            placeholder="例：うちに来た初日、すぐにお膝の上で寝てくれました..."></textarea>
 
-          <div class="story-form-group">
-            <label for="story-happy"><span data-i18n="story.happyMoment">嬉しかったエピソード</span><span class="optional-tag" data-i18n="story.optional">任意</span></label>
-            <textarea id="story-happy" class="story-textarea" rows="2"
-              data-placeholder-ja="迎えてから一番嬉しかった瞬間"
-              data-placeholder-en="Your happiest moment since adoption"
-              data-placeholder-zh="迎接后最开心的瞬间"
-              placeholder="迎えてから一番嬉しかった瞬間"></textarea>
-          </div>
-
-          <div class="story-form-group">
-            <label for="story-pets"><span data-i18n="story.otherPets">他にいるペット</span><span class="optional-tag" data-i18n="story.optional">任意</span></label>
-            <select id="story-pets" class="story-select">
-              <option value="" data-i18n="story.petsNone">いない</option>
-              <option value="犬がいる" data-i18n="story.petsDog">犬がいる</option>
-              <option value="猫がいる" data-i18n="story.petsCat">猫がいる</option>
-              <option value="その他" data-i18n="story.petsOther">その他</option>
-            </select>
-          </div>
-
-          <div class="story-form-group">
-            <label for="story-message"><span data-i18n="story.message">猫ちゃんへのメッセージ</span><span class="optional-tag" data-i18n="story.optional">任意</span></label>
-            <textarea id="story-message" class="story-textarea" rows="2"
-              data-placeholder-ja="猫ちゃんに伝えたい一言"
-              data-placeholder-en="A message to your cat"
-              data-placeholder-zh="想对猫咪说的话"
-              placeholder="猫ちゃんに伝えたい一言"></textarea>
-          </div>
-
-          <button type="submit" class="story-generate-btn" id="generateBtn">
-            <span class="btn-text" data-i18n="story.generate">✨ AIでカードを作成</span>
-          </button>
-        </form>
+          <button class="generate-btn" id="generateBtn" data-i18n="story.generateFinal">🎉 ストーリーカードを作る！</button>
+          <button class="step-skip-btn" id="skipGenBtn" data-i18n="story.skipGenerate">ストーリーなしで作る</button>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- ========== STEP 3: LOADING ========== -->
-  <section class="story-loading" id="step-loading" style="display:none">
+  <!-- ========== LOADING ========== -->
+  <section class="story-loading" id="screen-loading">
     <div class="container">
-      <div class="loading-animation">
-        <div class="loading-paws">
-          <span>🐾</span>
-          <span>🐾</span>
-          <span>🐾</span>
-        </div>
+      <div class="loading-paws">
+        <span>🐾</span><span>🐾</span><span>🐾</span>
       </div>
       <p class="loading-text" data-i18n="story.loading">AIが文章を作成中...</p>
       <p class="loading-hint" data-i18n="story.loadingHint">少々お待ちください（約10秒）</p>
     </div>
   </section>
 
-  <!-- ========== STEP 4: RESULT ========== -->
-  <section class="story-result" id="step-result" style="display:none">
+  <!-- ========== RESULT ========== -->
+  <section class="story-result" id="screen-result">
     <div class="container">
       <h2 class="result-title" data-i18n="story.resultTitle">カードが完成しました！</h2>
 
-      <!-- Language tabs -->
       <div class="card-lang-tabs">
         <button class="card-lang-tab active" data-lang="ja" data-i18n="story.tabJa">日本語版</button>
         <button class="card-lang-tab" data-lang="zh" data-i18n="story.tabZh">中文版</button>
       </div>
 
       <div class="card-preview-container">
-        <!-- Card visual preview (scaled down) -->
         <div class="card-preview-wrapper">
           <div class="card-preview-inner" id="card-preview"></div>
         </div>
 
-        <!-- Full text for copying -->
         <div class="text-display-card">
           <p class="text-display-label" id="textLabel">Instagram / SNS</p>
           <div class="text-display-content" id="copyText"></div>
         </div>
 
-        <!-- Action buttons -->
         <div class="result-actions">
           <button class="result-btn result-btn-primary" id="downloadBtn">
             <span data-i18n="story.download">📥 画像をダウンロード</span>
           </button>
-          <button class="result-btn result-btn-secondary" id="copyBtn" data-original-text="">
+          <button class="result-btn result-btn-secondary" id="copyBtn">
             <span data-i18n="story.copyText">📋 テキストをコピー</span>
           </button>
         </div>
 
-        <!-- Share hint -->
         <div class="share-hint" data-i18n="story.shareHint">Instagramに投稿する際は <strong>@fuluckpet</strong> をタグ付けしてね！</div>
       </div>
 
-      <!-- Retry -->
       <div style="text-align:center">
         <button class="retry-btn" id="retryBtn" data-i18n="story.retry">🔄 もう1枚作る</button>
       </div>
@@ -946,30 +1288,333 @@
     <span class="fixed-line-content"><span class="fixed-line-label">見学予約・ご相談</span><span class="fixed-line-cta">LINEで相談 🐾</span></span>
   </a>
 
-  <!-- Back to Top -->
   <button class="back-to-top" id="backToTop" aria-label="ページ上部へ戻る">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
   </button>
 
-  <script src="/i18n.js?v=20260214"></script>
+  <script src="/i18n.js?v=20260214b"></script>
   <script src="/script.js?v=20260214"></script>
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <script>
-  // ===== Story Card Generator Logic =====
+  // ===== Story Card V2: Conversational Wizard =====
   (function() {
     var API = 'https://fuluck-api.mouxue56.workers.dev';
-    var uploadedPhoto = null; // base64 data URL
-    var generatedText = null; // { ja: {...}, zh: {...} }
+    var currentStep = 0; // 0=welcome
+    var formData = { photo: null, photoSmall: null, aiAnalysis: null, name: '', gender: '', color: '', date: '', pets: [], traits: [], story: '' };
+    var generatedText = null;
     var currentCardLang = 'ja';
 
-    // --- Step Navigation ---
-    function showStep(step) {
-      ['welcome', 'form', 'loading', 'result'].forEach(function(s) {
-        var el = document.getElementById('step-' + s);
-        if (el) el.style.display = s === step ? '' : 'none';
+    // --- Color options ---
+    var COLOR_OPTIONS = [
+      { value: 'ブラウンタビー', emoji: '🤎', key: 'story.colorBrownTabby' },
+      { value: 'シルバータビー', emoji: '🩶', key: 'story.colorSilverTabby' },
+      { value: 'ゴールデンタビー', emoji: '🟡', key: 'story.colorGoldenTabby' },
+      { value: 'ブルー', emoji: '🩵', key: 'story.colorBlue' },
+      { value: 'ホワイト', emoji: '🤍', key: 'story.colorWhite' },
+      { value: 'クリーム', emoji: '🧡', key: 'story.colorCream' },
+      { value: 'レッド', emoji: '❤️', key: 'story.colorRed' },
+      { value: 'ブラック', emoji: '🖤', key: 'story.colorBlack' },
+      { value: 'ネヴァマスカレード', emoji: '🩷', key: 'story.colorNeva' },
+      { value: 'その他', emoji: '🐾', key: 'story.colorOther' },
+    ];
+
+    // --- Pet options ---
+    var PET_OPTIONS = [
+      { value: '先住猫1匹', emoji: '🐱', key: 'story.pet1Cat' },
+      { value: '先住猫2匹+', emoji: '🐱🐱', key: 'story.pet2Cats' },
+      { value: '犬', emoji: '🐶', key: 'story.petDog' },
+      { value: 'うさぎ', emoji: '🐰', key: 'story.petRabbit' },
+      { value: 'ハムスター', emoji: '🐹', key: 'story.petHamster' },
+      { value: '鳥', emoji: '🐦', key: 'story.petBird' },
+      { value: 'その他', emoji: '🐾', key: 'story.petOther' },
+      { value: 'いない', emoji: '🏠', key: 'story.petNone' },
+    ];
+
+    // --- Default trait options ---
+    var DEFAULT_TRAITS = ['甘えん坊', '好奇心旺盛', 'おっとり', 'やんちゃ', '人懐っこい', 'マイペース', '元気いっぱい', '穏やか'];
+
+    // --- Screen management ---
+    function showScreen(name) {
+      ['welcome', 'wizard', 'loading', 'result'].forEach(function(s) {
+        var el = document.getElementById('screen-' + s);
+        if (el) {
+          if (s === name) { el.classList.add('visible'); el.style.display = ''; }
+          else { el.classList.remove('visible'); if (s === 'loading' || s === 'result') el.style.display = 'none'; }
+        }
       });
+      var progBar = document.getElementById('progressBar');
+      if (name === 'wizard') {
+        progBar.classList.add('visible');
+        document.getElementById('screen-welcome').style.display = 'none';
+      } else {
+        progBar.classList.remove('visible');
+        if (name === 'welcome') document.getElementById('screen-welcome').style.display = '';
+      }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+
+    function goToStep(step) {
+      currentStep = step;
+      // Update panels
+      for (var i = 1; i <= 5; i++) {
+        var panel = document.getElementById('step-' + i);
+        if (panel) panel.classList.toggle('active', i === step);
+      }
+      // Update progress dots
+      var dots = document.querySelectorAll('.prog-dot');
+      var lines = document.querySelectorAll('.prog-line');
+      dots.forEach(function(dot, idx) {
+        var s = idx + 1;
+        dot.classList.toggle('active', s === step);
+        dot.classList.toggle('done', s < step);
+        if (s < step) dot.textContent = '✓';
+        else dot.textContent = s;
+      });
+      lines.forEach(function(line, idx) {
+        line.classList.toggle('done', idx + 1 < step);
+      });
+      // Update dynamic prompts
+      updateDynamicPrompts();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function updateDynamicPrompts() {
+      var name = formData.name || '';
+      var suffix = formData.gender === '女の子' ? 'ちゃん' : formData.gender === '男の子' ? 'くん' : 'ちゃん';
+      var nameDisplay = name ? name + suffix : '';
+      // Step 3 prompt
+      var s3 = document.getElementById('step3Prompt');
+      if (s3 && nameDisplay) s3.textContent = nameDisplay + 'の毛色を確認してね 🎨';
+      // Step 4 prompt
+      var s4 = document.getElementById('step4Prompt');
+      if (s4 && nameDisplay) s4.textContent = nameDisplay + 'には兄弟がいる？ 🏠';
+      // Step 5 prompt
+      var s5 = document.getElementById('step5Prompt');
+      if (s5 && nameDisplay) s5.textContent = '最後に、' + nameDisplay + 'の性格やエピソードを教えて 💕';
+    }
+
+    // --- Populate color grid ---
+    function buildColorGrid() {
+      var grid = document.getElementById('colorGrid');
+      grid.innerHTML = '';
+      COLOR_OPTIONS.forEach(function(opt) {
+        var chip = document.createElement('div');
+        chip.className = 'color-chip';
+        chip.dataset.value = opt.value;
+        chip.innerHTML = '<span class="color-chip-emoji">' + opt.emoji + '</span><span data-i18n="' + opt.key + '">' + opt.value + '</span>';
+        chip.addEventListener('click', function() { selectColor(opt.value); });
+        grid.appendChild(chip);
+      });
+    }
+    buildColorGrid();
+
+    function selectColor(value) {
+      formData.color = value;
+      document.querySelectorAll('.color-chip').forEach(function(c) {
+        c.classList.toggle('selected', c.dataset.value === value);
+      });
+      var customBox = document.getElementById('colorCustom');
+      customBox.classList.toggle('visible', value === 'その他');
+      updateStep3Btn();
+    }
+
+    function preselectColor(aiColor) {
+      if (!aiColor) return;
+      var matched = null;
+      COLOR_OPTIONS.forEach(function(opt) {
+        if (opt.value !== 'その他' && aiColor.indexOf(opt.value) !== -1) matched = opt.value;
+      });
+      // Try partial match
+      if (!matched) {
+        var keywords = { 'ブラウン': 'ブラウンタビー', 'シルバー': 'シルバータビー', 'ゴールデン': 'ゴールデンタビー', 'ブルー': 'ブルー', '白': 'ホワイト', 'ホワイト': 'ホワイト', 'クリーム': 'クリーム', 'レッド': 'レッド', '赤': 'レッド', '黒': 'ブラック', 'ブラック': 'ブラック', 'ネヴァ': 'ネヴァマスカレード', 'ポイント': 'ネヴァマスカレード' };
+        Object.keys(keywords).forEach(function(kw) {
+          if (!matched && aiColor.indexOf(kw) !== -1) matched = keywords[kw];
+        });
+      }
+      if (matched) {
+        selectColor(matched);
+        // Mark as AI-suggested
+        document.querySelectorAll('.color-chip').forEach(function(c) {
+          if (c.dataset.value === matched) c.classList.add('ai-suggested');
+        });
+      }
+    }
+
+    function updateStep3Btn() {
+      var btn = document.getElementById('step3Next');
+      var hasColor = formData.color && (formData.color !== 'その他' || document.getElementById('colorCustomInput').value.trim());
+      btn.disabled = !hasColor;
+    }
+
+    // Color custom input listener
+    document.getElementById('colorCustomInput').addEventListener('input', updateStep3Btn);
+
+    // --- Populate pet grid ---
+    function buildPetGrid() {
+      var grid = document.getElementById('petGrid');
+      grid.innerHTML = '';
+      PET_OPTIONS.forEach(function(opt) {
+        var card = document.createElement('div');
+        card.className = 'pet-card';
+        card.dataset.value = opt.value;
+        card.innerHTML = '<span class="check-badge">✓</span><span class="pet-card-emoji">' + opt.emoji + '</span><span class="pet-card-label" data-i18n="' + opt.key + '">' + opt.value + '</span>';
+        card.addEventListener('click', function() { togglePet(opt.value); });
+        grid.appendChild(card);
+      });
+    }
+    buildPetGrid();
+
+    function togglePet(value) {
+      if (value === 'いない') {
+        formData.pets = ['いない'];
+      } else {
+        var idx = formData.pets.indexOf(value);
+        // Remove 'いない' if selecting a pet
+        var noneIdx = formData.pets.indexOf('いない');
+        if (noneIdx !== -1) formData.pets.splice(noneIdx, 1);
+        if (idx === -1) formData.pets.push(value);
+        else formData.pets.splice(idx, 1);
+      }
+      // Update UI
+      document.querySelectorAll('.pet-card').forEach(function(c) {
+        c.classList.toggle('selected', formData.pets.indexOf(c.dataset.value) !== -1);
+      });
+    }
+
+    // --- Trait chips ---
+    function buildTraitChips(aiTraits) {
+      var container = document.getElementById('traitChips');
+      container.innerHTML = '';
+      // Merge AI traits with defaults, deduplicate
+      var allTraits = (aiTraits || []).concat(DEFAULT_TRAITS);
+      var seen = {};
+      var unique = [];
+      allTraits.forEach(function(t) {
+        if (!seen[t]) { seen[t] = true; unique.push(t); }
+      });
+      unique = unique.slice(0, 10); // Limit to 10
+      formData.traits = (aiTraits || []).slice(); // Pre-select AI traits
+
+      unique.forEach(function(trait) {
+        var chip = document.createElement('div');
+        chip.className = 'trait-chip';
+        chip.textContent = trait;
+        chip.dataset.value = trait;
+        if (formData.traits.indexOf(trait) !== -1) {
+          chip.classList.add('selected', 'ai-suggested');
+        }
+        chip.addEventListener('click', function() {
+          var idx = formData.traits.indexOf(trait);
+          if (idx === -1) { formData.traits.push(trait); chip.classList.add('selected'); }
+          else { formData.traits.splice(idx, 1); chip.classList.remove('selected'); }
+        });
+        container.appendChild(chip);
+      });
+    }
+    buildTraitChips([]);
+
+    // --- Photo Upload ---
+    var photoArea = document.getElementById('photoArea');
+    var photoInput = document.getElementById('photoInput');
+    var photoPreview = document.getElementById('photoPreview');
+
+    photoArea.addEventListener('click', function() { photoInput.click(); });
+    photoArea.addEventListener('dragover', function(e) { e.preventDefault(); photoArea.style.borderColor = 'var(--story-accent)'; });
+    photoArea.addEventListener('dragleave', function() { if (!formData.photo) photoArea.style.borderColor = ''; });
+    photoArea.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.files.length) handlePhoto(e.dataTransfer.files[0]); });
+    photoInput.addEventListener('change', function() { if (this.files.length) handlePhoto(this.files[0]); });
+
+    function handlePhoto(file) {
+      var validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      if (validTypes.indexOf(file.type) === -1) { alert('JPG, PNG, WebP のみ対応'); return; }
+      if (file.size > 10 * 1024 * 1024) { alert('10MB以下の画像を選んでください'); return; }
+
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        // Full-size for card (max 2000px)
+        resizeImage(e.target.result, 2000, function(fullUrl) {
+          formData.photo = fullUrl;
+          photoPreview.src = fullUrl;
+          photoArea.classList.add('has-photo');
+
+          // Small version for AI analysis (max 800px)
+          resizeImage(e.target.result, 800, function(smallUrl) {
+            formData.photoSmall = smallUrl;
+            analyzePhoto(smallUrl);
+          });
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function resizeImage(dataUrl, maxWidth, callback) {
+      var img = new Image();
+      img.onload = function() {
+        if (img.width <= maxWidth) { callback(dataUrl); return; }
+        var canvas = document.createElement('canvas');
+        var ratio = maxWidth / img.width;
+        canvas.width = maxWidth;
+        canvas.height = img.height * ratio;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        callback(canvas.toDataURL('image/jpeg', 0.85));
+      };
+      img.src = dataUrl;
+    }
+
+    // --- AI Photo Analysis ---
+    function analyzePhoto(base64Uri) {
+      var box = document.getElementById('aiAnalysisBox');
+      var loading = document.getElementById('aiLoading');
+      var chips = document.getElementById('aiResultChips');
+
+      box.classList.add('visible');
+      loading.style.display = '';
+      chips.classList.remove('visible');
+      chips.innerHTML = '';
+      document.getElementById('step1Next').disabled = true;
+
+      fetch(API + '/api/story/analyze-photo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64Uri })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        loading.style.display = 'none';
+        if (data.error) throw new Error(data.error);
+
+        formData.aiAnalysis = data;
+        // Show result chips
+        if (data.color) {
+          var c = document.createElement('span');
+          c.className = 'ai-chip ai-chip-color';
+          c.textContent = '毛色: ' + data.color;
+          chips.appendChild(c);
+        }
+        if (data.traits && data.traits.length) {
+          data.traits.forEach(function(t) {
+            var c = document.createElement('span');
+            c.className = 'ai-chip ai-chip-trait';
+            c.textContent = t;
+            chips.appendChild(c);
+          });
+        }
+        chips.classList.add('visible');
+        document.getElementById('step1Next').disabled = false;
+      })
+      .catch(function(err) {
+        console.error('AI analysis error:', err);
+        loading.style.display = 'none';
+        // Allow proceeding even if AI fails
+        formData.aiAnalysis = null;
+        document.getElementById('step1Next').disabled = false;
+      });
+    }
+
+    // --- Default date ---
+    var dateInput = document.getElementById('catDate');
+    if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
 
     // --- Placeholder i18n ---
     function updatePlaceholders() {
@@ -982,150 +1627,112 @@
     updatePlaceholders();
     window.addEventListener('langChanged', updatePlaceholders);
 
-    // --- Set default date to today ---
-    var dateInput = document.getElementById('story-date');
-    if (dateInput) {
-      var today = new Date().toISOString().split('T')[0];
-      dateInput.value = today;
-    }
-
-    // --- Custom color toggle ---
-    var colorSelect = document.getElementById('story-color');
-    var customColorGroup = document.getElementById('customColorGroup');
-    if (colorSelect) {
-      colorSelect.addEventListener('change', function() {
-        customColorGroup.style.display = this.value === 'その他' ? '' : 'none';
-      });
-    }
-
-    // --- Photo Upload ---
-    var photoArea = document.getElementById('photoArea');
-    var photoInput = document.getElementById('photoInput');
-    var photoPreview = document.getElementById('photoPreview');
-
-    photoArea.addEventListener('click', function() { photoInput.click(); });
-
-    // Drag & drop
-    photoArea.addEventListener('dragover', function(e) {
-      e.preventDefault();
-      photoArea.style.borderColor = 'var(--story-accent)';
-    });
-    photoArea.addEventListener('dragleave', function() {
-      if (!uploadedPhoto) photoArea.style.borderColor = '';
-    });
-    photoArea.addEventListener('drop', function(e) {
-      e.preventDefault();
-      if (e.dataTransfer.files.length) handlePhoto(e.dataTransfer.files[0]);
-    });
-
-    photoInput.addEventListener('change', function() {
-      if (this.files.length) handlePhoto(this.files[0]);
-    });
-
-    function handlePhoto(file) {
-      // Validate
-      var validTypes = ['image/jpeg', 'image/png', 'image/webp'];
-      if (validTypes.indexOf(file.type) === -1) {
-        alert('JPG, PNG, WebP のみ対応しています');
-        return;
-      }
-      if (file.size > 10 * 1024 * 1024) {
-        alert('10MB以下の画像を選んでください');
-        return;
-      }
-
-      var reader = new FileReader();
-      reader.onload = function(e) {
-        // Resize if too large for canvas
-        resizeImage(e.target.result, 2000, function(dataUrl) {
-          uploadedPhoto = dataUrl;
-          photoPreview.src = dataUrl;
-          photoArea.classList.add('has-photo');
-        });
-      };
-      reader.readAsDataURL(file);
-    }
-
-    // Client-side image resize
-    function resizeImage(dataUrl, maxWidth, callback) {
-      var img = new Image();
-      img.onload = function() {
-        if (img.width <= maxWidth) {
-          callback(dataUrl);
-          return;
-        }
-        var canvas = document.createElement('canvas');
-        var ratio = maxWidth / img.width;
-        canvas.width = maxWidth;
-        canvas.height = img.height * ratio;
-        var ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        callback(canvas.toDataURL('image/jpeg', 0.9));
-      };
-      img.src = dataUrl;
-    }
-
-    // --- Start Button ---
+    // --- Navigation Events ---
     document.getElementById('startBtn').addEventListener('click', function() {
-      showStep('form');
+      showScreen('wizard');
+      goToStep(1);
     });
 
-    // --- Form Submit ---
-    document.getElementById('storyForm').addEventListener('submit', function(e) {
-      e.preventDefault();
+    // Step 1 → 2
+    document.getElementById('step1Next').addEventListener('click', function() {
+      if (!formData.photo) return;
+      goToStep(2);
+      // Personalize step 2 prompt with AI color
+      if (formData.aiAnalysis && formData.aiAnalysis.color) {
+        var p = document.getElementById('step2Prompt');
+        p.textContent = formData.aiAnalysis.color + 'の素敵な子！名前を教えて 🐱';
+      }
+    });
 
-      var name = document.getElementById('story-name').value.trim();
-      var gender = document.getElementById('story-gender').value;
-      var date = document.getElementById('story-date').value;
+    // Step 2 → 3
+    document.getElementById('step2Next').addEventListener('click', function() {
+      formData.name = document.getElementById('catName').value.trim();
+      if (!formData.name || !formData.gender) return;
 
-      // Validate required
-      var errorEl = document.getElementById('formError');
-      errorEl.style.display = 'none';
+      goToStep(3);
+      // Pre-select AI color
+      if (formData.aiAnalysis && formData.aiAnalysis.color) {
+        preselectColor(formData.aiAnalysis.color);
+      }
+    });
 
-      if (!name || !gender || !date || !uploadedPhoto) {
-        var msgs = [];
-        if (!name) msgs.push('猫ちゃんの名前');
-        if (!gender) msgs.push('性別');
-        if (!date) msgs.push('お迎え日');
-        if (!uploadedPhoto) msgs.push('写真');
-        errorEl.textContent = msgs.join('、') + ' を入力してください';
-        errorEl.style.display = 'block';
+    // Name + Gender validation
+    var nameInput = document.getElementById('catName');
+    nameInput.addEventListener('input', function() {
+      formData.name = this.value.trim();
+      checkStep2();
+    });
 
-        // Highlight required fields
-        document.querySelectorAll('#storyForm [required]').forEach(function(el) {
-          if (!el.value.trim()) {
-            el.style.borderColor = '#E57373';
-            el.addEventListener('input', function handler() {
-              el.style.borderColor = '';
-              el.removeEventListener('input', handler);
-            });
-          }
+    document.querySelectorAll('.gender-card').forEach(function(card) {
+      card.addEventListener('click', function() {
+        formData.gender = this.dataset.value;
+        document.querySelectorAll('.gender-card').forEach(function(c) {
+          c.classList.toggle('selected', c.dataset.value === formData.gender);
         });
-        if (!uploadedPhoto) {
-          photoArea.style.borderColor = '#E57373';
-        }
-        return;
-      }
+        checkStep2();
+      });
+    });
 
-      // Get color value
-      var color = document.getElementById('story-color').value;
-      if (color === 'その他') {
-        color = document.getElementById('story-color-custom').value.trim() || 'その他';
+    function checkStep2() {
+      document.getElementById('step2Next').disabled = !(formData.name && formData.gender);
+    }
+
+    // Step 3 → 4
+    document.getElementById('step3Next').addEventListener('click', function() {
+      if (formData.color === 'その他') {
+        formData.color = document.getElementById('colorCustomInput').value.trim() || 'その他';
       }
+      formData.date = document.getElementById('catDate').value;
+      goToStep(4);
+    });
+
+    // Step 4 → 5
+    document.getElementById('step4Next').addEventListener('click', function() {
+      goToStep(5);
+      // Build trait chips with AI traits
+      var aiTraits = (formData.aiAnalysis && formData.aiAnalysis.traits) || [];
+      buildTraitChips(aiTraits);
+    });
+
+    // Back buttons
+    document.querySelectorAll('[data-back]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        if (currentStep > 1) goToStep(currentStep - 1);
+      });
+    });
+
+    // Skip buttons
+    document.querySelectorAll('[data-skip]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var target = parseInt(btn.dataset.skip);
+        goToStep(target);
+        if (target === 5) {
+          var aiTraits = (formData.aiAnalysis && formData.aiAnalysis.traits) || [];
+          buildTraitChips(aiTraits);
+        }
+      });
+    });
+
+    // --- Generate ---
+    function doGenerate() {
+      formData.story = document.getElementById('catStory').value.trim();
+
+      var petsText = formData.pets.filter(function(p) { return p !== 'いない'; }).join('、');
+      var traitsText = formData.traits.join('、');
 
       var payload = {
-        name: name,
-        gender: gender,
-        color: color,
-        date: date,
-        personality: document.getElementById('story-personality').value.trim(),
-        nameReason: document.getElementById('story-name-reason').value.trim(),
-        happyMoment: document.getElementById('story-happy').value.trim(),
-        otherPets: document.getElementById('story-pets').value,
-        message: document.getElementById('story-message').value.trim()
+        name: formData.name,
+        gender: formData.gender,
+        color: formData.color,
+        date: formData.date,
+        personality: traitsText || (formData.aiAnalysis && formData.aiAnalysis.traits ? formData.aiAnalysis.traits.join('、') : ''),
+        nameReason: '',
+        happyMoment: formData.story,
+        otherPets: petsText || 'いない',
+        message: ''
       };
 
-      showStep('loading');
+      showScreen('loading');
 
       fetch(API + '/api/story/generate', {
         method: 'POST',
@@ -1139,92 +1746,69 @@
       .then(function(data) {
         if (data.error) throw new Error(data.error);
         generatedText = data;
-
-        // Default to JA tab, but if JA is null and ZH exists, show ZH
-        if (!data.ja && data.zh) {
-          currentCardLang = 'zh';
-        } else {
-          currentCardLang = 'ja';
-        }
-
+        currentCardLang = data.ja ? 'ja' : 'zh';
         renderResult();
-        showStep('result');
+        showScreen('result');
 
-        // GA4
         if (typeof gtag === 'function') {
-          gtag('event', 'story_generate', { event_category: 'story', event_label: payload.name });
+          gtag('event', 'story_generate', { event_category: 'story', event_label: formData.name });
         }
       })
       .catch(function(err) {
         console.error('Story generation error:', err);
-        showStep('form');
+        showScreen('wizard');
+        goToStep(5);
+        var errorEl = document.getElementById('wizardError');
         errorEl.textContent = '生成に失敗しました。もう一度お試しください。';
         errorEl.style.display = 'block';
+        setTimeout(function() { errorEl.style.display = 'none'; }, 5000);
       });
-    });
+    }
 
-    // --- Render Result ---
+    document.getElementById('generateBtn').addEventListener('click', doGenerate);
+    document.getElementById('skipGenBtn').addEventListener('click', doGenerate);
+
+    // --- Render Result (same logic as V1) ---
     function renderResult() {
-      // Update tab active states
       document.querySelectorAll('.card-lang-tab').forEach(function(tab) {
         tab.classList.toggle('active', tab.dataset.lang === currentCardLang);
       });
-
-      // Hide tabs if only one language available
       var tabContainer = document.querySelector('.card-lang-tabs');
-      if (generatedText.ja && generatedText.zh) {
-        tabContainer.style.display = '';
-      } else {
-        tabContainer.style.display = 'none';
-      }
-
+      tabContainer.style.display = (generatedText.ja && generatedText.zh) ? '' : 'none';
       renderCardForLang(currentCardLang);
     }
 
     function renderCardForLang(lang) {
       var text = lang === 'ja' ? generatedText.ja : generatedText.zh;
-      if (!text) {
-        // Fallback to the other language
-        text = generatedText.ja || generatedText.zh;
-        lang = generatedText.ja ? 'ja' : 'zh';
-      }
+      if (!text) { text = generatedText.ja || generatedText.zh; lang = generatedText.ja ? 'ja' : 'zh'; }
 
       var shortText = text.short || '';
       var longText = lang === 'ja' ? (text.instagram || '') : (text.xiaohongshu || '');
+      var catName = formData.name;
+      var catDate = formData.date;
 
-      var catName = document.getElementById('story-name').value.trim();
-      var catDate = document.getElementById('story-date').value;
-
-      // Format date nicely
       var dateStr = catDate;
       try {
         var d = new Date(catDate + 'T00:00:00');
-        if (lang === 'ja') {
-          dateStr = d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日 お迎え';
-        } else {
-          dateStr = d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日 迎接纪念';
-        }
+        dateStr = d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日' + (lang === 'ja' ? ' お迎え' : ' 迎接纪念');
       } catch(e) {}
 
-      // --- Hidden card for download ---
-      document.getElementById('cardPhoto').style.backgroundImage = 'url(' + uploadedPhoto + ')';
+      // Hidden card for download
+      document.getElementById('cardPhoto').style.backgroundImage = 'url(' + formData.photo + ')';
       document.getElementById('cardName').textContent = catName;
       document.getElementById('cardText').textContent = shortText;
       document.getElementById('cardDate').textContent = dateStr;
 
-      // --- Visible preview (clone to preview div) ---
+      // Visible preview
       var previewEl = document.getElementById('card-preview');
       var canvasEl = document.getElementById('card-canvas');
       previewEl.innerHTML = canvasEl.innerHTML;
-
-      // Apply styles from canvas to preview
       previewEl.style.cssText = canvasEl.style.cssText;
       previewEl.style.position = 'relative';
       previewEl.style.left = '0';
 
-      // Copy dynamic values to preview
       var previewPhoto = previewEl.querySelector('.card-photo');
-      if (previewPhoto) previewPhoto.style.backgroundImage = 'url(' + uploadedPhoto + ')';
+      if (previewPhoto) previewPhoto.style.backgroundImage = 'url(' + formData.photo + ')';
       var previewName = previewEl.querySelector('.card-cat-name');
       if (previewName) previewName.textContent = catName;
       var previewText = previewEl.querySelector('.card-ai-text');
@@ -1232,7 +1816,6 @@
       var previewDate = previewEl.querySelector('.card-date');
       if (previewDate) previewDate.textContent = dateStr;
 
-      // Calculate preview scale based on wrapper width
       var wrapper = document.querySelector('.card-preview-wrapper');
       if (wrapper) {
         var scale = wrapper.offsetWidth / 1080;
@@ -1240,12 +1823,11 @@
         wrapper.style.height = (1440 * scale) + 'px';
       }
 
-      // --- Long text display ---
       document.getElementById('copyText').textContent = longText;
       document.getElementById('textLabel').textContent = lang === 'ja' ? 'Instagram / SNS' : '小红书 / 朋友圈';
     }
 
-    // --- Tab Switching ---
+    // Tab switching
     document.querySelectorAll('.card-lang-tab').forEach(function(tab) {
       tab.addEventListener('click', function() {
         currentCardLang = this.dataset.lang;
@@ -1253,30 +1835,24 @@
       });
     });
 
-    // --- Download Image ---
+    // --- Download ---
     document.getElementById('downloadBtn').addEventListener('click', function() {
       var btn = this;
       btn.disabled = true;
       btn.style.opacity = '0.6';
 
-      // Wait for fonts to be ready
       document.fonts.ready.then(function() {
         setTimeout(function() {
           var canvasEl = document.getElementById('card-canvas');
-          // Temporarily make visible for html2canvas
           canvasEl.style.left = '0';
           canvasEl.style.position = 'fixed';
           canvasEl.style.top = '0';
           canvasEl.style.zIndex = '-1';
 
           html2canvas(canvasEl, {
-            width: 1080,
-            height: 1440,
-            scale: 1,
-            useCORS: true,
-            allowTaint: true,
-            backgroundColor: '#FFFAF5',
-            logging: false
+            width: 1080, height: 1440, scale: 1,
+            useCORS: true, allowTaint: true,
+            backgroundColor: '#FFFAF5', logging: false
           }).then(function(canvas) {
             canvasEl.style.left = '-9999px';
             canvasEl.style.position = 'absolute';
@@ -1289,11 +1865,7 @@
 
             btn.disabled = false;
             btn.style.opacity = '';
-
-            // GA4
-            if (typeof gtag === 'function') {
-              gtag('event', 'story_download', { event_category: 'story' });
-            }
+            if (typeof gtag === 'function') gtag('event', 'story_download', { event_category: 'story' });
           }).catch(function(err) {
             console.error('html2canvas error:', err);
             canvasEl.style.left = '-9999px';
@@ -1301,70 +1873,66 @@
             canvasEl.style.zIndex = '';
             btn.disabled = false;
             btn.style.opacity = '';
-            alert('画像の生成に失敗しました。もう一度お試しください。');
           });
         }, 500);
       });
     });
 
-    // --- Copy Text ---
+    // --- Copy ---
     document.getElementById('copyBtn').addEventListener('click', function() {
       var btn = this;
       var text = document.getElementById('copyText').textContent;
-
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(function() {
-          showCopiedFeedback(btn);
-        }).catch(function() {
-          fallbackCopy(text, btn);
-        });
-      } else {
-        fallbackCopy(text, btn);
-      }
-
-      // GA4
-      if (typeof gtag === 'function') {
-        gtag('event', 'story_copy', { event_category: 'story' });
-      }
+        navigator.clipboard.writeText(text).then(function() { showCopied(btn); }).catch(function() { fallbackCopy(text, btn); });
+      } else { fallbackCopy(text, btn); }
+      if (typeof gtag === 'function') gtag('event', 'story_copy', { event_category: 'story' });
     });
 
     function fallbackCopy(text, btn) {
-      var textarea = document.createElement('textarea');
-      textarea.value = text;
-      textarea.style.position = 'fixed';
-      textarea.style.left = '-9999px';
-      document.body.appendChild(textarea);
-      textarea.select();
-      try {
-        document.execCommand('copy');
-        showCopiedFeedback(btn);
-      } catch(e) {
-        alert('コピーに失敗しました。テキストを長押しして手動でコピーしてください。');
-      }
-      document.body.removeChild(textarea);
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); showCopied(btn); } catch(e) {}
+      document.body.removeChild(ta);
     }
 
-    function showCopiedFeedback(btn) {
+    function showCopied(btn) {
       var span = btn.querySelector('span');
-      var originalText = span.textContent;
+      var orig = span.textContent;
       span.textContent = '✅ コピーしました！';
       btn.style.borderColor = 'var(--story-accent)';
       btn.style.color = 'var(--story-accent)';
-      setTimeout(function() {
-        span.textContent = originalText;
-        btn.style.borderColor = '';
-        btn.style.color = '';
-      }, 2000);
+      setTimeout(function() { span.textContent = orig; btn.style.borderColor = ''; btn.style.color = ''; }, 2000);
     }
 
     // --- Retry ---
     document.getElementById('retryBtn').addEventListener('click', function() {
       generatedText = null;
       currentCardLang = 'ja';
-      showStep('form');
+      formData = { photo: null, photoSmall: null, aiAnalysis: null, name: '', gender: '', color: '', date: '', pets: [], traits: [], story: '' };
+      // Reset UI
+      photoArea.classList.remove('has-photo');
+      photoPreview.src = '';
+      document.getElementById('aiAnalysisBox').classList.remove('visible');
+      document.getElementById('catName').value = '';
+      document.querySelectorAll('.gender-card').forEach(function(c) { c.classList.remove('selected'); });
+      document.querySelectorAll('.color-chip').forEach(function(c) { c.classList.remove('selected', 'ai-suggested'); });
+      document.getElementById('colorCustom').classList.remove('visible');
+      document.querySelectorAll('.pet-card').forEach(function(c) { c.classList.remove('selected'); });
+      document.getElementById('catStory').value = '';
+      dateInput.value = new Date().toISOString().split('T')[0];
+      document.getElementById('step1Next').disabled = true;
+      document.getElementById('step2Next').disabled = true;
+      document.getElementById('step3Next').disabled = true;
+
+      showScreen('wizard');
+      goToStep(1);
     });
 
-    // --- Preview scale on resize ---
+    // --- Resize preview on window resize ---
     window.addEventListener('resize', function() {
       if (generatedText) {
         var wrapper = document.querySelector('.card-preview-wrapper');

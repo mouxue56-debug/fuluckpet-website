@@ -335,6 +335,54 @@ async function callQianwen(env, prompt) {
   return parsed;
 }
 
+// Gemini Vision — analyze cat photo for color / traits / pose
+async function callGeminiVision(env, base64Data, mimeType) {
+  const key = env.GEMINI_API_KEY;
+  if (!key) throw new Error('GEMINI_API_KEY not configured');
+
+  const prompt = `この猫の写真を分析して、以下のJSON形式で出力してください（他のテキストは不要）：
+{
+  "color": "（毛色を日本語で1つ。例：シルバータビー、ブラウンタビー、ホワイト、ブルー、ゴールデンタビー、クリーム、レッド、ブラック、ネヴァマスカレード）",
+  "traits": ["（猫の表情や雰囲気から感じる性格を3つ。例：甘えん坊、好奇心旺盛、おっとり、やんちゃ、人懐っこい、マイペース、元気いっぱい、穏やか）"],
+  "pose": "（猫の姿勢を簡潔に。例：くつろいでいる、こちらを見つめている、遊んでいる、眠そう）"
+}
+注意：必ず上記のJSON形式のみ出力してください。`;
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${key}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { text: prompt },
+            { inlineData: { mimeType, data: base64Data } },
+          ],
+        }],
+        generationConfig: {
+          temperature: 0.4,
+          maxOutputTokens: 512,
+          responseMimeType: 'application/json',
+        },
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Gemini Vision API error: ${res.status} ${errText}`);
+  }
+
+  const data = await res.json();
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error('Gemini Vision returned empty response');
+
+  const parsed = extractJson(text);
+  if (!parsed) throw new Error('Failed to parse Gemini Vision JSON response');
+  return parsed;
+}
+
 const CORS_HEADERS = {
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
@@ -457,6 +505,32 @@ export default {
       }
 
       // ===== STORY CARD AI GENERATION (PUBLIC) =====
+
+      // POST /api/story/analyze-photo — Gemini Vision で猫写真を分析
+      if (path === '/api/story/analyze-photo' && method === 'POST') {
+        const body = await request.json();
+        const dataUri = body.image;
+        if (!dataUri || typeof dataUri !== 'string') {
+          return addCors(json({ error: 'image (base64 data URI) is required' }, 400));
+        }
+        // Extract mime type and base64 data from data URI
+        const match = dataUri.match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/);
+        if (!match) {
+          return addCors(json({ error: 'Invalid image data URI format' }, 400));
+        }
+        const mimeType = match[1];
+        const base64Data = match[2];
+        // Reject if base64 is too large (~4MB decoded)
+        if (base64Data.length > 5_500_000) {
+          return addCors(json({ error: 'Image too large. Please use a smaller photo.' }, 400));
+        }
+        try {
+          const result = await callGeminiVision(env, base64Data, mimeType);
+          return addCors(json(result, 200, 'no-store'));
+        } catch (err) {
+          return addCors(json({ error: 'Photo analysis failed', detail: err.message }, 500));
+        }
+      }
 
       // POST /api/story/generate — AI文案生成（Gemini JA + Qianwen ZH 並列）
       if (path === '/api/story/generate' && method === 'POST') {
