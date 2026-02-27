@@ -2239,3 +2239,12 @@ button { font-family: inherit; cursor: pointer; }
   a { color: #333; text-decoration: underline; }
   .kitten-card, .parent-card, .review-card { break-inside: avoid; }
 }
+
+/* SNS Media section responsive */
+@media (max-width: 640px) {
+  #sns-media [style*="grid-template-columns"] {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 32px !important;
+  }
+}
