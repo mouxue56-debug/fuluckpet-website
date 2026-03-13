@@ -250,7 +250,7 @@
           <div class="nav-item" data-page="articles"><span class="icon">📝</span> <span data-adm-ja="知識ライブラリ" data-adm-zh="知识库">知識ライブラリ</span></div>
           <div class="nav-item" data-page="images"><span class="icon">🖼️</span> <span data-adm-ja="画像管理" data-adm-zh="图片管理">画像管理</span></div>
           <div class="nav-item" data-page="drive"><span class="icon">☁️</span> <span data-adm-ja="Drive写真" data-adm-zh="Drive照片">Drive写真</span></div>
-          <div class="nav-item" data-page="export"><span class="icon">📤</span> <span data-adm-ja="HTML出力" data-adm-zh="HTML导出">HTML出力</span></div>
+          <div class="nav-item" data-page="export" style="display:none;"><span class="icon">📤</span> <span data-adm-ja="HTML出力" data-adm-zh="HTML导出">HTML出力</span></div>
         </div>
         <div class="nav-section">
           <div class="nav-section-title"><span data-adm-ja="設定" data-adm-zh="设置">設定</span></div>
@@ -272,7 +272,7 @@
           <button class="top-btn btn-secondary" onclick="toggleAdminLang()" id="adminLangBtn" style="font-size:12px;">🌐 中文 / 日本語</button>
           <a href="../index.html" target="_blank" class="top-btn btn-secondary"><span data-adm-ja="サイトを表示" data-adm-zh="查看网站">サイトを表示</span></a>
           <button class="top-btn btn-primary" id="addNewBtn" style="display:none">＋ <span data-adm-ja="新規追加" data-adm-zh="新增">新規追加</span></button>
-          <button class="top-btn btn-primary" id="publishBtn" onclick="handlePublish()">📤 <span data-adm-ja="発行する" data-adm-zh="发布更新">発行する</span></button>
+          <button class="top-btn btn-primary" id="publishBtn" onclick="handlePublish()">🔄 <span data-adm-ja="サイトを再発行" data-adm-zh="重新发布网站">サイトを再発行</span></button>
         </div>
       </div>
 
@@ -861,8 +861,8 @@
           </div>
 
           <div class="guide-step">
-            <h4><span class="step-number">7</span> <span data-adm-ja="ウェブサイトを更新する" data-adm-zh="更新网站">ウェブサイトを更新する</span></h4>
-            <p><span data-adm-ja="① 左メニューの「📤 HTML出力」をクリック<br>② 更新したいセクションの「HTML生成」ボタンをクリック（子猫/親猫/レビュー）<br>③ 「コピー」ボタンをクリックしてHTMLコードをコピー<br>④ GitHub (<a href='https://github.com/mouxue56-debug/fuluckpet-website' target='_blank'>リポジトリ</a>) にアクセスしてファイルを編集<br>⑤ 該当箇所のHTMLを貼り替えて「Commit changes」をクリック<br>⑥ 数分後にサイト (fuluckpet.com) に自動反映されます<br><br><strong style='color:var(--danger-dark)'>※ GitHub操作がわからない場合は管理者に連絡してください</strong>" data-adm-zh="① 点击左侧菜单的「📤 HTML导出」<br>② 点击想要更新的区域的「生成HTML」按钮（子猫/种猫/评价）<br>③ 点击「复制」按钮复制HTML代码<br>④ 访问GitHub (<a href='https://github.com/mouxue56-debug/fuluckpet-website' target='_blank'>仓库</a>) 编辑文件<br>⑤ 替换对应部分的HTML后点击「Commit changes」<br>⑥ 几分钟后网站 (fuluckpet.com) 会自动更新<br><br><strong style='color:var(--danger-dark)'>※ 如果不清楚GitHub操作请联系管理员</strong>">① 左メニューの「📤 HTML出力」をクリック<br>② 更新したいセクションの「HTML生成」ボタンをクリック（子猫/親猫/レビュー）<br>③ 「コピー」ボタンをクリックしてHTMLコードをコピー<br>④ GitHub (<a href='https://github.com/mouxue56-debug/fuluckpet-website' target='_blank'>リポジトリ</a>) にアクセスしてファイルを編集<br>⑤ 該当箇所のHTMLを貼り替えて「Commit changes」をクリック<br>⑥ 数分後にサイト (fuluckpet.com) に自動反映されます<br><br><strong style='color:var(--danger-dark)'>※ GitHub操作がわからない場合は管理者に連絡してください</strong></span></p>
+            <h4><span class="step-number">7</span> <span data-adm-ja="ウェブサイトの更新について" data-adm-zh="关于网站更新">ウェブサイトの更新について</span></h4>
+            <p><span data-adm-ja="✅ 子猫・親猫・レビューを保存すると、<strong>自動的にサイトが更新されます</strong>（約2分後に反映）。<br><br>手動で再発行したい場合は、右上の「🔄 サイトを再発行」ボタンをクリックしてください。<br><br>GitHubの操作は<strong>不要</strong>です。" data-adm-zh="✅ 保存子猫、种猫、评价后，<strong>网站会自动更新</strong>（约2分钟后生效）。<br><br>如需手动重新发布，请点击右上角的「🔄 重新发布网站」按钮。<br><br><strong>不需要</strong>操作GitHub。">✅ 子猫・親猫・レビューを保存すると、<strong>自動的にサイトが更新されます</strong>（約2分後に反映）。<br><br>手動で再発行したい場合は、右上の「🔄 サイトを再発行」ボタンをクリックしてください。<br><br>GitHubの操作は<strong>不要</strong>です。</span></p>
           </div>
 
           <div class="guide-step">
@@ -1010,14 +1010,25 @@
 
         <h4 style="font-size:14px;color:var(--text);margin-bottom:12px;">📷 <span data-adm-ja="手動追加の写真" data-adm-zh="手动添加的照片">手動追加の写真</span></h4>
         <div id="galleryGrid" class="gallery-grid"></div>
-        <div style="margin-top:20px;">
-          <label class="form-label"><span data-adm-ja="写真URLを追加" data-adm-zh="添加照片URL">写真URLを追加</span></label>
-          <div style="display:flex;gap:8px;">
-            <input class="form-input" id="newPhotoUrl" placeholder="https://photos.google.com/..." style="flex:1;">
-            <button class="btn-save" onclick="addGalleryPhoto()"><span data-adm-ja="追加" data-adm-zh="添加">追加</span></button>
-          </div>
-          <div class="form-hint"><span data-adm-ja="Google フォトの共有リンクを貼り付けてください" data-adm-zh="请粘贴Google相册的分享链接">Google フォトの共有リンクを貼り付けてください</span></div>
+        <!-- Direct upload from phone camera/gallery -->
+        <div style="margin-top:20px;padding:16px;background:var(--mint-light);border-radius:12px;border:2px dashed var(--mint);">
+          <label class="form-label" style="font-weight:700;color:var(--mint-dark);">📸 <span data-adm-ja="写真をアップロード" data-adm-zh="上传照片">写真をアップロード</span></label>
+          <input type="file" id="photoUploadInput" accept="image/*" multiple style="display:block;margin:8px 0;font-size:14px;width:100%;">
+          <button class="btn-save" onclick="uploadPhotosFromDevice()" style="width:100%;padding:12px;font-size:15px;" id="uploadPhotoBtn">
+            <span data-adm-ja="📤 アップロードして追加" data-adm-zh="📤 上传并添加">📤 アップロードして追加</span>
+          </button>
+          <div class="form-hint" style="margin-top:6px;"><span data-adm-ja="スマホから直接撮影・選択してアップロードできます" data-adm-zh="可从手机直接拍照或选图上传">スマホから直接撮影・選択してアップロードできます</span></div>
         </div>
+
+        <details style="margin-top:16px;">
+          <summary style="cursor:pointer;font-size:13px;color:var(--text-light);"><span data-adm-ja="URLで追加（上級者向け）" data-adm-zh="通过URL添加（高级）">URLで追加（上級者向け）</span></summary>
+          <div style="margin-top:8px;">
+            <div style="display:flex;gap:8px;">
+              <input class="form-input" id="newPhotoUrl" placeholder="https://photos.google.com/..." style="flex:1;">
+              <button class="btn-save" onclick="addGalleryPhoto()"><span data-adm-ja="追加" data-adm-zh="添加">追加</span></button>
+            </div>
+          </div>
+        </details>
       </div>
       <div class="modal-footer">
         <button class="btn-cancel" onclick="closeModal('photoModal')"><span data-adm-ja="閉じる" data-adm-zh="关闭">閉じる</span></button>

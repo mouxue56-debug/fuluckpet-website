@@ -106,7 +106,7 @@ function loadData() {
 
 function saveData(d) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
-  if (typeof FuluckAPI === 'undefined') return;
+  if (typeof FuluckAPI === 'undefined') return Promise.resolve();
 
   // Show sync status to user
   var syncIndicator = document.getElementById('syncStatus');
@@ -121,7 +121,7 @@ function saveData(d) {
     return FuluckAPI.bulkImport(type, d[type]);
   });
 
-  Promise.all(promises)
+  return Promise.all(promises)
     .then(function() {
       if (syncIndicator) {
         syncIndicator.textContent = t('☁️ 同期済み','☁️ 已同步');
@@ -137,6 +137,23 @@ function saveData(d) {
       }
       showToast(t('クラウド同期に失敗しました。データはローカルに保存されています。','云端同步失败，数据已保存到本地。'), 'error');
     });
+}
+
+// Save data + auto-publish (regenerate static site)
+function saveAndPublish(d) {
+  return saveData(d).then(function() {
+    if (typeof FuluckAPI === 'undefined' || typeof FuluckAPI.publish !== 'function') return;
+    return FuluckAPI.publish().then(function(res) {
+      if (res && res.success) {
+        showToast(t('✅ 保存＆発行完了！約2分後にサイトが更新されます','✅ 保存并发布成功！约2分钟后网站更新'), 'success');
+        addLog(t('保存＆発行しました','保存并发布了'));
+      }
+    }).catch(function(err) {
+      // Sync succeeded but publish failed — not critical, data is saved
+      console.warn('Auto-publish failed:', err);
+      showToast(t('保存済み。自動発行に失敗しました。手動で「発行する」をお試しください','已保存。自动发布失败，请手动点击"发布"按钮'), 'error');
+    });
+  });
 }
 
 function getData() {

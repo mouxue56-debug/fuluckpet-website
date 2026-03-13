@@ -49,12 +49,11 @@ function addGalleryPhoto() {
   item.photos.push(url);
   if (item.photos.length === 1) item.coverIndex = 0;
 
-  saveData(data);
+  saveAndPublish(data);
   renderGalleryGrid(item);
   renderAll();
   document.getElementById('newPhotoUrl').value = '';
   addLog(t((type === 'kitten' ? '子猫 ' + item.breederId : '親猫 ' + item.name) + ' に写真を追加しました', (type === 'kitten' ? '给子猫 ' + item.breederId : '给种猫 ' + item.name) + ' 添加了照片'));
-  showToast(t('写真を追加しました','已添加照片'), 'success');
 }
 
 function deleteGalleryPhoto(index) {
@@ -70,11 +69,74 @@ function deleteGalleryPhoto(index) {
   item.photos.splice(index, 1);
   if (item.coverIndex >= item.photos.length) item.coverIndex = Math.max(0, item.photos.length - 1);
 
-  saveData(data);
+  saveAndPublish(data);
   renderGalleryGrid(item);
   renderAll();
   addLog(t((type === 'kitten' ? '子猫 ' + item.breederId : '親猫 ' + item.name) + ' の写真を削除しました', (type === 'kitten' ? '删除了子猫 ' + item.breederId : '删除了种猫 ' + item.name) + ' 的照片'));
-  showToast(t('写真を削除しました','已删除照片'), 'success');
+}
+
+// Upload photos directly from device camera/gallery
+function uploadPhotosFromDevice() {
+  var fileInput = document.getElementById('photoUploadInput');
+  var files = fileInput.files;
+  if (!files || files.length === 0) {
+    showToast(t('写真を選択してください','请选择照片'), 'error');
+    return;
+  }
+  if (typeof FuluckAPI === 'undefined' || typeof FuluckAPI.uploadFile !== 'function') {
+    showToast(t('アップロード機能が利用できません','上传功能不可用'), 'error');
+    return;
+  }
+
+  var type = document.getElementById('photo_type').value;
+  var id = document.getElementById('photo_id').value;
+  var item;
+  if (type === 'kitten') item = data.kittens.find(function(x) { return x.id === id; });
+  else item = data.parents.find(function(x) { return x.id === id; });
+  if (!item) return;
+  if (!item.photos) item.photos = [];
+
+  var btn = document.getElementById('uploadPhotoBtn');
+  var origHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = t('⏳ アップロード中... (0/' + files.length + ')','⏳ 上传中... (0/' + files.length + ')');
+
+  var uploaded = 0;
+  var total = files.length;
+  var chain = Promise.resolve();
+
+  for (var i = 0; i < total; i++) {
+    (function(file) {
+      chain = chain.then(function() {
+        return FuluckAPI.uploadFile(file).then(function(res) {
+          uploaded++;
+          btn.innerHTML = t('⏳ アップロード中... (' + uploaded + '/' + total + ')','⏳ 上传中... (' + uploaded + '/' + total + ')');
+          if (res && res.url) {
+            item.photos.push(res.url);
+            if (item.photos.length === 1) item.coverIndex = 0;
+          }
+        });
+      });
+    })(files[i]);
+  }
+
+  chain.then(function() {
+    saveAndPublish(data);
+    renderGalleryGrid(item);
+    renderAll();
+    fileInput.value = '';
+    btn.disabled = false;
+    btn.innerHTML = origHTML;
+    addLog(t(
+      (type === 'kitten' ? '子猫 ' + item.breederId : '親猫 ' + item.name) + ' に ' + uploaded + ' 枚の写真をアップロードしました',
+      (type === 'kitten' ? '给子猫 ' + item.breederId : '给种猫 ' + item.name) + ' 上传了 ' + uploaded + ' 张照片'
+    ));
+    showToast(t(uploaded + '枚アップロード完了！', uploaded + '张上传完成！'), 'success');
+  }).catch(function(err) {
+    btn.disabled = false;
+    btn.innerHTML = origHTML;
+    showToast(t('アップロード失敗: ','上传失败: ') + err.message, 'error');
+  });
 }
 
 function setGalleryCover(index) {
@@ -87,9 +149,8 @@ function setGalleryCover(index) {
   if (!item) return;
   item.coverIndex = index;
 
-  saveData(data);
+  saveAndPublish(data);
   renderGalleryGrid(item);
   renderAll();
   addLog(t((type === 'kitten' ? '子猫 ' + item.breederId : '親猫 ' + item.name) + ' のカバー写真を変更しました', (type === 'kitten' ? '更改了子猫 ' + item.breederId : '更改了种猫 ' + item.name) + ' 的封面照片'));
-  showToast(t('カバー写真を変更しました','已更改封面照片'), 'success');
 }

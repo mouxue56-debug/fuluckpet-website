@@ -123,6 +123,12 @@ function renderKittens(filter) {
         (k.video ? '<span style="color:#c4302b;font-size:11px;font-weight:600;" title="' + t('YouTube動画あり','有YouTube视频') + '">▶YT</span>' : '') +
         '<button class="action-btn edit" onclick="editKitten(\'' + k.id + '\')">' + t('編集','编辑') + '</button>' +
         '<button class="action-btn delete" onclick="deleteKitten(\'' + k.id + '\')">' + t('削除','删除') + '</button>' +
+      '</div>' +
+      '<div class="quick-actions" style="margin-top:4px;display:flex;gap:4px;flex-wrap:wrap;">' +
+        (k.status !== 'sold' ? '<button class="action-btn" style="font-size:10px;padding:2px 6px;background:#FC8181;color:#fff;" onclick="quickSetStatus(\'' + k.id + '\',\'sold\')">' + t('売約済','已售') + '</button>' : '') +
+        (k.status !== 'reserved' ? '<button class="action-btn" style="font-size:10px;padding:2px 6px;background:#F6AD55;color:#fff;" onclick="quickSetStatus(\'' + k.id + '\',\'reserved\')">' + t('商談','洽谈') + '</button>' : '') +
+        (k.status !== 'available' ? '<button class="action-btn" style="font-size:10px;padding:2px 6px;background:#68D391;color:#fff;" onclick="quickSetStatus(\'' + k.id + '\',\'available\')">' + t('販売中','在售') + '</button>' : '') +
+        '<button class="action-btn" style="font-size:10px;padding:2px 6px;background:var(--mint);color:#fff;" onclick="quickEditPrice(\'' + k.id + '\')">' + t('価格変更','改价') + '</button>' +
       '</div></td>' +
     '</tr>';
   }).join('');
@@ -131,6 +137,31 @@ function renderKittens(filter) {
 }
 
 document.getElementById('kittenFilterStatus').addEventListener('change', function() { kittenPage = 1; renderKittens(this.value); });
+
+// Quick action: change kitten status without opening full form
+function quickSetStatus(id, newStatus) {
+  var kitten = data.kittens.find(function(k) { return k.id === id; });
+  if (!kitten) return;
+  var statusLabels = { available: t('販売中','在售'), reserved: t('商談中','洽谈中'), sold: t('ご家族決定','已售') };
+  kitten.status = newStatus;
+  addLog(t('子猫 ' + kitten.breederId + ' を「' + statusLabels[newStatus] + '」に変更しました','子猫 ' + kitten.breederId + ' 状态改为「' + statusLabels[newStatus] + '」'));
+  saveAndPublish(data);
+  renderAll();
+}
+
+// Quick action: edit kitten price inline
+function quickEditPrice(id) {
+  var kitten = data.kittens.find(function(k) { return k.id === id; });
+  if (!kitten) return;
+  var newPrice = prompt(t('新しい価格（税込）を入力してください：','请输入新价格（含税）：'), kitten.price);
+  if (newPrice === null) return;
+  newPrice = parseInt(newPrice);
+  if (isNaN(newPrice) || newPrice <= 0) { showToast(t('正しい金額を入力してください','请输入正确金额'), 'error'); return; }
+  kitten.price = newPrice;
+  addLog(t('子猫 ' + kitten.breederId + ' の価格を ¥' + newPrice.toLocaleString() + ' に変更しました','子猫 ' + kitten.breederId + ' 价格改为 ¥' + newPrice.toLocaleString()));
+  saveAndPublish(data);
+  renderAll();
+}
 
 function openKittenForm(kitten) {
   document.getElementById('kittenEditId').value = kitten ? kitten.id : '';
@@ -190,10 +221,9 @@ function saveKitten() {
     data.kittens.push(obj);
     addLog(t('子猫 ' + obj.breederId + ' を追加しました','添加了子猫 ' + obj.breederId));
   }
-  saveData(data);
+  saveAndPublish(data);
   closeModal('kittenFormModal');
   renderAll();
-  showToast(t('保存しました','已保存'), 'success');
 }
 
 function deleteKitten(id) {
@@ -201,7 +231,7 @@ function deleteKitten(id) {
   if (!k) return;
   if (!confirm(t('子猫 ' + k.breederId + ' を削除しますか？','确定删除子猫 ' + k.breederId + '？'))) return;
   data.kittens = data.kittens.filter(function(x) { return x.id !== id; });
-  saveData(data);
+  saveAndPublish(data);
   addLog(t('子猫 ' + k.breederId + ' を削除しました','删除了子猫 ' + k.breederId));
   renderAll();
   showToast(t('削除しました','已删除'), 'success');
@@ -290,10 +320,9 @@ function saveParent() {
     data.parents.push(obj);
     addLog(t('親猫 ' + obj.name + ' を追加しました','添加了种猫 ' + obj.name));
   }
-  saveData(data);
+  saveAndPublish(data);
   closeModal('parentFormModal');
   renderAll();
-  showToast(t('保存しました','已保存'), 'success');
 }
 
 function deleteParent(id) {
@@ -301,7 +330,7 @@ function deleteParent(id) {
   if (!p) return;
   if (!confirm(t('親猫 ' + p.name + ' を削除しますか？','确定删除种猫 ' + p.name + '？'))) return;
   data.parents = data.parents.filter(function(x) { return x.id !== id; });
-  saveData(data);
+  saveAndPublish(data);
   addLog(t('親猫 ' + p.name + ' を削除しました','删除了种猫 ' + p.name));
   renderAll();
   showToast(t('削除しました','已删除'), 'success');
@@ -358,10 +387,9 @@ function saveReview() {
     data.reviews.push(obj);
     addLog(t('レビュー ' + obj.author + ' を追加しました','添加了评价 ' + obj.author));
   }
-  saveData(data);
+  saveAndPublish(data);
   closeModal('reviewFormModal');
   renderAll();
-  showToast(t('保存しました','已保存'), 'success');
 }
 
 function deleteReview(id) {
@@ -369,7 +397,7 @@ function deleteReview(id) {
   if (!r) return;
   if (!confirm(t('レビュー ' + r.author + ' を削除しますか？','确定删除评价 ' + r.author + '？'))) return;
   data.reviews = data.reviews.filter(function(x) { return x.id !== id; });
-  saveData(data);
+  saveAndPublish(data);
   addLog(t('レビュー ' + r.author + ' を削除しました','删除了评价 ' + r.author));
   renderAll();
   showToast(t('削除しました','已删除'), 'success');
