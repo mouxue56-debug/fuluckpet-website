@@ -52,6 +52,13 @@
   /* Transitions */
   --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Liquid Glass Surface Tokens (additive, 2026-04 redesign) */
+  --glass-bg: rgba(255, 252, 240, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-blur: 20px;
+  --glass-saturate: 180%;
+  --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
 /* ===== Reset & Base ===== */
@@ -74,6 +81,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
+
+/* JP reading metrics baseline (2026-04 redesign) */
+body { line-height: 1.85; letter-spacing: 0.01em; }
+p, li { max-inline-size: 38em; } /* ~32 Japanese chars at 17px Noto Sans JP */
+.kitten-card .price, .kitten-card .kit-price, .price-display { font-feature-settings: "tnum" 1, "lnum" 1; letter-spacing: 0.02em; }
 
 img { max-width: 100%; height: auto; display: block; }
 a { text-decoration: none; color: inherit; transition: all 0.3s var(--ease-out); }
@@ -108,12 +120,16 @@ button { font-family: inherit; cursor: pointer; }
   left: 0;
   right: 0;
   z-index: 1000;
-  background: rgba(255, 252, 240, 0.85);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border-bottom: 1px solid rgba(125, 211, 192, 0.1);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: var(--glass-inset);
   height: var(--header-height);
-  transition: all 0.4s var(--ease-out);
+  transition: background 0.4s var(--ease-out), box-shadow 0.4s var(--ease-out), border-color 0.4s var(--ease-out);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .header { background: var(--bg-cream); }
 }
 .header.scrolled {
   background: rgba(255, 252, 240, 0.95);
@@ -2246,5 +2262,143 @@ button { font-family: inherit; cursor: pointer; }
     display: flex !important;
     flex-direction: column !important;
     gap: 32px !important;
+  }
+}
+
+
+/* ========================================
+   LIQUID GLASS SURFACES (2026-04 redesign)
+   Additive: applies subtle frosted-glass
+   treatment to cards, dropdowns, and modals.
+   Keeps Ice Cream palette intact.
+   ======================================== */
+
+/* Cards: subtle glass tint + inset highlight on top edge */
+.kitten-card,
+.parent-card,
+.review-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-inset), var(--shadow-soft);
+}
+.kitten-card:hover,
+.review-card:hover {
+  box-shadow: var(--glass-inset), var(--shadow-hover);
+}
+.parent-card:hover {
+  box-shadow: var(--glass-inset), var(--shadow-hover);
+}
+
+/* Dropdown nav menu: full glass */
+.nav-dropdown-menu {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-inset), var(--shadow-hover);
+}
+.nav-dropdown-menu::before {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border-color: var(--glass-border);
+}
+
+/* Kitten detail modal: real liquid glass surface */
+.modal-container {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-inset), 0 32px 80px rgba(0, 0, 0, 0.2);
+}
+
+/* Backdrop-filter fallback: opaque cream so older browsers stay readable */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .kitten-card,
+  .parent-card,
+  .review-card,
+  .nav-dropdown-menu,
+  .nav-dropdown-menu::before,
+  .modal-container {
+    background: var(--bg-cream);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/* iOS-spring hover/lift on key interactive surfaces.
+   Existing transitions use --ease-out; only ADD spring to the hover/lift. */
+.kitten-card,
+.parent-card,
+.btn,
+.nav-link {
+  transition: transform 280ms var(--ease-spring),
+              box-shadow 280ms var(--ease-spring),
+              background-color 280ms var(--ease-out),
+              border-color 280ms var(--ease-out),
+              color 280ms var(--ease-out);
+}
+
+
+/* ========================================
+   TRUST-SIGNAL HIERARCHY (P0 brief)
+   Single horizontal pill, ::after dividers,
+   stacks on <540px. Co-class with .hero-stats.
+   ======================================== */
+.hero-trust {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0;
+  padding: 18px 28px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
+  border-radius: 100px;
+  box-shadow: var(--glass-inset), var(--shadow-card);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .hero-trust { background: var(--bg-cream); }
+}
+.hero-trust .stat {
+  position: relative;
+  padding: 0 22px;
+}
+.hero-trust .stat:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 28px;
+  background: linear-gradient(to bottom, transparent, rgba(125, 211, 192, 0.35), transparent);
+  pointer-events: none;
+}
+.hero-trust .stat-divider { display: none; }
+
+@media (max-width: 540px) {
+  .hero-trust {
+    flex-direction: column;
+    gap: 12px;
+    padding: 18px 24px;
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 280px;
+  }
+  .hero-trust .stat { padding: 0; }
+  .hero-trust .stat:not(:last-child)::after {
+    top: auto;
+    right: auto;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 48px;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(125, 211, 192, 0.35), transparent);
   }
 }
