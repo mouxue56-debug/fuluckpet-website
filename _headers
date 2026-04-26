@@ -1,0 +1,30 @@
+# ============================================================================
+# Cloudflare Pages / Netlify _headers file — security headers for the static site.
+#
+# IMPORTANT: GitHub Pages does NOT honor this file. It is only effective when
+# the site is hosted on Cloudflare Pages or Netlify (or another host that reads
+# `_headers`). If you keep using GitHub Pages, deploy these headers via a
+# Cloudflare Page Rule or Transform Rule on the `fuluckpet.com` zone instead.
+#
+# When you migrate to Cloudflare Pages:
+#   1. Connect this repo as a Pages project.
+#   2. Pages will read this file automatically — no extra config needed.
+#   3. Verify with `curl -I https://fuluckpet.com/` that the headers are set.
+#
+# CSP allowlist notes:
+#   - `script-src` allows GA4 + TikTok + Instagram + YouTube embeds (already in use).
+#   - `connect-src` allows the Workers API and GA. Add other origins if you
+#     introduce new third-party fetches.
+#   - `img-src https:` is wide on purpose — many embeds load images from
+#     arbitrary CDNs. Tighten only if you can enumerate every image origin.
+#   - 'unsafe-inline' for script-src is required because i18n.js sets dataset
+#     fields inline; consider hashed CSP later.
+# ============================================================================
+
+/*
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://*.google-analytics.com https://www.tiktok.com https://platform.instagram.com https://www.youtube.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://fuluck-api.mouxue56.workers.dev https://*.google-analytics.com; frame-src https://www.youtube.com https://www.tiktok.com https://platform.instagram.com; frame-ancestors 'self';

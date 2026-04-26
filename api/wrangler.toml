@@ -7,13 +7,20 @@ compatibility_date = "2024-09-23"
 
 # 環境変数 (本番では Workers Settings > Variables で設定)
 [vars]
-CORS_ORIGIN = "*"
+# Default CORS origin for ADMIN/PRIVATE endpoints. Public endpoints are wide-open ('*')
+# via corsForPublic() in worker.js — see corsForPrivate() for the locked-down whitelist.
+CORS_ORIGIN = "https://fuluckpet.com"
+# Telegram fallback for booking notifications (optional). Leave blank to disable.
+# TELEGRAM_BOT_TOKEN  = "..."   # via `wrangler secret put`
+# TELEGRAM_CHAT_ID    = "..."   # via `wrangler secret put` (or vars)
 # 以下のシークレットは `wrangler secret put` で設定してください（コードに書かないこと）:
-#   ADMIN_PASSWORD            — 管理画面パスワード
+#   ADMIN_PASSWORD            — 管理画面パスワード (legacy plain — DEPRECATED, use KV pw:hash)
 #   GOOGLE_SA_KEY             — Google Service Account JSON（全内容をペースト）
 #   GOOGLE_DRIVE_ROOT_FOLDER_ID — Google Drive ルートフォルダ ID
 #   GEMINI_API_KEY             — Google Gemini API Key（ストーリーカードAI生成用）
 #   QIANWEN_API_KEY            — Alibaba Qianwen API Key（ストーリーカードAI生成用）
+#   TELEGRAM_BOT_TOKEN        — Telegram bot token for booking fallback (optional)
+#   TELEGRAM_CHAT_ID          — Telegram chat id for booking fallback (optional)
 
 # R2 バケット (画像ストレージ)
 [[r2_buckets]]

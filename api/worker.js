@@ -433,6 +433,29 @@ const CORS_HEADERS = {
   'Access-Control-Max-Age': '86400',
 };
 
+// Whitelist for admin/private endpoints (booking, /api/admin/*, /api/auth).
+// Public read endpoints stay '*' to allow i18n preview / third-party embeds.
+const PRIVATE_ALLOWED_ORIGINS = [
+  'https://fuluckpet.com',
+  'http://localhost:8765',
+  'http://localhost:8771',
+];
+
+// Public endpoints — wide-open CORS.
+function corsForPublic() {
+  return '*';
+}
+
+// Private endpoints — return the request Origin only if whitelisted, else null.
+// Caller must respond 403 when null.
+function corsForPrivate(request) {
+  const origin = request.headers.get('Origin') || '';
+  if (PRIVATE_ALLOWED_ORIGINS.includes(origin)) return origin;
+  return null;
+}
+
+// Legacy helper retained for the OPTIONS preflight builder & wide compatibility.
+// New code should call corsForPublic / corsForPrivate explicitly.
 function corsOrigin(request, env) {
   const origin = request.headers.get('Origin') || '';
   const allowed = env.CORS_ORIGIN || '*';
@@ -454,16 +477,277 @@ function notFound() {
   return json({ error: 'Not Found' }, 404);
 }
 
-// Simple token auth: Authorization: Bearer <password>
-// Checks env variable first, falls back to KV stored password, then default
+function forbidden() {
+  return json({ error: 'Forbidden — origin not allowed' }, 403);
+}
+
+// Standard 500 response with a UUID the owner can grep in Cloudflare logs.
+function internalError(err, requestId) {
+  console.error(`[${requestId}] INTERNAL_ERROR`, err && err.stack ? err.stack : err);
+  return json({ error: 'INTERNAL_ERROR', request_id: requestId }, 500);
+}
+
+// ===== Password hashing (Web Crypto, SHA-256 + per-install salt) =====
+
+function bytesToHex(buf) {
+  const view = new Uint8Array(buf);
+  let s = '';
+  for (let i = 0; i < view.length; i++) s += view[i].toString(16).padStart(2, '0');
+  return s;
+}
+
+function randomSaltHex(byteLength = 16) {
+  const bytes = new Uint8Array(byteLength);
+  crypto.getRandomValues(bytes);
+  return bytesToHex(bytes.buffer);
+}
+
+async function hashPassword(password, saltHex) {
+  const data = new TextEncoder().encode(password + ':' + saltHex);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return bytesToHex(digest);
+}
+
+// Constant-time string compare (prevents timing attacks on hash comparison).
+// Both inputs must be hex strings of the same length; XOR every char and OR results.
+function constantTimeEquals(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+// Verify a candidate password against KV-stored hash+salt.
+// Returns { ok: boolean, migrated: boolean } — `migrated` is true on legacy
+// plain-password fallback (one-time migration; caller MUST seed pw:hash + salt
+// and delete admin_password on success).
+async function verifyAndMaybeMigrate(env, candidate) {
+  if (typeof candidate !== 'string' || candidate.length === 0) return { ok: false, migrated: false };
+
+  const storedHash = await env.DATA.get('pw:hash');
+  const storedSalt = await env.DATA.get('pw:salt');
+
+  if (storedHash && storedSalt) {
+    const candidateHash = await hashPassword(candidate, storedSalt);
+    return { ok: constantTimeEquals(candidateHash, storedHash), migrated: false };
+  }
+
+  // Legacy: pw:hash absent. Accept the old `admin_password` KV value ONCE.
+  // (We removed the hardcoded 'fuluck2025' fallback — owner MUST seed the hash
+  //  before deploying, OR have an old admin_password in KV they can migrate.)
+  const legacyPass = await env.DATA.get('admin_password');
+  if (!legacyPass) return { ok: false, migrated: false };
+
+  // Constant-time compare for legacy too.
+  if (!constantTimeEquals(candidate, legacyPass)) return { ok: false, migrated: false };
+
+  // Migrate: generate salt, store hash+salt, delete plain password.
+  const newSalt = randomSaltHex(16);
+  const newHash = await hashPassword(candidate, newSalt);
+  await env.DATA.put('pw:salt', newSalt);
+  await env.DATA.put('pw:hash', newHash);
+  await env.DATA.delete('admin_password');
+  console.warn('[auth] legacy admin_password migrated to pw:hash + pw:salt; plain key deleted');
+  return { ok: true, migrated: true };
+}
+
+// Bearer-token auth for admin endpoints (Authorization: Bearer <password>).
+// Falls through to legacy migration on first login.
 async function checkAuth(request, env) {
   const auth = request.headers.get('Authorization') || '';
   const token = auth.replace('Bearer ', '');
-  // Priority: env variable > KV stored > default
-  const envPass = env.ADMIN_PASSWORD;
-  if (envPass) return token === envPass;
-  const kvPass = await env.DATA.get('admin_password');
-  return token === (kvPass || 'fuluck2025');
+  const { ok } = await verifyAndMaybeMigrate(env, token);
+  return ok;
+}
+
+// ===== Booking validation =====
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Japanese phone: digits, hyphens, parens, plus, spaces; 9-15 chars after stripping.
+const PHONE_DIGITS_RE = /^[0-9+\-()\s]{9,20}$/;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+function validateBooking(body) {
+  const errors = [];
+  const data = {};
+
+  if (!body || typeof body !== 'object') return { errors: ['Invalid JSON body'], data };
+
+  // name (required, 1-100)
+  const name = typeof body.name === 'string' ? body.name.trim() : '';
+  if (!name || name.length > 100) errors.push('name (1-100 chars) required');
+  data.name = name;
+
+  // email (required, regex)
+  const email = typeof body.email === 'string' ? body.email.trim() : '';
+  if (!EMAIL_RE.test(email) || email.length > 200) errors.push('valid email required');
+  data.email = email;
+
+  // phone (optional but if present, must look phone-ish)
+  const phone = typeof body.phone === 'string' ? body.phone.trim() : '';
+  if (phone && !PHONE_DIGITS_RE.test(phone)) errors.push('phone format invalid');
+  data.phone = phone;
+
+  // preferred_date (required, YYYY-MM-DD)
+  const preferred_date = typeof body.preferred_date === 'string' ? body.preferred_date.trim() : '';
+  if (!DATE_RE.test(preferred_date)) errors.push('preferred_date (YYYY-MM-DD) required');
+  data.preferred_date = preferred_date;
+
+  // preferred_time (optional, free text, ≤ 50)
+  const preferred_time = typeof body.preferred_time === 'string' ? body.preferred_time.trim().slice(0, 50) : '';
+  data.preferred_time = preferred_time;
+
+  // kitten_id (optional, ≤ 100)
+  const kitten_id = typeof body.kitten_id === 'string' ? body.kitten_id.trim().slice(0, 100) : '';
+  data.kitten_id = kitten_id;
+
+  // visit_method (optional, ≤ 50) — extra UX field used by booking.html
+  const visit_method = typeof body.visit_method === 'string' ? body.visit_method.trim().slice(0, 50) : '';
+  data.visit_method = visit_method;
+
+  // preferred_date2 (optional, YYYY-MM-DD)
+  const preferred_date2 = typeof body.preferred_date2 === 'string' ? body.preferred_date2.trim() : '';
+  if (preferred_date2 && !DATE_RE.test(preferred_date2)) errors.push('preferred_date2 (YYYY-MM-DD) invalid');
+  data.preferred_date2 = preferred_date2;
+
+  // message (optional, ≤ 2000)
+  const message = typeof body.message === 'string' ? body.message : '';
+  if (message.length > 2000) errors.push('message exceeds 2000 chars');
+  data.message = message.trim();
+
+  return { errors, data };
+}
+
+// Escape for HTML email body (defence against header/HTML injection from user input).
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Build plain-text and HTML email bodies for a booking submission.
+function buildBookingEmail(submission, requestId) {
+  const adminUrl = 'https://fuluckpet.com/admin/';
+  const lines = [
+    '【fuluckpet 予約】新しい見学予約が届きました',
+    '',
+    `■ お名前: ${submission.name}`,
+    `■ メール: ${submission.email}`,
+    `■ 電話: ${submission.phone || '（未記入）'}`,
+    `■ 第一希望日: ${submission.preferred_date}`,
+    submission.preferred_date2 ? `■ 第二希望日: ${submission.preferred_date2}` : null,
+    submission.preferred_time ? `■ 希望時間: ${submission.preferred_time}` : null,
+    submission.visit_method ? `■ 見学方法: ${submission.visit_method}` : null,
+    submission.kitten_id ? `■ 気になる子猫: ${submission.kitten_id}` : null,
+    '',
+    '■ メッセージ:',
+    submission.message || '（なし）',
+    '',
+    `管理画面: ${adminUrl}`,
+    `Request ID: ${requestId}`,
+    '',
+    '────────────',
+    `自動送信メール — このメールに返信せず、${submission.email} に直接ご返信ください`,
+  ].filter(Boolean);
+  const text = lines.join('\n');
+
+  const html = `<!doctype html><html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#333;max-width:560px;margin:0 auto;padding:20px;">
+<h2 style="color:#5a8a6e;margin:0 0 16px;">【fuluckpet 予約】新しい見学予約</h2>
+<table style="width:100%;border-collapse:collapse;font-size:14px;">
+<tr><td style="padding:6px 0;color:#666;width:120px;">お名前</td><td style="padding:6px 0;font-weight:600;">${escapeHtml(submission.name)}</td></tr>
+<tr><td style="padding:6px 0;color:#666;">メール</td><td style="padding:6px 0;"><a href="mailto:${escapeHtml(submission.email)}">${escapeHtml(submission.email)}</a></td></tr>
+<tr><td style="padding:6px 0;color:#666;">電話</td><td style="padding:6px 0;">${escapeHtml(submission.phone || '（未記入）')}</td></tr>
+<tr><td style="padding:6px 0;color:#666;">第一希望日</td><td style="padding:6px 0;">${escapeHtml(submission.preferred_date)}</td></tr>
+${submission.preferred_date2 ? `<tr><td style="padding:6px 0;color:#666;">第二希望日</td><td style="padding:6px 0;">${escapeHtml(submission.preferred_date2)}</td></tr>` : ''}
+${submission.preferred_time ? `<tr><td style="padding:6px 0;color:#666;">希望時間</td><td style="padding:6px 0;">${escapeHtml(submission.preferred_time)}</td></tr>` : ''}
+${submission.visit_method ? `<tr><td style="padding:6px 0;color:#666;">見学方法</td><td style="padding:6px 0;">${escapeHtml(submission.visit_method)}</td></tr>` : ''}
+${submission.kitten_id ? `<tr><td style="padding:6px 0;color:#666;">気になる子猫</td><td style="padding:6px 0;">${escapeHtml(submission.kitten_id)}</td></tr>` : ''}
+</table>
+<div style="margin-top:18px;padding:14px;background:#f7f9f6;border-left:3px solid #5a8a6e;font-size:14px;line-height:1.6;white-space:pre-wrap;">${escapeHtml(submission.message || '（なし）')}</div>
+<p style="margin:20px 0 8px;"><a href="${adminUrl}" style="display:inline-block;padding:10px 18px;background:#5a8a6e;color:#fff;text-decoration:none;border-radius:6px;">管理画面で確認する</a></p>
+<p style="font-size:12px;color:#999;margin-top:24px;">Request ID: ${escapeHtml(requestId)}</p>
+<p style="font-size:12px;color:#999;border-top:1px solid #eee;padding-top:12px;">自動送信メール — このメールに返信せず、<a href="mailto:${escapeHtml(submission.email)}">${escapeHtml(submission.email)}</a> に直接ご返信ください</p>
+</body></html>`;
+
+  return { text, html };
+}
+
+// Send booking notification via MailChannels (free for CF Workers).
+// Requires SPF + DKIM DNS records on the From domain.
+async function sendBookingEmail(submission, requestId) {
+  const subject = `[fuluckpet 予約] ${submission.name} さんから新しい見学予約`;
+  const { text, html } = buildBookingEmail(submission, requestId);
+
+  const payload = {
+    personalizations: [{ to: [{ email: 'mouxue56@gmail.com', name: 'fuluckpet 管理者' }] }],
+    from: { email: 'noreply@fuluckpet.com', name: 'fuluckpet 予約システム' },
+    reply_to: { email: submission.email, name: submission.name },
+    subject,
+    content: [
+      { type: 'text/plain', value: text },
+      { type: 'text/html', value: html },
+    ],
+  };
+
+  const res = await fetch('https://api.mailchannels.net/tx/v1/send', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const detail = await res.text().catch(() => '');
+    throw new Error(`MailChannels ${res.status}: ${detail.slice(0, 500)}`);
+  }
+}
+
+// Optional Telegram fallback (fires alongside email if env vars are present).
+async function sendBookingTelegram(env, submission, requestId) {
+  const token = env.TELEGRAM_BOT_TOKEN;
+  const chatId = env.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) return; // disabled
+
+  const lines = [
+    '*【fuluckpet 予約】*',
+    `名前: ${submission.name}`,
+    `メール: ${submission.email}`,
+    submission.phone ? `電話: ${submission.phone}` : null,
+    `第一希望日: ${submission.preferred_date}`,
+    submission.preferred_date2 ? `第二希望日: ${submission.preferred_date2}` : null,
+    submission.preferred_time ? `時間: ${submission.preferred_time}` : null,
+    submission.visit_method ? `方法: ${submission.visit_method}` : null,
+    submission.kitten_id ? `子猫: ${submission.kitten_id}` : null,
+    submission.message ? `\nメッセージ:\n${submission.message}` : null,
+    `\n\`${requestId}\``,
+  ].filter(Boolean);
+  // Escape Telegram MarkdownV2-special chars in user data — but stay on Markdown
+  // (legacy) for simplicity: Markdown is more forgiving and we already strip _ * [ ` from
+  // most user fields naturally. Plain text is safest:
+  const text = lines.map(l => l.replace(/[*_`]/g, '')).join('\n');
+
+  try {
+    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text, disable_web_page_preview: true }),
+    });
+  } catch (e) {
+    // Non-fatal — email is the source of truth.
+    console.warn(`[${requestId}] telegram fallback failed:`, e && e.message);
+  }
+}
+
+// Classify a request path as private (admin/auth/booking) or public.
+// Private paths get scoped CORS; public paths get '*'.
+function isPrivatePath(path) {
+  return (
+    path.startsWith('/api/admin/') ||
+    path === '/api/auth' ||
+    path === '/api/booking'
+  );
 }
 
 export default {
@@ -472,23 +756,51 @@ export default {
     const path = url.pathname;
     const method = request.method;
 
+    // Resolve CORS origin per request based on path classification.
+    const isPrivate = isPrivatePath(path);
+    let allowedOrigin;
+    if (isPrivate) {
+      allowedOrigin = corsForPrivate(request); // null if not whitelisted
+    } else {
+      allowedOrigin = corsForPublic(); // always '*'
+    }
+
     // CORS preflight
     if (method === 'OPTIONS') {
+      // Private endpoints: reject preflights from non-whitelisted origins.
+      if (isPrivate && !allowedOrigin) {
+        return new Response(null, { status: 403 });
+      }
       return new Response(null, {
         headers: {
           ...CORS_HEADERS,
-          'Access-Control-Allow-Origin': corsOrigin(request, env),
+          'Access-Control-Allow-Origin': allowedOrigin || '*',
+          ...(isPrivate ? { 'Vary': 'Origin' } : {}),
         },
       });
     }
 
-    // Add CORS to all responses
+    // For private endpoints with no whitelisted origin, refuse before doing work.
+    // (Browsers will already have blocked the preflight; this catches direct
+    //  fetches from non-browser clients or curl probes.)
+    if (isPrivate && !allowedOrigin) {
+      const headers = new Headers({ 'Content-Type': 'application/json' });
+      return new Response(JSON.stringify({ error: 'Forbidden — origin not allowed' }), {
+        status: 403, headers,
+      });
+    }
+
+    // Add CORS + security headers to every response.
     const addCors = (res) => {
       const headers = new Headers(res.headers);
-      headers.set('Access-Control-Allow-Origin', corsOrigin(request, env));
+      headers.set('Access-Control-Allow-Origin', allowedOrigin || '*');
+      if (isPrivate) headers.set('Vary', 'Origin');
       for (const [k, v] of Object.entries(CORS_HEADERS)) {
         headers.set(k, v);
       }
+      // Defence-in-depth headers (cheap, safe for JSON):
+      headers.set('X-Content-Type-Options', 'nosniff');
+      headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
       return new Response(res.body, { status: res.status, headers });
     };
 
@@ -744,20 +1056,75 @@ export default {
         }));
       }
 
-      // ===== AUTH CHECK =====
-      // POST /api/auth — ログイン確認
-      if (path === '/api/auth' && method === 'POST') {
-        const body = await request.json();
-        const envPass = env.ADMIN_PASSWORD;
-        let correctPass;
-        if (envPass) {
-          correctPass = envPass;
-        } else {
-          const kvPass = await env.DATA.get('admin_password');
-          correctPass = kvPass || 'fuluck2025';
+      // ===== BOOKING (PUBLIC WRITE; CORS LOCKED) =====
+      //
+      // POST /api/booking — accept booking submission, save to KV, email owner.
+      // Save to KV happens FIRST so we never lose a submission even if email fails.
+      if (path === '/api/booking' && method === 'POST') {
+        const requestId = crypto.randomUUID();
+        try {
+          let body;
+          try { body = await request.json(); }
+          catch (_e) { return addCors(json({ error: 'Invalid JSON' }, 400)); }
+
+          const { errors, data } = validateBooking(body);
+          if (errors.length) {
+            return addCors(json({ error: 'Validation failed', details: errors }, 400));
+          }
+
+          // Persist to KV first (90-day TTL); never lose a submission.
+          const ts = Date.now();
+          const rand = crypto.randomUUID().slice(0, 8);
+          const kvKey = `booking:${ts}:${rand}`;
+          const stored = {
+            ...data,
+            request_id: requestId,
+            created_at: new Date(ts).toISOString(),
+            user_agent: request.headers.get('User-Agent') || '',
+            ip: request.headers.get('CF-Connecting-IP') || '',
+          };
+          await env.DATA.put(kvKey, JSON.stringify(stored), { expirationTtl: 90 * 24 * 3600 });
+
+          // Send email (and optional Telegram) in the background — return 200 immediately
+          // unless email fails synchronously here. We DO await email so the user sees a
+          // 500 if MailChannels is down — but the booking is still in KV, so owner can
+          // see it on the admin page.
+          let emailErr = null;
+          try {
+            await sendBookingEmail(data, requestId);
+          } catch (e) {
+            emailErr = e;
+            console.error(`[${requestId}] email send failed:`, e && e.stack ? e.stack : e);
+          }
+
+          // Telegram fallback (best-effort, non-blocking via waitUntil).
+          ctx.waitUntil(sendBookingTelegram(env, data, requestId));
+
+          if (emailErr) {
+            // KV saved, email failed — owner still has the data.
+            return addCors(json({
+              ok: true,
+              request_id: requestId,
+              warning: 'saved_but_email_failed',
+            }, 200));
+          }
+          return addCors(json({ ok: true, request_id: requestId }, 200));
+        } catch (err) {
+          return addCors(internalError(err, requestId));
         }
-        const ok = body.password === correctPass;
-        return addCors(json({ success: ok }));
+      }
+
+      // ===== AUTH CHECK =====
+      // POST /api/auth — login check (hashed; constant-time compare; one-time legacy migration).
+      if (path === '/api/auth' && method === 'POST') {
+        try {
+          const body = await request.json();
+          const { ok, migrated } = await verifyAndMaybeMigrate(env, body && body.password);
+          return addCors(json({ success: ok, migrated: migrated || undefined }));
+        } catch (err) {
+          const rid = crypto.randomUUID();
+          return addCors(internalError(err, rid));
+        }
       }
 
       // All routes below require auth
@@ -1059,16 +1426,53 @@ export default {
         return addCors(json({ success: true, folderId }));
       }
 
-      // --- Password Change ---
+      // --- Password Change (legacy path) ---
+      // Kept for backward compatibility with the old admin UI.
+      // Body: { newPassword }. Caller is already authenticated via Bearer header.
       if (path === '/api/admin/password' && method === 'PUT') {
-        const body = await request.json();
-        if (!body.newPassword || body.newPassword.length < 6) {
-          return addCors(json({ error: 'Password must be at least 6 characters' }, 400));
+        try {
+          const body = await request.json();
+          if (!body.newPassword || body.newPassword.length < 8) {
+            return addCors(json({ error: 'Password must be at least 8 characters' }, 400));
+          }
+          const newSalt = randomSaltHex(16);
+          const newHash = await hashPassword(body.newPassword, newSalt);
+          await env.DATA.put('pw:salt', newSalt);
+          await env.DATA.put('pw:hash', newHash);
+          // Belt-and-suspenders: clear any leftover plain.
+          await env.DATA.delete('admin_password');
+          return addCors(json({ success: true }));
+        } catch (err) {
+          const rid = crypto.randomUUID();
+          return addCors(internalError(err, rid));
         }
-        // KV に保存 — checkAuth は KV のパスワードも参照する
-        // env.ADMIN_PASSWORD が設定されている場合はそちらが優先される
-        await env.DATA.put('admin_password', body.newPassword);
-        return addCors(json({ success: true }));
+      }
+
+      // --- Password Reset (preferred path; requires current password) ---
+      // Body: { currentPassword, newPassword }.
+      // Defends against session hijack: even if a Bearer token leaks, the attacker
+      // can't rotate the password without knowing the current one.
+      if (path === '/api/admin/password/reset' && method === 'POST') {
+        try {
+          const body = await request.json();
+          if (!body || typeof body.currentPassword !== 'string' || typeof body.newPassword !== 'string') {
+            return addCors(json({ error: 'currentPassword and newPassword required' }, 400));
+          }
+          if (body.newPassword.length < 8) {
+            return addCors(json({ error: 'Password must be at least 8 characters' }, 400));
+          }
+          const verify = await verifyAndMaybeMigrate(env, body.currentPassword);
+          if (!verify.ok) return addCors(json({ error: 'Current password incorrect' }, 401));
+          const newSalt = randomSaltHex(16);
+          const newHash = await hashPassword(body.newPassword, newSalt);
+          await env.DATA.put('pw:salt', newSalt);
+          await env.DATA.put('pw:hash', newHash);
+          await env.DATA.delete('admin_password');
+          return addCors(json({ success: true }));
+        } catch (err) {
+          const rid = crypto.randomUUID();
+          return addCors(internalError(err, rid));
+        }
       }
 
       // --- Publish: trigger GitHub Actions to regenerate static pages ---
@@ -1093,7 +1497,41 @@ export default {
       return addCors(notFound());
 
     } catch (err) {
-      return addCors(json({ error: err.message }, 500));
+      // Structured error response: { error: 'INTERNAL_ERROR', request_id }
+      // Owner can grep Cloudflare logs by request_id for stack trace.
+      const requestId = crypto.randomUUID();
+      console.error(`[${requestId}] ${method} ${path}`, err && err.stack ? err.stack : err);
+
+      // Public read endpoint? Try cached fallback before 5xx.
+      // KV key format: cache:fallback:<endpoint-name>  (owner can pre-seed these manually)
+      const PUBLIC_FALLBACK_MAP = {
+        '/api/kittens': 'cache:fallback:kittens',
+        '/api/parents': 'cache:fallback:parents',
+        '/api/reviews': 'cache:fallback:reviews',
+        '/api/gallery': 'cache:fallback:gallery',
+        '/api/settings': 'cache:fallback:settings',
+        '/api/articles': 'cache:fallback:articles',
+        '/api/faq': 'cache:fallback:faq',
+      };
+      if (method === 'GET' && PUBLIC_FALLBACK_MAP[path]) {
+        try {
+          const fallback = await env.DATA.get(PUBLIC_FALLBACK_MAP[path]);
+          if (fallback) {
+            return addCors(new Response(fallback, {
+              status: 200,
+              headers: {
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-store',
+                'X-Fallback': 'cache',
+                'X-Request-Id': requestId,
+              },
+            }));
+          }
+        } catch (_e) { /* fallback fetch itself failed — fall through to 503 */ }
+        return addCors(json({ error: 'Service unavailable', request_id: requestId }, 503));
+      }
+
+      return addCors(json({ error: 'INTERNAL_ERROR', request_id: requestId }, 500));
     }
   },
 };
