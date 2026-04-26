@@ -65,9 +65,11 @@
   --text-note-strong: #5A6E6E;
 
   /* Star/rating amber — replaces --mango (#FFE5A0) for review/rating star fills.
-     #E8A317 on #FFFFFF computes ≈ 4.62:1 (passes WCAG AA 4.5:1 for normal text).
+     #946000 on #FFFFFF = 5.34:1 (passes WCAG AA 4.5:1 for normal text);
+     on #FFFCF0 cream = 5.20:1. Verified 2026-04-26 with WCAG luminance formula
+     (prior #E8A317 measured 2.17:1 — failed AA).
      --mango stays unchanged because milk-tinted backgrounds elsewhere don't need this contrast. */
-  --star-amber: #E8A317;
+  --star-amber: #946000;
 }
 
 /* ===== Reset & Base ===== */
@@ -105,6 +107,34 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ===== Container ===== */
 .container { max-width: var(--max-width); margin: 0 auto; padding: 0 24px; }
+
+
+/* ========================================
+   SKIP-TO-CONTENT LINK (a11y)
+   Hidden off-screen until keyboard-focused.
+   First focusable element on every page so screen-reader / keyboard
+   users can jump past the header straight to <main id="main">.
+   ======================================== */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 8px;
+  z-index: 9999;
+  padding: 8px 16px;
+  background: var(--bg-white);
+  color: var(--text-heading);
+  border: 2px solid var(--mint);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: top 200ms var(--ease-out);
+}
+.skip-link:focus {
+  top: 8px;
+  outline: 2px solid var(--mint-dark);
+  outline-offset: 2px;
+}
 
 
 /* ========================================
@@ -2444,13 +2474,18 @@ button { font-family: inherit; cursor: pointer; }
    - prefers-reduced-motion: extend to spring + glass float
    ============================================================ */
 
-/* ----- Contrast: bump informational text to AA-compliant note color ----- */
+/* ----- Contrast: bump informational text to AA-compliant note color -----
+   Applies on ALL viewports (desktop + mobile). The previous --text-note
+   (#90A8A8) measured 2.45:1 on cream — failed AA. --text-note-strong
+   (#5A6E6E) measures 5.33:1 on cream. Hoisted out of any media query so
+   informational text reads on desktop too. */
 .kit-meta,
 .tax,
 .review-author,
 .review-platform,
 .review-verified,
 .review-source,
+.review-total,
 .parent-body p,
 .delivery-item p,
 .line-cta-card p,
@@ -2473,7 +2508,10 @@ button { font-family: inherit; cursor: pointer; }
 .modal-health h4,
 .modal-delivery h4,
 .modal-children h4,
-.filter-btn {
+.filter-btn,
+.page-hero p,
+.breadcrumb,
+.award-card p {
   color: var(--text-note-strong);
 }
 
@@ -2560,10 +2598,13 @@ a.nav-link,
 }
 
 
-/* ----- Mobile (≤768px): card glass → opaque for text on busy bg -----
-   Keeps card EDGE-styling (border + radius + shadow) but swaps the
-   surface to near-solid so text contrast is preserved. Header glass
-   stays everywhere — it's small and high-contrast already. */
+/* ----- Mobile + tablet (≤768px): card glass → opaque + touch-target floors -----
+   Card opacity: keeps card EDGE-styling (border + radius + shadow) but swaps
+   the surface to near-solid so text contrast is preserved. Header glass
+   stays everywhere — it's small and high-contrast already.
+   Touch targets: tablets 641-768px also need fat hit zones (finger taps),
+   so the CTA / nav-link / FAQ-q / filter-btn floors apply here too. Type
+   bumps stay in the ≤640px block (tablets keep desktop type scale). */
 @media (max-width: 768px) {
   .kitten-card,
   .parent-card,
@@ -2583,6 +2624,21 @@ a.nav-link,
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
+
+  /* Touch-target floors — apply on tablets too (641-768) so finger taps
+     don't fall through to the desktop 52px height. Type-scale stays in
+     the ≤640px block. */
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .btn-line,
+  .cta-button {
+    min-height: 56px;
+  }
+  .modal-line-btn { min-height: 56px; }
+  .filter-btn { min-height: 48px; }
+  .nav-link { padding: 12px 0; }
+  .faq-q { min-height: 56px; }
 }
 
 
@@ -2614,8 +2670,8 @@ a.nav-link,
     min-height: 48px;
   }
   .lang-btn {
-    font-size: 13px;
-    padding: 10px 16px;
+    font-size: 14px;
+    padding: 10px 14px;
     min-height: 44px;
   }
   .sort-btn {
@@ -2730,10 +2786,10 @@ a.nav-link,
 
 /* ----- Small mobile (≤400px): preserve floors, just tighten gutters ----- */
 @media (max-width: 400px) {
-  /* Override the prior block that shrank lang-btn to 11px — keep readable */
+  /* Override the prior block that shrank lang-btn to 11px — keep 14px floor */
   .lang-btn {
-    font-size: 13px;
-    padding: 8px 12px;
+    font-size: 14px;
+    padding: 8px 10px;
     min-height: 40px;
   }
 }
@@ -2885,7 +2941,7 @@ body.cta-hidden .mobile-cta-bar {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-size: 11.5px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--text-heading);
     line-height: 1;
@@ -2894,7 +2950,7 @@ body.cta-hidden .mobile-cta-bar {
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .mobile-trust-strip .pill .ico { font-size: 13px; line-height: 1; }
+  .mobile-trust-strip .pill .ico { font-size: 14px; line-height: 1; }
   .mobile-trust-strip .sep {
     width: 1px;
     height: 14px;
