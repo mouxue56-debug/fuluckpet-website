@@ -845,12 +845,49 @@ export default {
       }
 
       // GET /api/articles/:slug — 公開：記事詳細（slug検索）
+      // Supports ?preview=1 to fetch unpublished articles when Bearer token is valid.
       if (path.match(/^\/api\/articles\/[^/]+$/) && method === 'GET') {
         const slug = path.split('/').pop();
         const all = (await env.DATA.get('articles', 'json')) || [];
+        const isPreview = url.searchParams.get('preview') === '1';
+        if (isPreview) {
+          if (!(await checkAuth(request, env))) return addCors(unauthorized());
+          const anyArticle = all.find(a => a.slug === slug);
+          if (!anyArticle) return addCors(notFound());
+          return addCors(json(anyArticle, 200, 'no-store'));
+        }
         const article = all.find(a => a.slug === slug && a.published);
         if (!article) return addCors(notFound());
         return addCors(json(article, 200, 'public, max-age=3600'));
+      }
+
+      // POST /api/booking — 公開：予約フォーム送信（KV `booking:<ts>-<rand>`）
+      // Coordinates with Agent B: same `booking:` key prefix; admin reads via /api/admin/bookings.
+      if (path === '/api/booking' && method === 'POST') {
+        const body = await request.json().catch(() => ({}));
+        if (!body || typeof body !== 'object') {
+          return addCors(json({ error: 'Invalid JSON body' }, 400));
+        }
+        const ts = Date.now();
+        const id = `${ts}-${crypto.randomUUID().slice(0, 8)}`;
+        const record = {
+          id,
+          createdAt: new Date(ts).toISOString(),
+          name: typeof body.name === 'string' ? body.name.trim().slice(0, 200) : '',
+          email: typeof body.email === 'string' ? body.email.trim().slice(0, 200) : '',
+          phone: typeof body.phone === 'string' ? body.phone.trim().slice(0, 50) : '',
+          message: typeof body.message === 'string' ? body.message.trim().slice(0, 4000) : '',
+          kittenId: typeof body.kittenId === 'string' ? body.kittenId.slice(0, 100) : '',
+          preferredDate: typeof body.preferredDate === 'string' ? body.preferredDate.slice(0, 50) : '',
+          source: typeof body.source === 'string' ? body.source.slice(0, 100) : '',
+          status: 'new',
+        };
+        // Reverse-sortable key: large-ts-first by using (Number.MAX_SAFE_INTEGER - ts).
+        // KV list() returns keys lex-asc, so we want keys that sort newest-first lexically.
+        const sortKey = String(Number.MAX_SAFE_INTEGER - ts).padStart(16, '0');
+        const kvKey = `booking:${sortKey}:${id}`;
+        await env.DATA.put(kvKey, JSON.stringify(record));
+        return addCors(json({ success: true, id }, 201));
       }
 
       // GET /api/faq — 公開：FAQ一覧（order ASC, published only）
@@ -1473,6 +1510,96 @@ export default {
           const rid = crypto.randomUUID();
           return addCors(internalError(err, rid));
         }
+      }
+
+      // --- Articles: delete by slug (blog-editor convenience endpoint) ---
+      // The existing /api/admin/articles/:id (DELETE) deletes by id; this variant
+      // matches the slug-keyed UX of the rich-text blog editor.
+      if (path.match(/^\/api\/admin\/articles\/by-slug\/[^/]+$/) && method === 'DELETE') {
+        const slug = decodeURIComponent(path.split('/').pop());
+        let articles = (await env.DATA.get('articles', 'json')) || [];
+        const before = articles.length;
+        articles = articles.filter(a => a.slug !== slug);
+        await env.DATA.put('articles', JSON.stringify(articles));
+        return addCors(json({ success: true, removed: before - articles.length }));
+      }
+
+      // --- Articles: upsert by slug (blog-editor save endpoint) ---
+      // POST /api/admin/articles already creates with crypto.randomUUID() id; this
+      // upsert matches the slug-keyed editor flow (one record per slug across langs).
+      if (path === '/api/admin/articles/upsert' && method === 'POST') {
+        const body = await request.json();
+        if (!body.slug || typeof body.slug !== 'string') {
+          return addCors(json({ error: 'slug is required' }, 400));
+        }
+        let articles = (await env.DATA.get('articles', 'json')) || [];
+        const idx = articles.findIndex(a => a.slug === body.slug);
+        const nowIso = new Date().toISOString();
+        if (idx === -1) {
+          // Create
+          body.id = body.id || crypto.randomUUID();
+          body.createdAt = nowIso;
+          if (body.published && !body.publishedAt) body.publishedAt = nowIso;
+          articles.push(body);
+          await env.DATA.put('articles', JSON.stringify(articles));
+          return addCors(json(body, 201));
+        } else {
+          // Update — preserve id/createdAt/publishedAt unless explicitly changed
+          const prev = articles[idx];
+          const merged = {
+            ...prev,
+            ...body,
+            id: prev.id,
+            createdAt: prev.createdAt,
+            updatedAt: nowIso,
+          };
+          if (merged.published && !merged.publishedAt) merged.publishedAt = nowIso;
+          if (!merged.published) merged.publishedAt = body.publishedAt || prev.publishedAt || null;
+          articles[idx] = merged;
+          await env.DATA.put('articles', JSON.stringify(articles));
+          return addCors(json(merged, 200));
+        }
+      }
+
+      // --- Bookings: list (newest-first via reverse-sort key prefix) ---
+      // Pairs with public POST /api/booking; Agent B writes data using the same `booking:` prefix.
+      if (path === '/api/admin/bookings' && method === 'GET') {
+        const limitParam = parseInt(url.searchParams.get('limit') || '200', 10);
+        const limit = Math.min(Math.max(limitParam, 1), 1000);
+        const list = await env.DATA.list({ prefix: 'booking:', limit });
+        const records = await Promise.all(
+          list.keys.map(k => env.DATA.get(k.name, 'json'))
+        );
+        // Filter out any nulls; keys already sort newest-first because of reverse-ts prefix.
+        // Fallback: also sort by createdAt desc in case Agent B writes a different key shape.
+        const items = records
+          .filter(Boolean)
+          .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+        return addCors(json({ items, total: items.length, hasMore: list.list_complete === false }));
+      }
+
+      // --- Bookings: delete one ---
+      if (path.match(/^\/api\/admin\/bookings\/[^/]+$/) && method === 'DELETE') {
+        const id = decodeURIComponent(path.split('/').pop());
+        // Find the matching key; we don't know the ts-prefix part client-side.
+        const list = await env.DATA.list({ prefix: 'booking:' });
+        const target = list.keys.find(k => k.name.endsWith(':' + id) || k.name === 'booking:' + id);
+        if (!target) return addCors(notFound());
+        await env.DATA.delete(target.name);
+        return addCors(json({ success: true }));
+      }
+
+      // --- Bookings: update status (read → contacted → archived, etc.) ---
+      if (path.match(/^\/api\/admin\/bookings\/[^/]+$/) && method === 'PUT') {
+        const id = decodeURIComponent(path.split('/').pop());
+        const body = await request.json().catch(() => ({}));
+        const list = await env.DATA.list({ prefix: 'booking:' });
+        const target = list.keys.find(k => k.name.endsWith(':' + id) || k.name === 'booking:' + id);
+        if (!target) return addCors(notFound());
+        const existing = (await env.DATA.get(target.name, 'json')) || {};
+        const merged = { ...existing, ...body, id: existing.id || id, updatedAt: new Date().toISOString() };
+        await env.DATA.put(target.name, JSON.stringify(merged));
+        return addCors(json(merged));
       }
 
       // --- Publish: trigger GitHub Actions to regenerate static pages ---

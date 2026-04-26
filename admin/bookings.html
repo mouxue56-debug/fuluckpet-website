@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>予約一覧 | 福楽キャッテリー</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --mint: #7DD3C0;
+      --mint-dark: #5BC4A8;
+      --mint-light: #F0FFFA;
+      --bg: #FFFCF0;
+      --white: #FFFFFF;
+      --text: #5A7A7A;
+      --text-body: #5A6A6A;
+      --text-light: #90A8A8;
+      --border: #E5EDF0;
+      --danger-dark: #E53E3E;
+      --success: #68D391;
+      --header-h: 56px;
+      --radius: 12px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter','Noto Sans JP',sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.6; }
+
+    .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--mint-light), var(--bg), #FFF8FB); }
+    .login-card { background: var(--white); border-radius: 20px; padding: 48px 40px; box-shadow: 0 8px 40px rgba(0,0,0,0.08); width: 100%; max-width: 400px; text-align: center; }
+    .login-logo { font-size: 48px; margin-bottom: 16px; }
+    .login-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .login-sub { font-size: 13px; color: var(--text-light); margin-bottom: 32px; }
+    .login-input { width: 100%; padding: 14px 20px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 15px; font-family: inherit; margin-bottom: 16px; outline: none; }
+    .login-input:focus { border-color: var(--mint); }
+    .login-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, var(--mint), var(--mint-dark)); color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; }
+    .login-error { color: var(--danger-dark); font-size: 13px; margin-top: 12px; display: none; }
+
+    .editor-layout { display: none; min-height: 100vh; flex-direction: column; }
+    .editor-layout.active { display: flex; }
+
+    .top-bar { height: var(--header-h); background: rgba(255,252,240,0.85); backdrop-filter: blur(12px) saturate(160%); -webkit-backdrop-filter: blur(12px) saturate(160%); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; gap: 12px; flex-shrink: 0; }
+    .page-brand { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+    .page-brand a { text-decoration: none; color: var(--text); }
+    .page-brand a:hover { color: var(--mint-dark); }
+    .top-bar-actions { display: flex; gap: 8px; align-items: center; }
+    .btn { padding: 8px 16px; border-radius: 8px; border: none; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .2s; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-primary { background: linear-gradient(135deg, var(--mint), var(--mint-dark)); color: white; }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(125,211,192,0.3); }
+    .btn-ghost { background: transparent; color: var(--text-light); border: 1px solid transparent; }
+    .btn-ghost:hover { color: var(--text); border-color: var(--border); }
+
+    .content { padding: 24px; max-width: 1200px; margin: 0 auto; width: 100%; }
+
+    /* Stats */
+    .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+    .stat-label { font-size: 12px; color: var(--text-light); text-transform: uppercase; letter-spacing: .5px; }
+    .stat-value { font-size: 28px; font-weight: 700; margin-top: 6px; }
+
+    /* Filter pills */
+    .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+    .filter-pill { padding: 6px 14px; border-radius: 100px; border: 1px solid var(--border); background: var(--white); cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 600; color: var(--text-light); }
+    .filter-pill.active { background: var(--mint); color: white; border-color: var(--mint); }
+    .search-input { padding: 8px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; flex: 1; min-width: 180px; max-width: 300px; }
+
+    /* Table */
+    .data-card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 800px; }
+    th { text-align: left; padding: 12px 16px; font-size: 11px; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid var(--border); background: var(--bg); white-space: nowrap; }
+    td { padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--bg); }
+    .ts-cell { font-family: monospace; font-size: 12px; color: var(--text-light); white-space: nowrap; }
+    .msg-cell { max-width: 280px; word-break: break-word; }
+    .row-meta { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+    .status-badge { display: inline-block; padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+    .st-new { background: #FEFCBF; color: #744210; }
+    .st-contacted { background: #C6F6D5; color: #22543D; }
+    .st-archived { background: #E2E8F0; color: #4A5568; }
+    .action-btns { display: flex; gap: 4px; flex-wrap: wrap; }
+    .action-btn { padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--white); font-family: inherit; font-size: 11px; cursor: pointer; white-space: nowrap; }
+    .action-btn:hover { background: var(--bg); }
+    .action-btn.delete { color: var(--danger-dark); border-color: var(--danger-dark); }
+    .loading-row, .empty-row, .error-row { padding: 32px !important; text-align: center; color: var(--text-light); font-style: italic; }
+    .error-row { color: var(--danger-dark); }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 24px; right: 24px; padding: 14px 24px; background: var(--text); color: white; border-radius: 10px; font-size: 14px; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,0.15); z-index: 300; transform: translateY(100px); opacity: 0; transition: all .3s; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { background: #38A169; }
+    .toast.error { background: #E53E3E; }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <div class="login-logo">📋</div>
+      <h1 class="login-title" data-adm-ja="予約一覧" data-adm-zh="预约一览">予約一覧</h1>
+      <p class="login-sub" data-adm-ja="パスワードを入力してログインしてください" data-adm-zh="请输入密码登录">パスワードを入力してログインしてください</p>
+      <input type="password" id="loginPassword" class="login-input" placeholder="パスワード" autocomplete="current-password">
+      <button id="loginBtn" class="login-btn" data-adm-ja="ログイン" data-adm-zh="登录">ログイン</button>
+      <p id="loginError" class="login-error" data-adm-ja="パスワードが正しくありません" data-adm-zh="密码不正确">パスワードが正しくありません</p>
+    </div>
+  </div>
+
+  <div id="editorLayout" class="editor-layout">
+
+    <div class="top-bar">
+      <div class="page-brand">
+        <a href="index.html" title="管理画面トップ">🐾</a>
+        <span data-adm-ja="予約一覧" data-adm-zh="预约一览">予約一覧</span>
+      </div>
+      <div class="top-bar-actions">
+        <a href="blog-editor.html" class="btn btn-ghost"><span data-adm-ja="ブログ編集へ" data-adm-zh="去博客编辑">ブログ編集へ</span></a>
+        <button id="btnReload" class="btn btn-primary"><span data-adm-ja="再読込" data-adm-zh="刷新">再読込</span></button>
+        <button id="btnLangToggle" class="btn btn-ghost">🌐 中文</button>
+        <button id="btnLogout" class="btn btn-ghost"><span data-adm-ja="ログアウト" data-adm-zh="退出">ログアウト</span></button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="stat-row">
+        <div class="stat-card">
+          <div class="stat-label" data-adm-ja="合計予約" data-adm-zh="预约总数">合計予約</div>
+          <div class="stat-value" id="totalCount">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label" data-adm-ja="未連絡" data-adm-zh="未联系">未連絡</div>
+          <div class="stat-value" id="newCount" style="color:#D69E2E;">—</div>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <button class="filter-pill active" data-status="all"><span data-adm-ja="すべて" data-adm-zh="全部">すべて</span></button>
+        <button class="filter-pill" data-status="new"><span data-adm-ja="未連絡" data-adm-zh="未联系">未連絡</span></button>
+        <button class="filter-pill" data-status="contacted"><span data-adm-ja="連絡済" data-adm-zh="已联系">連絡済</span></button>
+        <button class="filter-pill" data-status="archived"><span data-adm-ja="完了" data-adm-zh="已归档">完了</span></button>
+        <input id="searchInput" class="search-input" type="search" placeholder="検索...">
+      </div>
+
+      <div class="data-card">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th data-adm-ja="日時" data-adm-zh="日期">日時</th>
+                <th data-adm-ja="お名前" data-adm-zh="姓名">お名前</th>
+                <th data-adm-ja="連絡先" data-adm-zh="联系方式">連絡先</th>
+                <th data-adm-ja="メッセージ" data-adm-zh="消息">メッセージ</th>
+                <th data-adm-ja="状態" data-adm-zh="状态">状態</th>
+                <th data-adm-ja="操作" data-adm-zh="操作">操作</th>
+              </tr>
+            </thead>
+            <tbody id="bookingsTable">
+              <tr><td colspan="6" class="loading-row">…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="js/api-client.js"></script>
+  <script src="js/admin-bookings.js"></script>
+</body>
+</html>
