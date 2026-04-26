@@ -99,7 +99,7 @@
     .badge-reserved { background:#FEFCBF; color:#744210; }
     .badge-sold { background:#FED7E2; color:#702459; }
     .action-btns { display:flex; gap:6px; flex-wrap:wrap; }
-    .action-btn { padding:5px 10px; border-radius:6px; border:1px solid var(--border); background:var(--white); font-size:11px; cursor:pointer; font-family:inherit; white-space:nowrap; transition:all .15s; }
+    .action-btn { padding:8px 16px; min-height:36px; border-radius:6px; border:1px solid var(--border); background:var(--white); font-size:11px; cursor:pointer; font-family:inherit; white-space:nowrap; transition:all .15s; }
     .action-btn:hover { background:var(--bg); }
     .action-btn.photo { color:#3182CE; border-color:#3182CE; }
     .action-btn.edit { color:var(--mint-dark); border-color:var(--mint-dark); }
@@ -111,6 +111,8 @@
     .modal-overlay.active { display:flex; }
     .modal { background:var(--white); border-radius:16px; max-width:720px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 24px 60px rgba(0,0,0,0.15); }
     .modal.modal-lg { max-width:900px; }
+    /* Photo modal: cap width on mobile so it doesn't overflow the viewport on small iPhones. */
+    #photoModal .modal { width:min(720px, 95vw); }
     .modal-header { display:flex; justify-content:space-between; align-items:center; padding:24px 28px; border-bottom:1px solid var(--border); }
     .modal-header h2 { font-size:18px; font-weight:700; }
     .modal-close { width:32px; height:32px; border-radius:50%; border:none; background:var(--bg); cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; }
@@ -214,6 +216,8 @@
       .content-area { padding:16px; }
       .top-bar { padding:0 16px; }
       .sync-status { font-size:10px; padding:2px 6px; }
+      /* Tappable action buttons on phones — closer to iOS 44px guideline. */
+      .action-btn { min-height:40px; }
     }
   </style>
 </head>
@@ -269,6 +273,7 @@
         <h1 class="page-title" id="pageTitle">ダッシュボード</h1>
         <div class="top-actions">
           <span id="syncStatus" class="sync-status"></span>
+          <button id="retrySyncBtn" onclick="retrySync()" style="display:none;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:12px;border:1px solid var(--danger-dark);background:var(--white);color:var(--danger-dark);cursor:pointer;font-family:inherit;">🔄 再試行</button>
           <button class="top-btn btn-secondary" onclick="toggleAdminLang()" id="adminLangBtn" style="font-size:12px;">🌐 中文 / 日本語</button>
           <a href="../index.html" target="_blank" class="top-btn btn-secondary"><span data-adm-ja="サイトを表示" data-adm-zh="查看网站">サイトを表示</span></a>
           <button class="top-btn btn-primary" id="addNewBtn" style="display:none">＋ <span data-adm-ja="新規追加" data-adm-zh="新增">新規追加</span></button>
@@ -1236,6 +1241,28 @@ function handlePublish() {
       span.textContent = origText;
     });
 }
+
+// Apply saved language preference on initial page load (covers both the login screen
+// and the admin layout). admLang has already been initialized from localStorage in
+// admin-images.js; this ensures the static JA labels in HTML get translated immediately
+// when the user previously chose 中文.
+(function applySavedLangOnLoad() {
+  if (typeof admLang === 'undefined') return;
+  if (admLang !== 'zh') return; // JA is the HTML default — no-op
+  if (typeof applyAdminLang === 'function') applyAdminLang();
+  // Login screen has its own dedicated text nodes (login title/sub/button/error/placeholder)
+  // — sync them too so 中文 sticks across sessions before the user logs in.
+  var lt = document.getElementById('loginTitle');
+  var ls = document.getElementById('loginSub');
+  var lb = document.getElementById('loginBtn');
+  var le = document.getElementById('loginError');
+  var lp = document.getElementById('loginPassword');
+  if (lt) lt.textContent = '福楽猫舍 管理后台';
+  if (ls) ls.textContent = '请输入密码登录';
+  if (lb) lb.textContent = '登录';
+  if (le) le.textContent = '密码不正确';
+  if (lp) lp.placeholder = '密码';
+})();
 </script>
 </body>
 </html>

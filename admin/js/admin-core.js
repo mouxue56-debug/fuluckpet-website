@@ -104,6 +104,55 @@ function loadData() {
   return null;
 }
 
+// Track last failed payload so the manual retry button can re-attempt the same sync.
+var lastFailedSyncPayload = null;
+
+// bulkImport one type with exponential backoff: 1s, 2s, 4s (3 retries on top of the initial try).
+function bulkImportWithRetry(type, items) {
+  var delays = [1000, 2000, 4000];
+  function attempt(idx) {
+    return FuluckAPI.bulkImport(type, items).catch(function(err) {
+      if (idx >= delays.length) throw err;
+      return new Promise(function(resolve) {
+        setTimeout(resolve, delays[idx]);
+      }).then(function() { return attempt(idx + 1); });
+    });
+  }
+  return attempt(0);
+}
+
+// Render / hide the manual retry button next to the sync indicator.
+function showRetrySyncButton() {
+  var btn = document.getElementById('retrySyncBtn');
+  if (!btn) return;
+  btn.style.display = 'inline-flex';
+  btn.textContent = t('🔄 再試行','🔄 重试');
+}
+function hideRetrySyncButton() {
+  var btn = document.getElementById('retrySyncBtn');
+  if (btn) btn.style.display = 'none';
+}
+
+// Manual retry — re-runs saveData against the last-known data snapshot.
+function retrySync() {
+  if (!lastFailedSyncPayload) {
+    // Fallback: if for some reason we lost the payload, retry the live `data` global.
+    lastFailedSyncPayload = (typeof data !== 'undefined') ? data : null;
+  }
+  if (!lastFailedSyncPayload) return;
+  var btn = document.getElementById('retrySyncBtn');
+  if (btn) { btn.disabled = true; btn.textContent = t('🔄 再試行中...','🔄 重试中...'); }
+  saveData(lastFailedSyncPayload).then(function() {
+    if (btn) btn.disabled = false;
+  }).catch(function() {
+    // saveData itself surfaces the error UI; just unlock the button.
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = t('🔄 再試行','🔄 重试');
+    }
+  });
+}
+
 function saveData(d) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
   if (typeof FuluckAPI === 'undefined') return Promise.resolve();
@@ -114,15 +163,18 @@ function saveData(d) {
     syncIndicator.textContent = t('☁️ 同期中...','☁️ 同步中...');
     syncIndicator.className = 'sync-status syncing';
   }
+  // Retry button is hidden during an active attempt; re-shown on failure.
+  hideRetrySyncButton();
 
   var types = ['kittens', 'parents', 'reviews'];
   var promises = types.map(function(type) {
     if (!d[type]) return Promise.resolve();
-    return FuluckAPI.bulkImport(type, d[type]);
+    return bulkImportWithRetry(type, d[type]);
   });
 
   return Promise.all(promises)
     .then(function() {
+      lastFailedSyncPayload = null;
       if (syncIndicator) {
         syncIndicator.textContent = t('☁️ 同期済み','☁️ 已同步');
         syncIndicator.className = 'sync-status synced';
@@ -131,10 +183,12 @@ function saveData(d) {
     })
     .catch(function(err) {
       console.error('API sync failed:', err);
+      lastFailedSyncPayload = d;
       if (syncIndicator) {
         syncIndicator.textContent = t('⚠️ 同期失敗（ローカル保存済み）','⚠️ 同步失败（已本地保存）');
         syncIndicator.className = 'sync-status sync-error';
       }
+      showRetrySyncButton();
       showToast(t('クラウド同期に失敗しました。データはローカルに保存されています。','云端同步失败，数据已保存到本地。'), 'error');
     });
 }
