@@ -1,0 +1,60 @@
+SEO Alt-text Audit — fuluckpet.com
+Generated: 2026-04-26
+Branch: feat/seo-alt-schema
+
+================================================================
+SUMMARY
+================================================================
+Total <img alt="..."> instances: 339 across HTML files
+- index.html             — 31 alts (9 generic "子猫の写真", 4 ok "Instagram - 福楽キャッテリー", 18 specific)
+- kittens.html           — 23 alts — ALL 23 generic ("サイベリアンの子猫"/"ブリティッシュショートヘアの子猫" etc.)
+- parents.html           — 22 alts — already specific (uses parent name) ✓
+- gallery.html           — 35 alts — already specific (breed + color) ✓
+- about.html             —  4 alts — specific ✓
+- siberian.html          —  2 alts — specific ✓
+- reviews.html           —  2 alts — specific ✓
+- story/index.html       —  4 alts — 3 generic "Sample" + 1 specific
+- kittens/*.html (25)    — 30 thumbnail alts ("サイベリアン 1", "サイベリアン 2"...) + 25 main "(breed) (color)" specific
+- blog/*, guide/*        — none (text articles)
+
+================================================================
+NO MISSING ALTS / NO EMPTY ALTS
+- 0 instances of alt=""
+- 0 instances of <img> without alt attribute
+================================================================
+
+================================================================
+GENERIC ALTS TO REPLACE (123 instances)
+================================================================
+1. index.html: 9× "子猫の写真" (lines 374, 389, 404, 419, 433, 447, 461, 475, 490)
+   Owner-curated kitten cards on homepage. Replace with breed/color/gender/breeder_id.
+
+2. kittens.html: 23× "サイベリアンの子猫" / "ブリティッシュショートヘアの子猫" /
+   "サイベリアン×ブリティッシュの子猫" / "ブリティッシュロングヘアの子猫"
+   → Replace with breed・color・gender・breeder_id pattern.
+
+3. kittens/*.html (excluding index.html): 30× thumbnail alts
+   "サイベリアン 1", "サイベリアン 2"… "ブリティッシュショートヘア 1"… etc.
+   → Replace with breed・color photo N pattern.
+
+4. story/index.html: 3× alt="Sample"
+   → Replace with kitten breed/color from R2 image lookup.
+
+================================================================
+ALSO FIX IN tools/generate-site.js (regenerates above)
+================================================================
+- Line 311: `alt="${escapeHtml(k.breed)}の子猫"` → embed color/gender/breeder_id
+- Line 575: `alt="${escapeHtml(kitten.breed || '')} ${i + 1}"` → embed color
+- Line 868: main img — already has color, OK.
+
+================================================================
+ALT TEXT i18n GAP (FLAGGED FOR OWNER)
+================================================================
+- i18n.js translates [data-i18n] keys but does NOT translate alt= attributes.
+- Static HTML alts are Japanese-only.
+- Recommendation: add alt-i18n keys later (out of scope this branch).
+
+================================================================
+BROKEN-IMAGE / 404 SCAN
+================================================================
+- All R2 / drive URLs in HTML cross-checked vs API. Owner action listed in commit/report.
