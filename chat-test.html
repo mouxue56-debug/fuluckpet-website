@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Chat Widget Test — 福楽キャッテリー</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/assets/chat/widget.css">
+  <style>
+    body {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 48px 24px 200px;
+      line-height: 1.7;
+    }
+    h1 { color: var(--text-heading, #5A7A7A); }
+    .panel {
+      background: var(--bg-white, #fff);
+      border: 1px solid rgba(90, 122, 122, 0.10);
+      border-radius: 14px;
+      padding: 18px 22px;
+      margin: 16px 0;
+      box-shadow: 0 4px 12px rgba(90, 110, 110, 0.06);
+    }
+    code {
+      background: rgba(90, 122, 122, 0.08);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+    .controls button {
+      margin: 4px 6px 4px 0;
+      padding: 8px 14px;
+      border: 1px solid rgba(90, 122, 122, 0.18);
+      background: var(--bg-white, #fff);
+      color: var(--text-heading, #5A7A7A);
+      border-radius: 8px;
+      cursor: pointer;
+      font: inherit;
+    }
+    .controls button:hover {
+      background: linear-gradient(135deg, #FFE6D2, #FFD0B0);
+      border-color: transparent;
+    }
+    .meta {
+      font-size: 13px;
+      color: var(--text-note, #90A8A8);
+    }
+  </style>
+</head>
+<body>
+  <h1>AI チャットウィジェット — テストページ</h1>
+  <p class="meta">
+    本番では各ルートHTMLに <code>&lt;script defer src="/assets/chat/widget.js"&gt;&lt;/script&gt;</code>
+    を1行追加するだけで動作します。マージフェーズで挿入予定。
+  </p>
+
+  <div class="panel">
+    <strong>ふくにゃん（Fukunyan）— サイベリアン専門 AI アシスタント</strong>
+    <p>右下のフローティングバブルをタップしてチャットを開いてください。</p>
+    <p class="meta">
+      Backend: <code>POST /api/chat</code> on
+      <code id="apiBase">https://fuluck-api.fuluckpet.workers.dev</code><br>
+      Provider chain: DashScope qwen3.6-plus → Gemini fallback<br>
+      Session ID (localStorage): <code id="sid">…</code>
+    </p>
+  </div>
+
+  <div class="panel controls">
+    <strong>デバッグ操作:</strong>
+    <div style="margin-top: 8px;">
+      <button onclick="FuluckChat.open()">Open</button>
+      <button onclick="FuluckChat.close()">Close</button>
+      <button onclick="FuluckChat.toggle()">Toggle</button>
+      <button onclick="FuluckChat.send('価格について教えてください。')">Send: 価格</button>
+      <button onclick="FuluckChat.send('見学予約をしたいです。')">Send: 見学予約</button>
+      <button onclick="if(confirm('履歴をリセットしますか？')) FuluckChat.reset()">Reset</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <strong>ローカル開発で別の Worker を指したい場合:</strong>
+    <pre><code>&lt;script&gt;window.FULUCK_CHAT_API = 'http://localhost:8787';&lt;/script&gt;
+&lt;script defer src="/assets/chat/widget.js"&gt;&lt;/script&gt;</code></pre>
+  </div>
+
+  <script>
+    // Show the active session ID so testers can correlate KV log entries.
+    document.addEventListener('DOMContentLoaded', function () {
+      try {
+        var sid = localStorage.getItem('fuluck_chat_session');
+        if (sid) document.getElementById('sid').textContent = sid;
+      } catch (_) {}
+    });
+  </script>
+
+  <!-- Override API base for local dev if you run wrangler on :8787 -->
+  <!-- <script>window.FULUCK_CHAT_API = 'http://localhost:8787';</script> -->
+  <script defer src="/assets/chat/widget.js"></script>
+</body>
+</html>
