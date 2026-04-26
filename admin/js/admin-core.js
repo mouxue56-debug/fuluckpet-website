@@ -313,10 +313,14 @@ var pageTitles = {
 document.querySelectorAll('.nav-item').forEach(function(item) {
   item.addEventListener('click', function() {
     var page = item.dataset.page;
+    // External-link nav items (<a href="...">) have no data-page — let the
+    // browser handle navigation, don't try to switch SPA panels.
+    if (!page) return;
     document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
     item.classList.add('active');
     document.querySelectorAll('.panel-page').forEach(function(p) { p.classList.remove('active'); });
-    document.getElementById('page-' + page).classList.add('active');
+    var panel = document.getElementById('page-' + page);
+    if (panel) panel.classList.add('active');
     document.getElementById('pageTitle').textContent = (admLang === 'zh' ? pageTitlesZh[page] : pageTitles[page]) || '';
     document.getElementById('addNewBtn').style.display = ['kittens','parents','reviews'].indexOf(page) >= 0 ? 'inline-flex' : 'none';
     // Load FAQ/articles data on navigation
