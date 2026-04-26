@@ -1262,12 +1262,20 @@ export default {
           const kvKey = `booking:${sortKey}:${id}`;
           const isoTs = new Date(ts).toISOString();
           const stored = {
-            id,                        // for admin list page lookups (DELETE/PUT by id)
-            ...data,
+            id,                              // admin list page lookups (DELETE/PUT by id)
+            ...data,                         // snake_case fields from validateBooking
+            // camelCase aliases — admin/js/admin-bookings.js reads these names.
+            // Without these, the row-meta strip (kitten / date / source) is silently empty.
+            kittenId: data.kitten_id || '',
+            preferredDate: data.preferred_date || '',
+            preferredDate2: data.preferred_date2 || '',
+            preferredTime: data.preferred_time || '',
+            visitMethod: data.visit_method || '',
+            source: (body && typeof body.source === 'string' ? body.source.slice(0, 100) : '') || 'website',
             request_id: requestId,
-            created_at: isoTs,         // snake_case kept for legacy callers
-            createdAt: isoTs,          // camelCase for admin/bookings.html
-            status: 'new',             // admin uses status filter (new/contacted/archived)
+            created_at: isoTs,               // snake_case kept for legacy callers
+            createdAt: isoTs,                // camelCase for admin/bookings.html
+            status: 'new',                   // admin uses status filter (new/contacted/archived)
             user_agent: request.headers.get('User-Agent') || '',
             ip: request.headers.get('CF-Connecting-IP') || '',
           };
