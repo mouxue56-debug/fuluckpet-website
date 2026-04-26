@@ -182,6 +182,12 @@ const translations = {
     'trust.rating': '口コミ評価 5.00 / 113件',
     'trust.license': '第一種動物取扱業 登録済',
     'trust.support': 'お迎え後も生涯LINEサポート',
+    'trust.graduates': '200+ 卒業猫',
+
+    // Mobile sticky CTA bar
+    'cta.line': 'LINEで相談',
+    'cta.booking': '見学予約',
+    'cta.tel': '電話',
 
     // Kitten Detail Pages
     'kitten.basicInfo': '基本情報',
@@ -620,6 +626,12 @@ const translations = {
     'trust.rating': '5.00 Rating / 113 Reviews',
     'trust.license': 'Licensed Animal Dealer',
     'trust.support': 'Lifetime LINE Support After Adoption',
+    'trust.graduates': '200+ Adopted Kittens',
+
+    // Mobile sticky CTA bar
+    'cta.line': 'Chat on LINE',
+    'cta.booking': 'Book a Visit',
+    'cta.tel': 'Call',
 
     // Kitten Detail Pages
     'kitten.basicInfo': 'Basic Info',
@@ -1058,6 +1070,12 @@ const translations = {
     'trust.rating': '口碑评分 5.00 / 113条',
     'trust.license': '第一种动物经营许可 已登记',
     'trust.support': '接猫后终身LINE咨询支持',
+    'trust.graduates': '200+ 毕业猫',
+
+    // Mobile sticky CTA bar
+    'cta.line': 'LINE咨询',
+    'cta.booking': '预约参观',
+    'cta.tel': '电话',
 
     // Kitten Detail Pages
     'kitten.basicInfo': '基本信息',

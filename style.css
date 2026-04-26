@@ -2782,3 +2782,126 @@ a.nav-link,
     border-color: var(--text-heading);
   }
 }
+
+/* ========================================
+   Mobile Sticky CTA Bar (2026-04 conversion layer)
+   Visible only on mobile (<= 768px). Hides when footer enters viewport.
+   ======================================== */
+.mobile-cta-bar {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1100; /* above fixed-line bubble (z 1000), below open modals */
+  background: rgba(255, 252, 240, 0.92);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-top: 1px solid var(--glass-border);
+  box-shadow: 0 -4px 20px rgba(90, 122, 122, 0.10);
+  padding: 8px 8px max(8px, env(safe-area-inset-bottom));
+  transform: translateY(0);
+  transition: transform 280ms var(--ease-spring);
+}
+.mobile-cta-bar-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  max-width: 540px;
+  margin: 0 auto;
+}
+.mobile-cta-bar.has-tel .mobile-cta-bar-inner {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+.mobile-cta-bar a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 56px;
+  padding: 8px 6px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: center;
+  text-decoration: none;
+  color: var(--text-heading);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  transition: transform 0.2s var(--ease-out), background 0.2s var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+.mobile-cta-bar a:active { transform: scale(0.97); }
+.mobile-cta-bar a.cta-line {
+  background: var(--line-green);
+  color: #fff;
+  border-color: transparent;
+}
+.mobile-cta-bar a.cta-booking {
+  background: linear-gradient(135deg, var(--mint), var(--mint-dark));
+  color: #fff;
+  border-color: transparent;
+}
+.mobile-cta-bar a .cta-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+@media (max-width: 768px) {
+  .mobile-cta-bar { display: block; }
+  /* Reserve space so the fixed bar doesn't cover the back-to-top / fixed-line */
+  body.has-mobile-cta { padding-bottom: 76px; }
+  .fixed-line { bottom: calc(76px + env(safe-area-inset-bottom)) !important; }
+}
+@media (min-width: 769px) {
+  .mobile-cta-bar { display: none !important; }
+}
+body.cta-hidden .mobile-cta-bar {
+  transform: translateY(110%);
+}
+
+/* ========================================
+   Mobile Trust Strip (index.html only, between header and hero)
+   ======================================== */
+.mobile-trust-strip {
+  display: none;
+}
+@media (max-width: 768px) {
+  .mobile-trust-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: 4px;
+    height: 40px;
+    padding: 0 12px;
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--glass-border);
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .mobile-trust-strip .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-heading);
+    line-height: 1;
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mobile-trust-strip .pill .ico { font-size: 13px; line-height: 1; }
+  .mobile-trust-strip .sep {
+    width: 1px;
+    height: 14px;
+    background: var(--glass-border);
+    flex: 0 0 auto;
+  }
+}
+@media (min-width: 769px) {
+  .mobile-trust-strip { display: none !important; }
+}
