@@ -9,27 +9,32 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
+      /* Ice Cream palette — aligned with main site (style.css) */
       --mint: #7DD3C0;
       --mint-dark: #5BC4A8;
       --mint-light: #F0FFFA;
-      --bg: #F8FAFB;
+      --bg: #FFFCF0;            /* main-site --bg-cream */
+      --bg-card: #FFFFFF;
       --white: #FFFFFF;
-      --text: #2D3748;
-      --text-light: #718096;
-      --border: #E2E8F0;
+      --text: #5A7A7A;          /* main-site --text-heading */
+      --text-body: #5A6A6A;
+      --text-light: #90A8A8;    /* main-site --text-note */
+      --text-note-strong: #5A6E6E;
+      --border: #E5EDF0;
       --danger: #FC8181;
       --danger-dark: #E53E3E;
       --success: #68D391;
       --warning: #F6E05E;
+      /* Admin layout tokens (kept) */
       --sidebar-w: 250px;
       --header-h: 64px;
       --radius: 12px;
     }
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:'Noto Sans JP',sans-serif; background:var(--bg); color:var(--text); font-size:14px; line-height:1.7; }
+    body { font-family:'Inter','Noto Sans JP',sans-serif; background:var(--bg); color:var(--text); font-size:15px; line-height:1.7; }
 
     /* === LOGIN === */
-    .login-screen { min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#F0FFFA,#FFFCF0,#FFF8FB); }
+    .login-screen { min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,var(--mint-light),var(--bg),#FFF8FB); }
     .login-card { background:var(--white); border-radius:20px; padding:48px 40px; box-shadow:0 8px 40px rgba(0,0,0,0.08); width:100%; max-width:400px; text-align:center; }
     .login-logo { font-size:48px; margin-bottom:16px; }
     .login-title { font-size:20px; font-weight:700; margin-bottom:8px; }
@@ -61,7 +66,7 @@
 
     /* === MAIN === */
     .main-content { margin-left:var(--sidebar-w); flex:1; min-height:100vh; }
-    .top-bar { height:var(--header-h); background:var(--white); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 32px; position:sticky; top:0; z-index:50; }
+    .top-bar { height:var(--header-h); background:rgba(255,252,240,0.85); backdrop-filter:blur(12px) saturate(160%); -webkit-backdrop-filter:blur(12px) saturate(160%); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 32px; position:sticky; top:0; z-index:50; }
     .page-title { font-size:18px; font-weight:700; }
     .top-actions { display:flex; gap:12px; align-items:center; }
     .top-btn { padding:8px 20px; border-radius:8px; border:none; font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; transition:all .2s; text-decoration:none; display:inline-flex; align-items:center; gap:6px; }
@@ -90,7 +95,7 @@
     th { text-align:left; padding:12px 16px; font-size:12px; font-weight:600; color:var(--text-light); text-transform:uppercase; letter-spacing:.5px; border-bottom:1px solid var(--border); background:var(--bg); white-space:nowrap; }
     td { padding:12px 16px; border-bottom:1px solid var(--border); font-size:13px; }
     tr:last-child td { border-bottom:none; }
-    tr:hover td { background:#F9FAFB; }
+    tr:hover td { background:var(--bg); }
     .thumb-cell { width:60px; }
     .thumb-img { width:50px; height:50px; border-radius:8px; object-fit:cover; cursor:pointer; border:1px solid var(--border); }
     .thumb-placeholder { width:50px; height:50px; border-radius:8px; background:var(--bg); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:20px; }
@@ -209,6 +214,7 @@
     .sync-status.sync-error { background:#FED7E2; color:#702459; }
 
     @media (max-width:768px) {
+      body { font-size:16px; }
       .sidebar { display:none; }
       .main-content { margin-left:0; }
       .stat-grid { grid-template-columns:repeat(2,1fr); }
@@ -254,7 +260,6 @@
           <div class="nav-item" data-page="articles"><span class="icon">📝</span> <span data-adm-ja="知識ライブラリ" data-adm-zh="知识库">知識ライブラリ</span></div>
           <div class="nav-item" data-page="images"><span class="icon">🖼️</span> <span data-adm-ja="画像管理" data-adm-zh="图片管理">画像管理</span></div>
           <div class="nav-item" data-page="drive"><span class="icon">☁️</span> <span data-adm-ja="Drive写真" data-adm-zh="Drive照片">Drive写真</span></div>
-          <div class="nav-item" data-page="export" style="display:none;"><span class="icon">📤</span> <span data-adm-ja="HTML出力" data-adm-zh="HTML导出">HTML出力</span></div>
         </div>
         <div class="nav-section">
           <div class="nav-section-title"><span data-adm-ja="設定" data-adm-zh="设置">設定</span></div>
@@ -291,7 +296,7 @@
             <div class="stat-card"><div class="stat-icon">⭐</div><div class="stat-value" id="statReviews">0</div><div class="stat-label"><span data-adm-ja="レビュー" data-adm-zh="评价">レビュー</span></div></div>
             <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-value" id="statAvailable">0</div><div class="stat-label"><span data-adm-ja="販売中" data-adm-zh="在售">販売中</span></div></div>
           </div>
-          <div style="background:#F0FFFA;border:1px solid var(--mint);border-radius:var(--radius);padding:16px 20px;margin-bottom:20px;font-size:13px;color:var(--text);">
+          <div style="background:var(--mint-light);border:1px solid var(--mint);border-radius:var(--radius);padding:16px 20px;margin-bottom:20px;font-size:13px;color:var(--text);">
             💡 <span data-adm-ja="データを変更した後、右上の「📤 発行する」ボタンをクリックすると、約2分後にサイトが更新されます。" data-adm-zh="修改数据后，点击右上角「📤 发布更新」按钮，约2分钟后网站自动更新。">データを変更した後、右上の「📤 発行する」ボタンをクリックすると、約2分後にサイトが更新されます。</span>
           </div>
           <div class="data-table">
@@ -756,48 +761,6 @@
           </div>
         </div>
 
-        <!-- ====== EXPORT ====== -->
-        <div class="panel-page" id="page-export">
-          <div class="settings-card">
-            <h3>📤 <span data-adm-ja="HTMLコード生成" data-adm-zh="生成HTML代码">HTMLコード生成</span></h3>
-            <p style="color:var(--text-light);margin-bottom:16px;font-size:13px;"><span data-adm-ja="管理画面のデータからウェブサイト用のHTMLコードを作成します。<br>生成したコードをGitHubのファイルに貼り付けると、サイトが自動更新されます。" data-adm-zh="从管理后台的数据生成网站用的HTML代码。<br>将生成的代码粘贴到GitHub的文件中，网站就会自动更新。">管理画面のデータからウェブサイト用のHTMLコードを作成します。<br>生成したコードをGitHubのファイルに貼り付けると、サイトが自動更新されます。</span></p>
-            <div style="display:flex;gap:12px;flex-wrap:wrap;">
-              <button class="top-btn btn-primary" onclick="generateKittensHTML()"><span data-adm-ja="子猫セクション HTML生成" data-adm-zh="子猫区域 生成HTML">子猫セクション HTML生成</span></button>
-              <button class="top-btn btn-primary" onclick="generateParentsHTML()"><span data-adm-ja="親猫セクション HTML生成" data-adm-zh="种猫区域 生成HTML">親猫セクション HTML生成</span></button>
-              <button class="top-btn btn-primary" onclick="generateReviewsHTML()"><span data-adm-ja="レビューセクション HTML生成" data-adm-zh="评价区域 生成HTML">レビューセクション HTML生成</span></button>
-            </div>
-          </div>
-          <div id="generatedCodeArea" style="display:none;">
-            <div class="settings-card">
-              <h3 id="generatedCodeTitle"><span data-adm-ja="生成されたHTML" data-adm-zh="生成的HTML">生成されたHTML</span></h3>
-              <div class="code-block-wrapper">
-                <button class="copy-btn" onclick="copyGeneratedCode()"><span data-adm-ja="コピー" data-adm-zh="复制">コピー</span></button>
-                <pre class="code-block" id="generatedCode"></pre>
-              </div>
-            </div>
-          </div>
-          <div class="settings-card">
-            <h3>📋 <span data-adm-ja="サイトへの反映手順" data-adm-zh="更新到网站的步骤">サイトへの反映手順</span></h3>
-            <div class="guide-step">
-              <h4><span class="step-number">1</span> <span data-adm-ja="HTMLコードを生成" data-adm-zh="生成HTML代码">HTMLコードを生成</span></h4>
-              <p><span data-adm-ja="上のボタンをクリックして、更新したいセクションのHTMLコードを生成します。" data-adm-zh="点击上方按钮，生成想要更新的区域的HTML代码。">上のボタンをクリックして、更新したいセクションのHTMLコードを生成します。</span></p>
-            </div>
-            <div class="guide-step">
-              <h4><span class="step-number">2</span> <span data-adm-ja="コードをコピー" data-adm-zh="复制代码">コードをコピー</span></h4>
-              <p><span data-adm-ja="生成されたコードの「コピー」ボタンをクリックします。" data-adm-zh="点击生成代码的「复制」按钮。">生成されたコードの「コピー」ボタンをクリックします。</span></p>
-            </div>
-            <div class="guide-step">
-              <h4><span class="step-number">3</span> <span data-adm-ja="GitHubでファイルを編集" data-adm-zh="在GitHub编辑文件">GitHubでファイルを編集</span></h4>
-              <p><span data-adm-ja="GitHubリポジトリの該当ファイル（index.html / parents.html / reviews.html）を開き、該当箇所を貼り替えます。" data-adm-zh="打开GitHub仓库的对应文件（index.html / parents.html / reviews.html），替换对应的部分。">GitHubリポジトリの該当ファイル（index.html / parents.html / reviews.html）を開き、該当箇所を貼り替えます。</span></p>
-            </div>
-            <div class="guide-step">
-              <h4><span class="step-number">4</span> <span data-adm-ja="保存してデプロイ" data-adm-zh="保存并部署">保存してデプロイ</span></h4>
-              <p><span data-adm-ja="「Commit changes」ボタンで保存すると、数分後にサイトに自動反映されます。" data-adm-zh="点击「Commit changes」按钮保存，几分钟后网站会自动更新。">「Commit changes」ボタンで保存すると、数分後にサイトに自動反映されます。</span></p>
-            </div>
-            <p style="color:var(--danger-dark);font-size:13px;margin-top:12px;font-weight:600;"><span data-adm-ja="※ この操作がわからない場合は、管理者に連絡してください。" data-adm-zh="※ 如果不清楚操作方法，请联系管理员。">※ この操作がわからない場合は、管理者に連絡してください。</span></p>
-          </div>
-        </div>
-
         <!-- ====== DATA MANAGEMENT ====== -->
         <div class="panel-page" id="page-data">
           <div class="settings-card">
@@ -1187,7 +1150,6 @@
 <script src="js/admin-core.js"></script>
 <script src="js/admin-render.js"></script>
 <script src="js/admin-photos.js"></script>
-<script src="js/admin-export.js"></script>
 <script src="js/admin-drive.js"></script>
 <script src="js/admin-data.js"></script>
 <script src="js/admin-faq.js"></script>
