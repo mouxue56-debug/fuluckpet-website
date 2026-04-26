@@ -59,6 +59,10 @@
   --glass-blur: 20px;
   --glass-saturate: 180%;
   --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+
+  /* Accessibility tokens (additive, 2026-04 elderly + mobile readability layer) */
+  /* WCAG AA: #5A6E6E on #FFFCF0 = 5.33:1 (passes 4.5:1 normal-text threshold) */
+  --text-note-strong: #5A6E6E;
 }
 
 /* ===== Reset & Base ===== */
@@ -68,6 +72,8 @@ html {
   scroll-behavior: smooth;
   scroll-padding-top: var(--header-height);
   -webkit-text-size-adjust: 100%;
+  /* Respect user's system font-size preference (elderly may bump it up) */
+  font-size: 100%;
 }
 
 body {
@@ -1029,9 +1035,9 @@ button { font-family: inherit; cursor: pointer; }
 .faq-q::after {
   content: '+';
   font-family: 'Inter', sans-serif;
-  font-size: 20px;
-  font-weight: 300;
-  color: var(--mint);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--mint-dark);
   flex-shrink: 0;
   margin-left: 16px;
   transition: transform 0.35s var(--ease-out);
@@ -2400,5 +2406,315 @@ button { font-family: inherit; cursor: pointer; }
     width: 48px;
     height: 1px;
     background: linear-gradient(to right, transparent, rgba(125, 211, 192, 0.35), transparent);
+  }
+}
+
+
+/* ============================================================
+   MOBILE-FIRST + ELDERLY-FRIENDLY READABILITY LAYER (2026-04)
+   Additive only. Does NOT undo glass / JP reading baseline.
+   - Contrast: --text-note-strong on info-bearing text (5.33:1 vs --bg-cream)
+   - Floor body text & labels at 14px on mobile (was 11–13)
+   - Hero subtitle stays 16–17px on mobile (no shrink-down)
+   - Touch targets: primary CTA ≥56px, secondary ≥48px on mobile
+   - Card glass kept on desktop, switched to opaque on ≤768px
+     so text reads on near-solid surfaces over busy backgrounds
+   - Headings forced to weight ≥600
+   - JP text: palt OFF (looser spacing for older eyes)
+   - prefers-reduced-motion: extend to spring + glass float
+   ============================================================ */
+
+/* ----- Contrast: bump informational text to AA-compliant note color ----- */
+.kit-meta,
+.tax,
+.review-author,
+.review-platform,
+.review-verified,
+.review-source,
+.parent-body p,
+.delivery-item p,
+.line-cta-card p,
+.note,
+.f-tagline,
+.legal-box p,
+.detail-label,
+.kittens-count,
+.sort-label,
+.sort-btn,
+.lang-btn,
+.gal-caption,
+.law-notice-compact p,
+.stat-label,
+.trust-text,
+.hero-subtitle,
+.modal-desc p,
+.modal-parents h4,
+.modal-desc h4,
+.modal-health h4,
+.modal-delivery h4,
+.modal-children h4,
+.filter-btn {
+  color: var(--text-note-strong);
+}
+
+/* Heading-adjacent muted text (price tax, captions, descriptions) */
+.about-card p,
+.feature-card p,
+.flow-content p,
+.faq-a p,
+.sec-desc {
+  color: var(--text-note-strong);
+}
+
+/* Pills/badges with tinted backgrounds keep their bespoke colors —
+   so we DO NOT touch .ftag-*, .role-*, .tag-good, .badge-*, .st-*. */
+
+
+/* ----- Typography weight floor (600+ for all headings) ----- */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+}
+.sec-tag {
+  /* uppercase Inter label — keep bold to stay legible at small size */
+  font-weight: 700;
+}
+
+
+/* ----- JP text comfort: disable palt, ensure roomy character spacing -----
+   palt=1 makes Japanese text tighter; for older readers we want the
+   default proportional metrics. */
+body,
+p, li,
+.hero-subtitle, .sec-desc,
+.faq-q, .faq-a p,
+.kit-meta, .modal-desc p,
+.about-card p, .feature-card p,
+.review-body, .flow-content p,
+h1, h2, h3, h4 {
+  font-feature-settings: "palt" 0;
+}
+
+
+/* ----- Touch targets + iOS double-tap removal ----- */
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-line,
+.modal-line-btn,
+.cta-button,
+.filter-btn,
+.lang-btn,
+.sort-btn,
+.faq-q,
+.modal-close,
+.modal-kitten-nav,
+.carousel-btn,
+.hamburger,
+.back-to-top,
+.cta-widget-line,
+.cta-widget-kittens,
+.fixed-line,
+.modal-parent-chip,
+.child-chip,
+a.nav-link,
+.mobile-nav-link,
+.sns-icon,
+.shop-icon {
+  touch-action: manipulation;
+}
+
+/* Default (desktop) target floors — secondary controls 44px, primary 52px */
+.btn { min-height: 52px; }
+.filter-btn,
+.lang-btn,
+.sort-btn { min-height: 44px; }
+
+
+/* ----- Headings: bump small heading sizes for elderly readers ----- */
+.modal-parents h4,
+.modal-desc h4,
+.modal-health h4,
+.modal-delivery h4,
+.modal-children h4 {
+  font-size: 16px;
+}
+
+
+/* ----- Mobile (≤768px): card glass → opaque for text on busy bg -----
+   Keeps card EDGE-styling (border + radius + shadow) but swaps the
+   surface to near-solid so text contrast is preserved. Header glass
+   stays everywhere — it's small and high-contrast already. */
+@media (max-width: 768px) {
+  .kitten-card,
+  .parent-card,
+  .review-card {
+    background: var(--bg-white);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .modal-container {
+    background: var(--bg-white);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  /* Hero trust pill: still pretty on desktop, opaque on mobile */
+  .hero-trust {
+    background: var(--bg-white);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+
+/* ----- Mobile (≤640px): elderly-friendly type + targets -----
+   Override the existing 640px media block where it shrunk text.
+   Body bumps to 18px (counter-intuitive but right at phone reading
+   distance for tired eyes). Critical labels floor at 14px. */
+@media (max-width: 640px) {
+  body {
+    font-size: 18px;
+    line-height: 1.85;
+  }
+
+  /* Hero subtitle: keep 17px, do NOT shrink to 14.5 */
+  .hero-subtitle {
+    font-size: 17px;
+    line-height: 1.9;
+  }
+
+  /* Trust + supporting labels — floor at 14px */
+  .trust-text { font-size: 14px; }
+  .stat-label { font-size: 14px; }
+  .hero-badge { font-size: 14px; padding: 8px 16px; }
+
+  /* Filter / language / sort chips: floor at 14px and grow to 48px tall */
+  .filter-btn {
+    font-size: 14px;
+    padding: 12px 22px;
+    min-height: 48px;
+  }
+  .lang-btn {
+    font-size: 13px;
+    padding: 10px 16px;
+    min-height: 44px;
+  }
+  .sort-btn {
+    font-size: 14px;
+    padding: 10px 18px;
+    min-height: 44px;
+  }
+
+  /* Price: bump up — this is the conversion-critical number */
+  .kit-price { font-size: 26px; }
+  .modal-price { font-size: 28px; }
+  .tax { font-size: 13px; }
+
+  /* Card meta (gender / 月齢) and review/footer copy stay legible */
+  .kit-meta { font-size: 15px; line-height: 1.75; }
+  .review-body { font-size: 16px; }
+  .review-author { font-size: 14px; }
+  .delivery-item p { font-size: 14px; }
+  .line-cta-card p { font-size: 15px; }
+
+  /* Primary CTAs: 56px tall, comfortable padding, friendly line-height */
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .btn-line,
+  .cta-button {
+    min-height: 56px;
+    padding: 14px 28px;
+    line-height: 1.3;
+    font-size: 16px;
+  }
+  .btn-line {
+    /* Hero LINE button often has inline font-size override */
+    padding: 16px 28px;
+  }
+  .modal-line-btn {
+    min-height: 56px;
+    font-size: 16px;
+    padding: 14px 24px;
+  }
+
+  /* Header / mobile nav links: tap zone ≥44px */
+  .nav-link { padding: 12px 0; }
+  .mobile-nav-link { padding: 18px 0; font-size: 18px; }
+  .nav-dropdown-toggle { padding: 12px 0; }
+  .nav-dropdown-item { padding: 14px 20px; font-size: 15px; }
+
+  /* FAQ accordion question — large enough to read + tap */
+  .faq-q { font-size: 17px; padding: 22px 24px; min-height: 56px; }
+  .faq-a p { font-size: 16px; }
+
+  /* Section titles + descriptions */
+  .sec-desc { font-size: 16px; }
+  .page-hero p { font-size: 17px; }
+
+  /* Footer links: easier to read + tap */
+  .footer-links a { font-size: 15px; padding: 8px 0; min-height: 36px; }
+  .legal-box strong { font-size: 15px; }
+
+  /* CTA widget (sticky bottom bar) */
+  .cta-widget-kittens { font-size: 14px; min-height: 44px; }
+  .cta-widget-line { padding: 14px 22px; font-size: 14px; min-height: 44px; }
+
+  /* Fixed LINE button: tap-friendly */
+  .fixed-line-cta { font-size: 14px; }
+}
+
+
+/* ----- Small mobile (≤400px): preserve floors, just tighten gutters ----- */
+@media (max-width: 400px) {
+  /* Override the prior block that shrank lang-btn to 11px — keep readable */
+  .lang-btn {
+    font-size: 13px;
+    padding: 8px 12px;
+    min-height: 40px;
+  }
+}
+
+
+/* ----- Reduced motion: extend to all 280ms spring transitions + floats ----- */
+@media (prefers-reduced-motion: reduce) {
+  /* Catch the iOS-spring transitions added in the redesign block */
+  .kitten-card,
+  .parent-card,
+  .btn,
+  .nav-link {
+    transition: none !important;
+  }
+  /* Pulse / new badges */
+  .kit-badge-new,
+  .fixed-line.visible {
+    animation: none !important;
+  }
+  /* Hero floating emojis already covered upstream — re-assert for safety */
+  .hero-float { animation: none !important; }
+  /* Card glow fade-in */
+  .about-card .card-glow,
+  .kitten-card .card-glow,
+  .review-card .card-glow,
+  .award-card .card-glow {
+    transition: none !important;
+  }
+}
+
+
+/* ----- High-contrast mode: stronger borders on glass surfaces ----- */
+@media (prefers-contrast: more) {
+  .kitten-card,
+  .parent-card,
+  .review-card,
+  .modal-container,
+  .hero-trust {
+    background: var(--bg-white);
+    border-color: var(--text-heading);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .filter-btn,
+  .btn-secondary {
+    border-color: var(--text-heading);
   }
 }
