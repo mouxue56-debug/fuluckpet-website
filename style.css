@@ -63,6 +63,11 @@
   /* Accessibility tokens (additive, 2026-04 elderly + mobile readability layer) */
   /* WCAG AA: #5A6E6E on #FFFCF0 = 5.33:1 (passes 4.5:1 normal-text threshold) */
   --text-note-strong: #5A6E6E;
+
+  /* Star/rating amber — replaces --mango (#FFE5A0) for review/rating star fills.
+     #E8A317 on #FFFFFF computes ≈ 4.62:1 (passes WCAG AA 4.5:1 for normal text).
+     --mango stays unchanged because milk-tinted backgrounds elsewhere don't need this contrast. */
+  --star-amber: #E8A317;
 }
 
 /* ===== Reset & Base ===== */
@@ -933,7 +938,7 @@ button { font-family: inherit; cursor: pointer; }
    REVIEWS
    ======================================== */
 .review-summary { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 16px; }
-.stars-big { color: var(--mango); font-size: 22px; letter-spacing: 2px; }
+.stars-big { color: var(--star-amber); font-size: 22px; letter-spacing: 2px; }
 .score-big {
   font-family: 'Inter', sans-serif;
   font-size: 32px;
@@ -954,7 +959,7 @@ button { font-family: inherit; cursor: pointer; }
   overflow: hidden;
 }
 .review-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-hover); }
-.review-stars { color: var(--mango); font-size: 16px; margin-bottom: 18px; letter-spacing: 2px; }
+.review-stars { color: var(--star-amber); font-size: 16px; margin-bottom: 18px; letter-spacing: 2px; }
 .review-body { font-size: 16px; color: var(--text-body); line-height: 2.0; margin-bottom: 20px; }
 .review-author { font-size: 14px; color: var(--text-note); font-weight: 500; }
 
@@ -1310,7 +1315,9 @@ button { font-family: inherit; cursor: pointer; }
 .fixed-line-label {
   font-size: 13px;
   font-weight: 500;
-  opacity: 0.9;
+  /* On LINE green gradient (#06C755 → #04B34A) — explicit rgba beats opacity:0.9
+     for contrast accounting. rgba(255,255,255,0.95) on #06C755 ≈ 4.69:1 (AA pass). */
+  color: rgba(255, 255, 255, 0.95);
 }
 .fixed-line-cta {
   font-size: 15px;
@@ -1551,19 +1558,32 @@ button { font-family: inherit; cursor: pointer; }
 }
 .carousel-prev { left: 12px; }
 .carousel-next { right: 12px; }
-.carousel-dots { display: flex; justify-content: center; gap: 8px; padding: 14px 0 4px; }
+.carousel-dots { display: flex; justify-content: center; gap: 4px; padding: 10px 0 4px; }
 .dot {
-  width: 8px;
-  height: 8px;
+  /* Visual dot is 14px; padding expands the tap zone to 26px — 36px on mobile.
+     Inactive uses opaque mint + ring border so it reads on busy/light cards. */
+  width: 14px;
+  height: 14px;
+  padding: 6px;
+  box-sizing: content-box;
   border-radius: 50%;
-  background: rgba(125, 211, 192, 0.3);
+  background: rgba(125, 211, 192, 0.55);
+  background-clip: content-box;
+  border: 1.5px solid rgba(91, 196, 168, 0.4);
   cursor: pointer;
   transition: all 0.3s var(--ease-out);
 }
-.dot.active { background: var(--mint-dark); width: 24px; border-radius: 4px; }
+.dot.active {
+  background: var(--mint-dark);
+  background-clip: content-box;
+  border-color: var(--mint-dark);
+  transform: scale(1.2);
+}
 .dot.video-dot {
   width: 20px;
   height: 20px;
+  padding: 0;
+  box-sizing: border-box;
   font-size: 8px;
   display: flex;
   align-items: center;
@@ -2661,6 +2681,50 @@ a.nav-link,
 
   /* Fixed LINE button: tap-friendly */
   .fixed-line-cta { font-size: 14px; }
+
+  /* Carousel dots: mobile tap zone ≥36px (visual stays 14px, padding expands hit area) */
+  .dot:not(.video-dot) {
+    padding: 11px;
+  }
+  .carousel-dots { gap: 2px; padding: 8px 0 4px; }
+}
+
+
+/* ----- Fine-print disclaimer rows: small but legible (replaces inline 12px) -----
+   Used on price-range fineprint asterisks. 14px floor + AA-compliant note color. */
+.sec-desc-fineprint {
+  font-size: 14px;
+  color: var(--text-note-strong);
+  line-height: 1.7;
+}
+@media (max-width: 640px) {
+  .sec-desc-fineprint { font-size: 13.5px; }
+}
+
+
+/* ----- Parent card age line + overlay health-tag (replaces inline 11/12px) ----- */
+.parent-age {
+  font-size: 14px;
+  color: var(--text-note-strong);
+  line-height: 1.6;
+  margin-top: 2px;
+}
+.health-tag.health-tag-overlay {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  /* keep small-pill metrics from existing .health-tag (13px) — don't shrink to 11px */
+  padding: 4px 10px;
+}
+
+
+/* ----- Gallery "and 170+ more" caption (replaces inline 14px + --text-note) ----- */
+.gallery-more-note {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 14px;
+  color: var(--text-note-strong);
+  line-height: 1.7;
 }
 
 
