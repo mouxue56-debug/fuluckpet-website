@@ -861,35 +861,6 @@ export default {
         return addCors(json(article, 200, 'public, max-age=3600'));
       }
 
-      // POST /api/booking — 公開：予約フォーム送信（KV `booking:<ts>-<rand>`）
-      // Coordinates with Agent B: same `booking:` key prefix; admin reads via /api/admin/bookings.
-      if (path === '/api/booking' && method === 'POST') {
-        const body = await request.json().catch(() => ({}));
-        if (!body || typeof body !== 'object') {
-          return addCors(json({ error: 'Invalid JSON body' }, 400));
-        }
-        const ts = Date.now();
-        const id = `${ts}-${crypto.randomUUID().slice(0, 8)}`;
-        const record = {
-          id,
-          createdAt: new Date(ts).toISOString(),
-          name: typeof body.name === 'string' ? body.name.trim().slice(0, 200) : '',
-          email: typeof body.email === 'string' ? body.email.trim().slice(0, 200) : '',
-          phone: typeof body.phone === 'string' ? body.phone.trim().slice(0, 50) : '',
-          message: typeof body.message === 'string' ? body.message.trim().slice(0, 4000) : '',
-          kittenId: typeof body.kittenId === 'string' ? body.kittenId.slice(0, 100) : '',
-          preferredDate: typeof body.preferredDate === 'string' ? body.preferredDate.slice(0, 50) : '',
-          source: typeof body.source === 'string' ? body.source.slice(0, 100) : '',
-          status: 'new',
-        };
-        // Reverse-sortable key: large-ts-first by using (Number.MAX_SAFE_INTEGER - ts).
-        // KV list() returns keys lex-asc, so we want keys that sort newest-first lexically.
-        const sortKey = String(Number.MAX_SAFE_INTEGER - ts).padStart(16, '0');
-        const kvKey = `booking:${sortKey}:${id}`;
-        await env.DATA.put(kvKey, JSON.stringify(record));
-        return addCors(json({ success: true, id }, 201));
-      }
-
       // GET /api/faq — 公開：FAQ一覧（order ASC, published only）
       if (path === '/api/faq' && method === 'GET') {
         const all = (await env.DATA.get('faq', 'json')) || [];
@@ -1110,13 +1081,21 @@ export default {
           }
 
           // Persist to KV first (90-day TTL); never lose a submission.
+          // Use reverse-sortable key so KV list() returns newest-first by default
+          // (admin/js/admin-bookings.js relies on this).
           const ts = Date.now();
           const rand = crypto.randomUUID().slice(0, 8);
-          const kvKey = `booking:${ts}:${rand}`;
+          const id = `${ts}-${rand}`;
+          const sortKey = String(Number.MAX_SAFE_INTEGER - ts).padStart(16, '0');
+          const kvKey = `booking:${sortKey}:${id}`;
+          const isoTs = new Date(ts).toISOString();
           const stored = {
+            id,                        // for admin list page lookups (DELETE/PUT by id)
             ...data,
             request_id: requestId,
-            created_at: new Date(ts).toISOString(),
+            created_at: isoTs,         // snake_case kept for legacy callers
+            createdAt: isoTs,          // camelCase for admin/bookings.html
+            status: 'new',             // admin uses status filter (new/contacted/archived)
             user_agent: request.headers.get('User-Agent') || '',
             ip: request.headers.get('CF-Connecting-IP') || '',
           };
