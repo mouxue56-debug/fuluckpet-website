@@ -353,6 +353,28 @@ button { font-family: inherit; cursor: pointer; }
 .shop-icon { color: var(--text-heading); }
 .shop-icon:hover { color: var(--mint-dark); }
 
+/* Header tel-as-LINE call CTA — gives JP users the phone affordance via LINE call */
+.header-tel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  margin-right: 6px;
+  border-radius: 999px;
+  background: var(--mint-milk, #e6f7f2);
+  color: var(--mint-dark, #2a8d76);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.25s var(--ease-out);
+  white-space: nowrap;
+}
+.header-tel:hover {
+  background: var(--mint, #7DD3C0);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
 /* Hamburger */
 .hamburger {
   display: none;

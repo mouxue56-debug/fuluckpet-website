@@ -118,6 +118,50 @@
       '<div class="blog-detail-content">' + content + '</div>';
   }
 
+  // Inject one BlogPosting JSON-LD per article so AI/search crawlers see structured
+  // metadata even though the listing is a JS-rendered SPA. Idempotent: replaces a
+  // previously-injected block on each call.
+  function injectArticleSchema(articles) {
+    var head = document.head || document.getElementsByTagName('head')[0];
+    if (!head) return;
+    // Remove any prior injected schemas
+    var prior = head.querySelectorAll('script[data-schema="blog-articles"]');
+    prior.forEach(function(s) { s.remove(); });
+    if (!articles || articles.length === 0) return;
+    var graph = articles.map(function(a) {
+      var slug = a.slug || a.id || '';
+      var title = txt(a.title) || a.slug || '';
+      var excerpt = txt(a.excerpt) || '';
+      var pub = a.publishedAt || a.published_at || a.createdAt || a.created_at || null;
+      var mod = a.updatedAt || a.updated_at || pub;
+      return {
+        "@type": "BlogPosting",
+        "@id": "https://fuluckpet.com/blog/" + encodeURIComponent(slug) + ".html",
+        "headline": title,
+        "description": excerpt,
+        "datePublished": pub,
+        "dateModified": mod,
+        "author": { "@type": "Person", "name": "羅方遠", "url": "https://fuluckpet.com/about.html" },
+        "publisher": {
+          "@type": "Organization",
+          "name": "福楽キャッテリー",
+          "url": "https://fuluckpet.com/",
+          "logo": { "@type": "ImageObject", "url": "https://fuluckpet.com/images/ogp.jpg" }
+        },
+        "image": a.coverImage || "https://fuluckpet.com/images/ogp.jpg",
+        "mainEntityOfPage": "https://fuluckpet.com/blog/" + encodeURIComponent(slug) + ".html",
+        "url": "https://fuluckpet.com/blog/" + encodeURIComponent(slug) + ".html",
+        "keywords": (a.tags && a.tags.length ? a.tags.join(", ") : (a.category || ""))
+      };
+    });
+    var payload = { "@context": "https://schema.org", "@graph": graph };
+    var s = document.createElement('script');
+    s.type = 'application/ld+json';
+    s.setAttribute('data-schema', 'blog-articles');
+    s.textContent = JSON.stringify(payload);
+    head.appendChild(s);
+  }
+
   // Init — fetch articles for filter/language features (static HTML provides SEO fallback)
   fetch(API + '/api/articles')
     .then(function(r) { return r.json(); })
@@ -125,6 +169,7 @@
       allArticles = data || [];
       renderFilters();
       renderList();
+      try { injectArticleSchema(allArticles); } catch(e) { /* non-fatal */ }
     })
     .catch(function() {
       // Static cards remain visible as fallback — only show error if no static cards

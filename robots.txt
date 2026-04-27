@@ -1,28 +1,103 @@
-# Google Search Crawler - Allow all
+# ─────────────────────────────────────────────────────────────
+# fuluckpet.com — robots.txt
+# Policy: site content may be cited by AI assistants and search
+# engines with attribution. Training-use requires permission
+# (see /llms.txt). /admin/ and /api/ remain off-limits.
+# ─────────────────────────────────────────────────────────────
+
+# ── Search engine crawlers ──────────────────────────────────
 User-agent: Googlebot
 Allow: /
+Disallow: /admin/
+Disallow: /api/
 
-# Google Extended (AI Search) - Allow
 User-agent: Google-Extended
 Allow: /
+Disallow: /admin/
+Disallow: /api/
 
-# Block AI training bots
+User-agent: Bingbot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+# ── AI assistants & answer engines (citation-allowed) ───────
 User-agent: GPTBot
-Disallow: /
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin/
+Disallow: /api/
 
 User-agent: ClaudeBot
-Disallow: /
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: Claude-Web
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: anthropic-ai
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: Perplexity-User
+Allow: /
+Disallow: /admin/
+Disallow: /api/
 
 User-agent: Amazonbot
-Disallow: /
+Allow: /
+Disallow: /admin/
+Disallow: /api/
 
 User-agent: Bytespider
-Disallow: /
+Allow: /
+Disallow: /admin/
+Disallow: /api/
 
 User-agent: CCBot
-Disallow: /
+Allow: /
+Disallow: /admin/
+Disallow: /api/
 
-# All other crawlers
+User-agent: Applebot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: cohere-ai
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: Diffbot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+# ── Default policy ──────────────────────────────────────────
 User-agent: *
 Allow: /
 Disallow: /admin/

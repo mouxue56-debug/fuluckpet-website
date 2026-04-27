@@ -25,6 +25,8 @@ const translations = {
     'nav.allParents': '親猫紹介（すべて）',
     'parents.moreLink': 'すべての親猫を見る →',
     'kittens.allLink': 'すべての子猫を見る →',
+    'header.telLabel': 'お電話 / LINE',
+    'header.telAria': 'LINEで電話相談',
 
     // Hero
     'hero.award': '2025年 ブリーダーアワード受賞',
@@ -469,6 +471,8 @@ const translations = {
     'nav.allParents': 'All Parent Cats',
     'parents.moreLink': 'View All Parent Cats →',
     'kittens.allLink': 'View All Kittens →',
+    'header.telLabel': 'Call / LINE',
+    'header.telAria': 'Call us via LINE',
 
     // Hero
     'hero.award': '2025 Breeder Award Winner',
@@ -913,6 +917,8 @@ const translations = {
     'nav.allParents': '种猫介绍（全部）',
     'parents.moreLink': '查看所有种猫 →',
     'kittens.allLink': '查看所有幼猫 →',
+    'header.telLabel': '电话 / LINE',
+    'header.telAria': '通过 LINE 拨打电话',
 
     // Hero
     'hero.award': '2025年 繁殖人大奖获得者',
