@@ -1345,15 +1345,15 @@ export default {
         let reply = null;
         let provider = null;
         const errs = {};
-        // MiniMax now PRIMARY: Kimi.com sits behind Cloudflare Bot Fight Mode
-        // and 403s requests originating from another CF Worker IP — even with
-        // browser-like headers (BFM uses pattern analysis, not just UA).
-        // MiniMax has no such restriction → works reliably from CF Workers.
-        // Kimi kept as fallback in case Kimi.com later allowlists CF egress IPs;
-        // when that happens it'll start working again automatically.
+        // Infi (deepseek-v3.2-thinking) is now PRIMARY — empirically produces the
+        // cleanest Japanese (no Chinese/Korean/English contamination, unlike
+        // MiniMax which leaks 我们/现在/quinsy/가능 occasionally). Thinking model
+        // adds 1-2s vs MiniMax but the JP quality wins for a JP-first cattery.
+        // MiniMax kept as fast fallback. Kimi.com still 403s from CF Workers
+        // (Bot Fight Mode), kept in chain in case CF egress IPs get allowlisted.
         const providers = [
-          ['minimax-m2.7', callMiniMaxChat],       // primary
-          ['infi-deepseek-v3.2', callInfiChat],    // fallback 1 (deepseek-thinking)
+          ['infi-deepseek-v3.2', callInfiChat],    // primary (cleanest JP)
+          ['minimax-m2.7', callMiniMaxChat],       // fallback 1 (faster, JP imperfect)
           ['kimi-k2.6', callKimiChat],             // fallback 2 (currently 403'd)
           ['qwen3.6-plus', callDashScopeChat],     // fallback 3
           ['gemini-fallback', callGeminiChat],     // fallback 4
