@@ -360,7 +360,7 @@
     <priority>0.8</priority>
   </url>
 
-                                                                                                      <!-- 子猫詳細ページ -->
+                                                                                                        <!-- 子猫詳細ページ -->
   <url>
     <loc>https://fuluckpet.com/kittens/2602-00625.html</loc>
     <lastmod>2026-04-27</lastmod>
@@ -378,7 +378,7 @@
     <priority>0.7</priority>
     <image:image>
       <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/11A__yaCqHdX2DQWdoJJt09SL96fommeS</image:loc>
-      <image:caption>サイベリアンの子猫 シルバータビー トリプルコート 男の子・個体番号2601-01855</image:caption>
+      <image:caption>サイベリアンの子猫 シルバータビ�� トリプルコート 男の子・個体番号2601-01855</image:caption>
     </image:image>
   </url>
   <url>
