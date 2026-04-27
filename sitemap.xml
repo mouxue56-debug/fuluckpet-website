@@ -360,7 +360,7 @@
     <priority>0.8</priority>
   </url>
 
-                                                                                                                      <!-- 子猫詳細ページ -->
+                                                                                                                        <!-- 子猫詳細ページ -->
   <url>
     <loc>https://fuluckpet.com/kittens/2602-00625.html</loc>
     <lastmod>2026-04-27</lastmod>
@@ -448,7 +448,7 @@
     <priority>0.7</priority>
     <image:image>
       <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1GoruWUhUw-I5vCGTDA9FaXcCsU6I5V-c</image:loc>
-      <image:caption>サイベリアンの子猫 シルバーシェーデッド 男の子・個体番号2508-00310</image:caption>
+      <image:caption>サ���ベリアンの子猫 シルバーシェーデッド 男の子・個体番号2508-00310</image:caption>
     </image:image>
   </url>
   <url>
@@ -863,6 +863,12 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://fuluckpet.com/blog/cat-body-language-tail-ears.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://fuluckpet.com/blog/cat-breed-ranking-japan.html</loc>
     <lastmod>2026-04-27</lastmod>
     <changefreq>monthly</changefreq>
@@ -912,6 +918,12 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-dental-care.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/cat-dental-care-prevention.html</loc>
     <lastmod>2026-04-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -1337,7 +1349,19 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://fuluckpet.com/blog/cattery-visit-preparation-guide.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://fuluckpet.com/blog/choose-breeder.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/choose-healthy-kitten-checklist.html</loc>
     <lastmod>2026-04-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -1782,30 +1806,6 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/spay-neuter-timing-siberian.html</loc>
-    <lastmod>2026-04-27</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/blog/cat-body-language-tail-ears.html</loc>
-    <lastmod>2026-04-27</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/blog/cat-dental-care-prevention.html</loc>
-    <lastmod>2026-04-27</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/blog/choose-healthy-kitten-checklist.html</loc>
-    <lastmod>2026-04-27</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/blog/cattery-visit-preparation-guide.html</loc>
     <lastmod>2026-04-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
