@@ -2125,9 +2125,12 @@ button { font-family: inherit; cursor: pointer; }
   .flow-timeline::before { left: 19px; }
   .flow-num { width: 40px; height: 40px; font-size: 14px; }
   .flow-step { gap: 20px; }
+  /* Mobile: legacy floating LINE bubble is hidden — superseded by .mobile-cta-bar
+     to avoid duplicate LINE CTAs. Keep selectors below as no-ops in case
+     other code toggles them. */
+  .fixed-line { display: none !important; }
   .fixed-line .line-text { display: none; }
   .fixed-line-label { display: none; }
-  .fixed-line { padding: 14px 20px; border-radius: 16px; bottom: 20px; right: 16px; gap: 8px; }
   .fixed-line-cta { font-size: 13px; }
   .footer { padding-top: 48px; }
   .footer-top { gap: 32px; }

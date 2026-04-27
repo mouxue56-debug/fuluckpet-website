@@ -24,19 +24,77 @@
     apiBase:
       (typeof window !== 'undefined' && window.FULUCK_CHAT_API) ||
       // production worker; can be overridden per-page via window.FULUCK_CHAT_API
-      'https://fuluck-api.fuluckpet.workers.dev',
+      'https://fuluck-api.mouxue56.workers.dev',
     chatPath: '/api/chat',
     sessionKey: 'fuluck_chat_session',
     historyKey: 'fuluck_chat_history',
+    modeKey: 'fuluck_chat_mode',     // cached "online" | "faq" with TTL
+    modeTtlMs: 5 * 60 * 1000,        // 5 minutes
     maxHistory: 50,
     lineUrl: 'https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true',
     bookingUrl: '/booking.html'
   };
 
+  // ── Built-in FAQ corpus (Japanese) — used when worker is offline ──
+  // Keywords match user input via includes(); first match wins.
+  // Each answer ends by nudging the user to LINE for follow-up.
+  var FAQ_CORPUS = [
+    {
+      keywords: ['価格', 'お値段', '値段', 'いくら', '料金', 'price', '費用', 'コスト'],
+      answer:
+        'サイベリアンの子猫は ¥160,000〜¥290,000 の価格帯です。毛色・性別・血統・コートの厚さなどで個体ごとに異なります。詳しい個体別のお見積りは LINE にてご案内しております。'
+    },
+    {
+      keywords: ['見学', '予約', '訪問', '会いに', '会える', '内覧', 'visit', 'booking'],
+      answer:
+        '見学は完全予約制です。LINE またはご予約フォーム（/booking.html）よりご希望日時をお知らせください。週末は混み合いますのでお早めのご相談がおすすめです🐾'
+    },
+    {
+      keywords: ['アレルギー', 'アレルゲン', 'fel d1', 'fel-d1', 'feld1', 'allergy', '低アレルゲン', 'くしゃみ'],
+      answer:
+        'サイベリアンは Fel d1 タンパク質の分泌が少ない傾向があり、低アレルゲン猫として知られています。ただし個体差があるため、ご心配な方は事前のご見学＋短時間の同室テストをおすすめしております。'
+    },
+    {
+      keywords: ['場所', '大阪', '住所', 'どこ', 'アクセス', '最寄り', '駅', 'location', 'osaka'],
+      answer:
+        '当キャッテリーは大阪府内にございます。詳細な所在地は予約確定後にお知らせしております（プライバシー保護のため）。最寄り駅からの送迎・地図はLINEにてご案内します。'
+    },
+    {
+      keywords: ['お迎え', '引き渡し', '引渡し', '何ヶ月', '月齢', '生後', 'pickup', '配送'],
+      answer:
+        '生後 2.5〜3 ヶ月でのお引渡しが目安です。社会化期間を十分に取ることで、新しいご家族との生活にスムーズに馴染めるよう配慮しております。遠方の方には航空便・陸送のご相談も承ります。'
+    },
+    {
+      keywords: ['健康', 'ワクチン', 'マイクロチップ', '検査', '保証', 'health', 'vaccine', '血統書'],
+      answer:
+        '1回目のワクチン接種済み + マイクロチップ装着 + 健康診断書 + 血統書 (TICA / CFA) 付きでお引渡しいたします。先天性疾患に関する短期保証もございますので、詳細は LINE よりお問い合わせください。'
+    }
+  ];
+
+  function findFaqAnswer(userText) {
+    var t = String(userText || '').toLowerCase();
+    if (!t) return null;
+    for (var i = 0; i < FAQ_CORPUS.length; i++) {
+      var entry = FAQ_CORPUS[i];
+      for (var j = 0; j < entry.keywords.length; j++) {
+        if (t.indexOf(entry.keywords[j].toLowerCase()) !== -1) {
+          return entry.answer;
+        }
+      }
+    }
+    return null;
+  }
+
+  // FAQ unmatched fallback (also used when worker is reachable but errors)
+  var FAQ_UNMATCHED =
+    '申し訳ありません、AIアシスタントが現在準備中です。お急ぎの方はLINEからお気軽にご連絡ください 🐾';
+
   // ── i18n keys (Japanese-first; pulls from window.translations if present) ──
   var DEFAULT_STRINGS = {
     'chat.title': 'ふくにゃん',
     'chat.status': 'オンライン',
+    'chat.status.online': 'オンライン',
+    'chat.status.faq': '簡易モード',
     'chat.greeting':
       'こんにちは！福楽キャッテリーのアシスタント、ふくにゃんです🐈‍⬛ サイベリアンや見学予約についてお気軽にどうぞ。',
     'chat.placeholder': 'メッセージを入力...',
@@ -50,6 +108,8 @@
       'すみません、ただいま応答できませんでした。少し時間をおいて再度お試しください。',
     'chat.error.rate':
       'リクエストが多くなっています。しばらくしてからもう一度お試しください。',
+    'chat.faq.lineCta': 'より詳しいご相談は LINE までどうぞ →',
+    'chat.faq.lineCtaLabel': 'LINE で相談',
     'chat.quick.price': '価格は？',
     'chat.quick.visit': '見学予約',
     'chat.quick.allergy': 'アレルギー対応',
@@ -100,6 +160,25 @@
     } catch (_) {
       delete memStore[k];
     }
+  }
+
+  // ── Mode persistence (online vs faq) — TTL 5min ───────────────────
+  function readCachedMode() {
+    try {
+      var raw = lsGet(CFG.modeKey);
+      if (!raw) return null;
+      var obj = JSON.parse(raw);
+      if (!obj || !obj.mode || !obj.ts) return null;
+      if (Date.now() - obj.ts > CFG.modeTtlMs) return null;
+      return obj.mode === 'faq' ? 'faq' : 'online';
+    } catch (_) {
+      return null;
+    }
+  }
+  function writeCachedMode(mode) {
+    try {
+      lsSet(CFG.modeKey, JSON.stringify({ mode: mode, ts: Date.now() }));
+    } catch (_) {}
   }
 
   function uuid() {
@@ -249,11 +328,38 @@
     this.messagesEl = null;
     this.inputEl = null;
     this.sendBtn = null;
+    this.statusEl = null;     // header status text + dot
     this.history = [];        // [{role, content, ts}]
     this.busy = false;
     this.opened = false;
     this.sessionId = getSessionId();
+    this.mode = readCachedMode() || 'online'; // 'online' | 'faq'
   }
+
+  FuluckChat.prototype._setMode = function (mode, opts) {
+    if (mode !== 'online' && mode !== 'faq') return;
+    if (this.mode === mode && !(opts && opts.force)) return;
+    this.mode = mode;
+    writeCachedMode(mode);
+    this._renderStatus();
+  };
+
+  FuluckChat.prototype._renderStatus = function () {
+    if (!this.statusEl) return;
+    var label = this.mode === 'faq'
+      ? t('chat.status.faq') || '簡易モード'
+      : t('chat.status.online') || t('chat.status') || 'オンライン';
+    // The leading colored dot is rendered via ::before; toggle a class.
+    if (this.mode === 'faq') this.statusEl.classList.add('is-faq');
+    else this.statusEl.classList.remove('is-faq');
+    this.statusEl.textContent = label;
+    this.statusEl.setAttribute(
+      'title',
+      this.mode === 'faq'
+        ? 'AI 接続待機中です。よくあるご質問のみお答えできます。'
+        : 'AI アシスタントがオンラインです。'
+    );
+  };
 
   FuluckChat.prototype.mount = function () {
     if (document.querySelector('.fuluck-chat-root')) return; // idempotent
@@ -290,11 +396,14 @@
     var headerAvatar = el('div', { class: 'fuluck-chat-header-avatar', 'aria-hidden': 'true' });
     headerAvatar.innerHTML = SVG_CAT.replace('width="48" height="48"', 'width="28" height="28"');
 
+    var statusEl = el('div', { class: 'fuluck-chat-header-status' }, t('chat.status'));
+    this.statusEl = statusEl;
+
     var header = el('div', { class: 'fuluck-chat-header' }, [
       headerAvatar,
       el('div', { class: 'fuluck-chat-header-meta' }, [
         el('div', { class: 'fuluck-chat-header-name' }, t('chat.title')),
-        el('div', { class: 'fuluck-chat-header-status' }, t('chat.status'))
+        statusEl
       ]),
       el('div', { class: 'fuluck-chat-header-actions' }, [
         (function (self) {
@@ -420,6 +529,9 @@
     } else {
       this._renderAll();
     }
+
+    // Reflect cached mode into header badge.
+    this._renderStatus();
   };
 
   FuluckChat.prototype._renderAll = function () {
@@ -504,6 +616,43 @@
     } catch (_) {}
   };
 
+  // Build a FAQ reply (HTML) for a user message. If `matched` is null,
+  // show the unmatched fallback. Always appends a LINE CTA button.
+  FuluckChat.prototype._buildFaqHtml = function (matched) {
+    var body = matched || FAQ_UNMATCHED;
+    var ctaLabel = t('chat.faq.lineCtaLabel') || 'LINE で相談';
+    var ctaPrefix = t('chat.faq.lineCta') || 'より詳しいご相談は LINE までどうぞ →';
+    var safe = linkifyText(body);
+    return (
+      safe +
+      '<div class="fuluck-chat-faq-cta">' +
+      '<span>' + ctaPrefix + '</span> ' +
+      '<a class="fuluck-chat-faq-line" href="' +
+      CFG.lineUrl +
+      '" target="_blank" rel="noopener">' +
+      ctaLabel +
+      '</a>' +
+      '</div>'
+    );
+  };
+
+  FuluckChat.prototype._appendFaqAnswer = function (userText) {
+    var matched = findFaqAnswer(userText);
+    var html = this._buildFaqHtml(matched);
+    // Persist plain text to history (HTML CTA is presentational).
+    var historyText =
+      (matched || FAQ_UNMATCHED) +
+      '\n\n' +
+      (t('chat.faq.lineCta') || '') +
+      ' ' +
+      CFG.lineUrl;
+    this._pushHistory('assistant', historyText);
+    var node = bubbleNode('assistant', '', { html: true });
+    node.bubble.innerHTML = html;
+    this.messagesEl.appendChild(node.row);
+    this._scrollToEnd();
+  };
+
   FuluckChat.prototype.send = function (text) {
     if (this.busy) return;
     var content = String(text || '').trim();
@@ -517,12 +666,28 @@
     this.sendBtn.classList.remove('is-active');
     this.sendBtn.disabled = true;
 
+    var self = this;
+
+    // Cached FAQ mode? Skip the network round-trip entirely.
+    if (this.mode === 'faq') {
+      // brief typing flicker for natural feel
+      var typingFaq = typingNode();
+      this.messagesEl.appendChild(typingFaq);
+      this._scrollToEnd();
+      this.busy = true;
+      setTimeout(function () {
+        if (typingFaq.parentNode) typingFaq.parentNode.removeChild(typingFaq);
+        self._appendFaqAnswer(content);
+        self.busy = false;
+      }, 350);
+      return;
+    }
+
     var typing = typingNode();
     this.messagesEl.appendChild(typing);
     this._scrollToEnd();
 
     this.busy = true;
-    var self = this;
     var payload = {
       session_id: this.sessionId,
       messages: this.history
@@ -553,12 +718,20 @@
       .then(function (r) {
         if (typing.parentNode) typing.parentNode.removeChild(typing);
         if (!r.ok) {
-          var msg =
-            r.status === 429 ? t('chat.error.rate') : t('chat.error');
-          self._pushHistory('assistant', msg);
-          self._appendMessage('assistant', msg);
+          // 401 / 404 / 5xx — worker is up but chat endpoint not deployed
+          // (or auth-gated). Switch to FAQ mode and answer locally.
+          if (r.status === 429) {
+            var rateMsg = t('chat.error.rate');
+            self._pushHistory('assistant', rateMsg);
+            self._appendMessage('assistant', rateMsg);
+            return;
+          }
+          self._setMode('faq');
+          self._appendFaqAnswer(content);
           return;
         }
+        // 200 OK — confirm we're online (in case we were cached as faq).
+        self._setMode('online');
         var reply =
           (r.data && (r.data.message || r.data.reply || r.data.content)) ||
           t('chat.error');
@@ -566,10 +739,10 @@
         self._appendMessage('assistant', reply);
       })
       .catch(function () {
+        // Network failure / DNS / CORS — degrade to FAQ.
         if (typing.parentNode) typing.parentNode.removeChild(typing);
-        var msg = t('chat.error');
-        self._pushHistory('assistant', msg);
-        self._appendMessage('assistant', msg);
+        self._setMode('faq');
+        self._appendFaqAnswer(content);
       })
       .then(function () {
         self.busy = false;
