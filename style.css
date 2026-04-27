@@ -3023,6 +3023,9 @@ body.cta-hidden .mobile-cta-bar {
 .mobile-trust-strip {
   display: none;
 }
+/* Mobile-only trust strip: stick to top RIGHT BELOW the sticky header so
+   it doesn't get hidden by header when scrolling, AND doesn't overlap
+   hero content (we add 40px to all *-hero padding-top below). */
 @media (max-width: 768px) {
   .mobile-trust-strip {
     display: flex;
@@ -3037,6 +3040,9 @@ body.cta-hidden .mobile-cta-bar {
     border-bottom: 1px solid var(--glass-border);
     overflow: hidden;
     white-space: nowrap;
+    position: sticky;
+    top: var(--header-height);
+    z-index: 99;
   }
   .mobile-trust-strip .pill {
     display: inline-flex;
@@ -3062,6 +3068,38 @@ body.cta-hidden .mobile-cta-bar {
 @media (min-width: 769px) {
   .mobile-trust-strip { display: none !important; }
 }
+
+/* ============================================================
+   TOP-CROWDING FIX (2026-04-27)
+   Mobile sticky-header (64px) + sticky trust-strip (40px) = 104px top occupancy.
+   Hero/page-hero padding-top must reserve 104px+ to prevent first line clipping.
+   Also account for iOS safe-area notch via env(safe-area-inset-top).
+   ============================================================ */
+@media (max-width: 768px) {
+  /* Reserve room for header (64) + trust-strip (40) + breathing (24) + iOS notch */
+  .hero {
+    padding-top: calc(var(--header-height) + 40px + 32px + env(safe-area-inset-top, 0px));
+  }
+  .page-hero,
+  .blog-hero,
+  .faq-hero,
+  .booking-hero,
+  .reviews-hero,
+  .gallery-hero,
+  .siberian-hero,
+  .about-hero {
+    padding-top: calc(var(--header-height) + 40px + 24px + env(safe-area-inset-top, 0px)) !important;
+  }
+  /* Header itself respects iOS notch */
+  .header {
+    padding-top: env(safe-area-inset-top, 0px);
+    height: calc(var(--header-height) + env(safe-area-inset-top, 0px));
+  }
+}
+/* Pages that don't have the trust strip (everything except index.html) only
+   need to clear the header — but the rule above is harmless because
+   trust strip is display:none on those pages anyway, so the +40 is just
+   slightly extra breathing room. Acceptable trade-off for one-rule simplicity. */
 
 
 /* ============================================================
