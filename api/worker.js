@@ -458,6 +458,42 @@ async function loadChatSystemPrompt(env) {
 
 // Call DashScope International qwen3.6-plus (OpenAI-compat).
 // `messages` is an array of { role: 'system'|'user'|'assistant', content }.
+// Kimi CodingPlan (Anthropic-compatible). Primary chat provider per owner request.
+// Endpoint: https://api.kimi.com/coding/v1/messages — uses x-api-key + anthropic-version.
+async function callKimiChat(env, messages) {
+  const key = env.KIMI_API_KEY;
+  if (!key) throw new Error('KIMI_API_KEY not configured');
+
+  // Anthropic format: top-level `system` string, messages array contains only user/assistant.
+  const sys = messages.find(m => m.role === 'system')?.content || '';
+  const conv = messages.filter(m => m.role !== 'system');
+
+  const res = await fetch('https://api.kimi.com/coding/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'kimi-k2.6',
+      max_tokens: 1024,
+      system: sys,
+      messages: conv,
+    }),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Kimi chat error: ${res.status} ${errText}`);
+  }
+  const data = await res.json();
+  // Anthropic response shape: content[0].text
+  const text = data?.content?.[0]?.text;
+  if (!text) throw new Error('Kimi returned empty content');
+  return String(text).trim();
+}
+
 async function callDashScopeChat(env, messages) {
   const key = env.DASHSCOPE_QWEN36_KEY;
   if (!key) throw new Error('DASHSCOPE_QWEN36_KEY not configured');
@@ -1005,23 +1041,31 @@ export default {
         const systemPrompt = await loadChatSystemPrompt(env);
         const llmMessages = [{ role: 'system', content: systemPrompt }, ...cleaned];
 
-        // Try DashScope qwen3.6-plus first, fall back to Gemini
+        // Provider chain: Kimi k2.6 (primary, Anthropic-compatible CodingPlan)
+        // → DashScope qwen3.6-plus (fallback 1) → Gemini (fallback 2).
         let reply = null;
         let provider = null;
-        let lastErr = null;
+        const errs = {};
         try {
-          reply = await callDashScopeChat(env, llmMessages);
-          provider = 'qwen3.6-plus';
-        } catch (e) {
-          lastErr = e;
+          reply = await callKimiChat(env, llmMessages);
+          provider = 'kimi-k2.6';
+        } catch (e1) {
+          errs.kimi = e1.message;
           try {
-            reply = await callGeminiChat(env, llmMessages);
-            provider = 'gemini-fallback';
+            reply = await callDashScopeChat(env, llmMessages);
+            provider = 'qwen3.6-plus';
           } catch (e2) {
-            return addCors(json({
-              error: 'AI providers unavailable',
-              detail: { primary: e.message, fallback: e2.message },
-            }, 502));
+            errs.dashscope = e2.message;
+            try {
+              reply = await callGeminiChat(env, llmMessages);
+              provider = 'gemini-fallback';
+            } catch (e3) {
+              errs.gemini = e3.message;
+              return addCors(json({
+                error: 'AI providers unavailable',
+                detail: errs,
+              }, 502));
+            }
           }
         }
 
