@@ -434,9 +434,9 @@ async function callQianwenVision(env, base64Data, mimeType) {
 // `chat:system_prompt`. Generated 2026-04-26 via Kimi k2.6.
 const CHAT_SYSTEM_PROMPT_DEFAULT = `あなたは福楽キャッテリーのAIカスタマーアシスタント「ふくにゃん」です。大阪に拠点を置くサイベリアン専門の家庭ブリーダーとして、温かく知識豊富で安心感を与える対応を心がけてください。口調は親しみやすく丁寧で、1回の応答で「〜にゃん」を1回まで使い、使いすぎないように調整してください。押し売りは絶対にせず、ユーザーのペースを大切にします。
 
-必ず暗記して活用する知識は以下の通りです。福楽キャッテリーは完全予約制の見学を対面およびLINEビデオ通話で実施しており、お迎え後も生涯LINEサポートを提供しています。サイベリアンはFel d 1たんぱく質が一般的な猫より少ない傾向にある低アレルゲン猫種で、長毛ながら手入れは比較的容易、性格は穏やかで人懐っこく犬のようとも言われ、寒さに強く平均寿命は12〜15年、成猫で5〜10kgです。子猫の価格はキトンクラスで35〜45万円、ショークラスで50〜80万円程度で、血統・毛色・性別・性格適性により変動します。正確な金額は個別にご案内いたします。サイベリアンが完全に無アレルゲンではないことを必ず伝え、Fel d 1が少ない傾向なので体質によっては反応しないケースが多いこと、見学時に30分以上一緒に過ごすアレルギーテストを推奨することを説明してください。
+福楽キャッテリーの基本姿勢は次の通りです。完全予約制の見学を対面およびLINEビデオ通話で実施しており、お迎え後も生涯LINEサポートを提供しています。サイベリアンはFel d 1たんぱく質が一般的な猫より少ない傾向にある低アレルゲン猫種で、長毛ながら手入れは比較的容易、性格は穏やかで人懐っこく犬のようとも言われ、寒さに強い猫種です。サイベリアンが完全に無アレルゲンではないことを必ず伝え、Fel d 1が少ない傾向なので体質によっては反応しないケースが多いこと、見学時に30分以上一緒に過ごすアレルギーテストを推奨することを説明してください。
 
-お迎えの流れは、LINEで相談後、子猫一覧から候補を選び、前日までに見学を予約、来訪またはビデオ通話で対面、契約・予約金、生後約90日にワクチン完了後にお迎えまたは配送となります。健康管理は2回のワクチン接種、FIVとFeLVのウイルス検査陰性、寄生虫駆除、健康診断書付きです。お渡し時には健康診断書、ワクチン証明書、TICAまたはCFAの血統書、フードサンプル、慣れたタオル、お世話ガイドを同梱します。配送は大阪近郊は手渡し優先、遠方はペット配送業者経由の航空便対応で費用は別途です。連絡手段はLINEが最速で、電話・メールも可能です。
+価格、在庫、子猫詳細、見学スケジュール、配送方法、引渡し物（書類・血統書）、お迎え後サポートの細目など、当キャッテリー固有の事実はすべて毎ターン注入される「知識ベース」セクションのみを唯一のソースにしてください。base prompt 内の数字や事実例（あれば）は古い場合があるので絶対に引用しないでください。連絡手段はLINEが最速で、確定情報の問い合わせはLINEへ誘導してください。
 
 応答は必ず日本語で、他言語の場合は最後に日本語訳を添えるか丁寧に日本語でお願いしてください。1回の返答は100〜200字を目安に簡潔にし、長い説明が必要なら箇条書きで読みやすく構成してください。価格・在庫・スケジュールなどの確定情報が求められたら「最新の情報はLINEでご確認いただくのが確実です」とLINE誘導を必ず添えてください。医療相談には獣医師へのご相談を案内し、診断は行わないでください。アレルギーは個人差が大きいことを必ず伝え、見学テストを推奨してください。押し売り、不安をあおる発言、競合ブリーダーの誹謗は禁止です。質問が不明確な場合は1つだけ質問を返して絞り込んでください。知らないこと・確証のないことは「確認してご連絡します」「LINEで詳しくお伝えできます」と正直に伝え、捏造は絶対にしないでください。
 
@@ -454,6 +454,163 @@ async function loadChatSystemPrompt(env) {
     if (kv && typeof kv === 'string' && kv.trim().length > 0) return kv;
   } catch (_) { /* fall through */ }
   return CHAT_SYSTEM_PROMPT_DEFAULT;
+}
+
+// =============================================================================
+// RAG GROUNDING — keyword-scored retrieval over the cattery's own data
+// =============================================================================
+// Owner requirement: the AI must answer ONLY from our knowledge base, never
+// invent prices/kittens/facts. Every /api/chat turn calls retrieveKnowledge()
+// and bakes the top results into the system prompt as 「知識ベース」.
+//
+// Sources (all stored in the same Cloudflare KV namespace `DATA`):
+//   * dynamic JSON: kittens, parents, faq, reviews
+//   * static text:  kb:siberian / kb:about / kb:visit / kb:pricing /
+//                   kb:health / kb:aftercare / kb:legal  (seeded by tools/seed-kb.js)
+//
+// No embeddings — keyword scoring is sufficient for the small corpus and keeps
+// cold-start latency negligible.
+const KB_STATIC_KEYS = [
+  'kb:siberian',
+  'kb:about',
+  'kb:visit',
+  'kb:pricing',
+  'kb:health',
+  'kb:aftercare',
+  'kb:legal',
+];
+
+function escapeRegExp(s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// Japanese has no word delimiters, so naive whitespace tokens yield zero hits.
+// We segment on punctuation, then explode any CJK-heavy run into character
+// bigrams (and a single trigram if available) — coarse but effective for
+// keyword scoring over the small KB we have. ASCII / latin runs stay whole.
+const CJK_RE = /[぀-ヿ㐀-䶿一-鿿豈-﫿]/;
+const JP_PARTICLES = new Set(['です', 'ます', 'これ', 'それ', 'あれ', 'です？', 'ます？']);
+
+function tokenizeQuery(q) {
+  const out = new Set();
+  const segs = q
+    .toLowerCase()
+    .split(/[\s、。，,.\?!？！「」『』（）()【】\[\]:：;；〜～\-—_／\/]+/u)
+    .filter(Boolean);
+  for (const seg of segs) {
+    if (seg.length < 2) continue;
+    if (!CJK_RE.test(seg)) {
+      // Pure ASCII/latin/digit — keep whole.
+      out.add(seg);
+      continue;
+    }
+    // Always include the whole segment too (cheap, helps when the user
+    // actually quoted a known phrase like "サイベリアン").
+    out.add(seg);
+    // Character bigrams.
+    for (let i = 0; i < seg.length - 1; i++) {
+      const bg = seg.slice(i, i + 2);
+      if (JP_PARTICLES.has(bg)) continue;
+      out.add(bg);
+    }
+    // One trigram for slightly stronger matches when the segment is long.
+    if (seg.length >= 3) {
+      for (let i = 0; i < seg.length - 2; i++) {
+        out.add(seg.slice(i, i + 3));
+      }
+    }
+  }
+  return [...out];
+}
+
+async function retrieveKnowledge(env, query) {
+  if (!query || typeof query !== 'string') return '';
+  const tokens = tokenizeQuery(query);
+  if (tokens.length === 0) return '';
+
+  // Bigrams are noisy on their own — give longer tokens more weight.
+  const score = (text) => {
+    if (!text) return 0;
+    const t = String(text).toLowerCase();
+    let s = 0;
+    for (const tok of tokens) {
+      const re = new RegExp(escapeRegExp(tok), 'g');
+      const occ = t.match(re);
+      if (occ) {
+        // weight = log2(token length + 1), so trigram > bigram, full phrase >>.
+        const w = Math.max(1, Math.floor(Math.log2(tok.length + 1)));
+        s += occ.length * w;
+      }
+    }
+    return s;
+  };
+
+  const chunks = [];
+
+  // 1) Kittens — one chunk per kitten. Use whatever fields exist.
+  try {
+    const kittens = (await env.DATA.get('kittens', 'json')) || [];
+    for (const k of kittens) {
+      const text =
+        `子猫 ${k.breederId || k.id || ''} | ${k.breed || ''} ${k.color || ''} ${k.gender || ''}`.trim() +
+        ` | 価格 ${k.price ? `¥${k.price}` : '要問合せ'}` +
+        ` | 状態 ${k.status || k.availability || ''}` +
+        ` | 月齢/誕生 ${k.birthday || k.birthDate || k.age || ''}` +
+        ` | 親猫 ${k.papa || k.father || ''} × ${k.mama || k.mother || ''}` +
+        (k.note || k.description ? ` | 備考 ${k.note || k.description}` : '');
+      const s = score(text);
+      if (s > 0) chunks.push({ text, s, src: `kitten:${k.breederId || k.id || ''}` });
+    }
+  } catch (_) { /* tolerate missing/invalid */ }
+
+  // 2) Parents
+  try {
+    const parents = (await env.DATA.get('parents', 'json')) || [];
+    for (const p of parents) {
+      const text = `親猫 ${p.name || ''} | ${p.breed || ''} ${p.color || ''} ${p.role || p.gender || ''} | ${p.description || p.bio || ''}`.trim();
+      const s = score(text);
+      if (s > 0) chunks.push({ text, s, src: `parent:${p.name || ''}` });
+    }
+  } catch (_) {}
+
+  // 3) FAQ
+  try {
+    const faq = (await env.DATA.get('faq', 'json')) || [];
+    for (const f of faq) {
+      if (f.published === false) continue;
+      const text = `Q: ${f.question || ''}\nA: ${f.answer || ''}`;
+      const s = score(text);
+      if (s > 0) chunks.push({ text, s, src: `faq:${(f.question || '').slice(0, 20)}` });
+    }
+  } catch (_) {}
+
+  // 4) Reviews — only attach when the user actually asks about reputation/voices
+  if (/レビュー|口コミ|評判|review|お客様|声/i.test(query)) {
+    try {
+      const reviews = (await env.DATA.get('reviews', 'json')) || [];
+      for (const r of reviews.slice(0, 30)) {
+        const text = `お客様の声 (${r.author || r.name || ''} / ★${r.rating || 5}): ${r.body || r.comment || r.text || ''}`;
+        const s = score(text);
+        if (s > 0) chunks.push({ text, s, src: `review:${r.author || ''}` });
+      }
+    } catch (_) {}
+  }
+
+  // 5) Static kb:* chunks — facts about the cattery / breed / pricing / legal etc.
+  for (const key of KB_STATIC_KEYS) {
+    try {
+      const raw = await env.DATA.get(key);
+      if (raw) {
+        const s = score(raw);
+        if (s > 0) chunks.push({ text: `[${key}] ${raw}`, s, src: key });
+      }
+    } catch (_) {}
+  }
+
+  // Sort by score desc, take top 8, cap each chunk at 600 chars.
+  chunks.sort((a, b) => b.s - a.s);
+  const top = chunks.slice(0, 8).map((c) => c.text.slice(0, 600));
+  return top.join('\n\n---\n\n');
 }
 
 // Call DashScope International qwen3.6-plus (OpenAI-compat).
@@ -1155,8 +1312,19 @@ export default {
         }
         await env.DATA.put(rlKey, String(rl + 1), { expirationTtl: 3600 });
 
-        // Build prompt
-        const systemPrompt = await loadChatSystemPrompt(env);
+        // Build prompt — retrieve grounding context from the user's latest turn.
+        const baseSystemPrompt = await loadChatSystemPrompt(env);
+        const userQuery = cleaned[cleaned.length - 1].content;
+        let kbBlock = '';
+        try {
+          kbBlock = await retrieveKnowledge(env, userQuery);
+        } catch (_) { /* retrieval is best-effort; never block chat */ }
+
+        const groundingPrompt = kbBlock
+          ? `\n\n## 知識ベース（このセッションで参照可能な唯一の事実情報）\n\n${kbBlock}\n\n## 厳守ルール\n\n1. 上記「知識ベース」に記載されている内容のみを当キャッテリー固有の事実として回答してください。\n2. 知識ベースに記載のない事実（価格、子猫、親猫、サービスの詳細等）は推測しないでください。「申し訳ありません、その詳細は担当者から LINE で正確にご回答いたします🐾」と答え、LINE への誘導を必ず行ってください。\n3. 一般的な猫の飼育知識・サイベリアン全般の情報は説明して構いませんが、当キャッテリー固有の事実は知識ベースのみに基づいてください。`
+          : `\n\n## 注意\n\n現在、知識ベースから関連情報が取得できませんでした。具体的な事実（価格・子猫・予約等）については「申し訳ありません、その詳細は担当者から LINE で正確にお答えします🐾」とご案内し、LINE への誘導を行ってください。`;
+
+        const systemPrompt = baseSystemPrompt + groundingPrompt;
         const llmMessages = [{ role: 'system', content: systemPrompt }, ...cleaned];
 
         // Provider chain (per owner): Kimi → MiniMax → Infi → DashScope → Gemini.
