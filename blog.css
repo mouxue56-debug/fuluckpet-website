@@ -118,6 +118,32 @@
 /* Blog article page breadcrumb */
 .blog-article { max-width: 800px; margin: 0 auto; padding: 20px 16px 40px; }
 
+/* Inline figure (cattery brand illustration) */
+.blog-figure {
+  margin: 28px auto;
+  text-align: center;
+  max-width: 600px;
+}
+.blog-figure img {
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  display: block;
+}
+.blog-figure figcaption {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--text-note, #888);
+  line-height: 1.5;
+  font-style: normal;
+}
+@media (max-width: 768px) {
+  .blog-figure { margin: 20px auto; max-width: 100%; }
+  .blog-figure img { border-radius: 12px; }
+  .blog-figure figcaption { font-size: 12px; }
+}
+
 /* Blog list static card links */
 .blog-card[data-category] { display: block; }
 
