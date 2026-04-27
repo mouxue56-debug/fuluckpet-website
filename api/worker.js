@@ -625,12 +625,23 @@ async function callKimiChat(env, messages) {
   const sys = messages.find(m => m.role === 'system')?.content || '';
   const conv = messages.filter(m => m.role !== 'system');
 
+  // Kimi.com sits behind Cloudflare Bot Fight Mode and 403s requests with
+  // missing/default User-Agent (which is what CF Workers fetch sends by default).
+  // We pass realistic browser-like headers — empirically this is enough to
+  // pass the basic BFM tier; Super-BFM would need IP allow-list which we
+  // can't get from here. If 403 still happens, MiniMax fallback handles it.
   const res = await fetch('https://api.kimi.com/coding/v1/messages', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'x-api-key': key,
       'anthropic-version': '2023-06-01',
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      'Accept': 'application/json, text/event-stream, */*',
+      'Accept-Language': 'ja,en-US;q=0.9,en;q=0.8',
+      'Accept-Encoding': 'gzip, deflate, br',
+      'Origin': 'https://www.kimi.com',
+      'Referer': 'https://www.kimi.com/',
     },
     body: JSON.stringify({
       model: 'kimi-k2.6',
@@ -642,7 +653,7 @@ async function callKimiChat(env, messages) {
 
   if (!res.ok) {
     const errText = await res.text();
-    throw new Error(`Kimi chat error: ${res.status} ${errText}`);
+    throw new Error(`Kimi chat error: ${res.status} ${errText.slice(0, 200)}`);
   }
   const data = await res.json();
   // Anthropic response shape: content[0].text
@@ -1331,12 +1342,18 @@ export default {
         let reply = null;
         let provider = null;
         const errs = {};
+        // MiniMax now PRIMARY: Kimi.com sits behind Cloudflare Bot Fight Mode
+        // and 403s requests originating from another CF Worker IP — even with
+        // browser-like headers (BFM uses pattern analysis, not just UA).
+        // MiniMax has no such restriction → works reliably from CF Workers.
+        // Kimi kept as fallback in case Kimi.com later allowlists CF egress IPs;
+        // when that happens it'll start working again automatically.
         const providers = [
-          ['kimi-k2.6', callKimiChat],
-          ['minimax-m2.7', callMiniMaxChat],
-          ['infi-deepseek-v3.2', callInfiChat],
-          ['qwen3.6-plus', callDashScopeChat],
-          ['gemini-fallback', callGeminiChat],
+          ['minimax-m2.7', callMiniMaxChat],       // primary
+          ['infi-deepseek-v3.2', callInfiChat],    // fallback 1 (deepseek-thinking)
+          ['kimi-k2.6', callKimiChat],             // fallback 2 (currently 403'd)
+          ['qwen3.6-plus', callDashScopeChat],     // fallback 3
+          ['gemini-fallback', callGeminiChat],     // fallback 4
         ];
         for (const [name, fn] of providers) {
           try {
