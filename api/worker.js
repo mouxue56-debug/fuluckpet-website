@@ -1116,9 +1116,12 @@ async function sendBookingTelegram(env, submission, requestId) {
 async function sendTelegramMessage(env, text) {
   const token = env.TELEGRAM_BOT_TOKEN;
   const chatId = env.TELEGRAM_CHAT_ID;
-  if (!token || !chatId) return; // disabled
+  if (!token || !chatId) {
+    console.log('[tg] disabled — token=', !!token, 'chatId=', !!chatId);
+    return { ok: false, reason: 'no_token_or_chatid' };
+  }
   try {
-    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1128,8 +1131,16 @@ async function sendTelegramMessage(env, text) {
         disable_web_page_preview: true,
       }),
     });
+    const respText = await res.text();
+    if (!res.ok) {
+      console.error('[tg] HTTP ' + res.status + ': ' + respText.slice(0, 300));
+      return { ok: false, status: res.status, body: respText.slice(0, 300) };
+    }
+    console.log('[tg] sent ok, ' + text.length + ' chars');
+    return { ok: true };
   } catch (e) {
-    console.warn('telegram send failed:', e && e.message);
+    console.error('[tg] fetch threw:', e && e.message);
+    return { ok: false, error: String(e && e.message) };
   }
 }
 
@@ -1373,10 +1384,19 @@ export default {
 
         const userMsg = cleaned[cleaned.length - 1].content;
 
-        // Live chat-sync — forward this turn to owner's Telegram (best-effort, non-blocking).
-        ctx.waitUntil(
-          sendTelegramMessage(env, buildChatTelegramMessage(sid, userMsg, reply, provider)),
-        );
+        // Live chat-sync — forward this turn to owner's Telegram.
+        // AWAIT (not waitUntil) so the chat response includes telegram_status,
+        // making delivery failures visible in production. Adds ~200-400ms but
+        // prevents silent silent-failure (which is exactly what was happening).
+        let telegramStatus = null;
+        try {
+          const tgMsg = buildChatTelegramMessage(sid, userMsg, reply, provider);
+          const tgResult = await sendTelegramMessage(env, tgMsg);
+          telegramStatus = tgResult && tgResult.ok ? 'sent' : `failed: ${JSON.stringify(tgResult).slice(0, 200)}`;
+        } catch (e) {
+          telegramStatus = 'threw: ' + (e && e.message);
+          console.error('[tg] chat-sync threw:', e && e.message, e && e.stack);
+        }
 
         // Lead capture — if user message contains email / phone / LINE, fire NEW LEAD alert + persist.
         const contacts = extractContacts(userMsg);
@@ -1415,7 +1435,7 @@ export default {
           ).catch(() => {}),
         );
 
-        return addCors(json({ message: reply, session_id: sid, provider }, 200, 'no-store'));
+        return addCors(json({ message: reply, session_id: sid, provider, telegram_status: telegramStatus }, 200, 'no-store'));
       }
 
       // ===== STORY CARD AI GENERATION (PUBLIC) =====
