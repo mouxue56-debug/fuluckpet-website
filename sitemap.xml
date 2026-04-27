@@ -360,7 +360,7 @@
     <priority>0.8</priority>
   </url>
 
-                                                                                          <!-- 子猫詳細ページ -->
+                                                                                            <!-- 子猫詳細ページ -->
   <url>
     <loc>https://fuluckpet.com/kittens/2602-00625.html</loc>
     <lastmod>2026-04-27</lastmod>
@@ -378,7 +378,7 @@
     <priority>0.7</priority>
     <image:image>
       <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/11A__yaCqHdX2DQWdoJJt09SL96fommeS</image:loc>
-      <image:caption>サイベリアンの子猫 シルバ���タビー トリプルコート 男の子・個体番号2601-01855</image:caption>
+      <image:caption>サイベリアンの子猫 シルバー��ビー トリプルコート 男の子・個体番号2601-01855</image:caption>
     </image:image>
   </url>
   <url>
@@ -448,7 +448,7 @@
     <priority>0.7</priority>
     <image:image>
       <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1GoruWUhUw-I5vCGTDA9FaXcCsU6I5V-c</image:loc>
-      <image:caption>��イベリアンの子猫 シルバーシェーデッド 男の子・個体番号2508-00310</image:caption>
+      <image:caption>サイベリアンの子猫 シルバーシェーデッド 男の子・個体番号2508-00310</image:caption>
     </image:image>
   </url>
   <url>
@@ -669,6 +669,26 @@
     <image:image>
       <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_446d01983869.jpg.webp</image:loc>
       <image:caption>サイベリアンの子猫 ブルー&amp;ホワイト（トリプルコート） 男の子・個体番号2603-02735</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/kittens/2603-02684.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_5b39de4a0d10.jpg.webp</image:loc>
+      <image:caption>サイベリアンの子猫 ブラウンタビー（トリプルコート） 女の子・個体番号2603-02684</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/kittens/2603-02033.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_8dca1e05dfa6.jpg.webp</image:loc>
+      <image:caption>サイベリアンの子猫 ブラウンタビー&amp;ホワイト（トリプルコート） 男の子・個体番号2603-02033</image:caption>
     </image:image>
   </url>
   <!-- ブログ記事 -->
