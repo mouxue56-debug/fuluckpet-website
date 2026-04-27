@@ -977,7 +977,9 @@ function buildChatTelegramMessage(sid, userMsg, assistantMsg, provider) {
 const CONTACT_PATTERNS = {
   email: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,
   phone: /(?:\+?81[-\s]?|0)\d{1,4}[-\s]?\d{1,4}[-\s]?\d{3,4}/g,
-  line: /(?:LINE\s*ID?[:：]\s*|@)([a-zA-Z0-9._-]{3,30})/gi,
+  // LINE: explicit "LINE:" or "LINE ID:" or "LINEID:" + value, OR a "@handle"
+  // preceded by start/whitespace (so email "foo@bar.com" doesn't false-match).
+  line: /(?:LINE\s*(?:ID)?\s*[:：]\s*|(?:^|\s)@)([a-zA-Z0-9._-]{3,30})/gim,
 };
 function extractContacts(text) {
   if (!text || typeof text !== 'string') return null;
