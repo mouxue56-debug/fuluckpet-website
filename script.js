@@ -28,20 +28,44 @@ document.addEventListener('DOMContentLoaded', () => {
   // ===== Mobile menu =====
   const hamburger = document.getElementById('hamburger');
   const mobileNav = document.getElementById('mobileNav');
+  const navFab = document.getElementById('mobileNavFab');
+
+  function setMobileNavOpen(open) {
+    if (!mobileNav) return;
+    mobileNav.classList.toggle('active', open);
+    if (hamburger) {
+      hamburger.classList.toggle('active', open);
+      hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    if (navFab) {
+      navFab.classList.toggle('active', open);
+      navFab.setAttribute('aria-expanded', open ? 'true' : 'false');
+      navFab.setAttribute('aria-label', open ? 'メニューを閉じる' : 'メニューを開く');
+    }
+    document.body.style.overflow = open ? 'hidden' : '';
+  }
 
   if (hamburger && mobileNav) {
     hamburger.addEventListener('click', () => {
-      hamburger.classList.toggle('active');
-      mobileNav.classList.toggle('active');
-      document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : '';
+      setMobileNavOpen(!mobileNav.classList.contains('active'));
     });
+  }
 
+  if (navFab && mobileNav) {
+    navFab.addEventListener('click', () => {
+      setMobileNavOpen(!mobileNav.classList.contains('active'));
+    });
+    // Press Esc to close (matches modal expectations)
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && mobileNav.classList.contains('active')) {
+        setMobileNavOpen(false);
+      }
+    });
+  }
+
+  if (mobileNav) {
     document.querySelectorAll('.mobile-nav-link').forEach(link => {
-      link.addEventListener('click', () => {
-        hamburger.classList.remove('active');
-        mobileNav.classList.remove('active');
-        document.body.style.overflow = '';
-      });
+      link.addEventListener('click', () => setMobileNavOpen(false));
     });
   }
 
