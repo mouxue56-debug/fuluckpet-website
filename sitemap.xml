@@ -360,7 +360,7 @@
     <priority>0.8</priority>
   </url>
 
-                                <!-- 子猫詳細ページ -->
+                                  <!-- 子猫詳細ページ -->
   <url>
     <loc>https://fuluckpet.com/kittens/2602-00625.html</loc>
     <lastmod>2026-04-27</lastmod>
@@ -378,7 +378,7 @@
     <priority>0.7</priority>
     <image:image>
       <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/11A__yaCqHdX2DQWdoJJt09SL96fommeS</image:loc>
-      <image:caption>サイベリアンの子猫 シルバータ��ー トリプルコート 男の子・個体番号2601-01855</image:caption>
+      <image:caption>サイベリアンの子猫 シルバータビー トリプルコート 男の子・個体番号2601-01855</image:caption>
     </image:image>
   </url>
   <url>
@@ -448,7 +448,7 @@
     <priority>0.7</priority>
     <image:image>
       <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1GoruWUhUw-I5vCGTDA9FaXcCsU6I5V-c</image:loc>
-      <image:caption>サイベリアンの子猫 シルバーシェーデッド 男の子・個体番号2508-00310</image:caption>
+      <image:caption>サイ���リアンの子猫 シルバーシェーデッド 男の子・個体番号2508-00310</image:caption>
     </image:image>
   </url>
   <url>
@@ -715,6 +715,12 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://fuluckpet.com/blog/cat-balance-vestibular.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://fuluckpet.com/blog/cat-biting-habit.html</loc>
     <lastmod>2026-04-27</lastmod>
     <changefreq>monthly</changefreq>
@@ -739,6 +745,12 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://fuluckpet.com/blog/cat-claws-anatomy.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://fuluckpet.com/blog/cat-cold-symptoms.html</loc>
     <lastmod>2026-04-27</lastmod>
     <changefreq>monthly</changefreq>
@@ -752,6 +764,12 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-cost-monthly.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/cat-daily-care-checklist.html</loc>
     <lastmod>2026-04-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -781,7 +799,25 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://fuluckpet.com/blog/cat-domestication-history.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/cat-dreams-sleep-cycle.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://fuluckpet.com/blog/cat-ear-cleaning.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/cat-emotions-expression.html</loc>
     <lastmod>2026-04-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -806,6 +842,12 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-first-year-cost.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/cat-five-senses.html</loc>
     <lastmod>2026-04-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -841,7 +883,19 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://fuluckpet.com/blog/cat-hearing-range.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://fuluckpet.com/blog/cat-hiding-reasons.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/cat-hunting-instinct.html</loc>
     <lastmod>2026-04-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -865,7 +919,31 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://fuluckpet.com/blog/cat-jumping-physics.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/cat-kneading-behavior.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://fuluckpet.com/blog/cat-litter-guide.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/cat-magnetic-sense.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/cat-memory-learning.html</loc>
     <lastmod>2026-04-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -925,6 +1003,12 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://fuluckpet.com/blog/cat-paw-pads.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://fuluckpet.com/blog/cat-photo-tips.html</loc>
     <lastmod>2026-04-27</lastmod>
     <changefreq>monthly</changefreq>
@@ -937,7 +1021,19 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://fuluckpet.com/blog/cat-pupils-vision.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://fuluckpet.com/blog/cat-purring-meaning.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/cat-righting-reflex.html</loc>
     <lastmod>2026-04-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -961,13 +1057,37 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://fuluckpet.com/blog/cat-slow-blink.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/cat-smell-jacobson.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://fuluckpet.com/blog/cat-smell-prevention.html</loc>
     <lastmod>2026-04-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://fuluckpet.com/blog/cat-social-hierarchy.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://fuluckpet.com/blog/cat-socialization.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/cat-spatial-cognition.html</loc>
     <lastmod>2026-04-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -997,6 +1117,18 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://fuluckpet.com/blog/cat-taste-preferences.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/cat-territorial-behavior.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://fuluckpet.com/blog/cat-toilet-cleaning.html</loc>
     <lastmod>2026-04-27</lastmod>
     <changefreq>monthly</changefreq>
@@ -1009,6 +1141,12 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://fuluckpet.com/blog/cat-tongue-structure.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://fuluckpet.com/blog/cat-travel-tips.html</loc>
     <lastmod>2026-04-27</lastmod>
     <changefreq>monthly</changefreq>
@@ -1016,6 +1154,12 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-treats-guide.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/cat-urinary-tract-disease.html</loc>
     <lastmod>2026-04-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -1045,7 +1189,19 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://fuluckpet.com/blog/cat-whiskers-function.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://fuluckpet.com/blog/cat-winter-care.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/cattery-daily-routine.html</loc>
     <lastmod>2026-04-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -1058,6 +1214,12 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/common-cat-diseases.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/first-cat-common-mistakes.html</loc>
     <lastmod>2026-04-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -1105,7 +1267,25 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://fuluckpet.com/blog/fuluck-aftercare-promise.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/fuluck-customer-reviews-summary.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://fuluckpet.com/blog/fuluck-founder-story.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/graduate-cat-stories.html</loc>
     <lastmod>2026-04-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -1358,6 +1538,12 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/siberian-cat-characteristics.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/siberian-cfa-breed-standard.html</loc>
     <lastmod>2026-04-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
