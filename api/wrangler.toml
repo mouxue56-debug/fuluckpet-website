@@ -19,10 +19,13 @@ CORS_ORIGIN = "https://fuluckpet.com"
 #   GOOGLE_DRIVE_ROOT_FOLDER_ID — Google Drive ルートフォルダ ID
 #   GEMINI_API_KEY             — Google Gemini API Key（ストーリーカードAI生成用 + chat fallback 2）
 #   QIANWEN_API_KEY            — Alibaba Qianwen API Key（ストーリーカードAI生成用）
-#   TELEGRAM_BOT_TOKEN         — Telegram bot token for booking fallback (optional)
-#   TELEGRAM_CHAT_ID           — Telegram chat id for booking fallback (optional)
-#   KIMI_API_KEY               — **PRIMARY** chat provider (Kimi CodingPlan, Anthropic-compatible, kimi-k2.6)
-#   DASHSCOPE_QWEN36_KEY       — DashScope International qwen3.6-plus（chat fallback 1, optional）
+#   TELEGRAM_BOT_TOKEN         — Telegram bot token for booking + chat-sync + lead alerts
+#   TELEGRAM_CHAT_ID           — Telegram chat id for booking + chat-sync + lead alerts
+#   KIMI_API_KEY               — **PRIMARY** chat (Kimi CodingPlan, kimi-k2.6, Anthropic format)
+#   MINIMAX_API_KEY            — **fallback 1** chat (MiniMax CodingPlan, MiniMax-M2.7-highspeed, Anthropic format, may emit thinking blocks)
+#   INFI_API_KEY               — **fallback 2** chat (Infini-AI deepseek-v3.2-thinking, OpenAI Chat Completions format)
+#   DASHSCOPE_QWEN36_KEY       — fallback 3 chat (DashScope qwen3.6-plus, optional)
+#   GEMINI_API_KEY             — fallback 4 chat + Story Card AI (Google Gemini)
 
 # R2 バケット (画像ストレージ)
 [[r2_buckets]]

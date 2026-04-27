@@ -494,6 +494,73 @@ async function callKimiChat(env, messages) {
   return String(text).trim();
 }
 
+// MiniMax CodingPlan (Anthropic-compatible). Fallback 1 per owner request.
+// Endpoint: https://api.minimaxi.com/anthropic/v1/messages — note "minimaxi" with two i's.
+// ⚠️ Response may include thinking blocks; we filter to type === 'text' only.
+async function callMiniMaxChat(env, messages) {
+  const key = env.MINIMAX_API_KEY;
+  if (!key) throw new Error('MINIMAX_API_KEY not configured');
+
+  const sys = messages.find(m => m.role === 'system')?.content || '';
+  const conv = messages.filter(m => m.role !== 'system');
+
+  const res = await fetch('https://api.minimaxi.com/anthropic/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'MiniMax-M2.7-highspeed',
+      max_tokens: 2048,
+      system: sys,
+      messages: conv,
+    }),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`MiniMax chat error: ${res.status} ${errText}`);
+  }
+  const data = await res.json();
+  // Filter text-only blocks (thinking blocks ignored).
+  const textBlocks = (data?.content || []).filter(b => b && b.type === 'text');
+  const text = textBlocks.map(b => b.text || '').join('').trim();
+  if (!text) throw new Error('MiniMax returned no text content');
+  return text;
+}
+
+// Infini-AI CodingPlan, deepseek-v3.2-thinking (OpenAI Chat Completions format).
+// Fallback 2 per owner request. Thinking model — generous max_tokens.
+async function callInfiChat(env, messages) {
+  const key = env.INFI_API_KEY;
+  if (!key) throw new Error('INFI_API_KEY not configured');
+
+  const res = await fetch('https://cloud.infini-ai.com/maas/coding/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${key}`,
+    },
+    body: JSON.stringify({
+      model: 'deepseek-v3.2-thinking',
+      messages, // OpenAI format already includes system role.
+      max_tokens: 16000,
+      stream: false,
+    }),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Infi chat error: ${res.status} ${errText}`);
+  }
+  const data = await res.json();
+  const text = data?.choices?.[0]?.message?.content;
+  if (!text) throw new Error('Infi returned empty content');
+  return String(text).trim();
+}
+
 async function callDashScopeChat(env, messages) {
   const key = env.DASHSCOPE_QWEN36_KEY;
   if (!key) throw new Error('DASHSCOPE_QWEN36_KEY not configured');
@@ -873,6 +940,55 @@ async function sendBookingTelegram(env, submission, requestId) {
   }
 }
 
+// Generic Telegram message sender (HTML parse mode).
+// Used for live chat-sync forwarding and NEW LEAD alerts.
+async function sendTelegramMessage(env, text) {
+  const token = env.TELEGRAM_BOT_TOKEN;
+  const chatId = env.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) return; // disabled
+  try {
+    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        parse_mode: 'HTML',
+        disable_web_page_preview: true,
+      }),
+    });
+  } catch (e) {
+    console.warn('telegram send failed:', e && e.message);
+  }
+}
+
+// Build chat-sync forward message for owner's Telegram.
+function buildChatTelegramMessage(sid, userMsg, assistantMsg, provider) {
+  const sidShort = String(sid || '').slice(0, 8);
+  const trim = (s, n) => (s && s.length > n ? s.slice(0, n) + '…' : (s || ''));
+  return [
+    `💬 <b>新しい会話</b> <code>${escapeHtml(sidShort)}</code> · ${escapeHtml(provider || 'fallback')}`,
+    `<b>👤 ユーザー:</b>\n${escapeHtml(trim(userMsg, 600))}`,
+    `<b>🐱 ふくにゃん:</b>\n${escapeHtml(trim(assistantMsg, 600))}`,
+  ].join('\n\n');
+}
+
+// Detect contact info in a user message (email / Japanese phone / LINE ID).
+const CONTACT_PATTERNS = {
+  email: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,
+  phone: /(?:\+?81[-\s]?|0)\d{1,4}[-\s]?\d{1,4}[-\s]?\d{3,4}/g,
+  line: /(?:LINE\s*ID?[:：]\s*|@)([a-zA-Z0-9._-]{3,30})/gi,
+};
+function extractContacts(text) {
+  if (!text || typeof text !== 'string') return null;
+  const found = {};
+  for (const [k, re] of Object.entries(CONTACT_PATTERNS)) {
+    const m = text.match(re);
+    if (m && m.length) found[k] = [...new Set(m)].slice(0, 3);
+  }
+  return Object.keys(found).length ? found : null;
+}
+
 // Classify a request path as private (admin/auth/booking) or public.
 // Private paths get scoped CORS; public paths get '*'.
 function isPrivatePath(path) {
@@ -1041,38 +1157,66 @@ export default {
         const systemPrompt = await loadChatSystemPrompt(env);
         const llmMessages = [{ role: 'system', content: systemPrompt }, ...cleaned];
 
-        // Provider chain: Kimi k2.6 (primary, Anthropic-compatible CodingPlan)
-        // → DashScope qwen3.6-plus (fallback 1) → Gemini (fallback 2).
+        // Provider chain (per owner): Kimi → MiniMax → Infi → DashScope → Gemini.
         let reply = null;
         let provider = null;
         const errs = {};
-        try {
-          reply = await callKimiChat(env, llmMessages);
-          provider = 'kimi-k2.6';
-        } catch (e1) {
-          errs.kimi = e1.message;
+        const providers = [
+          ['kimi-k2.6', callKimiChat],
+          ['minimax-m2.7', callMiniMaxChat],
+          ['infi-deepseek-v3.2', callInfiChat],
+          ['qwen3.6-plus', callDashScopeChat],
+          ['gemini-fallback', callGeminiChat],
+        ];
+        for (const [name, fn] of providers) {
           try {
-            reply = await callDashScopeChat(env, llmMessages);
-            provider = 'qwen3.6-plus';
-          } catch (e2) {
-            errs.dashscope = e2.message;
-            try {
-              reply = await callGeminiChat(env, llmMessages);
-              provider = 'gemini-fallback';
-            } catch (e3) {
-              errs.gemini = e3.message;
-              return addCors(json({
-                error: 'AI providers unavailable',
-                detail: errs,
-              }, 502));
-            }
+            reply = await fn(env, llmMessages);
+            provider = name;
+            break;
+          } catch (e) {
+            errs[name] = e && e.message ? e.message : String(e);
           }
+        }
+        if (!reply) {
+          return addCors(json({ error: 'AI providers unavailable', detail: errs }, 502));
+        }
+
+        const userMsg = cleaned[cleaned.length - 1].content;
+
+        // Live chat-sync — forward this turn to owner's Telegram (best-effort, non-blocking).
+        ctx.waitUntil(
+          sendTelegramMessage(env, buildChatTelegramMessage(sid, userMsg, reply, provider)),
+        );
+
+        // Lead capture — if user message contains email / phone / LINE, fire NEW LEAD alert + persist.
+        const contacts = extractContacts(userMsg);
+        if (contacts) {
+          const leadKey = `lead:${Date.now()}:${sid.slice(0, 8)}`;
+          const leadRecord = {
+            sid,
+            contacts,
+            user_message: userMsg.slice(0, 1000),
+            last_assistant: reply.slice(0, 500),
+            created_at: new Date().toISOString(),
+            status: 'new',
+          };
+          ctx.waitUntil(
+            env.DATA.put(leadKey, JSON.stringify(leadRecord), {
+              expirationTtl: 90 * 24 * 3600,
+            }).catch(() => {}),
+          );
+          const leadLines = ['🎯 <b>NEW LEAD!</b> 連絡先を取得しました'];
+          if (contacts.email) leadLines.push(`📧 <b>Email:</b> ${escapeHtml(contacts.email.join(', '))}`);
+          if (contacts.phone) leadLines.push(`📞 <b>Phone:</b> ${escapeHtml(contacts.phone.join(', '))}`);
+          if (contacts.line) leadLines.push(`💚 <b>LINE:</b> ${escapeHtml(contacts.line.join(', '))}`);
+          leadLines.push(`<b>Session:</b> <code>${escapeHtml(sid.slice(0, 8))}</code>`);
+          leadLines.push(`<b>Message:</b>\n${escapeHtml(userMsg.slice(0, 600))}`);
+          ctx.waitUntil(sendTelegramMessage(env, leadLines.join('\n')));
         }
 
         // Fire-and-forget log
         const ts = Date.now();
         const logKey = `chat:log:${sid}:${ts}`;
-        const userMsg = cleaned[cleaned.length - 1].content;
         ctx.waitUntil(
           env.DATA.put(
             logKey,
