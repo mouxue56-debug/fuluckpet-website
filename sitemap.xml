@@ -360,7 +360,7 @@
     <priority>0.8</priority>
   </url>
 
-          <!-- 子猫詳細ページ -->
+            <!-- 子猫詳細ページ -->
   <url>
     <loc>https://fuluckpet.com/kittens/2602-00625.html</loc>
     <lastmod>2026-04-27</lastmod>
@@ -378,7 +378,7 @@
     <priority>0.7</priority>
     <image:image>
       <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/11A__yaCqHdX2DQWdoJJt09SL96fommeS</image:loc>
-      <image:caption>サイベリアンの子猫 シルバータビー トリプルコート 男の子・個体番号2601-01855</image:caption>
+      <image:caption>サイベリアンの子猫 シルバ��タビー トリプルコート 男の子・個体番号2601-01855</image:caption>
     </image:image>
   </url>
   <url>
@@ -598,7 +598,7 @@
     <priority>0.7</priority>
     <image:image>
       <image:loc>https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724795680-33003d85.jpg</image:loc>
-      <image:caption>サイベリアン×��リティッシュの子猫 ホワイト 男の子・個体番号2512-00112</image:caption>
+      <image:caption>サイベリアン×ブリティッ���ュの子猫 ホワイト 男の子・個体番号2512-00112</image:caption>
     </image:image>
   </url>
   <!-- ブログ記事 -->
@@ -1083,6 +1083,24 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://fuluckpet.com/blog/fuluck-200-graduates-stories.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/fuluck-2025-award-1st-reasons.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/fuluck-founder-story.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://fuluckpet.com/blog/hcm-pkd-test-explained.html</loc>
     <lastmod>2026-04-27</lastmod>
     <changefreq>monthly</changefreq>
@@ -1090,6 +1108,18 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/kansai-breeder-guide.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/kansai-cat-shipping-options.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/kansai-vs-kanto-cattery.html</loc>
     <lastmod>2026-04-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -1222,6 +1252,24 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/natural-cat-breeds.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/osaka-cat-vet-network.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/osaka-jouto-access-guide.html</loc>
+    <lastmod>2026-04-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/blog/osaka-pet-allergy-clinics.html</loc>
     <lastmod>2026-04-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
