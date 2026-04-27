@@ -694,7 +694,10 @@ async function callMiniMaxChat(env, messages) {
   const data = await res.json();
   // Filter text-only blocks (thinking blocks ignored).
   const textBlocks = (data?.content || []).filter(b => b && b.type === 'text');
-  const text = textBlocks.map(b => b.text || '').join('').trim();
+  let text = textBlocks.map(b => b.text || '').join('').trim();
+  // MiniMax occasionally leaks its internal tool-call markup tags into plain text.
+  // Strip any `<minimax:*>` / `</minimax:*>` tags so the user never sees them.
+  text = text.replace(/<\/?minimax:[^>]*>/gi, '').trim();
   if (!text) throw new Error('MiniMax returned no text content');
   return text;
 }
