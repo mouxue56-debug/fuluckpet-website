@@ -360,7 +360,7 @@
     <priority>0.8</priority>
   </url>
 
-              <!-- 子猫詳細ページ -->
+                <!-- 子猫詳細ページ -->
   <url>
     <loc>https://fuluckpet.com/kittens/2602-00625.html</loc>
     <lastmod>2026-04-27</lastmod>
@@ -378,7 +378,7 @@
     <priority>0.7</priority>
     <image:image>
       <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/11A__yaCqHdX2DQWdoJJt09SL96fommeS</image:loc>
-      <image:caption>サイベリアンの子猫 シルバータビー トリ��ルコート 男の子・個体番号2601-01855</image:caption>
+      <image:caption>サイベリアンの子猫 シルバータビー トリプルコート 男の子・個体番号2601-01855</image:caption>
     </image:image>
   </url>
   <url>
@@ -448,7 +448,7 @@
     <priority>0.7</priority>
     <image:image>
       <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1GoruWUhUw-I5vCGTDA9FaXcCsU6I5V-c</image:loc>
-      <image:caption>サイベリアンの子猫 シルバーシェーデッド 男の子・個体番号2508-00310</image:caption>
+      <image:caption>���イベリアンの子猫 シルバーシェーデッド 男の子・個体番号2508-00310</image:caption>
     </image:image>
   </url>
   <url>
@@ -527,7 +527,7 @@
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724794331-f982177a.jpg</image:loc>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_ae83160357f5.jpg</image:loc>
       <image:caption>ブリティッシュショートヘアの子猫 チンチラゴールデン ロングヘア 女の子・個体番号2508-03312</image:caption>
     </image:image>
   </url>
@@ -537,7 +537,7 @@
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724797827-261810d4.jpg</image:loc>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_fef0dac4d322.jpg</image:loc>
       <image:caption>ブリティッシュショートヘアの子猫 ゴールデンシェーデッド 男の子・個体番号2508-03355</image:caption>
     </image:image>
   </url>
@@ -557,7 +557,7 @@
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724793095-84d370a3.jpg</image:loc>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_98b9c6bfeaf2.jpg</image:loc>
       <image:caption>サイベリアン×ブリティッシュの子猫 ブラウンタビー＆ホワイト 女の子・個体番号2512-00115</image:caption>
     </image:image>
   </url>
@@ -577,7 +577,7 @@
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724793677-ae246e25.jpg</image:loc>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_aad8b700cc92.jpg</image:loc>
       <image:caption>ブリティッシュショートヘアの子猫 ホワイト 男の子・個体番号2510-01844</image:caption>
     </image:image>
   </url>
@@ -587,7 +587,7 @@
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724792086-05d4652e.jpg</image:loc>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_85a6f25bfdc0.jpg</image:loc>
       <image:caption>ブリティッシュロングヘアの子猫 チョコレートゴールデン ロングヘア 男の子・個体番号2408-03054</image:caption>
     </image:image>
   </url>
@@ -597,8 +597,8 @@
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/r2/uploads/1770724795680-33003d85.jpg</image:loc>
-      <image:caption>サイベリアン×ブリティッシュの子猫 ホワイト ・個体番号2512-00112</image:caption>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_ed4f2b764841.jpg</image:loc>
+      <image:caption>サイベリアン×ブリティッシュの子猫 ホワイト 男の子・個体番号2512-00112</image:caption>
     </image:image>
   </url>
   <!-- ブログ記事 -->
