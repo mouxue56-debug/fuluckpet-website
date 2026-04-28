@@ -372,7 +372,25 @@ ${shapesHtml}
         "priceCurrency": "JPY",
         "price": String(k.price || 0),
         "availability": `https://schema.org/${availMap[k.status] || 'InStock'}`,
-        "seller": { "@type": "Organization", "name": "福楽キャッテリー" }
+        "seller": { "@type": "Organization", "name": "福楽キャッテリー" },
+        // hasMerchantReturnPolicy + shippingDetails — required by GSC for Product/Offer schema.
+        // Live cattery = no general return; the FAQ explains the health-guarantee terms.
+        "hasMerchantReturnPolicy": {
+          "@type": "MerchantReturnPolicy",
+          "applicableCountry": "JP",
+          "returnPolicyCategory": "https://schema.org/MerchantReturnNotPermitted",
+          "merchantReturnLink": `${BASE_URL}/faq.html`
+        },
+        "shippingDetails": {
+          "@type": "OfferShippingDetails",
+          "shippingRate": { "@type": "MonetaryAmount", "value": "0", "currency": "JPY" },
+          "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "JP" },
+          "deliveryTime": {
+            "@type": "ShippingDeliveryTime",
+            "handlingTime": { "@type": "QuantitativeValue", "minValue": 0, "maxValue": 3, "unitCode": "DAY" },
+            "transitTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 5, "unitCode": "DAY" }
+          }
+        }
       },
       "aggregateRating": {
         "@type": "AggregateRating",
@@ -635,6 +653,23 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml) {
       "seller": {
         "@type": "Organization",
         "name": "福楽キャッテリー"
+      },
+      // GSC required: hasMerchantReturnPolicy + shippingDetails
+      "hasMerchantReturnPolicy": {
+        "@type": "MerchantReturnPolicy",
+        "applicableCountry": "JP",
+        "returnPolicyCategory": "https://schema.org/MerchantReturnNotPermitted",
+        "merchantReturnLink": `${BASE_URL}/faq.html`
+      },
+      "shippingDetails": {
+        "@type": "OfferShippingDetails",
+        "shippingRate": { "@type": "MonetaryAmount", "value": "0", "currency": "JPY" },
+        "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "JP" },
+        "deliveryTime": {
+          "@type": "ShippingDeliveryTime",
+          "handlingTime": { "@type": "QuantitativeValue", "minValue": 0, "maxValue": 3, "unitCode": "DAY" },
+          "transitTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 5, "unitCode": "DAY" }
+        }
       }
     }
   });
