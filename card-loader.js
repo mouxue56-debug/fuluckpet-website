@@ -111,10 +111,14 @@
     var bdayText = fmtBday(k.birthday);
     var priceText = fmtPrice(k.price);
 
+    // Above-the-fold cards (opts.priority) load eagerly with high fetchpriority so the
+    // worker-proxied LCP image on the kittens money-page isn't deferred behind lazy-load.
+    var imgLoad = opts && opts.priority ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"';
+
     var detailUrl = '/kittens/' + (k.breederId || k.id) + '.html';
     return '<div class="kitten-card" data-status="' + escAttr(k.status) + '" data-price="' + k.price + '" data-birthday="' + escAttr(fmtBdayAttr(k.birthday)) + '" data-images="' + dataImages + '" data-video="' + escAttr(k.video || '') + '" data-papa="' + escAttr(k.papa || '') + '" data-mama="' + escAttr(k.mama || '') + '" data-new="' + k.isNew + '" data-name="" data-breeder-id="' + escAttr(k.breederId || '') + '" data-detail-url="' + escAttr(detailUrl) + '">' +
       '<div class="kitten-img">' +
-        (cover ? '<img src="' + cover + '" alt="' + ct('photoAlt') + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;">' : '<div class="img-placeholder"><span>🐱</span></div>') +
+        (cover ? '<img src="' + cover + '" alt="' + ct('photoAlt') + '" ' + imgLoad + ' style="width:100%;height:100%;object-fit:cover;">' : '<div class="img-placeholder"><span>🐱</span></div>') +
         '<span class="kit-status ' + statusClass + '">' + statusText + '</span>' +
         (k.isNew ? '<span class="kit-badge-new">NEW</span>' : '') +
       '</div>' +
@@ -228,7 +232,7 @@
 
         // Render Siberian section
         if (sib.length > 0) {
-          grids[0].innerHTML = sib.map(function(k) { return kittenCardHTML(k, {showImages: true}); }).join('');
+          grids[0].innerHTML = sib.map(function(k, i) { return kittenCardHTML(k, {showImages: true, priority: i < 2}); }).join('');
         }
 
         // Render British section
@@ -365,7 +369,7 @@
           if (grids.length < 2) return;
           var sib = kittens.filter(function(k) { return k.group === 'c995680'; });
           var brit = kittens.filter(function(k) { return k.group === 'd696506'; });
-          if (sib.length > 0) grids[0].innerHTML = sib.map(function(k) { return kittenCardHTML(k, {showImages: true}); }).join('');
+          if (sib.length > 0) grids[0].innerHTML = sib.map(function(k, i) { return kittenCardHTML(k, {showImages: true, priority: i < 2}); }).join('');
           if (brit.length > 0) grids[1].innerHTML = brit.map(function(k) { return kittenCardHTML(k, {showImages: true}); }).join('');
           if (typeof window.rebindCards === 'function') window.rebindCards();
           window.dispatchEvent(new Event('cardsLoaded'));
