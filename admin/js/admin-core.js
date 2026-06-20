@@ -216,7 +216,12 @@ function getData() {
     d = { kittens: JSON.parse(JSON.stringify(DEFAULT_KITTENS)), parents: JSON.parse(JSON.stringify(DEFAULT_PARENTS)), reviews: JSON.parse(JSON.stringify(DEFAULT_REVIEWS)) };
   }
   d = migrateData(d);
-  saveData(d);
+  // Persist to localStorage ONLY — never call saveData() here.
+  // saveData() pushes a full REPLACE to KV; running it on page load let a fresh
+  // browser (no local data → hardcoded DEFAULT_* demo set) silently overwrite the
+  // live catalogue before login/syncFromAPI could reclaim the real data. KV writes
+  // now happen only on explicit user save actions; syncFromAPI() is the source of truth.
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch (e) {}
   return d;
 }
 

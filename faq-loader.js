@@ -28,13 +28,21 @@
         '</div>';
     }).join('\n');
 
-    // Re-attach accordion click handlers
-    container.querySelectorAll('.faq-q').forEach(function(btn) {
+    // Re-attach accordion click handlers (+ a11y: expand state and Q→A linkage)
+    container.querySelectorAll('.faq-q').forEach(function(btn, idx) {
+      var panel = btn.nextElementSibling; // .faq-a
+      if (panel) {
+        if (!panel.id) panel.id = 'home-faq-a-' + idx;
+        panel.setAttribute('role', 'region');
+        btn.setAttribute('aria-controls', panel.id);
+      }
+      btn.setAttribute('aria-expanded', 'false');
       btn.addEventListener('click', function() {
         var item = this.parentElement;
         var isOpen = item.classList.contains('open');
         container.querySelectorAll('.faq-item').forEach(function(fi) { fi.classList.remove('open'); });
-        if (!isOpen) item.classList.add('open');
+        container.querySelectorAll('.faq-q').forEach(function(b) { b.setAttribute('aria-expanded', 'false'); });
+        if (!isOpen) { item.classList.add('open'); this.setAttribute('aria-expanded', 'true'); }
       });
     });
 

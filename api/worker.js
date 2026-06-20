@@ -613,9 +613,23 @@ async function retrieveKnowledge(env, query) {
   return top.join('\n\n---\n\n');
 }
 
+// Race an LLM provider call against a deadline so one hung/slow provider can't
+// stall the whole serial fallback chain (no fetch here uses AbortController, so a
+// non-streaming thinking model with a large max_tokens could otherwise hang with
+// no ceiling). The losing fetch is not in waitUntil, so the CF runtime cancels it
+// once the request returns.
+function callWithTimeout(promise, ms, label) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${label} timeout after ${ms}ms`)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
 // Call DashScope International qwen3.6-plus (OpenAI-compat).
 // `messages` is an array of { role: 'system'|'user'|'assistant', content }.
-// Kimi CodingPlan (Anthropic-compatible). Primary chat provider per owner request.
+// Kimi CodingPlan (Anthropic-compatible). Kept defined for the day CF egress IPs
+// get allowlisted, but removed from the live provider chain (always 403s from CF).
 // Endpoint: https://api.kimi.com/coding/v1/messages — uses x-api-key + anthropic-version.
 async function callKimiChat(env, messages) {
   const key = env.KIMI_API_KEY;
@@ -1352,26 +1366,32 @@ export default {
         const systemPrompt = baseSystemPrompt + groundingPrompt;
         const llmMessages = [{ role: 'system', content: systemPrompt }, ...cleaned];
 
-        // Provider chain (per owner): Kimi → MiniMax → Infi → DashScope → Gemini.
+        // Provider chain: Infi (primary) → MiniMax → DashScope → Gemini.
         let reply = null;
         let provider = null;
         const errs = {};
-        // Infi (deepseek-v3.2-thinking) is now PRIMARY — empirically produces the
+        // Infi (deepseek-v3.2-thinking) is PRIMARY — empirically produces the
         // cleanest Japanese (no Chinese/Korean/English contamination, unlike
         // MiniMax which leaks 我们/现在/quinsy/가능 occasionally). Thinking model
         // adds 1-2s vs MiniMax but the JP quality wins for a JP-first cattery.
-        // MiniMax kept as fast fallback. Kimi.com still 403s from CF Workers
-        // (Bot Fight Mode), kept in chain in case CF egress IPs get allowlisted.
+        // MiniMax kept as fast fallback. Kimi REMOVED from the hot path: it always
+        // 403s from CF Workers (Bot Fight Mode), so in the chain it only ever added
+        // a guaranteed-failing round-trip exactly when the user was waiting longest.
         const providers = [
           ['infi-deepseek-v3.2', callInfiChat],    // primary (cleanest JP)
           ['minimax-m2.7', callMiniMaxChat],       // fallback 1 (faster, JP imperfect)
-          ['kimi-k2.6', callKimiChat],             // fallback 2 (currently 403'd)
-          ['qwen3.6-plus', callDashScopeChat],     // fallback 3
-          ['gemini-fallback', callGeminiChat],     // fallback 4
+          ['qwen3.6-plus', callDashScopeChat],     // fallback 2
+          ['gemini-fallback', callGeminiChat],     // fallback 3
         ];
+        // Cap each hop, plus an overall chain budget, so a hung provider can't
+        // spin the chat forever.
+        const PROVIDER_TIMEOUT_MS = 13000;
+        const CHAIN_BUDGET_MS = 26000;
+        const chainStart = Date.now();
         for (const [name, fn] of providers) {
+          if (Date.now() - chainStart > CHAIN_BUDGET_MS) { errs['_budget'] = 'provider chain budget exceeded'; break; }
           try {
-            reply = await fn(env, llmMessages);
+            reply = await callWithTimeout(fn(env, llmMessages), PROVIDER_TIMEOUT_MS, name);
             provider = name;
             break;
           } catch (e) {

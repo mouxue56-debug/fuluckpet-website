@@ -490,14 +490,14 @@
           </form>
 
           <!-- Success -->
-          <div id="bookingSuccess" class="booking-result">
-            <div class="result-icon">🎉</div>
+          <div id="bookingSuccess" class="booking-result" role="status" aria-live="polite">
+            <div class="result-icon" aria-hidden="true">🎉</div>
             <h3 data-i18n="booking.successTitle">予約を送信しました！</h3>
             <p data-i18n="booking.successDesc">24時間以内にメールまたはLINEでご連絡いたします。お待ちくださいませ。</p>
           </div>
 
           <!-- Error -->
-          <div id="bookingError" class="booking-result">
+          <div id="bookingError" class="booking-result" role="alert" aria-live="assertive">
             <h3 data-i18n="booking.errorTitle">送信に失敗しました</h3>
             <p data-i18n="booking.errorDesc">申し訳ございません。LINEまたはお電話でご連絡ください。</p>
           </div>

@@ -371,6 +371,7 @@ ${shapesHtml}
         "url": `${BASE_URL}/kittens/${fileId}.html`,
         "priceCurrency": "JPY",
         "price": String(k.price || 0),
+        "priceValidUntil": "2026-12-31",
         "availability": `https://schema.org/${availMap[k.status] || 'InStock'}`,
         "seller": { "@type": "Organization", "name": "福楽キャッテリー" },
         // hasMerchantReturnPolicy + shippingDetails — required by GSC for Product/Offer schema.
@@ -391,12 +392,10 @@ ${shapesHtml}
             "transitTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 5, "unitCode": "DAY" }
           }
         }
-      },
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "5.0",
-        "reviewCount": "113"
       }
+      // No per-kitten aggregateRating: the business-wide 5.0/113 belongs on the
+      // LocalBusiness, not on each Product (no single kitten has 113 reviews —
+      // Google product-rating policy violation that risks review-snippet suppression).
     });
   }
   const productJsonLd =

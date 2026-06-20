@@ -213,9 +213,23 @@
     .sync-status.synced { background:#C6F6D5; color:#22543D; }
     .sync-status.sync-error { background:#FED7E2; color:#702459; }
 
+    /* Mobile drawer controls — defined BEFORE the <=768px media query so the
+       query's display:inline-flex override wins on source order (media queries
+       add no specificity). Inert on desktop. */
+    .menu-toggle { display:none; align-items:center; justify-content:center; width:40px; height:40px; margin-right:10px; padding:0; border:1px solid var(--border); border-radius:10px; background:var(--white); color:var(--text); cursor:pointer; flex-shrink:0; }
+    .menu-toggle svg { width:22px; height:22px; }
+    .top-bar-left { display:flex; align-items:center; min-width:0; }
+    .drawer-backdrop { position:fixed; inset:0; background:rgba(40,50,50,.45); opacity:0; pointer-events:none; transition:opacity .28s; z-index:95; }
+
     @media (max-width:768px) {
       body { font-size:16px; }
-      .sidebar { display:none; }
+      /* Sidebar becomes an off-canvas drawer. It used to be display:none on phones,
+         leaving a mobile-heavy owner stranded on the dashboard with no way to reach
+         kittens / photos / price / publish. */
+      .sidebar { transform:translateX(-100%); transition:transform .28s cubic-bezier(.4,0,.2,1); box-shadow:none; }
+      .sidebar.drawer-open { transform:translateX(0); box-shadow:0 0 40px rgba(40,50,50,.22); }
+      .menu-toggle { display:inline-flex; }
+      .drawer-backdrop.show { opacity:1; pointer-events:auto; }
       .main-content { margin-left:0; }
       .stat-grid { grid-template-columns:repeat(2,1fr); }
       .form-row,.form-row-3 { grid-template-columns:1fr; }
@@ -244,7 +258,8 @@
 
   <!-- ====== ADMIN LAYOUT ====== -->
   <div id="adminLayout" class="admin-layout">
-    <aside class="sidebar">
+    <div class="drawer-backdrop" id="drawerBackdrop"></div>
+    <aside class="sidebar" id="adminSidebar">
       <div class="sidebar-logo"><span>🐾</span> <span data-adm-ja="管理画面" data-adm-zh="管理后台">管理画面</span></div>
       <nav class="sidebar-nav">
         <div class="nav-section">
@@ -277,7 +292,10 @@
 
     <main class="main-content">
       <div class="top-bar">
-        <h1 class="page-title" id="pageTitle">ダッシュボード</h1>
+        <div class="top-bar-left">
+          <button class="menu-toggle" id="menuToggle" type="button" aria-label="メニュー" aria-expanded="false" aria-controls="adminSidebar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+          <h1 class="page-title" id="pageTitle">ダッシュボード</h1>
+        </div>
         <div class="top-actions">
           <span id="syncStatus" class="sync-status"></span>
           <button id="retrySyncBtn" onclick="retrySync()" style="display:none;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:12px;border:1px solid var(--danger-dark);background:var(--white);color:var(--danger-dark);cursor:pointer;font-family:inherit;">🔄 再試行</button>
@@ -845,9 +863,10 @@
         <div class="panel-page" id="page-settings">
           <div class="settings-card">
             <h3>🔐 <span data-adm-ja="パスワード変更" data-adm-zh="修改密码">パスワード変更</span></h3>
+            <div class="form-group"><label class="form-label"><span data-adm-ja="現在のパスワード" data-adm-zh="当前密码">現在のパスワード</span></label><input class="form-input" type="password" id="currentPassword" autocomplete="current-password"></div>
             <div class="form-row">
-              <div class="form-group"><label class="form-label"><span data-adm-ja="新しいパスワード" data-adm-zh="新密码">新しいパスワード</span></label><input class="form-input" type="password" id="newPassword"></div>
-              <div class="form-group"><label class="form-label"><span data-adm-ja="確認" data-adm-zh="确认">確認</span></label><input class="form-input" type="password" id="confirmPassword"></div>
+              <div class="form-group"><label class="form-label"><span data-adm-ja="新しいパスワード（8文字以上）" data-adm-zh="新密码（至少8位）">新しいパスワード（8文字以上）</span></label><input class="form-input" type="password" id="newPassword" autocomplete="new-password" minlength="8"></div>
+              <div class="form-group"><label class="form-label"><span data-adm-ja="確認" data-adm-zh="确认">確認</span></label><input class="form-input" type="password" id="confirmPassword" autocomplete="new-password"></div>
             </div>
             <button class="btn-save" id="changePasswordBtn"><span data-adm-ja="パスワードを変更" data-adm-zh="修改密码">パスワードを変更</span></button>
           </div>
@@ -1226,6 +1245,35 @@ function handlePublish() {
   if (lb) lb.textContent = '登录';
   if (le) le.textContent = '密码不正确';
   if (lp) lp.placeholder = '密码';
+})();
+
+// Mobile drawer nav — slides the off-canvas sidebar in on phones (<=768px).
+(function initMobileDrawer() {
+  var toggle = document.getElementById('menuToggle');
+  var sidebar = document.getElementById('adminSidebar');
+  var backdrop = document.getElementById('drawerBackdrop');
+  if (!toggle || !sidebar || !backdrop) return;
+  function openDrawer() {
+    sidebar.classList.add('drawer-open');
+    backdrop.classList.add('show');
+    toggle.setAttribute('aria-expanded', 'true');
+  }
+  function closeDrawer() {
+    sidebar.classList.remove('drawer-open');
+    backdrop.classList.remove('show');
+    toggle.setAttribute('aria-expanded', 'false');
+  }
+  toggle.addEventListener('click', function() {
+    if (sidebar.classList.contains('drawer-open')) closeDrawer(); else openDrawer();
+  });
+  backdrop.addEventListener('click', closeDrawer);
+  // Close once a destination is chosen (page-switch items + external links).
+  sidebar.addEventListener('click', function(e) {
+    if (e.target.closest('.nav-item')) closeDrawer();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && sidebar.classList.contains('drawer-open')) closeDrawer();
+  });
 })();
 </script>
 </body>
