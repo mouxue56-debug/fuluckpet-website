@@ -146,7 +146,9 @@ button { font-family: inherit; cursor: pointer; }
   left: 0;
   width: 0%;
   height: 3px;
-  background: linear-gradient(90deg, var(--mint), var(--strawberry), var(--mango), var(--taro));
+  /* Single brand mint — a 4-stop rainbow read as casual/template against a premium
+     cattery's award authority. */
+  background: linear-gradient(90deg, var(--mint), var(--mint-dark));
   z-index: 9999;
   transition: width 0.1s linear;
 }
@@ -3076,9 +3078,10 @@ body.cta-hidden .mobile-cta-bar {
    Also account for iOS safe-area notch via env(safe-area-inset-top).
    ============================================================ */
 @media (max-width: 768px) {
-  /* Reserve room for header (64) + trust-strip (40) + breathing (24) + iOS notch */
+  /* Header + breathing + iOS notch. The +40px trust-strip reservation was dropped
+     when the duplicate mobile-trust-strip was removed, pulling the hero up. */
   .hero {
-    padding-top: calc(var(--header-height) + 40px + 32px + env(safe-area-inset-top, 0px));
+    padding-top: calc(var(--header-height) + 24px + env(safe-area-inset-top, 0px));
   }
   .page-hero,
   .blog-hero,
@@ -3139,16 +3142,19 @@ body.cta-hidden .mobile-cta-bar {
   z-index: 2;
 }
 
-/* 3. Footer dark-theme legal block — raise opacity + slight size bump.
-   The 動物取扱業 numbers are legally required disclosure; current 12px @0.6
-   opacity on dark heading bg measures ~3:1 (fails AA). Bump to 0.85 + 13px.
-   Address row: 0.45 → 0.78 (was unreadable on phones). */
-.legal-box p { font-size: 13px; opacity: 0.85; }
-.legal-addr { font-size: 12.5px; opacity: 0.78; }
-.footer-bottom { opacity: 0.62; font-size: 13px; }
+/* 3. Footer dark-theme legal block — CONTRAST FIX.
+   The body text was being hijacked to a dark grey (var(--text-note-strong) via the
+   shared muted-text selector ~line 2551) and rendered on the dark footer bg
+   (#5A7A7A) → ~1.2:1, failing AA on the legally-required 動物取扱業 disclosure.
+   A prior pass only raised opacity, which can't rescue a dark color. Set opaque
+   light text AND darken the disclosure panel so the fine print clears WCAG AA. */
+.legal-box { background: rgba(0, 0, 0, 0.18); border-color: rgba(255, 255, 255, 0.10); }
+.legal-box p { color: rgba(255, 255, 255, 0.92); opacity: 1; font-size: 13px; }
+.legal-addr { color: rgba(255, 255, 255, 0.82); opacity: 1; font-size: 12.5px; }
+.footer-bottom { color: rgba(255, 255, 255, 0.70); opacity: 1; font-size: 13px; }
 .footer-links a { color: rgba(255, 255, 255, 0.72); }
 .footer-links a:hover { color: var(--text-white); }
-.f-tagline { opacity: 0.78; }
+.f-tagline { color: rgba(255, 255, 255, 0.82); opacity: 1; }
 
 /* 4. Tax small-print on price line — bump from 12 to 13px on desktop too.
    On a card with white bg + cream surroundings, 12px palt-off Japanese

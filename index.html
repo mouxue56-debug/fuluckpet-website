@@ -239,14 +239,9 @@
     </div>
   </div>
 
-  <!-- ========== MOBILE TRUST STRIP (mobile-only, between header and hero) ========== -->
-  <div class="mobile-trust-strip" aria-label="信頼の証">
-    <span class="pill"><span class="ico">🏆</span><span data-i18n="hero.award">アワード受賞</span></span>
-    <span class="sep" aria-hidden="true"></span>
-    <span class="pill"><span class="ico">⭐</span><span data-i18n="trust.rating">5.00 / 113件</span></span>
-    <span class="sep" aria-hidden="true"></span>
-    <span class="pill"><span class="ico">🐾</span><span data-i18n="trust.graduates">200+ 卒業猫</span></span>
-  </div>
+  <!-- Mobile trust strip removed: it repeated 5.00/113/200+/award a 4th time on
+       mobile (hero-badges + hero-stats already carry these). The sticky 40px it
+       reserved in .hero padding-top has been reclaimed below. -->
 
   <!-- ========== HERO ========== -->
   <section class="hero" id="main">
@@ -292,10 +287,10 @@
       <div class="hero-img-wrapper">
         <img src="images/hero-main.jpg" alt="福楽キャッテリー - 子猫との出会い" loading="eager" style="width:100%;height:auto;object-fit:cover;border-radius:var(--radius-lg);" width="640" height="480">
       </div>
-      <div class="hero-float float-1">
+      <div class="hero-float float-1" aria-hidden="true">
         <span>🐱</span>
       </div>
-      <div class="hero-float float-2">
+      <div class="hero-float float-2" aria-hidden="true">
         <span>✨</span>
       </div>
     </div>
