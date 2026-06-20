@@ -778,7 +778,42 @@ async function callDashScopeChat(env, messages) {
   return String(text).trim();
 }
 
-// Gemini fallback (text only, single-turn collapse with system prompt as preamble).
+// Mayuki Hermes gateway relay — an OpenAI-compatible proxy on an always-on Mac that
+// routes to grok-4.3 via xAI OAuth (free, cost 0). The edge Worker can't reach the
+// localhost proxy (127.0.0.1:8645), so MAYUKI_GATEWAY_URL must be a PUBLIC tunnel
+// fronted by an auth layer (the proxy itself enforces no auth). Model via
+// env.MAYUKI_MODEL (default grok-4.3).
+async function callMayukiChat(env, messages, model) {
+  const base = env.MAYUKI_GATEWAY_URL;
+  if (!base) throw new Error('MAYUKI_GATEWAY_URL not configured');
+
+  const res = await fetch(`${base.replace(/\/+$/, '')}/v1/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${env.MAYUKI_GATEWAY_KEY || ''}`,
+    },
+    body: JSON.stringify({
+      model: model || env.MAYUKI_MODEL || 'grok-4.3',
+      messages, // OpenAI format already includes the system role.
+      max_tokens: 2048,
+      temperature: 0.7,
+      stream: false,
+    }),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Mayuki gateway error: ${res.status} ${errText.slice(0, 300)}`);
+  }
+  const data = await res.json();
+  const text = data?.choices?.[0]?.message?.content;
+  if (!text) throw new Error('Mayuki gateway returned empty content');
+  return String(text).trim();
+}
+
+// Gemini — text only, single-turn collapse with system prompt as preamble.
+// Model via env.GEMINI_MODEL (default gemini-2.0-flash). Free-tier eligible.
 async function callGeminiChat(env, messages) {
   const key = env.GEMINI_API_KEY;
   if (!key) throw new Error('GEMINI_API_KEY not configured');
@@ -791,7 +826,7 @@ async function callGeminiChat(env, messages) {
   const prompt = `${sys}\n\n${conv}\nアシスタント:`;
 
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${key}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${env.GEMINI_MODEL || 'gemini-2.0-flash'}:generateContent?key=${key}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1366,22 +1401,19 @@ export default {
         const systemPrompt = baseSystemPrompt + groundingPrompt;
         const llmMessages = [{ role: 'system', content: systemPrompt }, ...cleaned];
 
-        // Provider chain: Infi (primary) → MiniMax → DashScope → Gemini.
+        // Provider chain: both hops go through the Mayuki Hermes relay (free, xAI OAuth),
+        // just on different models — grok-4.3 (reasoning) primary, grok-4.20-non-reasoning
+        // (faster) fallback. The prior flat-fee plans (Infi/MiniMax/Kimi/qwen) all lapsed
+        // or 403'd; rebuilt 2026-06-20 onto the relay only (no paid API, no Gemini key).
+        // Both share the same relay, so this is model-level redundancy, not infra-level —
+        // if the Mac / tunnel / OAuth is down, chat is down (acceptable per owner).
+        // (callGemini/Infi/MiniMax/DashScope/KimiChat remain defined but unreferenced.)
         let reply = null;
         let provider = null;
         const errs = {};
-        // Infi (deepseek-v3.2-thinking) is PRIMARY — empirically produces the
-        // cleanest Japanese (no Chinese/Korean/English contamination, unlike
-        // MiniMax which leaks 我们/现在/quinsy/가능 occasionally). Thinking model
-        // adds 1-2s vs MiniMax but the JP quality wins for a JP-first cattery.
-        // MiniMax kept as fast fallback. Kimi REMOVED from the hot path: it always
-        // 403s from CF Workers (Bot Fight Mode), so in the chain it only ever added
-        // a guaranteed-failing round-trip exactly when the user was waiting longest.
         const providers = [
-          ['infi-deepseek-v3.2', callInfiChat],    // primary (cleanest JP)
-          ['minimax-m2.7', callMiniMaxChat],       // fallback 1 (faster, JP imperfect)
-          ['qwen3.6-plus', callDashScopeChat],     // fallback 2
-          ['gemini-fallback', callGeminiChat],     // fallback 3
+          ['mayuki-grok-4.3', (e, m) => callMayukiChat(e, m, e.MAYUKI_MODEL || 'grok-4.3')],
+          ['mayuki-grok-4.20-nr', (e, m) => callMayukiChat(e, m, e.MAYUKI_FALLBACK_MODEL || 'grok-4.20-0309-non-reasoning')],
         ];
         // Cap each hop, plus an overall chain budget, so a hung provider can't
         // spin the chat forever.
