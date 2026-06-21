@@ -15,7 +15,7 @@ import sys, re, pathlib
 REPO = pathlib.Path(__file__).resolve().parent.parent
 slug, webp, cap = sys.argv[1], sys.argv[2], sys.argv[3]
 page = REPO / "blog" / f"{slug}.html"
-html = page.read_text(encoding="utf-8")
+html = page.read_text(encoding="utf-8", errors="surrogatepass")
 url = f"https://fuluckpet.com/images/blog-edu/{webp}"
 
 if f'blog-edu/{webp}"' in html and "blog-figure" in html:
@@ -43,5 +43,5 @@ else:
     pos = art_idx + h2.start() + 1  # keep the leading newline
     html = html[:pos] + fig + html[pos:]
 
-page.write_text(html, encoding="utf-8")
+page.write_text(html, encoding="utf-8", errors="surrogatepass")
 print(f"  OK {slug}: og+jsonld+figure -> {webp}")
