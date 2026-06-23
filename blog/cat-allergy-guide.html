@@ -91,7 +91,7 @@
  }
  </style>
 </head>
-<body>
+<body class="has-mobile-cta">
 
   <!-- Scroll Progress Bar -->
   <div class="scroll-progress"></div>
@@ -344,5 +344,18 @@ window._blogArticleI18n = {
   <script src="/cta-widget.js?v=20260623b"></script>
   <script src="/script.js?v=20260623b"></script>
 
+  <div class="mobile-cta-bar" role="navigation" aria-label="クイック連絡">
+    <div class="mobile-cta-bar-inner">
+      <a class="cta-line" href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" target="_blank" rel="noopener" data-cta="line" aria-label="LINEで相談する">
+        <span class="cta-icon"><i class="ico ico-message-circle" aria-hidden="true"></i></span>
+        <span data-i18n="cta.line">LINEで相談</span>
+      </a>
+      <a class="cta-booking" href="/booking.html" data-cta="booking" aria-label="見学を予約する">
+        <span class="cta-icon"><i class="ico ico-calendar-check" aria-hidden="true"></i></span>
+        <span data-i18n="cta.booking">見学予約</span>
+      </a>
+    </div>
+  </div>
+  <script defer src="/mobile-cta.js?v=20260623b"></script>
 </body>
 </html>
