@@ -330,7 +330,7 @@
         <a href="guide/" class="nav-link" data-i18n="nav.guide">お迎えガイド</a>
         <a href="blog.html" class="nav-link" data-i18n="nav.blog">知識ライブラリ</a>
         <div class="nav-dropdown">
-          <button class="nav-link nav-dropdown-toggle" data-i18n="nav.more">もっと見る <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <button class="nav-link nav-dropdown-toggle" aria-haspopup="true" aria-expanded="false" data-i18n="nav.more">もっと見る <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
           <div class="nav-dropdown-menu">
             <a href="siberian.html" class="nav-dropdown-item" data-i18n="nav.siberian">サイベリアンの魅力</a>
             <a href="siberian-allergy.html" class="nav-dropdown-item">猫アレルギーと飼育</a>
@@ -348,10 +348,10 @@
       </nav>
 
       <div class="header-right">
-        <div class="lang-switch">
-          <button class="lang-btn active" data-lang="ja">JP</button>
-          <button class="lang-btn" data-lang="en">EN</button>
-          <button class="lang-btn" data-lang="zh">中</button>
+        <div class="lang-switch" role="group" aria-label="言語切替 / Language">
+          <button class="lang-btn active" aria-pressed="true" data-lang="ja">JP</button>
+          <button class="lang-btn" aria-pressed="false" data-lang="en">EN</button>
+          <button class="lang-btn" aria-pressed="false" data-lang="zh">中</button>
         </div>
 
         <a href="https://page.line.me/915hnnlk?call=1" class="header-tel" aria-label="LINEで電話相談" target="_blank" rel="noopener" data-i18n-aria="header.telAria" data-i18n="header.telLabel"><span aria-hidden="true"><i class="ico ico-phone" aria-hidden="true"></i></span>　お電話 / LINE</a>
@@ -397,9 +397,9 @@
     </nav>
     <div class="mobile-nav-bottom">
       <div class="lang-switch mobile-lang">
-        <button class="lang-btn active" data-lang="ja">JP</button>
-        <button class="lang-btn" data-lang="en">EN</button>
-        <button class="lang-btn" data-lang="zh">中</button>
+        <button class="lang-btn active" aria-pressed="true" data-lang="ja">JP</button>
+        <button class="lang-btn" aria-pressed="false" data-lang="en">EN</button>
+        <button class="lang-btn" aria-pressed="false" data-lang="zh">中</button>
       </div>
     </div>
   </div>
@@ -408,6 +408,11 @@
   <section class="booking-hero" id="main">
     <div class="container">
       <h1 data-i18n="booking.title"><i class="ico ico-calendar-check" aria-hidden="true"></i> 見学予約</h1>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:14px 0 4px">
+        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:30px;padding:6px 16px;font-weight:600;color:#5A7A7A;font-size:.9rem"><i class="ico ico-star" aria-hidden="true"></i> 5.00／113件</span>
+        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:30px;padding:6px 16px;font-weight:600;color:#5A7A7A;font-size:.9rem"><i class="ico ico-trophy" aria-hidden="true"></i> 全国1位</span>
+        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:30px;padding:6px 16px;font-weight:600;color:#5A7A7A;font-size:.9rem"><i class="ico ico-shield-check" aria-hidden="true"></i> 完全予約制・安心対応</span>
+      </div>
       <p data-i18n="booking.subtitle">対面見学・LINEビデオ通話、お好きな方法でご予約ください。<br>お気軽にどうぞ。</p>
     </div>
   </section>

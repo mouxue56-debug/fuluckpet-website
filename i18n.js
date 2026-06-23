@@ -1567,7 +1567,9 @@ function setLanguage(lang) {
   }
 
   document.querySelectorAll('.lang-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+    var on = btn.getAttribute('data-lang') === lang;
+    btn.classList.toggle('active', on);
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
   });
 
   document.documentElement.lang = lang;

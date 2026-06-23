@@ -55,7 +55,7 @@
         <a href="guide/" class="nav-link" data-i18n="nav.guide">お迎えガイド</a>
         <a href="blog.html" class="nav-link" data-i18n="nav.blog">知識ライブラリ</a>
         <div class="nav-dropdown">
-          <button class="nav-link nav-dropdown-toggle" data-i18n="nav.more">もっと見る <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <button class="nav-link nav-dropdown-toggle" aria-haspopup="true" aria-expanded="false" data-i18n="nav.more">もっと見る <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
           <div class="nav-dropdown-menu">
             <a href="siberian.html" class="nav-dropdown-item" data-i18n="nav.siberian">サイベリアンの魅力</a>
             <a href="siberian-allergy.html" class="nav-dropdown-item">猫アレルギーと飼育</a>
@@ -73,10 +73,10 @@
       </nav>
 
       <div class="header-right">
-        <div class="lang-switch">
-          <button class="lang-btn active" data-lang="ja">JP</button>
-          <button class="lang-btn" data-lang="en">EN</button>
-          <button class="lang-btn" data-lang="zh">中</button>
+        <div class="lang-switch" role="group" aria-label="言語切替 / Language">
+          <button class="lang-btn active" aria-pressed="true" data-lang="ja">JP</button>
+          <button class="lang-btn" aria-pressed="false" data-lang="en">EN</button>
+          <button class="lang-btn" aria-pressed="false" data-lang="zh">中</button>
         </div>
 
         <a href="https://page.line.me/915hnnlk?call=1" class="header-tel" aria-label="LINEで電話相談" target="_blank" rel="noopener" data-i18n-aria="header.telAria" data-i18n="header.telLabel"><span aria-hidden="true"><i class="ico ico-phone" aria-hidden="true"></i></span>　お電話 / LINE</a>
@@ -122,9 +122,9 @@
     </nav>
     <div class="mobile-nav-bottom">
       <div class="lang-switch mobile-lang">
-        <button class="lang-btn active" data-lang="ja">JP</button>
-        <button class="lang-btn" data-lang="en">EN</button>
-        <button class="lang-btn" data-lang="zh">中</button>
+        <button class="lang-btn active" aria-pressed="true" data-lang="ja">JP</button>
+        <button class="lang-btn" aria-pressed="false" data-lang="en">EN</button>
+        <button class="lang-btn" aria-pressed="false" data-lang="zh">中</button>
       </div>
       <div class="mobile-nav-sns">
         <a href="https://www.instagram.com/fuluckpet/" class="sns-icon" target="_blank" rel="noopener" aria-label="Instagramでフォロー"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg></a>
@@ -248,6 +248,21 @@
   </section>
 
   <!-- ========== FOOTER ========== -->
+    <section style="padding:48px 0">
+    <div class="container" style="max-width:720px;text-align:center;background:linear-gradient(135deg,#f0faf7,#fef6f0);border:1px solid #e8f5f0;border-radius:24px;padding:40px 28px">
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:14px">
+        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:30px;padding:6px 16px;font-weight:600;color:#5A7A7A"><i class="ico ico-star" aria-hidden="true"></i> 5.00／113件</span>
+        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:30px;padding:6px 16px;font-weight:600;color:#5A7A7A"><i class="ico ico-trophy" aria-hidden="true"></i> 全国1位</span>
+        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:30px;padding:6px 16px;font-weight:600;color:#5A7A7A"><i class="ico ico-paw-print" aria-hidden="true"></i> 200+卒業</span>
+      </div>
+      <h2 style="border:none">気になる子がいたら、まずはお気軽にご相談を</h2>
+      <p style="color:var(--text-note);margin:12px 0 24px">完全予約制。対面・LINEビデオ通話での見学を承っております。</p>
+      <div class="hero-buttons" style="justify-content:center">
+        <a href="/booking.html" class="btn btn-primary"><i class="ico ico-calendar-check" aria-hidden="true"></i> 見学を予約する</a>
+        <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="btn btn-line" target="_blank" rel="noopener"><i class="ico ico-message-circle" aria-hidden="true"></i> LINEで相談する</a>
+      </div>
+    </div>
+  </section>
   <footer class="footer" id="footer">
     <div class="container">
       <div class="footer-top">

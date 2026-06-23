@@ -55,7 +55,7 @@
         <a href="guide/" class="nav-link" data-i18n="nav.guide">お迎えガイド</a>
         <a href="blog.html" class="nav-link" data-i18n="nav.blog">知識ライブラリ</a>
         <div class="nav-dropdown">
-          <button class="nav-link nav-dropdown-toggle" data-i18n="nav.more">もっと見る <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <button class="nav-link nav-dropdown-toggle" aria-haspopup="true" aria-expanded="false" data-i18n="nav.more">もっと見る <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
           <div class="nav-dropdown-menu">
             <a href="siberian.html" class="nav-dropdown-item" data-i18n="nav.siberian">サイベリアンの魅力</a>
             <a href="siberian-allergy.html" class="nav-dropdown-item">猫アレルギーと飼育</a>
@@ -73,10 +73,10 @@
       </nav>
 
       <div class="header-right">
-        <div class="lang-switch">
-          <button class="lang-btn active" data-lang="ja">JP</button>
-          <button class="lang-btn" data-lang="en">EN</button>
-          <button class="lang-btn" data-lang="zh">中</button>
+        <div class="lang-switch" role="group" aria-label="言語切替 / Language">
+          <button class="lang-btn active" aria-pressed="true" data-lang="ja">JP</button>
+          <button class="lang-btn" aria-pressed="false" data-lang="en">EN</button>
+          <button class="lang-btn" aria-pressed="false" data-lang="zh">中</button>
         </div>
 
         <a href="https://page.line.me/915hnnlk?call=1" class="header-tel" aria-label="LINEで電話相談" target="_blank" rel="noopener" data-i18n-aria="header.telAria" data-i18n="header.telLabel"><span aria-hidden="true"><i class="ico ico-phone" aria-hidden="true"></i></span>　お電話 / LINE</a>
@@ -122,9 +122,9 @@
     </nav>
     <div class="mobile-nav-bottom">
       <div class="lang-switch mobile-lang">
-        <button class="lang-btn active" data-lang="ja">JP</button>
-        <button class="lang-btn" data-lang="en">EN</button>
-        <button class="lang-btn" data-lang="zh">中</button>
+        <button class="lang-btn active" aria-pressed="true" data-lang="ja">JP</button>
+        <button class="lang-btn" aria-pressed="false" data-lang="en">EN</button>
+        <button class="lang-btn" aria-pressed="false" data-lang="zh">中</button>
       </div>
       <div class="mobile-nav-sns">
         <a href="https://www.instagram.com/fuluckpet/" class="sns-icon" target="_blank" rel="noopener" aria-label="Instagramでフォロー"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg></a>
