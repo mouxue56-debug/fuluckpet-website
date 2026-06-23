@@ -61,7 +61,7 @@ var STORAGE_KEY = 'fuluck-admin-data';
 var PASS_KEY = 'fuluck-admin-pass';
 var LOG_KEY = 'fuluck-admin-log';
 var IMAGE_KEY = 'fuluck-admin-images';
-var DEFAULT_PASS = 'fuluck5632';
+var DEFAULT_PASS = '';
 var DRIVE_API = 'https://fuluck-api.mouxue56.workers.dev';
 
 // Pagination state

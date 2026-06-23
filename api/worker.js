@@ -1096,32 +1096,34 @@ ${submission.kitten_id ? `<tr><td style="padding:6px 0;color:#666;">気になる
   return { text, html };
 }
 
-// Send booking notification via MailChannels (free for CF Workers).
-// Requires SPF + DKIM DNS records on the From domain.
-async function sendBookingEmail(submission, requestId) {
+// Send booking notification via Resend. (MailChannels discontinued its free Cloudflare
+// Workers email service in 2024, so the old path always failed.) Graceful no-op until
+// RESEND_API_KEY is set — Telegram still notifies the owner of every booking. To enable
+// email: free Resend account → verify fuluckpet.com → `wrangler secret put RESEND_API_KEY`
+// (optional RESEND_FROM, e.g. "fuluckpet 予約 <noreply@fuluckpet.com>").
+async function sendBookingEmail(env, submission, requestId) {
+  const key = env.RESEND_API_KEY;
+  if (!key) return { skipped: 'no_resend_key' };
   const subject = `[fuluckpet 予約] ${submission.name} さんから新しい見学予約`;
   const { text, html } = buildBookingEmail(submission, requestId);
 
-  const payload = {
-    personalizations: [{ to: [{ email: 'mouxue56@gmail.com', name: 'fuluckpet 管理者' }] }],
-    from: { email: 'noreply@fuluckpet.com', name: 'fuluckpet 予約システム' },
-    reply_to: { email: submission.email, name: submission.name },
-    subject,
-    content: [
-      { type: 'text/plain', value: text },
-      { type: 'text/html', value: html },
-    ],
-  };
-
-  const res = await fetch('https://api.mailchannels.net/tx/v1/send', {
+  const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+    body: JSON.stringify({
+      from: env.RESEND_FROM || 'fuluckpet 予約システム <noreply@fuluckpet.com>',
+      to: ['mouxue56@gmail.com'],
+      reply_to: submission.email,
+      subject,
+      text,
+      html,
+    }),
   });
   if (!res.ok) {
     const detail = await res.text().catch(() => '');
-    throw new Error(`MailChannels ${res.status}: ${detail.slice(0, 500)}`);
+    throw new Error(`Resend ${res.status}: ${detail.slice(0, 300)}`);
   }
+  return { sent: true };
 }
 
 // Optional Telegram fallback (fires alongside email if env vars are present).
@@ -1731,13 +1733,11 @@ export default {
           };
           await env.DATA.put(kvKey, JSON.stringify(stored), { expirationTtl: 90 * 24 * 3600 });
 
-          // Send email (and optional Telegram) in the background — return 200 immediately
-          // unless email fails synchronously here. We DO await email so the user sees a
-          // 500 if MailChannels is down — but the booking is still in KV, so owner can
-          // see it on the admin page.
+          // Email via Resend (no-op until RESEND_API_KEY is set). Telegram always fires and
+          // the booking is already in KV, so a missing/failed email never loses the lead.
           let emailErr = null;
           try {
-            await sendBookingEmail(data, requestId);
+            await sendBookingEmail(env, data, requestId);
           } catch (e) {
             emailErr = e;
             console.error(`[${requestId}] email send failed:`, e && e.stack ? e.stack : e);
@@ -1764,8 +1764,18 @@ export default {
       // POST /api/auth — login check (hashed; constant-time compare; one-time legacy migration).
       if (path === '/api/auth' && method === 'POST') {
         try {
+          // Brute-force guard: max 10 failed attempts per IP per hour.
+          const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+          const rlKey = `authfail:${ip}:${Math.floor(Date.now() / 3600000)}`;
+          const fails = parseInt((await env.DATA.get(rlKey)) || '0', 10);
+          if (fails >= 10) {
+            return addCors(json({ success: false, error: 'too_many_attempts' }, 429));
+          }
           const body = await request.json();
           const { ok, migrated } = await verifyAndMaybeMigrate(env, body && body.password);
+          if (!ok) {
+            await env.DATA.put(rlKey, String(fails + 1), { expirationTtl: 3600 });
+          }
           return addCors(json({ success: ok, migrated: migrated || undefined }));
         } catch (err) {
           const rid = crypto.randomUUID();

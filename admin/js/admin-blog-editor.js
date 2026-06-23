@@ -77,7 +77,7 @@
   // The api-client.js getSessionPass() helper isn't loaded here, so define a fallback
   // that the FuluckAPI module's typeof check will find.
   window.getSessionPass = window.getSessionPass || function() {
-    return sessionStorage.getItem('fuluck-admin-pwd') || 'fuluck5632';
+    return sessionStorage.getItem('fuluck-admin-pwd') || '';
   };
 
   // ===== Article list =====

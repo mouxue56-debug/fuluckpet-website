@@ -21,7 +21,7 @@
   }
 
   window.getSessionPass = window.getSessionPass || function() {
-    return sessionStorage.getItem('fuluck-admin-pwd') || 'fuluck5632';
+    return sessionStorage.getItem('fuluck-admin-pwd') || '';
   };
 
   function doLogin() {

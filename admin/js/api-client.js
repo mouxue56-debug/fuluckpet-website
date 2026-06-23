@@ -9,7 +9,7 @@ var FuluckAPI = (function() {
   var TIMEOUT_MS = 10000;
 
   function getAuth() {
-    return 'Bearer ' + (typeof getSessionPass === 'function' ? getSessionPass() : 'fuluck5632');
+    return 'Bearer ' + (typeof getSessionPass === 'function' ? getSessionPass() : '');
   }
 
   function fetchWithTimeout(url, opts) {
