@@ -1620,3 +1620,19 @@ function initI18n() {
 }
 
 document.addEventListener('DOMContentLoaded', initI18n);
+
+
+/* GA4 conversion event tracking (delegated, fires on LINE/booking/CTA clicks) */
+document.addEventListener('click', function (e) {
+  var a = e.target && e.target.closest ? e.target.closest('a, button') : null;
+  if (!a || typeof window.gtag !== 'function') return;
+  var href = (a.getAttribute('href') || '');
+  var cta = a.getAttribute('data-cta') || '';
+  try {
+    if (/page\.line\.me/.test(href) || cta === 'line') {
+      window.gtag('event', 'line_click', { link_location: a.className || 'link' });
+    } else if (/\/booking\.html/.test(href) || cta === 'booking') {
+      window.gtag('event', 'booking_click', { link_location: a.className || 'link' });
+    }
+  } catch (_) {}
+}, true);
