@@ -68,9 +68,9 @@
       price: '¥{p}',
       viewAll: 'すべての子猫を見る →',
       lineBtn: 'LINEで見学予約',
-      bookBtn: '📅 見学を予約する',
-      male: '♂ 男の子',
-      female: '♀ 女の子'
+      bookBtn: '<i class="ico ico-calendar-check" aria-hidden="true"></i> 見学を予約する',
+      male: '<i class="ico ico-mars" aria-hidden="true"></i> 男の子',
+      female: '<i class="ico ico-venus" aria-hidden="true"></i> 女の子'
     },
     en: {
       heading: 'Meet Our Kittens',
@@ -80,9 +80,9 @@
       price: '¥{p}',
       viewAll: 'View All Kittens →',
       lineBtn: 'Book a Visit on LINE',
-      bookBtn: '📅 Book a Visit',
-      male: '♂ Male',
-      female: '♀ Female'
+      bookBtn: '<i class="ico ico-calendar-check" aria-hidden="true"></i> Book a Visit',
+      male: '<i class="ico ico-mars" aria-hidden="true"></i> Male',
+      female: '<i class="ico ico-venus" aria-hidden="true"></i> Female'
     },
     zh: {
       heading: '这些小可爱等你来',
@@ -92,9 +92,9 @@
       price: '¥{p}',
       viewAll: '查看所有幼猫 →',
       lineBtn: 'LINE预约参观',
-      bookBtn: '📅 预约见学',
-      male: '♂ 公猫',
-      female: '♀ 母猫'
+      bookBtn: '<i class="ico ico-calendar-check" aria-hidden="true"></i> 预约见学',
+      male: '<i class="ico ico-mars" aria-hidden="true"></i> 公猫',
+      female: '<i class="ico ico-venus" aria-hidden="true"></i> 母猫'
     }
   };
 
@@ -237,7 +237,7 @@
         '<button class="kc-arrow kc-next" aria-label="次へ">›</button>' +
       '</div>' +
       '<div class="kc-actions">' +
-        '<a href="' + cta.btn1Link + '" class="kc-btn kc-btn-primary">🐾 ' + cta.btn1 + '</a>' +
+        '<a href="' + cta.btn1Link + '" class="kc-btn kc-btn-primary"><i class="ico ico-paw-print" aria-hidden="true"></i> ' + cta.btn1 + '</a>' +
         '<a href="' + cta.btn2Link + '"' + (cta.btn2Link === LINE_URL ? ' target="_blank" rel="noopener"' : '') + ' class="kc-btn ' + (cta.btn2Link === LINE_URL ? 'kc-btn-line' : 'kc-btn-book') + '">' +
           (cta.btn2Link === LINE_URL ? LINE_SVG + ' ' : '') + cta.btn2 +
         '</a>' +

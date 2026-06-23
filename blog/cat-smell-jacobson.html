@@ -20,10 +20,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css">
-  <link rel="stylesheet" href="/guide/guide.css">
-  <link rel="stylesheet" href="/blog.css">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐱</text></svg>">
+  <link rel="stylesheet" href="/style.css?v=20260623b">
+  <link rel="stylesheet" href="/guide/guide.css?v=20260623b">
+  <link rel="stylesheet" href="/blog.css?v=20260623b">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%235BC4A8'/><g fill='%23ffffff'><ellipse cx='11' cy='12' rx='2.3' ry='2.7'/><ellipse cx='21' cy='12' rx='2.3' ry='2.7'/><ellipse cx='7.5' cy='17.5' rx='2.1' ry='2.4'/><ellipse cx='24.5' cy='17.5' rx='2.1' ry='2.4'/><path d='M16 16.5c3.1 0 5.6 2.2 5.6 4.9 0 2.2-1.9 3.1-5.6 3.1s-5.6-.9-5.6-3.1c0-2.7 2.5-4.9 5.6-4.9z'/></g></svg>">
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
   <script type="application/ld+json">
@@ -48,35 +48,35 @@
   ]}
   </script>
   <style>
-    .blog-article { max-width:800px; margin:0 auto; padding:32px 24px 60px; }
-    .blog-article h1 { font-size:1.8rem; line-height:1.4; margin-bottom:16px; color:var(--text-heading); }
-    .blog-article h2 { font-size:1.35rem; margin:40px 0 16px; padding-bottom:8px; border-bottom:2px solid var(--mint); color:var(--text-heading); }
-    .blog-article h3 { font-size:1.1rem; margin:28px 0 12px; color:var(--mint-dark); }
-    .blog-article p { line-height:1.9; margin-bottom:16px; color:var(--text-body); }
-    .blog-article ul, .blog-article ol { margin:12px 0 20px 24px; line-height:1.8; }
-    .blog-article li { margin-bottom:6px; }
-    .blog-back { display:inline-block; margin-bottom:20px; color:var(--mint-dark); text-decoration:none; font-size:0.9rem; }
-    .blog-back:hover { text-decoration:underline; }
-    .blog-meta { display:flex; gap:12px; align-items:center; margin-bottom:24px; font-size:0.85rem; color:var(--text-note); }
-    .blog-meta-cat { background:var(--mint-bg); color:var(--mint-dark); padding:3px 10px; border-radius:20px; font-weight:500; }
-    .blog-cta-box { background: linear-gradient(135deg, #f0faf7 0%, #fef6f0 100%); border-radius:16px; padding:32px 28px; margin:40px 0; text-align:center; border:1px solid #e8f5f0; }
-    .blog-cta-icon { font-size:2.5rem; margin-bottom:12px; }
-    .blog-cta-title { font-size:1.15rem; font-weight:700; margin-bottom:8px; color:var(--text-heading); }
-    .blog-cta-text { font-size:0.92rem; color:var(--text-body); margin-bottom:20px; }
-    .blog-cta-buttons { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
-    .blog-cta-btn { display:inline-flex; align-items:center; gap:6px; padding:12px 24px; border-radius:30px; font-weight:600; font-size:0.92rem; text-decoration:none; transition:all 0.2s; }
-    .blog-cta-btn-primary { background:var(--mint); color:#fff; }
-    .blog-cta-btn-primary:hover { background:var(--mint-dark); transform:translateY(-1px); }
-    .blog-cta-btn-line { background:#06C755; color:#fff; }
-    .blog-cta-btn-line:hover { background:#05a648; transform:translateY(-1px); }
-    .blog-nav-bottom { display:flex; gap:16px; justify-content:space-between; margin:40px 0 0; padding:20px 0; border-top:1px solid #eee; flex-wrap:wrap; }
-    .blog-nav-link { color:var(--mint-dark); text-decoration:none; font-size:0.92rem; }
-    .blog-nav-link:hover { text-decoration:underline; }
-    .blog-cover { width:100%; max-height:280px; object-fit:cover; border-radius:14px; margin-bottom:28px; }
-    @media (max-width: 768px) {
-      .blog-article h1 { font-size:1.4rem; }
-    }
-  </style>
+ .blog-article { max-width:800px; margin:0 auto; padding:32px 24px 60px; }
+ .blog-article h1 { font-size:1.8rem; line-height:1.4; margin-bottom:16px; color:var(--text-heading); }
+ .blog-article h2 { font-size:1.35rem; margin:40px 0 16px; padding-bottom:8px; border-bottom:2px solid var(--mint); color:var(--text-heading); }
+ .blog-article h3 { font-size:1.1rem; margin:28px 0 12px; color:var(--mint-dark); }
+ .blog-article p { line-height:1.9; margin-bottom:16px; color:var(--text-body); }
+ .blog-article ul, .blog-article ol { margin:12px 0 20px 24px; line-height:1.8; }
+ .blog-article li { margin-bottom:6px; }
+ .blog-back { display:inline-block; margin-bottom:20px; color:var(--mint-dark); text-decoration:none; font-size:0.9rem; }
+ .blog-back:hover { text-decoration:underline; }
+ .blog-meta { display:flex; gap:12px; align-items:center; margin-bottom:24px; font-size:0.85rem; color:var(--text-note); }
+ .blog-meta-cat { background:var(--mint-bg); color:var(--mint-dark); padding:3px 10px; border-radius:20px; font-weight:500; }
+ .blog-cta-box { background: linear-gradient(135deg, #f0faf7 0%, #fef6f0 100%); border-radius:16px; padding:32px 28px; margin:40px 0; text-align:center; border:1px solid #e8f5f0; }
+ .blog-cta-icon { font-size:2.5rem; margin-bottom:12px; }
+ .blog-cta-title { font-size:1.15rem; font-weight:700; margin-bottom:8px; color:var(--text-heading); }
+ .blog-cta-text { font-size:0.92rem; color:var(--text-body); margin-bottom:20px; }
+ .blog-cta-buttons { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+ .blog-cta-btn { display:inline-flex; align-items:center; gap:6px; padding:12px 24px; border-radius:30px; font-weight:600; font-size:0.92rem; text-decoration:none; transition:all 0.2s; }
+ .blog-cta-btn-primary { background:var(--mint); color:#fff; }
+ .blog-cta-btn-primary:hover { background:var(--mint-dark); transform:translateY(-1px); }
+ .blog-cta-btn-line { background:#06C755; color:#fff; }
+ .blog-cta-btn-line:hover { background:#05a648; transform:translateY(-1px); }
+ .blog-nav-bottom { display:flex; gap:16px; justify-content:space-between; margin:40px 0 0; padding:20px 0; border-top:1px solid #eee; flex-wrap:wrap; }
+ .blog-nav-link { color:var(--mint-dark); text-decoration:none; font-size:0.92rem; }
+ .blog-nav-link:hover { text-decoration:underline; }
+ .blog-cover { width:100%; max-height:280px; object-fit:cover; border-radius:14px; margin-bottom:28px; }
+ @media (max-width: 768px) {
+ .blog-article h1 { font-size:1.4rem; }
+ }
+ </style>
 </head>
 <body>
 
@@ -85,7 +85,7 @@
   <header class="header" id="header">
     <div class="header-inner">
       <a href="/index.html" class="logo">
-        <span class="logo-icon">🐾</span>
+        <span class="logo-icon"><i class="ico ico-paw-print" aria-hidden="true"></i></span>
         <span class="logo-text">福楽キャッテリー</span>
       </a>
       <nav class="nav" id="nav">
@@ -135,26 +135,26 @@
 <p>猫の嗅覚は、人間の5〜10倍とも14倍とも言われています。数値にばらつきがあるのは、測定方法や個体差があるためですが、とにかく「とても鋭い」ということは間違いありません。</p><h3>Q: 猫はどんな匂いを特に感じやすいの？</h3><p>猫は以下の匂いに特に敏感であると言われています。</p><ul><li>アミノ酸や脂肪酸など、タンパク質を含む匂い</li><li>他の猫のフェロモン（特に発情期のメス猫のもの）</li><li>自分の縄張りや飼い主さんの体臭</li><li>特定のハーブ類（マタタビ、シルバーバインなど）</li></ul><p>興味深いことに、<a href="/siberian.html">サイベリアン</a>を含めた猫種によって、嗅覚の鋭さには個体差があるようです。福楽キャッテリーでは、200頭以上の卒業猫を見送る中で、匂いに対する反応の違いも観察してきました。</p><h3>Q: 猫の鼻の構造は人間とどう違う？</h3><p>猫の鼻腔内には、約2億個の嗅細胞があると言われています。人間は約500万個なので、その差は歴然です。また、猫の鼻先は個体によって模様が異なり、まるで「鼻紋」のようなものがあるのも特徴的です。</p><h2>フレーメン反応とは？ヤコブソン器官の働き</h2><p>「フレーメン反応」は、猫が上唇をめくり、口を少し開けて、鼻の穴を広げるあの独特の表情のこと。ドイツ語で「口をひん曲げる」という意味だそうです。これは「匂いを嗅いでいる」だけではなく、もっと特殊な器官を使っている証拠なんです。</p><h3>Q: ヤコブソン器官って何？</h3><p>ヤコブソン器官（正式には「犁鼻器官（りべいきかん）」）は、猫の口蓋（上あご）と鼻腔の間にある特殊な感覚器官です。通常の嗅覚とは別の経路で、化学物質を感知する「補助的な鼻」のようなものと言えます。</p><p>この器官が感知するのは、空気中の揮発性の低い物質——つまり、普通の鼻では捉えにくいフェロモンなどの情報です。猫は口を開けることで、ヤコブソン器官に空気を流し込み、そこで「味わうように」情報を読み取っているんです。</p><h3>Q: フレーメン反応はどんな時に起きる？</h3><p>以下のような場面で見られることが一般的です。</p><ul><li>他の猫の尿や肛門腺の匂いを嗅いだ後</li><li>メス猫が発情期のフェロモンを感知した時（オス猫に多い）</li><li>新しい匂いのするもの（靴、カバン、外で触れたものなど）を調べた後</li><li>特定の植物（マタタビなど）を嗅いだ後</li></ul><p>2025年全国1位アワードを受賞した福楽キャッテリーでは、第一種動物取扱業 220012A の許可を得て、大阪・城東区の小規模キャッテリーとして、仔猫たちのこのような自然な行動を大切に観察しています。</p><h2>フレーメン反応と病気の見分け方</h2><p>フレーメン反応は正常な行動ですが、似たような表情で「実は具合が悪い」ケースもあります。飼い主さんが安心できるよう、見分け方をお伝えします。</p><h3>Q: どうしたらフレーメン反応と病気を区別できる？</h3><p>フレーメン反応の特徴は以下の通りです。</p><ul><li>数秒〜数十秒で終わる</li><li>その前後で普通に食事や遊びをする</li><li>特定の匂いを嗅いだ直後に起きる</li><li>口から臭いがする、よだれが垂れるなどがない</li></ul><p>一方、以下のような場合は受診を検討してください。</p><ul><li>口を開けたまま呼吸が苦しそう</li><li>よだれが多い、または泡立っている</li><li>食事を拒否し、元気がない</li><li>鼻水やくしゃみが続く</li></ul><p>福楽キャッテリーでは、<a href="/faq.html">よくあるご質問</a>のページでも、猫の日常の行動と異変の見分け方をご案内しています。</p><h2>サイベリアンの嗅覚とFel d1タンパク質</h2><p>サイベリアンは「猫アレルギーが出にくい」と言われることがあります。その理由の一つに、Fel d1タンパク質が比較的少ないことが挙げられています。ただし、「出ない」ではなく「比較的少ない」という点は、正しく理解しておくことが大切です。</p><h3>Q: 匂いとアレルギーは関係あるの？</h3><p>猫アレルギーの原因物質であるFel d1は、主に唾液や皮脂腺、肛門腺などに含まれています。猫が毛づくろいをする際、唾液中のFel d1が毛に付着し、それが空気中に飛散することでアレルギー症状が引き起こされると言われています。</p><p>つまり、「猫の匂い」そのものではなく、特定のタンパク質が問題なんです。サイベリアンのFel d1が比較的少ないという特性は、アレルギーに悩む方にとって検討しやすいポイントの一つと言えます。</p><p>ただし、アレルギー反応には個人差が大きく、必ずしも全ての方に当てはまるわけではありません。実際に触れ合って確認することをおすすめしており、<a href="/booking.html">見学のご予約</a>も承っています。</p><h2>飼い主さんができる嗅覚ケア</h2><p>猫の大切な嗅覚を守るために、日々できることはいくつかあります。</p><h3>Q: 匂いの強いものを使う時は注意が必要？</h3><p>はい、以下の点に気を付けると良いでしょう。</p><ul><li>強い香りの消臭剤や芳香剤は、猫の嗅覚に負担をかける可能性があります</li><li>掃除用の塩素系漂白剤は、特に刺激が強いため換気を徹底する</li><li>猫のトイレ周りは、無香料の製品で清潔に保つ</li><li>新しい匂いのするものを持ち込んだ時は、猫が自主的に近づけるようにする</li></ul><p>猫の嗅覚は、食事の選択、縄張りの確認、他者とのコミュニケーション——生きていく上で欠かせない感覚です。飼い主さんが「あの変な顔」を安心して見守れるよう、少しでもお役に立てれば嬉しいです。</p><p>猫の行動や特性について、もっと知りたいことや、<a href="/kittens.html">仔猫の状況</a>についてのお問い合わせは、<a href="https://page.line.me/915hnnlk">LINE公式</a>からお気軽にどうぞ。大阪・城東区の福楽キャッテリーは、サイベリアン専門の小規模キャッテリーとして、第一種動物取扱業 220012A のもと、200頭以上の卒業猫を見送ってきた経験を活かし、これからも飼い主さんと猫の幸せな暮らしをサポートしていきます。</p>
 
     <div class="blog-cta-box">
-      <div class="blog-cta-icon">🐱</div>
+      <div class="blog-cta-icon"><i class="ico ico-cat" aria-hidden="true"></i></div>
       <h3 class="blog-cta-title">福楽キャッテリーの子猫を見てみませんか？</h3>
       <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 0 16px;font-size:0.82rem;color:#5A7A7A;">
-        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:20px;padding:4px 14px;">⭐ <strong>5.00</strong>／113件</span>
-        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:20px;padding:4px 14px;">🏆 全国1位（みんなの子猫ブリーダー）</span>
-        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:20px;padding:4px 14px;">🐾 <strong>200+</strong> 卒業猫</span>
+        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:20px;padding:4px 14px;"><i class="ico ico-star" aria-hidden="true"></i> <strong>5.00</strong>／113件</span>
+        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:20px;padding:4px 14px;"><i class="ico ico-trophy" aria-hidden="true"></i> 全国1位（みんなの子猫ブリーダー）</span>
+        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:20px;padding:4px 14px;"><i class="ico ico-paw-print" aria-hidden="true"></i> <strong>200+</strong> 卒業猫</span>
       </div>
       <p class="blog-cta-text">健康管理と社会化トレーニングを大切に育てた子猫たちをご紹介しています。<br>お気軽にLINEでご相談ください。</p>
       <div class="blog-cta-buttons">
-        <a href="/kittens.html" class="blog-cta-btn blog-cta-btn-primary">🐾 子猫一覧を見る</a>
-        <a href="/booking.html" class="blog-cta-btn blog-cta-btn-primary">📅 見学を予約する</a>
-        <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="blog-cta-btn blog-cta-btn-line" target="_blank" rel="noopener">💬 LINEで相談する</a>
+        <a href="/kittens.html" class="blog-cta-btn blog-cta-btn-primary"><i class="ico ico-paw-print" aria-hidden="true"></i> 子猫一覧を見る</a>
+        <a href="/booking.html" class="blog-cta-btn blog-cta-btn-primary"><i class="ico ico-calendar-check" aria-hidden="true"></i> 見学を予約する</a>
+        <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="blog-cta-btn blog-cta-btn-line" target="_blank" rel="noopener"><i class="ico ico-message-circle" aria-hidden="true"></i> LINEで相談する</a>
       </div>
-      <p style="margin:16px 0 0;font-size:0.85rem;"><a href="https://www.koneko-breeder.com/breeder_c995680.html" target="_blank" rel="noopener" style="color:#5BC4A8;font-weight:500;">🏆 みんなの子猫ブリーダーで最新の子猫を見る →</a></p>
+      <p style="margin:16px 0 0;font-size:0.85rem;"><a href="https://www.koneko-breeder.com/breeder_c995680.html" target="_blank" rel="noopener" style="color:#5BC4A8;font-weight:500;"><i class="ico ico-trophy" aria-hidden="true"></i> みんなの子猫ブリーダーで最新の子猫を見る →</a></p>
     </div>
 
     <div class="blog-nav-bottom">
-      <a href="/blog.html" class="blog-nav-link">📚 記事一覧へ戻る</a>
-      <a href="/kittens.html" class="blog-nav-link">🐱 子猫を見る</a>
-      <a href="/guide/" class="blog-nav-link">📖 お迎えガイド</a>
+      <a href="/blog.html" class="blog-nav-link"><i class="ico ico-library" aria-hidden="true"></i> 記事一覧へ戻る</a>
+      <a href="/kittens.html" class="blog-nav-link"><i class="ico ico-cat" aria-hidden="true"></i> 子猫を見る</a>
+      <a href="/guide/" class="blog-nav-link"><i class="ico ico-book-open" aria-hidden="true"></i> お迎えガイド</a>
     </div>
   </article>
 
@@ -168,16 +168,16 @@
 
   <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="fixed-line" aria-label="LINEでお問い合わせ" target="_blank" rel="noopener">
     <span class="fixed-line-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755z"/></svg></span>
-    <span class="fixed-line-content"><span class="fixed-line-label">見学予約・ご相談</span><span class="fixed-line-cta">LINEで相談 🐾</span></span>
+    <span class="fixed-line-content"><span class="fixed-line-label">見学予約・ご相談</span><span class="fixed-line-cta">LINEで相談 <i class="ico ico-paw-print" aria-hidden="true"></i></span></span>
   </a>
 
   <button class="back-to-top" id="backToTop" aria-label="ページトップへ戻る">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 15l-6-6-6 6"/></svg>
   </button>
 
-  <script src="/i18n.js?v=20260211"></script>
-  <script src="/blog/blog-i18n.js"></script>
-  <script src="/script.js?v=20260211"></script>
+  <script src="/i18n.js?v=20260623b"></script>
+  <script src="/blog/blog-i18n.js?v=20260623b"></script>
+  <script src="/script.js?v=20260623b"></script>
 
 </body>
 </html>

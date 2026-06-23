@@ -22,10 +22,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css">
-  <link rel="stylesheet" href="/guide/guide.css">
-  <link rel="stylesheet" href="/blog.css">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐱</text></svg>">
+  <link rel="stylesheet" href="/style.css?v=20260623b">
+  <link rel="stylesheet" href="/guide/guide.css?v=20260623b">
+  <link rel="stylesheet" href="/blog.css?v=20260623b">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%235BC4A8'/><g fill='%23ffffff'><ellipse cx='11' cy='12' rx='2.3' ry='2.7'/><ellipse cx='21' cy='12' rx='2.3' ry='2.7'/><ellipse cx='7.5' cy='17.5' rx='2.1' ry='2.4'/><ellipse cx='24.5' cy='17.5' rx='2.1' ry='2.4'/><path d='M16 16.5c3.1 0 5.6 2.2 5.6 4.9 0 2.2-1.9 3.1-5.6 3.1s-5.6-.9-5.6-3.1c0-2.7 2.5-4.9 5.6-4.9z'/></g></svg>">
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
   <script type="application/ld+json">
@@ -48,48 +48,48 @@
   ]}
   </script>
   <style>
-    .blog-article { max-width:800px; margin:0 auto; padding:32px 24px 60px; }
-    .blog-article h1 { font-size:1.8rem; line-height:1.4; margin-bottom:16px; color:var(--text-heading); }
-    .blog-article h2 { font-size:1.35rem; margin:40px 0 16px; padding-bottom:8px; border-bottom:2px solid var(--mint); color:var(--text-heading); }
-    .blog-article h3 { font-size:1.1rem; margin:28px 0 12px; color:var(--mint-dark); }
-    .blog-article p { line-height:1.9; margin-bottom:16px; color:var(--text-body); }
-    .blog-article ul, .blog-article ol { margin:12px 0 20px 24px; line-height:1.8; }
-    .blog-article li { margin-bottom:6px; }
-    .blog-article table { width:100%; border-collapse:collapse; margin:20px 0; font-size:0.92rem; }
-    .blog-article th { background:var(--mint-bg); padding:10px 12px; text-align:left; border:1px solid #e0e0e0; }
-    .blog-article td { padding:10px 12px; border:1px solid #e0e0e0; }
-    .blog-back { display:inline-block; margin-bottom:20px; color:var(--mint-dark); text-decoration:none; font-size:0.9rem; }
-    .blog-back:hover { text-decoration:underline; }
-    .blog-meta { display:flex; gap:12px; align-items:center; margin-bottom:24px; font-size:0.85rem; color:var(--text-note); }
-    .blog-meta-cat { background:var(--mint-bg); color:var(--mint-dark); padding:3px 10px; border-radius:20px; font-weight:500; }
-    .blog-cta-box { background: linear-gradient(135deg, #f0faf7 0%, #fef6f0 100%); border-radius:16px; padding:32px 28px; margin:40px 0; text-align:center; border:1px solid #e8f5f0; }
-    .blog-cta-icon { font-size:2.5rem; margin-bottom:12px; }
-    .blog-cta-title { font-size:1.15rem; font-weight:700; margin-bottom:8px; color:var(--text-heading); }
-    .blog-cta-text { font-size:0.92rem; color:var(--text-body); margin-bottom:20px; }
-    .blog-cta-buttons { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
-    .blog-cta-btn { display:inline-flex; align-items:center; gap:6px; padding:12px 24px; border-radius:30px; font-weight:600; font-size:0.92rem; text-decoration:none; transition:all 0.2s; }
-    .blog-cta-btn-primary { background:var(--mint); color:#fff; }
-    .blog-cta-btn-primary:hover { background:var(--mint-dark); transform:translateY(-1px); }
-    .blog-cta-btn-line { background:#06C755; color:#fff; }
-    .blog-cta-btn-line:hover { background:#05a648; transform:translateY(-1px); }
-    .blog-cta-inline { background:#f8fdfb; border-left:4px solid var(--mint); padding:16px 20px; margin:28px 0; border-radius:0 8px 8px 0; font-size:0.92rem; line-height:1.7; }
-    .blog-cta-inline a { color:var(--mint-dark); font-weight:500; }
-    .blog-related { margin:40px 0; padding:24px; background:#f9f9f9; border-radius:12px; }
-    .blog-related h2 { font-size:1.1rem; margin:0 0 16px; border:none; padding:0; }
-    .blog-related ul { list-style:none; margin:0; padding:0; }
-    .blog-related li { padding:8px 0; border-bottom:1px solid #eee; }
-    .blog-related li:last-child { border:none; }
-    .blog-related a { color:var(--mint-dark); text-decoration:none; }
-    .blog-related a:hover { text-decoration:underline; }
-    .blog-nav-bottom { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin:20px 0 40px; }
-    .blog-nav-link { display:inline-flex; align-items:center; gap:6px; padding:10px 20px; background:var(--mint-bg); border-radius:25px; text-decoration:none; color:var(--mint-dark); font-size:0.9rem; font-weight:500; transition:all 0.2s; }
-    .blog-nav-link:hover { background:var(--mint); color:#fff; }
-    @media(max-width:600px){
-      .blog-article h1 { font-size:1.4rem; }
-      .blog-cta-buttons { flex-direction:column; align-items:center; }
-      .blog-cta-btn { width:100%; justify-content:center; }
-    }
-  </style>
+ .blog-article { max-width:800px; margin:0 auto; padding:32px 24px 60px; }
+ .blog-article h1 { font-size:1.8rem; line-height:1.4; margin-bottom:16px; color:var(--text-heading); }
+ .blog-article h2 { font-size:1.35rem; margin:40px 0 16px; padding-bottom:8px; border-bottom:2px solid var(--mint); color:var(--text-heading); }
+ .blog-article h3 { font-size:1.1rem; margin:28px 0 12px; color:var(--mint-dark); }
+ .blog-article p { line-height:1.9; margin-bottom:16px; color:var(--text-body); }
+ .blog-article ul, .blog-article ol { margin:12px 0 20px 24px; line-height:1.8; }
+ .blog-article li { margin-bottom:6px; }
+ .blog-article table { width:100%; border-collapse:collapse; margin:20px 0; font-size:0.92rem; }
+ .blog-article th { background:var(--mint-bg); padding:10px 12px; text-align:left; border:1px solid #e0e0e0; }
+ .blog-article td { padding:10px 12px; border:1px solid #e0e0e0; }
+ .blog-back { display:inline-block; margin-bottom:20px; color:var(--mint-dark); text-decoration:none; font-size:0.9rem; }
+ .blog-back:hover { text-decoration:underline; }
+ .blog-meta { display:flex; gap:12px; align-items:center; margin-bottom:24px; font-size:0.85rem; color:var(--text-note); }
+ .blog-meta-cat { background:var(--mint-bg); color:var(--mint-dark); padding:3px 10px; border-radius:20px; font-weight:500; }
+ .blog-cta-box { background: linear-gradient(135deg, #f0faf7 0%, #fef6f0 100%); border-radius:16px; padding:32px 28px; margin:40px 0; text-align:center; border:1px solid #e8f5f0; }
+ .blog-cta-icon { font-size:2.5rem; margin-bottom:12px; }
+ .blog-cta-title { font-size:1.15rem; font-weight:700; margin-bottom:8px; color:var(--text-heading); }
+ .blog-cta-text { font-size:0.92rem; color:var(--text-body); margin-bottom:20px; }
+ .blog-cta-buttons { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+ .blog-cta-btn { display:inline-flex; align-items:center; gap:6px; padding:12px 24px; border-radius:30px; font-weight:600; font-size:0.92rem; text-decoration:none; transition:all 0.2s; }
+ .blog-cta-btn-primary { background:var(--mint); color:#fff; }
+ .blog-cta-btn-primary:hover { background:var(--mint-dark); transform:translateY(-1px); }
+ .blog-cta-btn-line { background:#06C755; color:#fff; }
+ .blog-cta-btn-line:hover { background:#05a648; transform:translateY(-1px); }
+ .blog-cta-inline { background:#f8fdfb; border-left:4px solid var(--mint); padding:16px 20px; margin:28px 0; border-radius:0 8px 8px 0; font-size:0.92rem; line-height:1.7; }
+ .blog-cta-inline a { color:var(--mint-dark); font-weight:500; }
+ .blog-related { margin:40px 0; padding:24px; background:#f9f9f9; border-radius:12px; }
+ .blog-related h2 { font-size:1.1rem; margin:0 0 16px; border:none; padding:0; }
+ .blog-related ul { list-style:none; margin:0; padding:0; }
+ .blog-related li { padding:8px 0; border-bottom:1px solid #eee; }
+ .blog-related li:last-child { border:none; }
+ .blog-related a { color:var(--mint-dark); text-decoration:none; }
+ .blog-related a:hover { text-decoration:underline; }
+ .blog-nav-bottom { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin:20px 0 40px; }
+ .blog-nav-link { display:inline-flex; align-items:center; gap:6px; padding:10px 20px; background:var(--mint-bg); border-radius:25px; text-decoration:none; color:var(--mint-dark); font-size:0.9rem; font-weight:500; transition:all 0.2s; }
+ .blog-nav-link:hover { background:var(--mint); color:#fff; }
+ @media(max-width:600px){
+ .blog-article h1 { font-size:1.4rem; }
+ .blog-cta-buttons { flex-direction:column; align-items:center; }
+ .blog-cta-btn { width:100%; justify-content:center; }
+ }
+ </style>
 </head>
 <body>
 
@@ -100,7 +100,7 @@
   <header class="header" id="header">
     <div class="header-inner">
       <a href="/index.html" class="logo">
-        <span class="logo-icon">🐾</span>
+        <span class="logo-icon"><i class="ico ico-paw-print" aria-hidden="true"></i></span>
         <span class="logo-text">福楽キャッテリー</span>
       </a>
 
@@ -210,7 +210,7 @@
     <h3>1歳以降：成猫</h3>
     <p>成猫用フードに切り替えます。切り替えは1〜2週間かけて徐々に行いましょう。</p>
     <div class="blog-cta-inline">
-      <p>💡 <strong>福楽キャッテリー</strong>では、サイベリアンを中心に健康で社会性豊かな子猫を育てています。<br>
+      <p><i class="ico ico-lightbulb" aria-hidden="true"></i> <strong>福楽キャッテリー</strong>では、サイベリアンを中心に健康で社会性豊かな子猫を育てています。<br>
       <a href="/kittens.html">→ 子猫一覧はこちら</a>｜<a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" target="_blank" rel="noopener">→ LINEでお気軽にご相談</a></p>
     </div>
     <h2>フード選びのポイント</h2>
@@ -220,20 +220,20 @@
 
 
     <div class="blog-cta-box">
-      <div class="blog-cta-icon">🐱</div>
+      <div class="blog-cta-icon"><i class="ico ico-cat" aria-hidden="true"></i></div>
       <h3 class="blog-cta-title">福楽キャッテリーの子猫を見てみませんか？</h3>
       <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 0 16px;font-size:0.82rem;color:#5A7A7A;">
-        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:20px;padding:4px 14px;">⭐ <strong>5.00</strong>／113件</span>
-        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:20px;padding:4px 14px;">🏆 全国1位（みんなの子猫ブリーダー）</span>
-        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:20px;padding:4px 14px;">🐾 <strong>200+</strong> 卒業猫</span>
+        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:20px;padding:4px 14px;"><i class="ico ico-star" aria-hidden="true"></i> <strong>5.00</strong>／113件</span>
+        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:20px;padding:4px 14px;"><i class="ico ico-trophy" aria-hidden="true"></i> 全国1位（みんなの子猫ブリーダー）</span>
+        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:20px;padding:4px 14px;"><i class="ico ico-paw-print" aria-hidden="true"></i> <strong>200+</strong> 卒業猫</span>
       </div>
       <p class="blog-cta-text">健康管理と社会化トレーニングを大切に育てた子猫たちをご紹介しています。<br>お気軽にLINEでご相談ください。</p>
       <div class="blog-cta-buttons">
-        <a href="/kittens.html" class="blog-cta-btn blog-cta-btn-primary">🐾 子猫一覧を見る</a>
-        <a href="/booking.html" class="blog-cta-btn blog-cta-btn-primary">📅 見学を予約する</a>
-        <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="blog-cta-btn blog-cta-btn-line" target="_blank" rel="noopener">💬 LINEで相談する</a>
+        <a href="/kittens.html" class="blog-cta-btn blog-cta-btn-primary"><i class="ico ico-paw-print" aria-hidden="true"></i> 子猫一覧を見る</a>
+        <a href="/booking.html" class="blog-cta-btn blog-cta-btn-primary"><i class="ico ico-calendar-check" aria-hidden="true"></i> 見学を予約する</a>
+        <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="blog-cta-btn blog-cta-btn-line" target="_blank" rel="noopener"><i class="ico ico-message-circle" aria-hidden="true"></i> LINEで相談する</a>
       </div>
-      <p style="margin:16px 0 0;font-size:0.85rem;"><a href="https://www.koneko-breeder.com/breeder_c995680.html" target="_blank" rel="noopener" style="color:#5BC4A8;font-weight:500;">🏆 みんなの子猫ブリーダーで最新の子猫を見る →</a></p>
+      <p style="margin:16px 0 0;font-size:0.85rem;"><a href="https://www.koneko-breeder.com/breeder_c995680.html" target="_blank" rel="noopener" style="color:#5BC4A8;font-weight:500;"><i class="ico ico-trophy" aria-hidden="true"></i> みんなの子猫ブリーダーで最新の子猫を見る →</a></p>
     </div>
 
     <div class="blog-related">
@@ -246,9 +246,9 @@
       </ul>
     </div>
     <div class="blog-nav-bottom">
-      <a href="/blog.html" class="blog-nav-link">📚 記事一覧へ戻る</a>
-      <a href="/kittens.html" class="blog-nav-link">🐱 子猫を見る</a>
-      <a href="/guide/" class="blog-nav-link">📖 お迎えガイド</a>
+      <a href="/blog.html" class="blog-nav-link"><i class="ico ico-library" aria-hidden="true"></i> 記事一覧へ戻る</a>
+      <a href="/kittens.html" class="blog-nav-link"><i class="ico ico-cat" aria-hidden="true"></i> 子猫を見る</a>
+      <a href="/guide/" class="blog-nav-link"><i class="ico ico-book-open" aria-hidden="true"></i> お迎えガイド</a>
     </div>
   </article>
 
@@ -258,7 +258,7 @@
       <div class="footer-top">
         <div class="footer-brand">
           <div class="f-logo">
-            <span class="logo-icon">🐾</span>
+            <span class="logo-icon"><i class="ico ico-paw-print" aria-hidden="true"></i></span>
             <span class="f-logo-text">福楽キャッテリー</span>
           </div>
           <p class="f-tagline" data-i18n="footer.tagline">サイベリアン｜大阪・福楽キャッテリー</p>
@@ -300,7 +300,7 @@
             <p>所在地: 大阪市城東区東中浜 2-6-23</p>
           </div>
           <div class="law-notice-compact">
-            <div class="law-notice-title">📋 対面販売について</div>
+            <div class="law-notice-title"><i class="ico ico-clipboard-list" aria-hidden="true"></i> 対面販売について</div>
             <p data-i18n="footer.lawNotice">動物愛護管理法に基づき、販売時には事前に対面による現物確認・説明が義務付けられています。ご購入前に必ず見学（対面またはビデオ通話）をお願いしております。</p>
           </div>
         </div>
@@ -314,7 +314,7 @@
   <!-- ========== FIXED LINE BUTTON ========== -->
   <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="fixed-line" aria-label="LINEでお問い合わせ" id="fixedLine" target="_blank" rel="noopener">
     <span class="fixed-line-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596a.626.626 0 0 1-.199.031c-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.271.173-.508.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg></span>
-    <span class="fixed-line-content"><span class="fixed-line-label">見学予約・ご相談</span><span class="fixed-line-cta">LINEで相談 🐾</span></span>
+    <span class="fixed-line-content"><span class="fixed-line-label">見学予約・ご相談</span><span class="fixed-line-cta">LINEで相談 <i class="ico ico-paw-print" aria-hidden="true"></i></span></span>
   </a>
 
   <!-- ========== BACK TO TOP ========== -->
@@ -322,7 +322,7 @@
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 15l-6-6-6 6"/></svg>
   </button>
 
-  <script src="/i18n.js?v=20260211"></script>
+  <script src="/i18n.js?v=20260623b"></script>
   <script>
 window._blogArticleI18n = {
   en: {
@@ -335,10 +335,10 @@ window._blogArticleI18n = {
   }
 };
 </script>
-  <script src="/blog/blog-i18n.js"></script>
-  <script src="/kitten-carousel.js"></script>
-  <script src="/cta-widget.js"></script>
-  <script src="/script.js?v=20260211"></script>
+  <script src="/blog/blog-i18n.js?v=20260623b"></script>
+  <script src="/kitten-carousel.js?v=20260623b"></script>
+  <script src="/cta-widget.js?v=20260623b"></script>
+  <script src="/script.js?v=20260623b"></script>
 
 </body>
 </html>

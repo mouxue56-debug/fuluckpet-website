@@ -20,10 +20,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css">
-  <link rel="stylesheet" href="/guide/guide.css">
-  <link rel="stylesheet" href="/blog.css">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐱</text></svg>">
+  <link rel="stylesheet" href="/style.css?v=20260623b">
+  <link rel="stylesheet" href="/guide/guide.css?v=20260623b">
+  <link rel="stylesheet" href="/blog.css?v=20260623b">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%235BC4A8'/><g fill='%23ffffff'><ellipse cx='11' cy='12' rx='2.3' ry='2.7'/><ellipse cx='21' cy='12' rx='2.3' ry='2.7'/><ellipse cx='7.5' cy='17.5' rx='2.1' ry='2.4'/><ellipse cx='24.5' cy='17.5' rx='2.1' ry='2.4'/><path d='M16 16.5c3.1 0 5.6 2.2 5.6 4.9 0 2.2-1.9 3.1-5.6 3.1s-5.6-.9-5.6-3.1c0-2.7 2.5-4.9 5.6-4.9z'/></g></svg>">
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
   <script type="application/ld+json">
@@ -48,35 +48,35 @@
   ]}
   </script>
   <style>
-    .blog-article { max-width:800px; margin:0 auto; padding:32px 24px 60px; }
-    .blog-article h1 { font-size:1.8rem; line-height:1.4; margin-bottom:16px; color:var(--text-heading); }
-    .blog-article h2 { font-size:1.35rem; margin:40px 0 16px; padding-bottom:8px; border-bottom:2px solid var(--mint); color:var(--text-heading); }
-    .blog-article h3 { font-size:1.1rem; margin:28px 0 12px; color:var(--mint-dark); }
-    .blog-article p { line-height:1.9; margin-bottom:16px; color:var(--text-body); }
-    .blog-article ul, .blog-article ol { margin:12px 0 20px 24px; line-height:1.8; }
-    .blog-article li { margin-bottom:6px; }
-    .blog-back { display:inline-block; margin-bottom:20px; color:var(--mint-dark); text-decoration:none; font-size:0.9rem; }
-    .blog-back:hover { text-decoration:underline; }
-    .blog-meta { display:flex; gap:12px; align-items:center; margin-bottom:24px; font-size:0.85rem; color:var(--text-note); }
-    .blog-meta-cat { background:var(--mint-bg); color:var(--mint-dark); padding:3px 10px; border-radius:20px; font-weight:500; }
-    .blog-cta-box { background: linear-gradient(135deg, #f0faf7 0%, #fef6f0 100%); border-radius:16px; padding:32px 28px; margin:40px 0; text-align:center; border:1px solid #e8f5f0; }
-    .blog-cta-icon { font-size:2.5rem; margin-bottom:12px; }
-    .blog-cta-title { font-size:1.15rem; font-weight:700; margin-bottom:8px; color:var(--text-heading); }
-    .blog-cta-text { font-size:0.92rem; color:var(--text-body); margin-bottom:20px; }
-    .blog-cta-buttons { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
-    .blog-cta-btn { display:inline-flex; align-items:center; gap:6px; padding:12px 24px; border-radius:30px; font-weight:600; font-size:0.92rem; text-decoration:none; transition:all 0.2s; }
-    .blog-cta-btn-primary { background:var(--mint); color:#fff; }
-    .blog-cta-btn-primary:hover { background:var(--mint-dark); transform:translateY(-1px); }
-    .blog-cta-btn-line { background:#06C755; color:#fff; }
-    .blog-cta-btn-line:hover { background:#05a648; transform:translateY(-1px); }
-    .blog-nav-bottom { display:flex; gap:16px; justify-content:space-between; margin:40px 0 0; padding:20px 0; border-top:1px solid #eee; flex-wrap:wrap; }
-    .blog-nav-link { color:var(--mint-dark); text-decoration:none; font-size:0.92rem; }
-    .blog-nav-link:hover { text-decoration:underline; }
-    .blog-cover { width:100%; max-height:280px; object-fit:cover; border-radius:14px; margin-bottom:28px; }
-    @media (max-width: 768px) {
-      .blog-article h1 { font-size:1.4rem; }
-    }
-  </style>
+ .blog-article { max-width:800px; margin:0 auto; padding:32px 24px 60px; }
+ .blog-article h1 { font-size:1.8rem; line-height:1.4; margin-bottom:16px; color:var(--text-heading); }
+ .blog-article h2 { font-size:1.35rem; margin:40px 0 16px; padding-bottom:8px; border-bottom:2px solid var(--mint); color:var(--text-heading); }
+ .blog-article h3 { font-size:1.1rem; margin:28px 0 12px; color:var(--mint-dark); }
+ .blog-article p { line-height:1.9; margin-bottom:16px; color:var(--text-body); }
+ .blog-article ul, .blog-article ol { margin:12px 0 20px 24px; line-height:1.8; }
+ .blog-article li { margin-bottom:6px; }
+ .blog-back { display:inline-block; margin-bottom:20px; color:var(--mint-dark); text-decoration:none; font-size:0.9rem; }
+ .blog-back:hover { text-decoration:underline; }
+ .blog-meta { display:flex; gap:12px; align-items:center; margin-bottom:24px; font-size:0.85rem; color:var(--text-note); }
+ .blog-meta-cat { background:var(--mint-bg); color:var(--mint-dark); padding:3px 10px; border-radius:20px; font-weight:500; }
+ .blog-cta-box { background: linear-gradient(135deg, #f0faf7 0%, #fef6f0 100%); border-radius:16px; padding:32px 28px; margin:40px 0; text-align:center; border:1px solid #e8f5f0; }
+ .blog-cta-icon { font-size:2.5rem; margin-bottom:12px; }
+ .blog-cta-title { font-size:1.15rem; font-weight:700; margin-bottom:8px; color:var(--text-heading); }
+ .blog-cta-text { font-size:0.92rem; color:var(--text-body); margin-bottom:20px; }
+ .blog-cta-buttons { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+ .blog-cta-btn { display:inline-flex; align-items:center; gap:6px; padding:12px 24px; border-radius:30px; font-weight:600; font-size:0.92rem; text-decoration:none; transition:all 0.2s; }
+ .blog-cta-btn-primary { background:var(--mint); color:#fff; }
+ .blog-cta-btn-primary:hover { background:var(--mint-dark); transform:translateY(-1px); }
+ .blog-cta-btn-line { background:#06C755; color:#fff; }
+ .blog-cta-btn-line:hover { background:#05a648; transform:translateY(-1px); }
+ .blog-nav-bottom { display:flex; gap:16px; justify-content:space-between; margin:40px 0 0; padding:20px 0; border-top:1px solid #eee; flex-wrap:wrap; }
+ .blog-nav-link { color:var(--mint-dark); text-decoration:none; font-size:0.92rem; }
+ .blog-nav-link:hover { text-decoration:underline; }
+ .blog-cover { width:100%; max-height:280px; object-fit:cover; border-radius:14px; margin-bottom:28px; }
+ @media (max-width: 768px) {
+ .blog-article h1 { font-size:1.4rem; }
+ }
+ </style>
 </head>
 <body>
 
@@ -85,7 +85,7 @@
   <header class="header" id="header">
     <div class="header-inner">
       <a href="/index.html" class="logo">
-        <span class="logo-icon">🐾</span>
+        <span class="logo-icon"><i class="ico ico-paw-print" aria-hidden="true"></i></span>
         <span class="logo-text">福楽キャッテリー</span>
       </a>
       <nav class="nav" id="nav">
@@ -135,26 +135,26 @@
 <h3>Q: 猫は本当に甘味を感じられないの？</h3><p>はい、一般的に猫は甘味をほとんど感じられないと言われています。これは遺伝的な特徴で、甘味を感知するためのタンパク質「Tas1r2」の遺伝子が、猫の祖先の時代に機能を失ったためです。肉食動物として進化してきた猫にとって、糖質をエネルギー源とする必要性が低かったことが背景にあると考えられています。</p><p>つまり、猫が人間のスイーツに近づくのは「甘さ」ではなく、<strong>脂肪分の香りや食感、あるいは飼い主が食べていることへの興味</strong>が理由であることが多いです。与えてしまうと肥満や糖尿病のリスクが高まるため、やめておくのが賢明です。</p><h3>Q: 猫が敏感に感じる味は何？</h3><p>猫が特に鋭く感知するのは、<strong>アミノ酸（うま味）と塩味</strong>です。肉に含まれるたんぱく質を分解して得られるグルタミン酸などのアミノ酸は、猫にとって「生きるための情報」そのもの。野生時代から獲物を狩る生き物として、この味を逃さないよう進化してきました。</p><ul><li><strong>うま味（アミノ酸）</strong>: タウリンやアルギニンなど、猫に必須のアミノ酸を含む食品を好む傾向があります</li><li><strong>塩味</strong>: 適度な塩分は水分代謝に関わりますが、過剰摂取は腎臓に負担をかけるため要注意です</li><li><strong>酸味・苦味</strong>: 腐敗や有毒物質を避けるための警報機能として働いています</li></ul><h2>猫の食の好み｜味だけでなく「香り」と「食感」も重要</h2><h3>Q: 猫がごはんを選ぶ基準は味だけ？</h3><p>いいえ、実は<strong>香りと食感、温度</strong>も大きく関わっています。猫の嗅覚は人間の数倍から数十倍とも言われ、食べ物の「匂い」で栄養価を判断する能力を持っています。冷たいままのウェットフードをつんつんして食べない猫も、室温に戻すか少し温めるとパクパク食べ始める— そんな経験、ありませんか？</p><p>食感についても、猫には個性があります。我が家の<a href="/siberian.html">サイベリアン</a>たちは、一般的に「しっかりとした歯ごたえのあるもの」を好む傾向が見られます。フードの形状や硬さを変えるだけで、食いつきが変わることも少なくありません。</p><h3>Q: 猫の好みは生まれつき？それとも後天的？</h3><p>両方の要素が関わっていると言われています。母猫から授乳期に受け取るミルクの味、離乳期に初めて口にする食事の種類— この時期の体験が、将来の食の好みに大きな影響を与えることがあります。当キャッテリーでは、第一種動物取扱業 220012A の厳格な衛生基準のもと、仔猫の離乳食には十分な時間をかけ、様々な食感のフードに少しずつ慣らしていくことを心がけています。</p><p>一方で、猫には「新しいものを嫌う」ネオフォビア（新規恐怖）の性質もあります。慣れ親しんだフードしか受け付けない猫もいれば、好奇心旺盛で何でも食べたがる猫も。個性を尊重しながら、バランスの取れた食生活をサポートすることが大切です。</p><h2>サイベリアンの食事｜長毛種だからこその注意点</h2><h3>Q: サイベリアンは食事で特に気をつけるべき？</h3><p>サイベリアンは比較的がっしりとした体格で知られ、基礎代謝も高めの傾向にあると言われています。ただし、個体差は大きく、同じ血統内でも食欲や適正カロリーは異なります。当キャッテリーでは、<a href="/kittens.html">仔猫</a>の成長段階から成猫期にかけて、定期的な体重管理と便の状態チェックを行い、各猫に合った食事プランを調整しています。</p><p>長毛種特有の注意点として、<strong>毛玉対策</strong>も食事から考慮できます。食物繊維が適度に含まれたフードや、消化を助ける成分の選択が、毛球症の予防につながることがあります。</p><ul><li>高タンパク・適度な脂肪質を基本としつつ、年齢や活動量に応じて調整</li><li>水分摂取を意識させるため、ウェットフードの積極的な活用</li><li>食器の高さや場所にもこだわり、ストレスのない食事環境を整える</li></ul><p>なお、サイベリアンは<a href="/siberian.html">Fel d1タンパク質が比較的少ない</a>ことで知られていますが、これはアレルギー体質の方にとってのメリットであり、猫自身の健康や味覚とは直接関係ありません。あくまで個体の体質に合わせた食事管理が基本です。</p><h2>毎日の食事選び｜飼い主さんが実践できること</h2><h3>Q: フードを変えるべきか迷ったら？</h3><p>猫の食事に大きな変化が見られた場合、まずは獣医師への相談をおすすめします。食欲の低下は、味覚の問題だけでなく、歯周病、腎臓疾患、ストレスなど、様々な原因が考えられます。当キャッテリーでは、卒業後も<a href="/faq.html">よくあるご質問</a>にお答えする形で、食事に関する軽い相談にも可能な限り対応しています。</p><p>フードの切り替えを試す場合は、急な変更ではなく<strong>1〜2週間かけて少しずつ混ぜていく</strong>のが一般的です。猫の消化管はデリケートで、急な変更は下痢や嘔吐を引き起こすことがあります。</p><p>また、2025年全国1位アワードを受賞した経験からもお伝えしたいのですが、猫の「食べている姿」を観察することの大切さです。食べ方の速さ、残し方、水を飲む頻度— これらはすべて、猫の健康状態や好みを知るヒントになります。毎日の給餌時間を、コミュニケーションの時間として大切にしてみてください。</p><p>猫の味覚は、人間とは異なる「肉食動物としての設計」が基本です。甘味を感じないからこそ、うま味や香り、食感に敏感であり、生き抜くための知恵が詰まっています。飼い主さんにとって「好き嫌いが多い」「新しいフードに移行しない」といった悩みは、猫の本能を理解すれば、もう少し柔軟に対応できることが増えるかもしれません。食事のことでお困りの際は、ぜひ<a href="https://page.line.me/915hnnlk">LINE公式</a>からお気軽にご相談ください。大阪・城東区の小規模キャッテリーならではの、寄り添うサポートを心がけています。</p>
 
     <div class="blog-cta-box">
-      <div class="blog-cta-icon">🐱</div>
+      <div class="blog-cta-icon"><i class="ico ico-cat" aria-hidden="true"></i></div>
       <h3 class="blog-cta-title">福楽キャッテリーの子猫を見てみませんか？</h3>
       <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 0 16px;font-size:0.82rem;color:#5A7A7A;">
-        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:20px;padding:4px 14px;">⭐ <strong>5.00</strong>／113件</span>
-        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:20px;padding:4px 14px;">🏆 全国1位（みんなの子猫ブリーダー）</span>
-        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:20px;padding:4px 14px;">🐾 <strong>200+</strong> 卒業猫</span>
+        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:20px;padding:4px 14px;"><i class="ico ico-star" aria-hidden="true"></i> <strong>5.00</strong>／113件</span>
+        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:20px;padding:4px 14px;"><i class="ico ico-trophy" aria-hidden="true"></i> 全国1位（みんなの子猫ブリーダー）</span>
+        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:20px;padding:4px 14px;"><i class="ico ico-paw-print" aria-hidden="true"></i> <strong>200+</strong> 卒業猫</span>
       </div>
       <p class="blog-cta-text">健康管理と社会化トレーニングを大切に育てた子猫たちをご紹介しています。<br>お気軽にLINEでご相談ください。</p>
       <div class="blog-cta-buttons">
-        <a href="/kittens.html" class="blog-cta-btn blog-cta-btn-primary">🐾 子猫一覧を見る</a>
-        <a href="/booking.html" class="blog-cta-btn blog-cta-btn-primary">📅 見学を予約する</a>
-        <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="blog-cta-btn blog-cta-btn-line" target="_blank" rel="noopener">💬 LINEで相談する</a>
+        <a href="/kittens.html" class="blog-cta-btn blog-cta-btn-primary"><i class="ico ico-paw-print" aria-hidden="true"></i> 子猫一覧を見る</a>
+        <a href="/booking.html" class="blog-cta-btn blog-cta-btn-primary"><i class="ico ico-calendar-check" aria-hidden="true"></i> 見学を予約する</a>
+        <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="blog-cta-btn blog-cta-btn-line" target="_blank" rel="noopener"><i class="ico ico-message-circle" aria-hidden="true"></i> LINEで相談する</a>
       </div>
-      <p style="margin:16px 0 0;font-size:0.85rem;"><a href="https://www.koneko-breeder.com/breeder_c995680.html" target="_blank" rel="noopener" style="color:#5BC4A8;font-weight:500;">🏆 みんなの子猫ブリーダーで最新の子猫を見る →</a></p>
+      <p style="margin:16px 0 0;font-size:0.85rem;"><a href="https://www.koneko-breeder.com/breeder_c995680.html" target="_blank" rel="noopener" style="color:#5BC4A8;font-weight:500;"><i class="ico ico-trophy" aria-hidden="true"></i> みんなの子猫ブリーダーで最新の子猫を見る →</a></p>
     </div>
 
     <div class="blog-nav-bottom">
-      <a href="/blog.html" class="blog-nav-link">📚 記事一覧へ戻る</a>
-      <a href="/kittens.html" class="blog-nav-link">🐱 子猫を見る</a>
-      <a href="/guide/" class="blog-nav-link">📖 お迎えガイド</a>
+      <a href="/blog.html" class="blog-nav-link"><i class="ico ico-library" aria-hidden="true"></i> 記事一覧へ戻る</a>
+      <a href="/kittens.html" class="blog-nav-link"><i class="ico ico-cat" aria-hidden="true"></i> 子猫を見る</a>
+      <a href="/guide/" class="blog-nav-link"><i class="ico ico-book-open" aria-hidden="true"></i> お迎えガイド</a>
     </div>
   </article>
 
@@ -168,16 +168,16 @@
 
   <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="fixed-line" aria-label="LINEでお問い合わせ" target="_blank" rel="noopener">
     <span class="fixed-line-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755z"/></svg></span>
-    <span class="fixed-line-content"><span class="fixed-line-label">見学予約・ご相談</span><span class="fixed-line-cta">LINEで相談 🐾</span></span>
+    <span class="fixed-line-content"><span class="fixed-line-label">見学予約・ご相談</span><span class="fixed-line-cta">LINEで相談 <i class="ico ico-paw-print" aria-hidden="true"></i></span></span>
   </a>
 
   <button class="back-to-top" id="backToTop" aria-label="ページトップへ戻る">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 15l-6-6-6 6"/></svg>
   </button>
 
-  <script src="/i18n.js?v=20260211"></script>
-  <script src="/blog/blog-i18n.js"></script>
-  <script src="/script.js?v=20260211"></script>
+  <script src="/i18n.js?v=20260623b"></script>
+  <script src="/blog/blog-i18n.js?v=20260623b"></script>
+  <script src="/script.js?v=20260623b"></script>
 
 </body>
 </html>

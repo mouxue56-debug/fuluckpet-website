@@ -10,10 +10,10 @@
   var currentFilter = 'all';
 
   var CATEGORIES = {
-    general:  { ja:'一般',    en:'General',  zh:'一般',  icon:'💬' },
-    purchase: { ja:'ご購入',  en:'Purchase', zh:'购买',  icon:'🛒' },
-    care:     { ja:'お世話',  en:'Care',     zh:'护理',  icon:'🐾' },
-    health:   { ja:'健康',    en:'Health',   zh:'健康',  icon:'💊' }
+    general:  { ja:'一般',    en:'General',  zh:'一般',  icon:'<i class="ico ico-message-circle" aria-hidden="true"></i>' },
+    purchase: { ja:'ご購入',  en:'Purchase', zh:'购买',  icon:'<i class="ico ico-shopping-cart" aria-hidden="true"></i>' },
+    care:     { ja:'お世話',  en:'Care',     zh:'护理',  icon:'<i class="ico ico-paw-print" aria-hidden="true"></i>' },
+    health:   { ja:'健康',    en:'Health',   zh:'健康',  icon:'<i class="ico ico-pill" aria-hidden="true"></i>' }
   };
 
   function getLang() {
@@ -49,7 +49,7 @@
     var allLabel = lang === 'zh' ? '全部' : lang === 'en' ? 'All' : 'すべて';
 
     var html = '<button class="faq-filter-btn active" data-cat="all">' +
-      '<span class="filter-icon">📋</span>' + allLabel +
+      '<span class="filter-icon"><i class="ico ico-clipboard-list" aria-hidden="true"></i></span>' + allLabel +
       '<span class="faq-filter-count">' + countByCat('all') + '</span>' +
       '</button>';
 
@@ -81,7 +81,7 @@
     if (items.length === 0) {
       var lang = getLang();
       var msg = lang === 'zh' ? '暂无FAQ' : lang === 'en' ? 'No FAQs yet' : 'まだFAQがありません';
-      listContainer.innerHTML = '<div class="faq-empty"><div class="faq-empty-icon">🔍</div><p>' + msg + '</p></div>';
+      listContainer.innerHTML = '<div class="faq-empty"><div class="faq-empty-icon"><i class="ico ico-search" aria-hidden="true"></i></div><p>' + msg + '</p></div>';
       return;
     }
 
@@ -124,7 +124,7 @@
     .catch(function() {
       var lang = getLang();
       var msg = lang === 'zh' ? '加载失败，请稍后重试' : lang === 'en' ? 'Failed to load. Please try again.' : '読み込みに失敗しました。再度お試しください。';
-      listContainer.innerHTML = '<div class="faq-empty"><div class="faq-empty-icon">⚠️</div><p>' + msg + '</p></div>';
+      listContainer.innerHTML = '<div class="faq-empty"><div class="faq-empty-icon"><i class="ico ico-triangle-alert" aria-hidden="true"></i></div><p>' + msg + '</p></div>';
     });
 
   // Re-render on language change

@@ -20,10 +20,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css">
-  <link rel="stylesheet" href="/guide/guide.css">
-  <link rel="stylesheet" href="/blog.css">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐱</text></svg>">
+  <link rel="stylesheet" href="/style.css?v=20260623b">
+  <link rel="stylesheet" href="/guide/guide.css?v=20260623b">
+  <link rel="stylesheet" href="/blog.css?v=20260623b">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%235BC4A8'/><g fill='%23ffffff'><ellipse cx='11' cy='12' rx='2.3' ry='2.7'/><ellipse cx='21' cy='12' rx='2.3' ry='2.7'/><ellipse cx='7.5' cy='17.5' rx='2.1' ry='2.4'/><ellipse cx='24.5' cy='17.5' rx='2.1' ry='2.4'/><path d='M16 16.5c3.1 0 5.6 2.2 5.6 4.9 0 2.2-1.9 3.1-5.6 3.1s-5.6-.9-5.6-3.1c0-2.7 2.5-4.9 5.6-4.9z'/></g></svg>">
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
   <script type="application/ld+json">
@@ -48,35 +48,35 @@
   ]}
   </script>
   <style>
-    .blog-article { max-width:800px; margin:0 auto; padding:32px 24px 60px; }
-    .blog-article h1 { font-size:1.8rem; line-height:1.4; margin-bottom:16px; color:var(--text-heading); }
-    .blog-article h2 { font-size:1.35rem; margin:40px 0 16px; padding-bottom:8px; border-bottom:2px solid var(--mint); color:var(--text-heading); }
-    .blog-article h3 { font-size:1.1rem; margin:28px 0 12px; color:var(--mint-dark); }
-    .blog-article p { line-height:1.9; margin-bottom:16px; color:var(--text-body); }
-    .blog-article ul, .blog-article ol { margin:12px 0 20px 24px; line-height:1.8; }
-    .blog-article li { margin-bottom:6px; }
-    .blog-back { display:inline-block; margin-bottom:20px; color:var(--mint-dark); text-decoration:none; font-size:0.9rem; }
-    .blog-back:hover { text-decoration:underline; }
-    .blog-meta { display:flex; gap:12px; align-items:center; margin-bottom:24px; font-size:0.85rem; color:var(--text-note); }
-    .blog-meta-cat { background:var(--mint-bg); color:var(--mint-dark); padding:3px 10px; border-radius:20px; font-weight:500; }
-    .blog-cta-box { background: linear-gradient(135deg, #f0faf7 0%, #fef6f0 100%); border-radius:16px; padding:32px 28px; margin:40px 0; text-align:center; border:1px solid #e8f5f0; }
-    .blog-cta-icon { font-size:2.5rem; margin-bottom:12px; }
-    .blog-cta-title { font-size:1.15rem; font-weight:700; margin-bottom:8px; color:var(--text-heading); }
-    .blog-cta-text { font-size:0.92rem; color:var(--text-body); margin-bottom:20px; }
-    .blog-cta-buttons { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
-    .blog-cta-btn { display:inline-flex; align-items:center; gap:6px; padding:12px 24px; border-radius:30px; font-weight:600; font-size:0.92rem; text-decoration:none; transition:all 0.2s; }
-    .blog-cta-btn-primary { background:var(--mint); color:#fff; }
-    .blog-cta-btn-primary:hover { background:var(--mint-dark); transform:translateY(-1px); }
-    .blog-cta-btn-line { background:#06C755; color:#fff; }
-    .blog-cta-btn-line:hover { background:#05a648; transform:translateY(-1px); }
-    .blog-nav-bottom { display:flex; gap:16px; justify-content:space-between; margin:40px 0 0; padding:20px 0; border-top:1px solid #eee; flex-wrap:wrap; }
-    .blog-nav-link { color:var(--mint-dark); text-decoration:none; font-size:0.92rem; }
-    .blog-nav-link:hover { text-decoration:underline; }
-    .blog-cover { width:100%; max-height:280px; object-fit:cover; border-radius:14px; margin-bottom:28px; }
-    @media (max-width: 768px) {
-      .blog-article h1 { font-size:1.4rem; }
-    }
-  </style>
+ .blog-article { max-width:800px; margin:0 auto; padding:32px 24px 60px; }
+ .blog-article h1 { font-size:1.8rem; line-height:1.4; margin-bottom:16px; color:var(--text-heading); }
+ .blog-article h2 { font-size:1.35rem; margin:40px 0 16px; padding-bottom:8px; border-bottom:2px solid var(--mint); color:var(--text-heading); }
+ .blog-article h3 { font-size:1.1rem; margin:28px 0 12px; color:var(--mint-dark); }
+ .blog-article p { line-height:1.9; margin-bottom:16px; color:var(--text-body); }
+ .blog-article ul, .blog-article ol { margin:12px 0 20px 24px; line-height:1.8; }
+ .blog-article li { margin-bottom:6px; }
+ .blog-back { display:inline-block; margin-bottom:20px; color:var(--mint-dark); text-decoration:none; font-size:0.9rem; }
+ .blog-back:hover { text-decoration:underline; }
+ .blog-meta { display:flex; gap:12px; align-items:center; margin-bottom:24px; font-size:0.85rem; color:var(--text-note); }
+ .blog-meta-cat { background:var(--mint-bg); color:var(--mint-dark); padding:3px 10px; border-radius:20px; font-weight:500; }
+ .blog-cta-box { background: linear-gradient(135deg, #f0faf7 0%, #fef6f0 100%); border-radius:16px; padding:32px 28px; margin:40px 0; text-align:center; border:1px solid #e8f5f0; }
+ .blog-cta-icon { font-size:2.5rem; margin-bottom:12px; }
+ .blog-cta-title { font-size:1.15rem; font-weight:700; margin-bottom:8px; color:var(--text-heading); }
+ .blog-cta-text { font-size:0.92rem; color:var(--text-body); margin-bottom:20px; }
+ .blog-cta-buttons { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+ .blog-cta-btn { display:inline-flex; align-items:center; gap:6px; padding:12px 24px; border-radius:30px; font-weight:600; font-size:0.92rem; text-decoration:none; transition:all 0.2s; }
+ .blog-cta-btn-primary { background:var(--mint); color:#fff; }
+ .blog-cta-btn-primary:hover { background:var(--mint-dark); transform:translateY(-1px); }
+ .blog-cta-btn-line { background:#06C755; color:#fff; }
+ .blog-cta-btn-line:hover { background:#05a648; transform:translateY(-1px); }
+ .blog-nav-bottom { display:flex; gap:16px; justify-content:space-between; margin:40px 0 0; padding:20px 0; border-top:1px solid #eee; flex-wrap:wrap; }
+ .blog-nav-link { color:var(--mint-dark); text-decoration:none; font-size:0.92rem; }
+ .blog-nav-link:hover { text-decoration:underline; }
+ .blog-cover { width:100%; max-height:280px; object-fit:cover; border-radius:14px; margin-bottom:28px; }
+ @media (max-width: 768px) {
+ .blog-article h1 { font-size:1.4rem; }
+ }
+ </style>
 </head>
 <body>
 
@@ -85,7 +85,7 @@
   <header class="header" id="header">
     <div class="header-inner">
       <a href="/index.html" class="logo">
-        <span class="logo-icon">🐾</span>
+        <span class="logo-icon"><i class="ico ico-paw-print" aria-hidden="true"></i></span>
         <span class="logo-text">福楽キャッテリー</span>
       </a>
       <nav class="nav" id="nav">
@@ -135,26 +135,26 @@
 <p>サイベリアンは生後3年ほどかけてゆっくりと成長する猫種です。急激な変化は少ないものの、各時期に楽しみや気配りのポイントがあります。</p><h3>Q: 子猫の頃と成猫になったらどこが変わる？</h3><p>生後2〜4ヶ月の子猫期は、毛並みがまだふわふわでコンパクトな体型をしています。成長に伴い、特徴的なたてがみやふさふさした尻尾が発達し、冬場には厚手のアンダーコートが増えてより立派な姿になると言われています。性格面では、子猫の頃からの社会化の成果が大きく影響するため、<a href="/siberian.html">サイベリアンの特徴</a>である人懐っこさや穏やかさが、大人になっても保たれやすい傾向にあります。</p><ul><li>生後6ヶ月頃：体重が急激に増加し始める時期（月に300〜500g程度）</li><li>1歳頃：骨格がほぼ完成、まだやんちゃな一面も</li><li>2〜3歳：落ち着きが出て、大人の風格が漂い始める</li></ul><h3>Q: 毛の手入れは子猫と成猫で違う？</h3><p>子猫の頃は被毛が比較的薄く、週に1〜2回のブラッシングで十分なことが多いです。一方、成猫になると二重構造の被毛が発達し、換毛期には毎日のケアが必要になることもあります。ただし、サイベリアンの被毛は油分が適度にあり、絡みにくい性質があると言われています。早い段階からブラッシングに慣れさせておくと、大人になってもストレスなくケアできるようになると考えられます。</p><h2>卒業猫の飼い主様からのリアルな声</h2><p>福楽キャッテリーでは、卒業後も飼い主様から写真や近況をいただく機会が多くあります。そこで見えてきた、サイベリアンとの暮らしの実態をいくつかご紹介します。</p><h3>Q: 他のペットや子どもとの相性は？</h3><p>「犬と仲良く寝ている」「生まれたばかりの赤ちゃんのそばで静かに見守っている」——そんな報告を多数いただいています。サイベリアンはもともと農場猫として他の動物と共生する歴史があり、社交性が高いと言われています。もちろん個体差はありますが、適切な導入の段階を踏めば、多頭飼育や犬との同居も比較的スムーズに進むことが一般的です。</p><ul><li>先住猫への導入：匂い交換から始め、2〜3週間かけて慣らすのが一般的</li><li>犬との同居：子犬・子猫期からの育成が最も円滑と言われています</li><li>小さなお子様：引っ張りや大声に比較的寛容な傾向があるとされています</li></ul><h3>Q: アレルギーが心配だけど、本当に大丈夫？</h3><p>「猫アレルギーがある家族がいるが、症状が出にくい」という声を複数いただいています。サイベリアンは<strong>Fel d1タンパク質が比較的少ない</strong>と言われており、これがアレルギー反応の主要な原因物質であることから、他の猫種に比べて症状が軽減される可能性があると考えられています。ただし、個人差が大きく、完全にアレルギーが出ないとは言い切れません。実際にお迎え前に、<a href="/faq.html">アレルギーに関するよくある質問</a>も併せてご確認いただくことをおすすめします。</p><h2>毎日のケアと長生きのヒント</h2><p>サイベリアンの平均寿命は12〜15歳と言われていますが、適切なケアを行うことでさらに延びる可能性もあります。卒業猫たちの健康状態を長期的に見てきた中で、特に大切だと感じているポイントをまとめました。</p><h3>Q: 食事管理で気をつけるべきことは？</h3><p>サイベリアンは比較的食いしん坊で、肥満になりやすい傾向があると言われています。成猫期以降は体重のモニタリングを定期的に行い、適正カロリーの食事を与えることが大切です。また、長毛種であるため、毛玉対策用のフードやサプリメントを併用する飼い主様も多いようです。</p><ul><li>体重管理：月に1回の体重測定が推奨されています</li><li>水分摂取：泌尿器系の健康維持のため、ウェットフードの併用や流水型給水器が効果的</li><li>毛玉ケア：化毛サポートフードや毎日のブラッシングで予防</li></ul><p>なお、福楽キャッテリーは<strong>第一種動物取扱業 220012A</strong>として登録しており、<strong>サイベリアン専門</strong>のブリーダーとして健康面にも配慮した繁育を行っています。<strong>2025年全国1位アワード受賞</strong>を受けた実績も、飼い主様からの信頼の証だと考えています。</p><h2>理想の家族との出会い方</h2><p>サイベリアンとの暮らしは、準備を整えて迎えることで、より豊かなものになります。環境整備から家族との相談まで、じっくりと時間をかけて進めていただきたいと思います。</p><h3>Q: お迎え前にどんな準備が必要？</h3><p>基本的な猫用グッズ（トイレ、食器、キャリーバッグ、爪とぎなど）に加え、サイベリアンは比較的運動量が多い傾向にあるため、キャットタワーや広めの遊びスペースがあると理想的です。また、長毛種であることを考慮し、グルーミンググッズも事前に揃えておくと安心です。お住まいの環境やライフスタイルに合わせた準備について、個別にご相談も承っています。</p><p>サイベリアンの成長は、飼い主様にとって何ものにも代えがたい喜びの連続です。子猫のふわふわした愛らしさから、立派な成猫へと変わる姿は、毎日の小さな感動を与えてくれます。200頭以上の卒業猫が、それぞれの家族の中で幸せに暮らしている姿を想像しながら、私たちも日々の繁育に励んでいます。</p><p>サイベリアンとの暮らしについて、もっと具体的に知りたいことや、ご自宅に合った子猫の性格について相談したい方は、ぜひ<a href="https://page.line.me/915hnnlk">LINE公式</a>からお気軽にご連絡ください。来店予約も<a href="/booking.html">こちら</a>から受け付けています。あなたにとっての「理想の家族」の形を、一緒に探していければ幸いです。</p>
 
     <div class="blog-cta-box">
-      <div class="blog-cta-icon">🐱</div>
+      <div class="blog-cta-icon"><i class="ico ico-cat" aria-hidden="true"></i></div>
       <h3 class="blog-cta-title">福楽キャッテリーの子猫を見てみませんか？</h3>
       <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 0 16px;font-size:0.82rem;color:#5A7A7A;">
-        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:20px;padding:4px 14px;">⭐ <strong>5.00</strong>／113件</span>
-        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:20px;padding:4px 14px;">🏆 全国1位（みんなの子猫ブリーダー）</span>
-        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:20px;padding:4px 14px;">🐾 <strong>200+</strong> 卒業猫</span>
+        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:20px;padding:4px 14px;"><i class="ico ico-star" aria-hidden="true"></i> <strong>5.00</strong>／113件</span>
+        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:20px;padding:4px 14px;"><i class="ico ico-trophy" aria-hidden="true"></i> 全国1位（みんなの子猫ブリーダー）</span>
+        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:20px;padding:4px 14px;"><i class="ico ico-paw-print" aria-hidden="true"></i> <strong>200+</strong> 卒業猫</span>
       </div>
       <p class="blog-cta-text">健康管理と社会化トレーニングを大切に育てた子猫たちをご紹介しています。<br>お気軽にLINEでご相談ください。</p>
       <div class="blog-cta-buttons">
-        <a href="/kittens.html" class="blog-cta-btn blog-cta-btn-primary">🐾 子猫一覧を見る</a>
-        <a href="/booking.html" class="blog-cta-btn blog-cta-btn-primary">📅 見学を予約する</a>
-        <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="blog-cta-btn blog-cta-btn-line" target="_blank" rel="noopener">💬 LINEで相談する</a>
+        <a href="/kittens.html" class="blog-cta-btn blog-cta-btn-primary"><i class="ico ico-paw-print" aria-hidden="true"></i> 子猫一覧を見る</a>
+        <a href="/booking.html" class="blog-cta-btn blog-cta-btn-primary"><i class="ico ico-calendar-check" aria-hidden="true"></i> 見学を予約する</a>
+        <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="blog-cta-btn blog-cta-btn-line" target="_blank" rel="noopener"><i class="ico ico-message-circle" aria-hidden="true"></i> LINEで相談する</a>
       </div>
-      <p style="margin:16px 0 0;font-size:0.85rem;"><a href="https://www.koneko-breeder.com/breeder_c995680.html" target="_blank" rel="noopener" style="color:#5BC4A8;font-weight:500;">🏆 みんなの子猫ブリーダーで最新の子猫を見る →</a></p>
+      <p style="margin:16px 0 0;font-size:0.85rem;"><a href="https://www.koneko-breeder.com/breeder_c995680.html" target="_blank" rel="noopener" style="color:#5BC4A8;font-weight:500;"><i class="ico ico-trophy" aria-hidden="true"></i> みんなの子猫ブリーダーで最新の子猫を見る →</a></p>
     </div>
 
     <div class="blog-nav-bottom">
-      <a href="/blog.html" class="blog-nav-link">📚 記事一覧へ戻る</a>
-      <a href="/kittens.html" class="blog-nav-link">🐱 子猫を見る</a>
-      <a href="/guide/" class="blog-nav-link">📖 お迎えガイド</a>
+      <a href="/blog.html" class="blog-nav-link"><i class="ico ico-library" aria-hidden="true"></i> 記事一覧へ戻る</a>
+      <a href="/kittens.html" class="blog-nav-link"><i class="ico ico-cat" aria-hidden="true"></i> 子猫を見る</a>
+      <a href="/guide/" class="blog-nav-link"><i class="ico ico-book-open" aria-hidden="true"></i> お迎えガイド</a>
     </div>
   </article>
 
@@ -168,16 +168,16 @@
 
   <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="fixed-line" aria-label="LINEでお問い合わせ" target="_blank" rel="noopener">
     <span class="fixed-line-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755z"/></svg></span>
-    <span class="fixed-line-content"><span class="fixed-line-label">見学予約・ご相談</span><span class="fixed-line-cta">LINEで相談 🐾</span></span>
+    <span class="fixed-line-content"><span class="fixed-line-label">見学予約・ご相談</span><span class="fixed-line-cta">LINEで相談 <i class="ico ico-paw-print" aria-hidden="true"></i></span></span>
   </a>
 
   <button class="back-to-top" id="backToTop" aria-label="ページトップへ戻る">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 15l-6-6-6 6"/></svg>
   </button>
 
-  <script src="/i18n.js?v=20260211"></script>
-  <script src="/blog/blog-i18n.js"></script>
-  <script src="/script.js?v=20260211"></script>
+  <script src="/i18n.js?v=20260623b"></script>
+  <script src="/blog/blog-i18n.js?v=20260623b"></script>
+  <script src="/script.js?v=20260623b"></script>
 
 </body>
 </html>

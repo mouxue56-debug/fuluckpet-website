@@ -20,9 +20,9 @@
 
   var BOOKING_URL = '/booking.html';
   var T = {
-    ja: { available: '子猫募集中', count: '{n}匹', view: '子猫を見る', line: 'LINEで相談', book: '📅 予約' },
-    en: { available: 'Kittens Available', count: '{n}', view: 'View Kittens', line: 'LINE Chat', book: '📅 Book' },
-    zh: { available: '幼猫接受预约', count: '{n}只', view: '查看幼猫', line: 'LINE咨询', book: '📅 预约' }
+    ja: { available: '子猫募集中', count: '{n}匹', view: '子猫を見る', line: 'LINEで相談', book: '<i class="ico ico-calendar-check" aria-hidden="true"></i> 予約' },
+    en: { available: 'Kittens Available', count: '{n}', view: 'View Kittens', line: 'LINE Chat', book: '<i class="ico ico-calendar-check" aria-hidden="true"></i> Book' },
+    zh: { available: '幼猫接受预约', count: '{n}只', view: '查看幼猫', line: 'LINE咨询', book: '<i class="ico ico-calendar-check" aria-hidden="true"></i> 预约' }
   };
 
   function t(key) {
@@ -43,7 +43,7 @@
     widget.innerHTML =
       '<div class="cta-widget-inner">' +
         '<a href="/kittens.html" class="cta-widget-kittens">' +
-          '<span class="cta-widget-paw">🐱</span>' +
+          '<span class="cta-widget-paw"><i class="ico ico-cat" aria-hidden="true"></i></span>' +
           '<span>' + availText + '</span>' +
         '</a>' +
         '<a href="' + BOOKING_URL + '" class="cta-widget-book">' +

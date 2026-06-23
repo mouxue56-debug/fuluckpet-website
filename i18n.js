@@ -199,7 +199,7 @@ const translations = {
     'visit.lineTitle': 'LINEでお気軽にお問い合わせ',
     'visit.lineDesc': '見学のご予約・ご質問はLINEから',
     'visit.lineBtn': 'LINEで友達追加',
-    'visit.bookBtn': '📅 見学を予約する',
+    'visit.bookBtn': '見学を予約する',
     'visit.delivery': 'お届け方法',
     'visit.lawNotice': '動物愛護管理法の規定により、ご購入前に必ずキャッテリーにお越しいただくか、LINEビデオ通話にて子猫と対面していただく必要がございます。対面説明後にご契約・お届けとなります。',
     'visit.d1.title': '空輸（全国対応）',
@@ -261,8 +261,8 @@ const translations = {
     'kitten.video': '動画',
     'kitten.note': '備考',
     'kitten.breadcrumb.kittens': '子猫一覧',
-    'kitten.male': '♂ 男の子',
-    'kitten.female': '♀ 女の子',
+    'kitten.male': '男の子',
+    'kitten.female': '女の子',
     'kitten.available': '販売中',
     'kitten.reserved': '商談中',
     'kitten.sold': 'ご家族決定',
@@ -291,7 +291,7 @@ const translations = {
     'blog.subtitle': '猫の健康管理・食事・しつけなど、ブリーダーが分かりやすく解説します',
 
     // Booking Page
-    'booking.title': '📅 見学予約',
+    'booking.title': '見学予約',
     'booking.subtitle': '対面見学・LINEビデオ通話、お好きな方法でご予約ください。\nお気軽にどうぞ。',
     'booking.formTitle': '予約フォーム',
     'booking.name': 'お名前',
@@ -313,7 +313,7 @@ const translations = {
     'booking.kitten': '気になる子猫',
     'booking.kittenHint': '子猫の名前や掲載番号をお書きください（複数可）。',
     'booking.message': 'ご質問・ご要望',
-    'booking.submit': '📩 予約を送信する',
+    'booking.submit': '予約を送信する',
     'booking.successTitle': '予約を送信しました！',
     'booking.successDesc': '24時間以内にメールまたはLINEでご連絡いたします。お待ちくださいませ。',
     'booking.errorTitle': '送信に失敗しました',
@@ -332,26 +332,26 @@ const translations = {
 
     // Story Card Generator V2 — 4-Step Wizard
     'story.title': 'うちの子ストーリーカード',
-    'story.subtitle': '写真1枚でAIが特別なカードを作るよ✨',
+    'story.subtitle': '写真1枚でAIが特別なカードを作るよ',
     'story.sampleTitle': 'こんなカードが作れます',
     'story.start': 'カードを作る',
     // Step 1 — Photo
-    'story.step1Prompt': '一番かわいく撮れたやつ、見せて〜📸',
+    'story.step1Prompt': '一番かわいく撮れたやつ、見せて〜',
     'story.step1Sub': '写真1枚だけでOK！AIが自動で読み取るよ',
     'story.photoClick': 'タップして写真を選ぶ',
     'story.photoChange': 'タップして写真を変更',
-    'story.analyzing': 'AIが読み取り中... 🐾',
+    'story.analyzing': 'AIが読み取り中... ',
     'story.next': '次へ',
     'story.back': '戻る',
     // Step 2 — Name, Gender & Date
-    'story.step2Prompt': 'この子のこと教えて〜🐱',
+    'story.step2Prompt': 'この子のこと教えて〜',
     'story.step2Sub': '名前と性別、いつおうちに来たか教えてね',
     'story.nameHint': '例：ゆき、モカ、レオ',
     'story.genderMale': '男の子',
     'story.genderFemale': '女の子',
-    'story.date': '🏠 お迎え日',
+    'story.date': 'お迎え日',
     // Step 3 — Pets at Home
-    'story.step3Prompt': 'おうちに先輩ペットいる？🐾',
+    'story.step3Prompt': 'おうちに先輩ペットいる？',
     'story.step3Sub': 'いたらタップ！いなければそのまま次へ',
     'story.pet1Cat': '先住猫1匹',
     'story.pet2Cats': '先住猫2匹+',
@@ -363,27 +363,27 @@ const translations = {
     'story.petNone': 'いない（初めてのペット）',
     'story.skip': 'スキップ >',
     // Step 4 — Traits & Story
-    'story.step4Prompt': 'どんな子？エピソードもあれば 💕',
+    'story.step4Prompt': 'どんな子？エピソードもあれば ',
     'story.step4Sub': '書かなくてもAIがいい感じに仕上げるよ〜',
-    'story.generateFinal': '🎉 カードを作る！',
+    'story.generateFinal': 'カードを作る！',
     'story.skipGenerate': 'そのまま作る',
     // Loading & Result
     'story.loading': 'AIが文章を作成中...',
     'story.loadingHint': '少々お待ちください（約10秒）',
-    'story.resultTitle': 'できたよ〜！🎉',
+    'story.resultTitle': 'できたよ〜！',
     'story.tabJa': '日本語版',
     'story.tabZh': '中文版',
-    'story.download': '📥 画像をダウンロード',
-    'story.copyText': '📋 テキストをコピー',
+    'story.download': '画像をダウンロード',
+    'story.copyText': 'テキストをコピー',
     'story.shareHint': 'Instagramに投稿する際は <strong>@fuluckpet</strong> をタグ付けしてね！',
-    'story.retry': '🔄 もう1枚作る',
+    'story.retry': 'もう1枚作る',
 
     // Guide Pages
     // Guide Common
     'guide.breadcrumb.home': 'ホーム',
     'guide.breadcrumb.guide': 'お迎えガイド',
     'guide.brand': 'サイベリアン｜大阪・福楽キャッテリー',
-    'guide.cta.text': '見学のご相談はLINEへ 😊',
+    'guide.cta.text': '見学のご相談はLINEへ ',
     'guide.cta.sub1': '現地・オンライン（LINEビデオ）どちらもOK',
     'guide.cta.sub2': '気になる子がいれば、リンクを送るだけでOK',
     'guide.cta.btn': 'LINEで相談する',
@@ -432,7 +432,7 @@ const translations = {
     // Homepage Guide Entrance
     'guide.entrance.title': '初めての方へ',
     'guide.entrance.desc': '見学の流れ・料金・お迎え準備・育て方まで、すべてのガイドをまとめました。',
-    'guide.entrance.btn': '📖 お迎えガイドを見る',
+    'guide.entrance.btn': 'お迎えガイドを見る',
 
     // Visit Page
     'guide.visit.title': '見学の流れ・消毒ガイド',
@@ -441,7 +441,7 @@ const translations = {
     'guide.visit.s2.title': '見学当日のコツ',
     'guide.visit.s3.title': '消毒・衛生について',
     'guide.visit.s4.title': '気軽に聞いてください',
-    'guide.visit.meta': '⏱️ 約4分 ｜ 最終更新：2026年2月',
+    'guide.visit.meta': '約4分 ｜ 最終更新：2026年2月',
 
     // Price Page
     'guide.price.title': '料金の説明',
@@ -465,12 +465,12 @@ const translations = {
     // Day 1 Page
     'guide.day1.title': '初日ガイド',
     'guide.day1.lead': 'お迎え初日の過ごし方を、やさしいステップでご案内します。',
-    'guide.day1.meta': '⏱️ 約3分 ｜ 最終更新：2026年2月',
+    'guide.day1.meta': '約3分 ｜ 最終更新：2026年2月',
 
     // Week 1 Page
     'guide.week1.title': '7日チェック',
     'guide.week1.lead': '最初の1週間で気をつけたいポイントと、ゆるめのチェック項目をまとめました。',
-    'guide.week1.meta': '⏱️ 約4分 ｜ 最終更新：2026年2月',
+    'guide.week1.meta': '約4分 ｜ 最終更新：2026年2月',
 
     // Family Page
     'guide.family.title': 'ご家族向けスタートガイド',
@@ -696,7 +696,7 @@ const translations = {
     'visit.lineTitle': 'Contact Us via LINE',
     'visit.lineDesc': 'Reservations & inquiries through LINE',
     'visit.lineBtn': 'Add Us on LINE',
-    'visit.bookBtn': '📅 Book a Visit',
+    'visit.bookBtn': 'Book a Visit',
     'visit.delivery': 'Delivery Methods',
     'visit.lawNotice': 'Under the Animal Protection Law, an in-person meeting (on-site or via LINE video call) is required before purchase. After the meeting, contracts and delivery arrangements will be made.',
     'visit.d1.title': 'Air Transport (Nationwide)',
@@ -758,8 +758,8 @@ const translations = {
     'kitten.video': 'Video',
     'kitten.note': 'Notes',
     'kitten.breadcrumb.kittens': 'Kittens',
-    'kitten.male': '♂ Male',
-    'kitten.female': '♀ Female',
+    'kitten.male': 'Male',
+    'kitten.female': 'Female',
     'kitten.available': 'Available',
     'kitten.reserved': 'Reserved',
     'kitten.sold': 'Adopted',
@@ -788,7 +788,7 @@ const translations = {
     'blog.subtitle': 'Expert tips on cat health, nutrition, grooming and behavior from our breeder',
 
     // Booking Page
-    'booking.title': '📅 Book a Visit',
+    'booking.title': 'Book a Visit',
     'booking.subtitle': 'In-person visit or LINE video call — choose your preferred method.\nFeel free to reach out!',
     'booking.formTitle': 'Reservation Form',
     'booking.name': 'Your Name',
@@ -810,7 +810,7 @@ const translations = {
     'booking.kitten': 'Kitten of Interest',
     'booking.kittenHint': 'Enter kitten name or listing number (multiple OK).',
     'booking.message': 'Questions / Requests',
-    'booking.submit': '📩 Submit Reservation',
+    'booking.submit': 'Submit Reservation',
     'booking.successTitle': 'Reservation Sent!',
     'booking.successDesc': 'We will contact you within 24 hours via email or LINE. Thank you!',
     'booking.errorTitle': 'Submission Failed',
@@ -829,26 +829,26 @@ const translations = {
 
     // Story Card Generator V2 — 4-Step Wizard
     'story.title': 'My Cat Story Card',
-    'story.subtitle': 'One photo + AI = your special card ✨',
+    'story.subtitle': 'One photo + AI = your special card ',
     'story.sampleTitle': 'Cards you can create',
     'story.start': 'Create a Card',
     // Step 1 — Photo
-    'story.step1Prompt': 'Show me the cutest pic you\'ve got~ 📸',
+    'story.step1Prompt': 'Show me the cutest pic you\'ve got~ ',
     'story.step1Sub': 'Just one photo! AI does the rest',
     'story.photoClick': 'Tap to choose a photo',
     'story.photoChange': 'Tap to change photo',
-    'story.analyzing': 'AI reading your photo... 🐾',
+    'story.analyzing': 'AI reading your photo... ',
     'story.next': 'Next',
     'story.back': 'Back',
     // Step 2 — Name, Gender & Date
-    'story.step2Prompt': 'Tell me about this cutie~ 🐱',
+    'story.step2Prompt': 'Tell me about this cutie~ ',
     'story.step2Sub': 'Name, gender, and when they came home',
     'story.nameHint': 'e.g. Yuki, Mocha, Leo',
     'story.genderMale': 'Boy',
     'story.genderFemale': 'Girl',
-    'story.date': '🏠 Adoption Date',
+    'story.date': 'Adoption Date',
     // Step 3 — Pets at Home
-    'story.step3Prompt': 'Any fur siblings at home? 🐾',
+    'story.step3Prompt': 'Any fur siblings at home? ',
     'story.step3Sub': 'Tap if yes! Otherwise just hit next',
     'story.pet1Cat': '1 resident cat',
     'story.pet2Cats': '2+ resident cats',
@@ -860,27 +860,27 @@ const translations = {
     'story.petNone': 'None (first pet)',
     'story.skip': 'Skip >',
     // Step 4 — Traits & Story
-    'story.step4Prompt': 'What are they like? Any fun stories? 💕',
+    'story.step4Prompt': 'What are they like? Any fun stories? ',
     'story.step4Sub': 'Skip is fine~ AI will make it great!',
-    'story.generateFinal': '🎉 Make my card!',
+    'story.generateFinal': 'Make my card!',
     'story.skipGenerate': 'Just make it',
     // Loading & Result
     'story.loading': 'AI is writing your story...',
     'story.loadingHint': 'Please wait a moment (about 10 seconds)',
-    'story.resultTitle': 'Here it is~! 🎉',
+    'story.resultTitle': 'Here it is~! ',
     'story.tabJa': 'Japanese',
     'story.tabZh': 'Chinese',
-    'story.download': '📥 Download Image',
-    'story.copyText': '📋 Copy Text',
+    'story.download': 'Download Image',
+    'story.copyText': 'Copy Text',
     'story.shareHint': 'Tag <strong>@fuluckpet</strong> when you post on Instagram!',
-    'story.retry': '🔄 Create Another',
+    'story.retry': 'Create Another',
 
     // Guide Pages
     // Guide Common
     'guide.breadcrumb.home': 'Home',
     'guide.breadcrumb.guide': 'Adoption Guide',
     'guide.brand': 'Siberian Cat | Fuluck Cattery, Osaka',
-    'guide.cta.text': 'Contact us on LINE for visits 😊',
+    'guide.cta.text': 'Contact us on LINE for visits ',
     'guide.cta.sub1': 'In-person or online (LINE video) — both OK',
     'guide.cta.sub2': 'Just send us a link if you find a kitten you like',
     'guide.cta.btn': 'Chat on LINE',
@@ -929,7 +929,7 @@ const translations = {
     // Homepage Guide Entrance
     'guide.entrance.title': 'For First-Time Visitors',
     'guide.entrance.desc': 'Everything from visits to pricing, preparation, and care — all in one place.',
-    'guide.entrance.btn': '📖 View Adoption Guide',
+    'guide.entrance.btn': 'View Adoption Guide',
 
     // Visit Page
     'guide.visit.title': 'Visit Process & Hygiene Guide',
@@ -938,7 +938,7 @@ const translations = {
     'guide.visit.s2.title': 'Tips for Visit Day',
     'guide.visit.s3.title': 'Hygiene & Sanitization',
     'guide.visit.s4.title': 'Feel Free to Ask',
-    'guide.visit.meta': '⏱️ ~4 min read ｜ Updated: Feb 2026',
+    'guide.visit.meta': '~4 min read ｜ Updated: Feb 2026',
 
     // Price Page
     'guide.price.title': 'Pricing Guide',
@@ -962,12 +962,12 @@ const translations = {
     // Day 1 Page
     'guide.day1.title': 'First Day Guide',
     'guide.day1.lead': 'A gentle step-by-step guide for your kitten\'s first day home.',
-    'guide.day1.meta': '⏱️ ~3 min read ｜ Updated: Feb 2026',
+    'guide.day1.meta': '~3 min read ｜ Updated: Feb 2026',
 
     // Week 1 Page
     'guide.week1.title': '7-Day Check',
     'guide.week1.lead': 'Key points and a gentle checklist for your kitten\'s first week.',
-    'guide.week1.meta': '⏱️ ~4 min read ｜ Updated: Feb 2026',
+    'guide.week1.meta': '~4 min read ｜ Updated: Feb 2026',
 
     // Family Page
     'guide.family.title': 'Family Start Guide',
@@ -1193,7 +1193,7 @@ const translations = {
     'visit.lineTitle': '通过LINE轻松咨询',
     'visit.lineDesc': '预约参观和咨询请通过LINE',
     'visit.lineBtn': '添加LINE好友',
-    'visit.bookBtn': '📅 预约见学',
+    'visit.bookBtn': '预约见学',
     'visit.delivery': '配送方式',
     'visit.lawNotice': '根据动物爱护管理法规定，购买前必须亲自到猫舍或通过LINE视频通话与幼猫见面。面谈后方可签约和配送。',
     'visit.d1.title': '空运（全国）',
@@ -1255,8 +1255,8 @@ const translations = {
     'kitten.video': '视频',
     'kitten.note': '备注',
     'kitten.breadcrumb.kittens': '幼猫一览',
-    'kitten.male': '♂ 男孩',
-    'kitten.female': '♀ 女孩',
+    'kitten.male': '男孩',
+    'kitten.female': '女孩',
     'kitten.available': '可预约',
     'kitten.reserved': '已预订',
     'kitten.sold': '已出售',
@@ -1285,7 +1285,7 @@ const translations = {
     'blog.subtitle': '专业繁殖人为您讲解猫咪健康管理、饮食、护理与行为知识',
 
     // Booking Page
-    'booking.title': '📅 预约参观',
+    'booking.title': '预约参观',
     'booking.subtitle': '现场参观或LINE视频通话，选择您喜欢的方式预约。\n请随时联系我们！',
     'booking.formTitle': '预约表单',
     'booking.name': '姓名',
@@ -1307,7 +1307,7 @@ const translations = {
     'booking.kitten': '感兴趣的幼猫',
     'booking.kittenHint': '请填写幼猫名字或编号（可多只）。',
     'booking.message': '问题·需求',
-    'booking.submit': '📩 提交预约',
+    'booking.submit': '提交预约',
     'booking.successTitle': '预约已提交！',
     'booking.successDesc': '我们将在24小时内通过邮件或LINE与您联系。请稍候。',
     'booking.errorTitle': '提交失败',
@@ -1326,26 +1326,26 @@ const translations = {
 
     // Story Card Generator V2 — 4-Step Wizard
     'story.title': '我家猫咪故事卡',
-    'story.subtitle': '一张照片+AI=专属纪念卡✨',
+    'story.subtitle': '一张照片+AI=专属纪念卡',
     'story.sampleTitle': '可以制作这样的卡片',
     'story.start': '开始制作',
     // Step 1 — Photo
-    'story.step1Prompt': '拍得最可爱的那张给我看看~ 📸',
+    'story.step1Prompt': '拍得最可爱的那张给我看看~ ',
     'story.step1Sub': '只要一张照片！AI帮你搞定',
     'story.photoClick': '点击选择照片',
     'story.photoChange': '点击更换照片',
-    'story.analyzing': 'AI读取中... 🐾',
+    'story.analyzing': 'AI读取中... ',
     'story.next': '下一步',
     'story.back': '返回',
     // Step 2 — Name, Gender & Date
-    'story.step2Prompt': '跟我说说这个小可爱~ 🐱',
+    'story.step2Prompt': '跟我说说这个小可爱~ ',
     'story.step2Sub': '名字、性别，还有什么时候到家的',
     'story.nameHint': '例：雪球、摩卡、Leo',
     'story.genderMale': '男孩',
     'story.genderFemale': '女孩',
-    'story.date': '🏠 迎接日期',
+    'story.date': '迎接日期',
     // Step 3 — Pets at Home
-    'story.step3Prompt': '家里有前辈宠物吗？🐾',
+    'story.step3Prompt': '家里有前辈宠物吗？',
     'story.step3Sub': '有就点一下！没有直接下一步',
     'story.pet1Cat': '1只原住猫',
     'story.pet2Cats': '2只以上原住猫',
@@ -1357,27 +1357,27 @@ const translations = {
     'story.petNone': '没有（第一只宠物）',
     'story.skip': '跳过 >',
     // Step 4 — Traits & Story
-    'story.step4Prompt': '是什么性格的猫咪？有趣的事也说说 💕',
+    'story.step4Prompt': '是什么性格的猫咪？有趣的事也说说 ',
     'story.step4Sub': '不写也行～AI会帮你搞定的',
-    'story.generateFinal': '🎉 生成卡片！',
+    'story.generateFinal': '生成卡片！',
     'story.skipGenerate': '直接生成',
     // Loading & Result
     'story.loading': 'AI正在创作文案...',
     'story.loadingHint': '请稍候（约10秒）',
-    'story.resultTitle': '做好啦～🎉',
+    'story.resultTitle': '做好啦～',
     'story.tabJa': '日语版',
     'story.tabZh': '中文版',
-    'story.download': '📥 下载图片',
-    'story.copyText': '📋 复制文案',
+    'story.download': '下载图片',
+    'story.copyText': '复制文案',
     'story.shareHint': '发到Instagram时记得标记 <strong>@fuluckpet</strong> 哦！',
-    'story.retry': '🔄 再做一张',
+    'story.retry': '再做一张',
 
     // Guide Pages
     // Guide Common
     'guide.breadcrumb.home': '首页',
     'guide.breadcrumb.guide': '接猫指南',
     'guide.brand': '西伯利亚猫｜大阪·福楽猫舍',
-    'guide.cta.text': '参观咨询请联系LINE 😊',
+    'guide.cta.text': '参观咨询请联系LINE ',
     'guide.cta.sub1': '现场·线上（LINE视频）均可',
     'guide.cta.sub2': '看中哪只小猫，发链接给我们即可',
     'guide.cta.btn': '用LINE咨询',
@@ -1426,7 +1426,7 @@ const translations = {
     // Homepage Guide Entrance
     'guide.entrance.title': '致初次来访者',
     'guide.entrance.desc': '从参观流程、价格、接猫准备到养护方法，所有指南汇总于此。',
-    'guide.entrance.btn': '📖 查看接猫指南',
+    'guide.entrance.btn': '查看接猫指南',
 
     // Visit Page
     'guide.visit.title': '参观流程·消毒指南',
@@ -1435,7 +1435,7 @@ const translations = {
     'guide.visit.s2.title': '参观当天小贴士',
     'guide.visit.s3.title': '消毒·卫生须知',
     'guide.visit.s4.title': '请随时提问',
-    'guide.visit.meta': '⏱️ 约4分钟 ｜ 更新：2026年2月',
+    'guide.visit.meta': '约4分钟 ｜ 更新：2026年2月',
 
     // Price Page
     'guide.price.title': '价格说明',
@@ -1459,12 +1459,12 @@ const translations = {
     // Day 1 Page
     'guide.day1.title': '第一天指南',
     'guide.day1.lead': '用简单的步骤引导您度过接猫第一天。',
-    'guide.day1.meta': '⏱️ 约3分钟 ｜ 更新：2026年2月',
+    'guide.day1.meta': '约3分钟 ｜ 更新：2026年2月',
 
     // Week 1 Page
     'guide.week1.title': '7日检查',
     'guide.week1.lead': '最初一周需要注意的要点和轻松的检查项目汇总。',
-    'guide.week1.meta': '⏱️ 约4分钟 ｜ 更新：2026年2月',
+    'guide.week1.meta': '约4分钟 ｜ 更新：2026年2月',
 
     // Family Page
     'guide.family.title': '家庭入门指南',
@@ -1516,11 +1516,20 @@ function setLanguage(lang) {
       if (htmlKeys.has(key)) {
         el.innerHTML = langData[key];
       } else {
-        // Preserve SVG/child elements (e.g. dropdown toggle chevron)
-        const svg = el.querySelector('svg');
-        if (svg) {
-          el.childNodes.forEach(n => { if (n.nodeType === 3) n.remove(); });
-          el.insertBefore(document.createTextNode(langData[key] + ' '), svg);
+        // Preserve icon children (mask .ico or inline svg, e.g. nav chevron); update only text
+        const icon = el.querySelector('svg, .ico');
+        if (icon) {
+          var tn = null;
+          el.childNodes.forEach(function (n) { if (!tn && n.nodeType === 3 && n.textContent.trim()) tn = n; });
+          var val = langData[key];
+          if (tn) {
+            var lead = /^\s/.test(tn.textContent), trail = /\s$/.test(tn.textContent);
+            tn.textContent = (lead ? ' ' : '') + val + (trail ? ' ' : '');
+          } else if (el.firstChild === icon) {
+            el.appendChild(document.createTextNode(' ' + val));
+          } else {
+            el.insertBefore(document.createTextNode(val + ' '), icon);
+          }
         } else {
           el.textContent = langData[key];
         }

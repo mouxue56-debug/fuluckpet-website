@@ -20,8 +20,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐱</text></svg>">
+  <link rel="stylesheet" href="style.css?v=20260623b">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%235BC4A8'/><g fill='%23ffffff'><ellipse cx='11' cy='12' rx='2.3' ry='2.7'/><ellipse cx='21' cy='12' rx='2.3' ry='2.7'/><ellipse cx='7.5' cy='17.5' rx='2.1' ry='2.4'/><ellipse cx='24.5' cy='17.5' rx='2.1' ry='2.4'/><path d='M16 16.5c3.1 0 5.6 2.2 5.6 4.9 0 2.2-1.9 3.1-5.6 3.1s-5.6-.9-5.6-3.1c0-2.7 2.5-4.9 5.6-4.9z'/></g></svg>">
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
@@ -33,279 +33,279 @@
   </script>
 
   <style>
-    /* ===== Booking Page Styles (Ice Cream Design) ===== */
-    .booking-hero {
-      background: linear-gradient(135deg, var(--mint-milk) 0%, var(--blueberry-milk) 50%, var(--taro-milk) 100%);
-      padding: 120px 0 60px;
-      text-align: center;
-    }
-    .booking-hero h1 {
-      font-size: clamp(1.8rem, 4vw, 2.4rem);
-      font-weight: 700;
-      color: var(--text-heading);
-      margin-bottom: 12px;
-    }
-    .booking-hero p {
-      font-size: 1.05rem;
-      color: var(--text-body);
-      max-width: 600px;
-      margin: 0 auto;
-      line-height: 1.8;
-    }
+ /* ===== Booking Page Styles (Ice Cream Design) ===== */
+ .booking-hero {
+ background: linear-gradient(135deg, var(--mint-milk) 0%, var(--blueberry-milk) 50%, var(--taro-milk) 100%);
+ padding: 120px 0 60px;
+ text-align: center;
+ }
+ .booking-hero h1 {
+ font-size: clamp(1.8rem, 4vw, 2.4rem);
+ font-weight: 700;
+ color: var(--text-heading);
+ margin-bottom: 12px;
+ }
+ .booking-hero p {
+ font-size: 1.05rem;
+ color: var(--text-body);
+ max-width: 600px;
+ margin: 0 auto;
+ line-height: 1.8;
+ }
 
-    .booking-section {
-      padding: 60px 0 80px;
-    }
+ .booking-section {
+ padding: 60px 0 80px;
+ }
 
-    .booking-layout {
-      display: grid;
-      grid-template-columns: 1fr 380px;
-      gap: 40px;
-      align-items: start;
-    }
+ .booking-layout {
+ display: grid;
+ grid-template-columns: 1fr 380px;
+ gap: 40px;
+ align-items: start;
+ }
 
-    /* Form Card */
-    .booking-form-card {
-      background: var(--bg-white);
-      border-radius: var(--radius-lg);
-      padding: 40px;
-      box-shadow: var(--shadow-card);
-    }
-    .booking-form-card h2 {
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: var(--text-heading);
-      margin-bottom: 28px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+ /* Form Card */
+ .booking-form-card {
+ background: var(--bg-white);
+ border-radius: var(--radius-lg);
+ padding: 40px;
+ box-shadow: var(--shadow-card);
+ }
+ .booking-form-card h2 {
+ font-size: 1.3rem;
+ font-weight: 700;
+ color: var(--text-heading);
+ margin-bottom: 28px;
+ display: flex;
+ align-items: center;
+ gap: 10px;
+ }
 
-    .form-group {
-      margin-bottom: 20px;
-    }
-    .form-group label {
-      display: block;
-      font-size: 0.92rem;
-      font-weight: 600;
-      color: var(--text-heading);
-      margin-bottom: 6px;
-    }
-    .form-group label .required {
-      color: #E57373;
-      font-size: 0.8rem;
-      margin-left: 4px;
-    }
-    .form-group .hint {
-      display: block;
-      font-size: 0.82rem;
-      color: var(--text-note);
-      margin-top: 2px;
-      margin-bottom: 6px;
-    }
+ .form-group {
+ margin-bottom: 20px;
+ }
+ .form-group label {
+ display: block;
+ font-size: 0.92rem;
+ font-weight: 600;
+ color: var(--text-heading);
+ margin-bottom: 6px;
+ }
+ .form-group label .required {
+ color: #E57373;
+ font-size: 0.8rem;
+ margin-left: 4px;
+ }
+ .form-group .hint {
+ display: block;
+ font-size: 0.82rem;
+ color: var(--text-note);
+ margin-top: 2px;
+ margin-bottom: 6px;
+ }
 
-    .booking-input,
-    .booking-select,
-    .booking-textarea {
-      width: 100%;
-      padding: 12px 16px;
-      font-size: 1rem;
-      font-family: inherit;
-      border: 2px solid #E0E8E8;
-      border-radius: var(--radius-sm);
-      background: var(--bg-white);
-      color: var(--text-body);
-      transition: all 0.3s var(--ease-out);
-      outline: none;
-      -webkit-appearance: none;
-      appearance: none;
-    }
-    .booking-input:focus,
-    .booking-select:focus,
-    .booking-textarea:focus {
-      border-color: var(--mint);
-      box-shadow: 0 0 0 4px rgba(125, 211, 192, 0.15);
-    }
-    .booking-input::placeholder,
-    .booking-textarea::placeholder {
-      color: #B8C8C8;
-    }
-    .booking-select {
-      background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%2390A8A8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 14px center;
-      padding-right: 40px;
-    }
-    .booking-textarea {
-      min-height: 100px;
-      resize: vertical;
-      line-height: 1.6;
-    }
+ .booking-input,
+ .booking-select,
+ .booking-textarea {
+ width: 100%;
+ padding: 12px 16px;
+ font-size: 1rem;
+ font-family: inherit;
+ border: 2px solid #E0E8E8;
+ border-radius: var(--radius-sm);
+ background: var(--bg-white);
+ color: var(--text-body);
+ transition: all 0.3s var(--ease-out);
+ outline: none;
+ -webkit-appearance: none;
+ appearance: none;
+ }
+ .booking-input:focus,
+ .booking-select:focus,
+ .booking-textarea:focus {
+ border-color: var(--mint);
+ box-shadow: 0 0 0 4px rgba(125, 211, 192, 0.15);
+ }
+ .booking-input::placeholder,
+ .booking-textarea::placeholder {
+ color: #B8C8C8;
+ }
+ .booking-select {
+ background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%2390A8A8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+ background-repeat: no-repeat;
+ background-position: right 14px center;
+ padding-right: 40px;
+ }
+ .booking-textarea {
+ min-height: 100px;
+ resize: vertical;
+ line-height: 1.6;
+ }
 
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
+ .form-row {
+ display: grid;
+ grid-template-columns: 1fr 1fr;
+ gap: 16px;
+ }
 
-    .booking-submit {
-      width: 100%;
-      padding: 16px;
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: white;
-      background: linear-gradient(135deg, var(--mint) 0%, var(--mint-dark) 100%);
-      border: none;
-      border-radius: var(--radius-md);
-      cursor: pointer;
-      transition: all 0.3s var(--ease-out);
-      margin-top: 8px;
-      position: relative;
-      overflow: hidden;
-    }
-    .booking-submit:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(125, 211, 192, 0.35);
-    }
-    .booking-submit:active {
-      transform: translateY(0);
-    }
-    .booking-submit:disabled {
-      opacity: 0.7;
-      cursor: not-allowed;
-      transform: none;
-    }
-    .booking-submit .spinner {
-      display: none;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255,255,255,0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
+ .booking-submit {
+ width: 100%;
+ padding: 16px;
+ font-size: 1.1rem;
+ font-weight: 700;
+ color: white;
+ background: linear-gradient(135deg, var(--mint) 0%, var(--mint-dark) 100%);
+ border: none;
+ border-radius: var(--radius-md);
+ cursor: pointer;
+ transition: all 0.3s var(--ease-out);
+ margin-top: 8px;
+ position: relative;
+ overflow: hidden;
+ }
+ .booking-submit:hover {
+ transform: translateY(-2px);
+ box-shadow: 0 8px 24px rgba(125, 211, 192, 0.35);
+ }
+ .booking-submit:active {
+ transform: translateY(0);
+ }
+ .booking-submit:disabled {
+ opacity: 0.7;
+ cursor: not-allowed;
+ transform: none;
+ }
+ .booking-submit .spinner {
+ display: none;
+ width: 20px;
+ height: 20px;
+ border: 3px solid rgba(255,255,255,0.3);
+ border-top-color: white;
+ border-radius: 50%;
+ animation: spin 0.8s linear infinite;
+ margin: 0 auto;
+ }
+ @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Success / Error messages */
-    .booking-result {
-      display: none;
-      padding: 24px;
-      border-radius: var(--radius-sm);
-      margin-top: 16px;
-      text-align: center;
-    }
-    .booking-result.success {
-      display: block;
-      background: linear-gradient(135deg, var(--mint-milk) 0%, #E8FFF5 100%);
-      border: 2px solid var(--mint);
-    }
-    .booking-result.success .result-icon { font-size: 2rem; margin-bottom: 8px; }
-    .booking-result.success h3 { color: var(--mint-dark); font-size: 1.1rem; margin-bottom: 6px; }
-    .booking-result.success p { color: var(--text-body); font-size: 0.92rem; }
-    .booking-result.error {
-      display: block;
-      background: #FFF5F5;
-      border: 2px solid #E57373;
-    }
-    .booking-result.error h3 { color: #D32F2F; font-size: 1.1rem; margin-bottom: 6px; }
-    .booking-result.error p { color: var(--text-body); font-size: 0.92rem; }
+ /* Success / Error messages */
+ .booking-result {
+ display: none;
+ padding: 24px;
+ border-radius: var(--radius-sm);
+ margin-top: 16px;
+ text-align: center;
+ }
+ .booking-result.success {
+ display: block;
+ background: linear-gradient(135deg, var(--mint-milk) 0%, #E8FFF5 100%);
+ border: 2px solid var(--mint);
+ }
+ .booking-result.success .result-icon { font-size: 2rem; margin-bottom: 8px; }
+ .booking-result.success h3 { color: var(--mint-dark); font-size: 1.1rem; margin-bottom: 6px; }
+ .booking-result.success p { color: var(--text-body); font-size: 0.92rem; }
+ .booking-result.error {
+ display: block;
+ background: #FFF5F5;
+ border: 2px solid #E57373;
+ }
+ .booking-result.error h3 { color: #D32F2F; font-size: 1.1rem; margin-bottom: 6px; }
+ .booking-result.error p { color: var(--text-body); font-size: 0.92rem; }
 
-    /* Sidebar */
-    .booking-sidebar {
-      position: sticky;
-      top: 100px;
-    }
+ /* Sidebar */
+ .booking-sidebar {
+ position: sticky;
+ top: 100px;
+ }
 
-    .info-card {
-      background: var(--bg-white);
-      border-radius: var(--radius-lg);
-      padding: 28px;
-      box-shadow: var(--shadow-card);
-      margin-bottom: 20px;
-    }
-    .info-card h3 {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--text-heading);
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .info-card ul {
-      list-style: none;
-      padding: 0;
-    }
-    .info-card ul li {
-      padding: 8px 0;
-      font-size: 0.92rem;
-      color: var(--text-body);
-      border-bottom: 1px solid #F0F4F4;
-      display: flex;
-      align-items: start;
-      gap: 8px;
-      line-height: 1.6;
-    }
-    .info-card ul li:last-child { border-bottom: none; }
-    .info-card ul li .icon { flex-shrink: 0; }
+ .info-card {
+ background: var(--bg-white);
+ border-radius: var(--radius-lg);
+ padding: 28px;
+ box-shadow: var(--shadow-card);
+ margin-bottom: 20px;
+ }
+ .info-card h3 {
+ font-size: 1rem;
+ font-weight: 700;
+ color: var(--text-heading);
+ margin-bottom: 16px;
+ display: flex;
+ align-items: center;
+ gap: 8px;
+ }
+ .info-card ul {
+ list-style: none;
+ padding: 0;
+ }
+ .info-card ul li {
+ padding: 8px 0;
+ font-size: 0.92rem;
+ color: var(--text-body);
+ border-bottom: 1px solid #F0F4F4;
+ display: flex;
+ align-items: start;
+ gap: 8px;
+ line-height: 1.6;
+ }
+ .info-card ul li:last-child { border-bottom: none; }
+ .info-card ul li .icon { flex-shrink: 0; }
 
-    .line-card {
-      background: linear-gradient(135deg, #E8FFF5 0%, var(--mint-milk) 100%);
-      border: 2px solid var(--mint);
-      border-radius: var(--radius-lg);
-      padding: 28px;
-      text-align: center;
-    }
-    .line-card h3 {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--text-heading);
-      margin-bottom: 8px;
-    }
-    .line-card p {
-      font-size: 0.88rem;
-      color: var(--text-body);
-      margin-bottom: 16px;
-      line-height: 1.6;
-    }
-    .line-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 28px;
-      font-size: 1rem;
-      font-weight: 700;
-      color: white;
-      background: var(--line-green);
-      border-radius: 50px;
-      transition: all 0.3s var(--ease-out);
-    }
-    .line-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(6, 199, 85, 0.3);
-      color: white;
-    }
+ .line-card {
+ background: linear-gradient(135deg, #E8FFF5 0%, var(--mint-milk) 100%);
+ border: 2px solid var(--mint);
+ border-radius: var(--radius-lg);
+ padding: 28px;
+ text-align: center;
+ }
+ .line-card h3 {
+ font-size: 1rem;
+ font-weight: 700;
+ color: var(--text-heading);
+ margin-bottom: 8px;
+ }
+ .line-card p {
+ font-size: 0.88rem;
+ color: var(--text-body);
+ margin-bottom: 16px;
+ line-height: 1.6;
+ }
+ .line-btn {
+ display: inline-flex;
+ align-items: center;
+ gap: 8px;
+ padding: 12px 28px;
+ font-size: 1rem;
+ font-weight: 700;
+ color: white;
+ background: var(--line-green);
+ border-radius: 50px;
+ transition: all 0.3s var(--ease-out);
+ }
+ .line-btn:hover {
+ transform: translateY(-2px);
+ box-shadow: 0 6px 20px rgba(6, 199, 85, 0.3);
+ color: white;
+ }
 
-    /* Responsive */
-    @media (max-width: 900px) {
-      .booking-layout {
-        grid-template-columns: 1fr;
-      }
-      .booking-sidebar {
-        position: static;
-      }
-      .booking-form-card {
-        padding: 28px 20px;
-      }
-      .form-row {
-        grid-template-columns: 1fr;
-      }
-      .booking-hero {
-        padding: 100px 0 40px;
-      }
-    }
-  </style>
+ /* Responsive */
+ @media (max-width: 900px) {
+ .booking-layout {
+ grid-template-columns: 1fr;
+ }
+ .booking-sidebar {
+ position: static;
+ }
+ .booking-form-card {
+ padding: 28px 20px;
+ }
+ .form-row {
+ grid-template-columns: 1fr;
+ }
+ .booking-hero {
+ padding: 100px 0 40px;
+ }
+ }
+ </style>
 </head>
 <body class="has-mobile-cta">
   <a class="skip-link" href="#main">メインコンテンツへスキップ</a>
@@ -317,7 +317,7 @@
   <header class="header" id="header">
     <div class="header-inner">
       <a href="index.html" class="logo">
-        <span class="logo-icon">🐾</span>
+        <span class="logo-icon"><i class="ico ico-paw-print" aria-hidden="true"></i></span>
         <span class="logo-text">福楽キャッテリー</span>
       </a>
 
@@ -354,7 +354,7 @@
           <button class="lang-btn" data-lang="zh">中</button>
         </div>
 
-        <a href="https://page.line.me/915hnnlk?call=1" class="header-tel" aria-label="LINEで電話相談" target="_blank" rel="noopener" data-i18n-aria="header.telAria" data-i18n="header.telLabel"><span aria-hidden="true">📞</span>　お電話 / LINE</a>
+        <a href="https://page.line.me/915hnnlk?call=1" class="header-tel" aria-label="LINEで電話相談" target="_blank" rel="noopener" data-i18n-aria="header.telAria" data-i18n="header.telLabel"><span aria-hidden="true"><i class="ico ico-phone" aria-hidden="true"></i></span>　お電話 / LINE</a>
         <div class="header-sns">
           <a href="https://www.instagram.com/fuluckpet/" class="sns-icon" aria-label="Instagram" target="_blank" rel="noopener">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
@@ -407,7 +407,7 @@
   <!-- ========== HERO ========== -->
   <section class="booking-hero" id="main">
     <div class="container">
-      <h1 data-i18n="booking.title">📅 見学予約</h1>
+      <h1 data-i18n="booking.title"><i class="ico ico-calendar-check" aria-hidden="true"></i> 見学予約</h1>
       <p data-i18n="booking.subtitle">対面見学・LINEビデオ通話、お好きな方法でご予約ください。<br>お気軽にどうぞ。</p>
     </div>
   </section>
@@ -419,7 +419,7 @@
 
         <!-- Form -->
         <div class="booking-form-card">
-          <h2>📝 <span data-i18n="booking.formTitle">予約フォーム</span></h2>
+          <h2><i class="ico ico-square-pen" aria-hidden="true"></i> <span data-i18n="booking.formTitle">予約フォーム</span></h2>
 
           <form id="bookingForm" novalidate>
             <!-- Name -->
@@ -490,14 +490,14 @@
 
             <!-- Submit -->
             <button type="submit" class="booking-submit" id="bookingSubmit">
-              <span class="btn-text" data-i18n="booking.submit">📩 予約を送信する</span>
+              <span class="btn-text" data-i18n="booking.submit"><i class="ico ico-mail" aria-hidden="true"></i> 予約を送信する</span>
               <span class="spinner"></span>
             </button>
           </form>
 
           <!-- Success -->
           <div id="bookingSuccess" class="booking-result" role="status" aria-live="polite">
-            <div class="result-icon" aria-hidden="true">🎉</div>
+            <div class="result-icon" aria-hidden="true"><i class="ico ico-party-popper" aria-hidden="true"></i></div>
             <h3 data-i18n="booking.successTitle">予約を送信しました！</h3>
             <p data-i18n="booking.successDesc">24時間以内にメールまたはLINEでご連絡いたします。お待ちくださいませ。</p>
           </div>
@@ -514,19 +514,19 @@
 
           <!-- Visit Info Card -->
           <div class="info-card">
-            <h3>📍 <span data-i18n="booking.infoTitle">見学について</span></h3>
+            <h3><i class="ico ico-map-pin" aria-hidden="true"></i> <span data-i18n="booking.infoTitle">見学について</span></h3>
             <ul>
-              <li><span class="icon">🕐</span><span data-i18n="booking.infoTime">完全予約制（前日までにご連絡ください）</span></li>
-              <li><span class="icon">📷</span><span data-i18n="booking.infoVideo">対面見学・LINEビデオ通話対応</span></li>
-              <li><span class="icon">⏱️</span><span data-i18n="booking.infoDuration">見学時間：約30分〜1時間</span></li>
-              <li><span class="icon">👨‍👩‍👧</span><span data-i18n="booking.infoFamily">ご家族でのご来訪も歓迎です</span></li>
-              <li><span class="icon">📍</span><span data-i18n="booking.infoLocation">大阪市城東区東中浜<br>（詳細住所はご予約時にお伝えします）</span></li>
+              <li><span class="icon"><i class="ico ico-clock" aria-hidden="true"></i></span><span data-i18n="booking.infoTime">完全予約制（前日までにご連絡ください）</span></li>
+              <li><span class="icon"><i class="ico ico-camera" aria-hidden="true"></i></span><span data-i18n="booking.infoVideo">対面見学・LINEビデオ通話対応</span></li>
+              <li><span class="icon"><i class="ico ico-timer" aria-hidden="true"></i></span><span data-i18n="booking.infoDuration">見学時間：約30分〜1時間</span></li>
+              <li><span class="icon"><i class="ico ico-users" aria-hidden="true"></i>‍<i class="ico ico-users" aria-hidden="true"></i>‍<i class="ico ico-users" aria-hidden="true"></i></span><span data-i18n="booking.infoFamily">ご家族でのご来訪も歓迎です</span></li>
+              <li><span class="icon"><i class="ico ico-map-pin" aria-hidden="true"></i></span><span data-i18n="booking.infoLocation">大阪市城東区東中浜<br>（詳細住所はご予約時にお伝えします）</span></li>
             </ul>
           </div>
 
           <!-- Law Notice Card -->
           <div class="info-card">
-            <h3>📋 <span data-i18n="booking.lawTitle">対面販売について</span></h3>
+            <h3><i class="ico ico-clipboard-list" aria-hidden="true"></i> <span data-i18n="booking.lawTitle">対面販売について</span></h3>
             <ul>
               <li><span data-i18n="booking.lawText">動物愛護管理法の規定により、ご購入前に必ず対面（来場またはLINEビデオ通話）での説明と現物確認が必要です。</span></li>
             </ul>
@@ -553,7 +553,7 @@
       <div class="footer-top">
         <div class="footer-brand">
           <div class="f-logo">
-            <span class="logo-icon">🐾</span>
+            <span class="logo-icon"><i class="ico ico-paw-print" aria-hidden="true"></i></span>
             <span class="f-logo-text">福楽キャッテリー</span>
           </div>
           <p class="f-tagline">サイベリアン｜大阪・福楽キャッテリー</p>
@@ -595,7 +595,7 @@
             <p>所在地: 大阪市城東区東中浜 2-6-23</p>
           </div>
           <div class="law-notice-compact">
-            <div class="law-notice-title">📋 動物愛護管理法に基づく対面販売</div>
+            <div class="law-notice-title"><i class="ico ico-clipboard-list" aria-hidden="true"></i> 動物愛護管理法に基づく対面販売</div>
             <p>法律の規定により、ご購入前に対面での説明と現物確認が必要です。</p>
           </div>
         </div>
@@ -609,7 +609,7 @@
   <!-- ========== FIXED LINE BUTTON ========== -->
   <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="fixed-line" aria-label="LINEでお問い合わせ" id="fixedLine" target="_blank" rel="noopener">
     <span class="fixed-line-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596a.626.626 0 0 1-.199.031c-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.271.173-.508.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg></span>
-    <span class="fixed-line-content"><span class="fixed-line-label">見学予約・ご相談</span><span class="fixed-line-cta">LINEで相談 🐾</span></span>
+    <span class="fixed-line-content"><span class="fixed-line-label">見学予約・ご相談</span><span class="fixed-line-cta">LINEで相談 <i class="ico ico-paw-print" aria-hidden="true"></i></span></span>
   </a>
 
   <!-- Back to Top -->
@@ -617,8 +617,8 @@
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
   </button>
 
-  <script src="i18n.js?v=20260211"></script>
-  <script src="script.js?v=20260211"></script>
+  <script src="i18n.js?v=20260623b"></script>
+  <script src="script.js?v=20260623b"></script>
   <script>
   // ===== Booking Form Submission — POSTs to fuluck-api Worker =====
   // Worker endpoint: /api/booking (CORS locked to https://fuluckpet.com)
@@ -763,7 +763,7 @@
   </script>
   <!-- ========== FLOATING MOBILE NAV BUTTON (always-visible nav, mobile only) ========== -->
   <button class="mobile-nav-fab" id="mobileNavFab" aria-label="メニューを開く" aria-controls="mobileNav" aria-expanded="false" type="button">
-    <span class="fab-icon" aria-hidden="true">🐾</span>
+    <span class="fab-icon" aria-hidden="true"><i class="ico ico-paw-print" aria-hidden="true"></i></span>
     <span class="fab-label" data-i18n="nav.menu">メニュー</span>
   </button>
 
@@ -771,21 +771,21 @@
   <div class="mobile-cta-bar" role="navigation" aria-label="クイック連絡">
     <div class="mobile-cta-bar-inner">
       <a class="cta-line" href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" target="_blank" rel="noopener" data-cta="line"
-         aria-label="LINEで相談する">
-        <span class="cta-icon">💬</span>
+ aria-label="LINEで相談する">
+        <span class="cta-icon"><i class="ico ico-message-circle" aria-hidden="true"></i></span>
         <span data-i18n="cta.line">LINEで相談</span>
       </a>
       <a class="cta-booking" href="#bookingForm" data-cta="booking" aria-label="見学を予約する">
-        <span class="cta-icon">📅</span>
+        <span class="cta-icon"><i class="ico ico-calendar-check" aria-hidden="true"></i></span>
         <span data-i18n="cta.booking">見学予約</span>
       </a>
     </div>
   </div>
 
-  <script defer src="mobile-cta.js"></script>
-  <script defer src="analytics.js"></script>
+  <script defer src="mobile-cta.js?v=20260623b"></script>
+  <script defer src="analytics.js?v=20260623b"></script>
   <!-- AI customer service chat widget -->
-  <link rel="stylesheet" href="/assets/chat/widget.css">
-  <script defer src="/assets/chat/widget.js"></script>
+  <link rel="stylesheet" href="/assets/chat/widget.css?v=20260623b">
+  <script defer src="/assets/chat/widget.js?v=20260623b"></script>
 </body>
 </html>

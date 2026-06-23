@@ -47,7 +47,7 @@
     {
       keywords: ['見学', '予約', '訪問', '会いに', '会える', '内覧', 'visit', 'booking'],
       answer:
-        '見学は完全予約制です。LINE またはご予約フォーム（/booking.html）よりご希望日時をお知らせください。週末は混み合いますのでお早めのご相談がおすすめです🐾'
+        '見学は完全予約制です。LINE またはご予約フォーム（/booking.html）よりご希望日時をお知らせください。週末は混み合いますのでお早めのご相談がおすすめです'
     },
     {
       keywords: ['アレルギー', 'アレルゲン', 'fel d1', 'fel-d1', 'feld1', 'allergy', '低アレルゲン', 'くしゃみ'],
@@ -87,7 +87,7 @@
 
   // FAQ unmatched fallback (also used when worker is reachable but errors)
   var FAQ_UNMATCHED =
-    '申し訳ありません、AIアシスタントが現在準備中です。お急ぎの方はLINEからお気軽にご連絡ください 🐾';
+    '申し訳ありません、AIアシスタントが現在準備中です。お急ぎの方はLINEからお気軽にご連絡ください';
 
   // ── i18n keys (Japanese-first; pulls from window.translations if present) ──
   var DEFAULT_STRINGS = {
@@ -96,7 +96,7 @@
     'chat.status.online': 'オンライン',
     'chat.status.faq': '簡易モード',
     'chat.greeting':
-      'こんにちは！福楽キャッテリーのアシスタント、ふくにゃんです🐈‍⬛ サイベリアンや見学予約についてお気軽にどうぞ。',
+      'こんにちは！福楽キャッテリーのアシスタント、ふくにゃんです サイベリアンや見学予約についてお気軽にどうぞ。',
     'chat.placeholder': 'メッセージを入力...',
     'chat.send': '送信',
     'chat.close': '閉じる',
@@ -280,9 +280,11 @@
     var avatar = el(
       'div',
       { class: 'fuluck-chat-msg-avatar', 'aria-hidden': 'true' },
-      role === 'user' ? '🙂' : null
+      null
     );
-    if (role !== 'user') avatar.innerHTML = SVG_CAT.replace('width="48" height="48"', 'width="22" height="22"');
+    avatar.innerHTML = role === 'user'
+      ? '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
+      : SVG_CAT.replace('width="48" height="48"', 'width="22" height="22"');
 
     var bubble = el('div', { class: 'fuluck-chat-msg-bubble' });
     if (opts.html) bubble.innerHTML = content;

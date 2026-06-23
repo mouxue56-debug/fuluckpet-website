@@ -14,18 +14,18 @@
   var CARD_I18N = {
     ja: {
       available: '販売中', reserved: '商談中', sold: 'ご家族決定',
-      male: '♂ 男の子', female: '♀ 女の子',
+      male: '<i class="ico ico-mars" aria-hidden="true"></i> 男の子', female: '<i class="ico ico-venus" aria-hidden="true"></i> 女の子',
       photoAlt: '子猫の写真', taxIncl: '（税込）',
-      dnaTested: '✓ 遺伝子検査済', verifiedReview: '✓ 認証済みレビュー',
+      dnaTested: '<i class="ico ico-check" aria-hidden="true"></i> 遺伝子検査済', verifiedReview: '<i class="ico ico-check" aria-hidden="true"></i> 認証済みレビュー',
       reviewPlatform: 'みんなの子猫ブリーダー',
       bornFmt: function(y, m) { return y + '年' + m + '月生まれ'; },
       counter: '匹'
     },
     en: {
       available: 'Available', reserved: 'Reserved', sold: 'Adopted',
-      male: '♂ Male', female: '♀ Female',
+      male: '<i class="ico ico-mars" aria-hidden="true"></i> Male', female: '<i class="ico ico-venus" aria-hidden="true"></i> Female',
       photoAlt: 'Kitten photo', taxIncl: '(tax incl.)',
-      dnaTested: '✓ DNA Tested', verifiedReview: '✓ Verified Review',
+      dnaTested: '<i class="ico ico-check" aria-hidden="true"></i> DNA Tested', verifiedReview: '<i class="ico ico-check" aria-hidden="true"></i> Verified Review',
       reviewPlatform: 'Minna no Koneko Breeder',
       bornFmt: function(y, m) { return 'Born ' + y + '/' + m; },
       counter: '',
@@ -34,9 +34,9 @@
     },
     zh: {
       available: '可预约', reserved: '已预订', sold: '已出售',
-      male: '♂ 男孩', female: '♀ 女孩',
+      male: '<i class="ico ico-mars" aria-hidden="true"></i> 男孩', female: '<i class="ico ico-venus" aria-hidden="true"></i> 女孩',
       photoAlt: '小猫照片', taxIncl: '（含税）',
-      dnaTested: '✓ 基因检测完毕', verifiedReview: '✓ 已认证评价',
+      dnaTested: '<i class="ico ico-check" aria-hidden="true"></i> 基因检测完毕', verifiedReview: '<i class="ico ico-check" aria-hidden="true"></i> 已认证评价',
       reviewPlatform: '大家的幼猫繁殖者',
       bornFmt: function(y, m) { return y + '年' + m + '月出生'; },
       counter: '只',
@@ -118,7 +118,7 @@
     var detailUrl = '/kittens/' + (k.breederId || k.id) + '.html';
     return '<div class="kitten-card" data-status="' + escAttr(k.status) + '" data-price="' + k.price + '" data-birthday="' + escAttr(fmtBdayAttr(k.birthday)) + '" data-images="' + dataImages + '" data-video="' + escAttr(k.video || '') + '" data-papa="' + escAttr(k.papa || '') + '" data-mama="' + escAttr(k.mama || '') + '" data-new="' + k.isNew + '" data-name="" data-breeder-id="' + escAttr(k.breederId || '') + '" data-detail-url="' + escAttr(detailUrl) + '">' +
       '<div class="kitten-img">' +
-        (cover ? '<img src="' + cover + '" alt="' + ct('photoAlt') + '" ' + imgLoad + ' style="width:100%;height:100%;object-fit:cover;">' : '<div class="img-placeholder"><span>🐱</span></div>') +
+        (cover ? '<img src="' + cover + '" alt="' + ct('photoAlt') + '" ' + imgLoad + ' style="width:100%;height:100%;object-fit:cover;">' : '<div class="img-placeholder"><span><i class="ico ico-cat" aria-hidden="true"></i></span></div>') +
         '<span class="kit-status ' + statusClass + '">' + statusText + '</span>' +
         (k.isNew ? '<span class="kit-badge-new">NEW</span>' : '') +
       '</div>' +
@@ -154,7 +154,7 @@
   function reviewCardHTML(r) {
     return '<div class="review-card">' +
       '<div class="review-header">' +
-        '<div class="review-stars">★★★★★</div>' +
+        '<div class="review-stars"><i class="ico ico-star" aria-hidden="true"></i><i class="ico ico-star" aria-hidden="true"></i><i class="ico ico-star" aria-hidden="true"></i><i class="ico ico-star" aria-hidden="true"></i><i class="ico ico-star" aria-hidden="true"></i></div>' +
         '<span class="review-platform">' + ct('reviewPlatform') + '</span>' +
       '</div>' +
       '<p class="review-body">' + escAttr(r.body) + '</p>' +

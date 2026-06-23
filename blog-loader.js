@@ -87,7 +87,7 @@
       var excerpt = txt(a.excerpt);
       var cover = a.coverImage || '';
       return '<a href="/blog/' + encodeURIComponent(a.slug) + '.html" class="blog-card">' +
-        (cover ? '<div class="blog-card-img"><img src="' + cover + '" alt="' + title + '" loading="lazy"></div>' : '<div class="blog-card-img blog-card-noimg">📝</div>') +
+        (cover ? '<div class="blog-card-img"><img src="' + cover + '" alt="' + title + '" loading="lazy"></div>' : '<div class="blog-card-img blog-card-noimg"><i class="ico ico-square-pen" aria-hidden="true"></i></div>') +
         '<div class="blog-card-body">' +
           '<span class="blog-card-cat">' + catLabel(a.category) + '</span>' +
           '<h3 class="blog-card-title">' + title + '</h3>' +
