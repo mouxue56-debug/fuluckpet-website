@@ -83,7 +83,7 @@ LANDING_BODY = (hero(
   '<p>大阪府を拠点に、<b>兵庫・京都・奈良・和歌山・滋賀</b>など関西全域へ。空輸・陸送による<b>全国へのお届け</b>、直接のお迎えにも対応しています。完全予約制です。</p>'
   '<h2 style="margin-top:28px">価格の目安</h2>'
   '<p>猫種・血統・カラーにより概ね<b>16万円〜29万円（税込）</b>。ワクチン接種・健康診断・血統書登録などを含みます。'
-  '<span style="color:#9aa">［各項目の内訳・金額は要オーナー確認］</span></p>'
+  '<span style="color:var(--text-note)">価格には健康診断・ワクチン接種・血統書・マイクロチップ等が含まれます。個体ごとの総額と内訳は、<a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" target="_blank" rel="noopener" style="color:#5BC4A8;font-weight:600">LINE</a>でお気軽にご確認ください。</span></p>'
   '<h2 style="margin-top:28px">お迎えまでの流れ</h2>'
   '<p>① LINE／予約フォームでご相談 → ② 見学（対面・ビデオ通話）＋相性チェック → ③ ご契約 → ④ お迎え。'
   '詳しくは<a href="/guide/">お迎えガイド</a>、子猫は<a href="/kittens.html">子猫一覧</a>をご覧ください。</p>'
@@ -110,7 +110,7 @@ ALLERGY_BODY = (hero(
   '<li><b>低アレルゲン</b>を重視したサイベリアン専門のブリーディング。</li>'
   '<li>見学時に<b>アレルギーの相性チェック</b>のお時間を長めに確保（対面・ビデオ通話）。</li>'
   '<li>遺伝子検査（PKD・HCM）実施、健康管理・社会化を徹底。</li>'
-  '<li><span style="color:#9aa">［自家猫のFel d1実測値（検査機関・対象猫・数値）を掲載予定：要オーナー提供］</span></li>'
+  '<li><span style="color:var(--text-note)">自家猫のFel d1実測データは、準備が整い次第こちらに掲載します。現時点では、見学時に実際にサイベリアンと触れ合い、ご自身の反応をご確認いただくことを最もおすすめしています。</span></li>'
   '</ul>'
   '<h2 style="margin-top:8px">お迎え前の4ステップ</h2>'
   '<p>① 病院でアレルギー検査 → ② 見学でサイベリアンと長めに接触し反応を確認 → ③ 段階的に接触して慣らす → ④ 不安があれば医師に相談。'
@@ -135,7 +135,7 @@ WAITLIST_BODY = (hero(
   '<p style="margin-bottom:16px;color:var(--text-note)">いま在籍中の子猫は<a href="/kittens.html">子猫一覧</a>と'
   '<a href="' + KONEKO + '" target="_blank" rel="noopener">みんなの子猫ブリーダー</a>でご覧いただけます。</p>'
   '<a href="' + LINE + '" class="btn btn-line" target="_blank" rel="noopener" style="margin:0 auto">💬 LINEでウェイトリストに登録</a></div>'
-  '<p style="color:#9aa;font-size:0.9rem">［予定している交配・出産予定（親猫ペア・予想毛色・時期）の掲載は要オーナー確認］</p>'
+  '<p style="color:var(--text-note);font-size:0.95rem">次回の出産・お迎え予定が決まり次第、このページとLINEでお知らせします。ウェイトリストにご登録いただいた方には、一般公開前に優先してご案内いたします。</p>'
   '</div></section>' + cta_section())
 
 PAGES = [
@@ -157,6 +157,18 @@ PAGES = [
 ]
 
 if __name__ == "__main__":
+    import sys
+    # GUARD: these pages have been hand-edited AFTER generation and a blind
+    # regenerate would DESTROY that work. As of 2026-06-23 the live pages carry:
+    #   - siberian-allergy.html: an interactive self-check quiz (id=acqForm) NOT in ALLERGY_BODY
+    #   - all 3 pages: the site-wide emoji->SVG icon conversion (<i class="ico ...">)
+    #   - honest no-data copy that replaced the [要オーナー確認] placeholders
+    # Re-run only with --force AND after porting the quiz + re-running tools/deemoji.py.
+    if "--force" not in sys.argv:
+        print("REFUSING to regenerate: live pages have a hand-added quiz, SVG icons, and "
+              "edited copy that this generator would overwrite. Re-run with --force only "
+              "after porting those into the *_BODY blocks, then run tools/deemoji.py.")
+        sys.exit(1)
     for p in PAGES:
         build(p)
-    print("done")
+    print("done — REMEMBER to re-run tools/deemoji.py and re-add the allergy quiz.")
