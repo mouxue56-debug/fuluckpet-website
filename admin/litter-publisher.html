@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>一窝発布ワークステーション｜福楽キャッテリー</title>
+<style>
+  :root{
+    --mint:#7DD3C0; --mint-dark:#5BC4A8; --mint-light:#F0FFFA;
+    --cream:#FFFCF0; --ink:#3a4a4a; --ink-soft:#5A7A7A; --line:#06C755;
+    --glass:rgba(255,255,255,.66); --glass-brd:rgba(255,255,255,.7);
+    --shadow:0 8px 32px rgba(90,122,122,.12); --radius:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter','Noto Sans JP',sans-serif;color:var(--ink);line-height:1.7;
+    background:linear-gradient(135deg,#F0FFFA 0%,#FFFCF0 45%,#FFF8FB 100%);min-height:100vh;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 80px}
+  header.top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:8px}
+  .title{font-size:24px;font-weight:800;color:var(--ink)}
+  .title small{display:block;font-size:13px;font-weight:500;color:var(--ink-soft);margin-top:2px}
+  .back{font-size:13px;color:var(--mint-dark);text-decoration:none;font-weight:600;background:var(--glass);
+    backdrop-filter:blur(12px);border:1px solid var(--glass-brd);padding:8px 16px;border-radius:30px}
+  .panel{background:var(--glass);backdrop-filter:blur(16px) saturate(160%);-webkit-backdrop-filter:blur(16px) saturate(160%);
+    border:1px solid var(--glass-brd);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px;margin:18px 0}
+  .panel-h{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:800;margin-bottom:4px}
+  .panel-h .step{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--mint),var(--mint-dark));
+    color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0}
+  .panel-sub{font-size:12.5px;color:var(--ink-soft);margin-bottom:18px}
+  /* litter selector */
+  .litter-groups{display:flex;flex-direction:column;gap:14px}
+  .lg{border:1px solid #e8f0ee;border-radius:14px;padding:14px;background:rgba(255,255,255,.5)}
+  .lg-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;cursor:pointer;font-weight:700;font-size:14px}
+  .lg-head .pick{font-size:12px;color:var(--mint-dark);font-weight:600;margin-left:auto}
+  .kit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  .kit{border:2px solid #eef4f2;border-radius:12px;overflow:hidden;cursor:pointer;background:#fff;transition:all .15s;position:relative}
+  .kit.sel{border-color:var(--mint);box-shadow:0 4px 14px rgba(125,211,192,.3)}
+  .kit img{width:100%;height:110px;object-fit:cover;display:block;background:#f3f3f3}
+  .kit .meta{padding:7px 9px;font-size:11.5px;line-height:1.5}
+  .kit .meta b{color:var(--ink)}
+  .kit .chk{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.9);
+    display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--mint-dark);opacity:0;transition:.15s}
+  .kit.sel .chk{opacity:1}
+  .meta-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+  .meta-row label{font-size:12px;color:var(--ink-soft);display:flex;flex-direction:column;gap:4px;flex:1;min-width:160px}
+  .meta-row input{padding:9px 12px;border:1.5px solid #e2ece9;border-radius:9px;font:inherit;font-size:13px;outline:none}
+  .meta-row input:focus{border-color:var(--mint)}
+  /* generated channels */
+  .chan{border:1px solid #e8f0ee;border-radius:14px;margin-bottom:14px;overflow:hidden;background:rgba(255,255,255,.55)}
+  .chan-h{display:flex;align-items:center;gap:9px;padding:12px 16px;font-weight:700;font-size:14px;border-bottom:1px solid #eef4f2}
+  .chan-h .tag{font-size:11px;font-weight:600;color:var(--ink-soft);margin-left:auto;background:#f1f7f5;padding:3px 10px;border-radius:20px}
+  .chan-body{padding:14px 16px}
+  textarea{width:100%;border:1.5px solid #e2ece9;border-radius:10px;padding:12px;font:inherit;font-size:13px;line-height:1.65;
+    resize:vertical;min-height:90px;outline:none;background:#fff}
+  textarea:focus{border-color:var(--mint)}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:30px;font-weight:700;font-size:13px;
+    border:none;cursor:pointer;font-family:inherit;transition:transform .15s;text-decoration:none}
+  .btn:active{transform:scale(.97)}
+  .btn-mint{background:linear-gradient(135deg,var(--mint),var(--mint-dark));color:#fff}
+  .btn-ghost{background:#fff;border:1.5px solid #e2ece9;color:var(--ink-soft)}
+  .btn-line{background:var(--line);color:#fff}
+  .chan-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
+  .copied{font-size:12px;color:var(--mint-dark);font-weight:600;opacity:0;transition:.2s}
+  .copied.show{opacity:1}
+  /* checklist */
+  .progress{height:8px;background:#eef4f2;border-radius:20px;overflow:hidden;margin:6px 0 18px}
+  .progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--mint),var(--mint-dark));transition:width .3s}
+  .step-row{display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px dashed #e8f0ee}
+  .step-row:last-child{border:none}
+  .step-no{width:30px;height:30px;border-radius:50%;border:2px solid var(--mint);color:var(--mint-dark);font-weight:800;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;background:#fff;font-size:14px;transition:.15s}
+  .step-row.done .step-no{background:var(--mint);color:#fff;border-color:var(--mint)}
+  .step-main{flex:1}
+  .step-main h4{font-size:14px;margin-bottom:3px}
+  .step-row.done .step-main h4{text-decoration:line-through;color:var(--ink-soft)}
+  .step-main p{font-size:12px;color:var(--ink-soft);margin-bottom:8px}
+  .step-main .acts{display:flex;gap:8px;flex-wrap:wrap}
+  .empty{text-align:center;color:var(--ink-soft);font-size:13px;padding:30px}
+  .pill-why{background:#fff7ec;border-left:3px solid #E8B84B;padding:10px 14px;border-radius:0 8px 8px 0;font-size:12.5px;margin-bottom:14px;color:#7a6320}
+  @media(max-width:560px){.kit img{height:96px}.title{font-size:20px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="title">🐾 一窝発布ワークステーション<small>1窝の子猫を、最適な順番で全チャンネルに展開（半自動・担当者が各ステップを実行）</small></div>
+    <a href="index.html" class="back">← 管理画面へ</a>
+  </header>
+
+  <!-- STEP 1 -->
+  <section class="panel">
+    <div class="panel-h"><span class="step">1</span>窝（litter）を選ぶ</div>
+    <div class="panel-sub">同じ親・同じ月齢の子猫が自動でまとまっています。発表する子猫をタップで選択。手動で組み替えもOK。</div>
+    <div id="litterGroups" class="litter-groups"><div class="empty">子猫データを読み込み中…</div></div>
+    <div class="meta-row">
+      <label>窝のタイトル（自動生成・編集可）<input id="litterTitle" placeholder="例：しろくん×大蓝ちゃん の子猫が誕生しました"></label>
+      <label>誕生・公開日<input id="litterDate" placeholder="2025-12"></label>
+    </div>
+    <div style="margin-top:16px"><button class="btn btn-mint" id="genBtn">✨ 全チャンネルの下書きを生成</button></div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="panel" id="genPanel" style="display:none">
+    <div class="panel-h"><span class="step">2</span>生成された下書き（確認・編集）</div>
+    <div class="panel-sub">中身を確認して必要なら直してから、各チャンネルにコピー。文章はモデルが叩き台を作っただけ——事実（価格・健康情報）は必ず確認を。</div>
+    <div id="channels"></div>
+  </section>
+
+  <!-- STEP 3 -->
+  <section class="panel" id="pubPanel" style="display:none">
+    <div class="panel-h"><span class="step">3</span>公開チェックリスト（この順番が最適）</div>
+    <div class="pill-why">💡 集客の鉄則：①LINEで候補リストに<b>先行案内</b>（満額・予約済みになりやすい）→ ②公式ブログ（新鮮なSEOコンテンツ）→ ③みんなの子猫ブリーダーを<b>新着</b>に更新（一番の集客源）→ ④SNSで拡散。</div>
+    <div class="progress"><i id="progBar"></i></div>
+    <div id="checklist"></div>
+  </section>
+</div>
+
+<script>
+// ---- auth gate: must be logged into admin ----
+if (sessionStorage.getItem('fuluck-admin-auth') !== '1') {
+  location.replace('index.html');
+}
+var API='https://fuluck-api.mouxue56.workers.dev';
+var LINE='https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true';
+var KONEKO='https://www.koneko-breeder.com/breeder_c995680.html';
+var SITE='https://fuluckpet.com';
+var kittens=[], selected=new Set();
+
+function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function fmtPrice(p){return '¥'+Number(p||0).toLocaleString('ja-JP')}
+
+// group kittens by papa+mama+birth-month
+function groupLitters(ks){
+  var g={};
+  ks.forEach(function(k){
+    if(k.status==='sold') return;
+    var key=(k.papa||'?')+'|'+(k.mama||'?')+'|'+(k.birthday||'?');
+    (g[key]=g[key]||[]).push(k);
+  });
+  return Object.keys(g).map(function(key){var p=key.split('|');return {papa:p[0],mama:p[1],birthday:p[2],kits:g[key]};})
+    .sort(function(a,b){return (b.birthday||'').localeCompare(a.birthday||'')});
+}
+
+function render(){
+  var groups=groupLitters(kittens);
+  var el=document.getElementById('litterGroups');
+  if(!groups.length){el.innerHTML='<div class="empty">在籍中の子猫がありません。子猫管理で登録してください。</div>';return;}
+  el.innerHTML=groups.map(function(g,gi){
+    var label=(g.papa!=='?'?g.papa:'親不明')+' × '+(g.mama!=='?'?g.mama:'親不明')+'｜'+(g.birthday||'-')+'生まれ・'+g.kits.length+'匹';
+    var cards=g.kits.map(function(k){
+      var sel=selected.has(k.breederId||k.id)?' sel':'';
+      var img=(k.photos&&k.photos[0])||'';
+      return '<div class="kit'+sel+'" data-id="'+esc(k.breederId||k.id)+'">'+
+        '<div class="chk">✓</div>'+
+        (img?'<img src="'+esc(img)+'" alt="" loading="lazy" onerror="this.style.background=\'#eee\'">':'<div style="height:110px;background:#f3f3f3;display:flex;align-items:center;justify-content:center;font-size:26px">🐱</div>')+
+        '<div class="meta"><b>'+esc(k.gender||'')+' '+esc(k.color||'')+'</b><br>'+esc(k.breederId||'')+'｜'+fmtPrice(k.price)+'</div></div>';
+    }).join('');
+    return '<div class="lg"><div class="lg-head" data-grp="'+gi+'">🐈 '+esc(label)+'<span class="pick">この窝を全選択</span></div><div class="kit-grid">'+cards+'</div></div>';
+  }).join('');
+  window.__groups=groups;
+}
+
+document.getElementById('litterGroups').addEventListener('click',function(e){
+  var kit=e.target.closest('.kit');
+  if(kit){var id=kit.dataset.id; selected.has(id)?selected.delete(id):selected.add(id); render(); autofill(); return;}
+  var head=e.target.closest('.lg-head');
+  if(head){var g=window.__groups[+head.dataset.grp]; var ids=g.kits.map(function(k){return k.breederId||k.id;});
+    var all=ids.every(function(i){return selected.has(i);});
+    ids.forEach(function(i){all?selected.delete(i):selected.add(i);}); render(); autofill();}
+});
+
+function selectedKits(){return kittens.filter(function(k){return selected.has(k.breederId||k.id);});}
+
+function autofill(){
+  var ks=selectedKits(); if(!ks.length) return;
+  var t=document.getElementById('litterTitle'), d=document.getElementById('litterDate');
+  var papa=ks[0].papa, mama=ks[0].mama;
+  if(!t.value && papa && mama) t.value=papa+'×'+mama+'の'+ks[0].breed+'子猫が誕生しました';
+  if(!d.value) d.value=ks[0].birthday||'';
+}
+
+// ---------- generators ----------
+function colorsList(ks){return ks.map(function(k){return k.color;}).filter(Boolean);}
+function uniq(a){return a.filter(function(v,i){return a.indexOf(v)===i;});}
+function hashtags(ks){
+  var base=['#サイベリアン','#子猫','#大阪','#関西','#低アレルゲン猫','#猫アレルギー','#キャッテリー','#子猫のいる生活','#福楽キャッテリー','#猫好きさんと繋がりたい'];
+  if(ks.some(function(k){return /ネヴァ|マスカレード/.test(k.color||'');})) base.push('#ネヴァマスカレード');
+  return base.join(' ');
+}
+function blogDraft(ks,title,date){
+  var rows=ks.map(function(k){
+    var img=(k.photos&&k.photos[0])||'';
+    return '    <figure class="blog-figure">\n'+(img?'      <img src="'+img+'" alt="'+esc(k.color)+'のサイベリアン子猫" loading="lazy">\n':'')+
+      '      <figcaption>'+esc(k.gender)+'・'+esc(k.color)+'（'+esc(k.breederId)+'）／'+fmtPrice(k.price)+'（税込）</figcaption>\n    </figure>';
+  }).join('\n');
+  return '<p>'+esc(ks[0].papa)+'と'+esc(ks[0].mama)+'の間に、'+ks.length+'匹のサイベリアンの子猫が誕生しました🐾 '+
+    '低アレルゲンで穏やかな性格を大切に、健康管理と社会化を丁寧に行いながら育てています。</p>\n\n'+
+    '<h2>今回の子猫たち</h2>\n'+rows+'\n\n'+
+    '<p>毛色は'+uniq(colorsList(ks)).join('・')+'。お迎えをご検討の方は、LINEまたは見学予約からお気軽にご相談ください。実際に会って相性を確かめていただけます。</p>';
+}
+function igCaption(ks,title){
+  return '🐾 '+title+'\n\n'+ks[0].papa+'×'+ks[0].mama+'の子猫が'+ks.length+'匹、すこやかに育っています。\n毛色は'+uniq(colorsList(ks)).slice(0,4).join('・')+'✨\n\n低アレルゲンで穏やか、大阪のサイベリアン専門ブリーダー（みんなの子猫ブリーダー全国1位🏆）。\nお迎え・見学のご相談はプロフィールのLINEから💬\n\n'+hashtags(ks);
+}
+function tiktokCaption(ks){
+  return ks[0].papa+'×'+ks[0].mama+'の子猫が誕生🐱✨ 毛色いろいろ'+ks.length+'匹｜大阪のサイベリアン専門・低アレルゲン｜お迎え相談はプロフのLINEへ\n'+hashtags(ks);
+}
+function ytDesc(ks,title){
+  return title+'｜福楽キャッテリー（大阪・サイベリアン専門ブリーダー）\n\n'+ks[0].papa+'×'+ks[0].mama+'の子猫'+ks.length+'匹の成長の様子です。低アレルゲンで穏やかな性格のサイベリアン。\n\n▼ 子猫一覧 '+SITE+'/kittens.html\n▼ 見学予約 '+SITE+'/booking.html\n▼ LINEで相談 '+LINE+'\n\n大阪・関西でサイベリアンの子猫をお探しの方へ。5.0★×113件・みんなの子猫ブリーダー全国1位。\n\n'+hashtags(ks);
+}
+function lineBroadcast(ks,title){
+  return '【福楽キャッテリーより】新しい子猫のお知らせ🐾\n\n'+ks[0].papa+'×'+ks[0].mama+'の子猫が'+ks.length+'匹誕生しました。\n毛色：'+uniq(colorsList(ks)).join('・')+'\n価格：'+fmtPrice(Math.min.apply(null,ks.map(function(k){return k.price||0;})))+'〜\n\nご予約・お迎えのご相談はこのままご返信ください。先着でご案内します。\n見学（対面・ビデオ通話）も承っております😊';
+}
+function marketplaceFields(ks){
+  return ks.map(function(k,i){
+    return '── 子猫'+(i+1)+'（'+esc(k.breederId)+'）──\n'+
+      '猫種：'+(k.breed||'サイベリアン')+'\n毛色：'+(k.color||'')+'\n性別：'+(k.gender||'')+'\n誕生：'+(k.birthday||'')+'\n価格：'+fmtPrice(k.price)+'（税込）\n父猫：'+(k.papa||'')+'／母猫：'+(k.mama||'')+'\n備考：'+(k.note||'低アレルゲン・健康管理/社会化済み・遺伝子検査(PKD/HCM)済み');
+  }).join('\n\n');
+}
+
+function chan(id,icon,name,tag,value,note){
+  return '<div class="chan"><div class="chan-h">'+icon+' '+name+'<span class="tag">'+tag+'</span></div>'+
+    '<div class="chan-body"><textarea id="'+id+'">'+esc(value)+'</textarea>'+
+    '<div class="chan-actions"><button class="btn btn-mint" data-copy="'+id+'">📋 コピー</button>'+(note||'')+
+    '<span class="copied" id="cp-'+id+'">コピーしました</span></div></div></div>';
+}
+
+document.getElementById('genBtn').addEventListener('click',function(){
+  var ks=selectedKits();
+  if(!ks.length){alert('発表する子猫を1匹以上選んでください');return;}
+  var title=document.getElementById('litterTitle').value||(ks[0].papa+'×'+ks[0].mama+'の子猫が誕生しました');
+  var date=document.getElementById('litterDate').value||ks[0].birthday||'';
+  window.__ctx={ks:ks,title:title,date:date};
+
+  document.getElementById('channels').innerHTML=
+    chan('cBlog','📝','公式ブログ下書き','HTML',blogDraft(ks,title,date),'<a class="btn btn-ghost" href="blog-editor.html" target="_blank">ブログ編集を開く ↗</a>')+
+    chan('cLine','💬','LINE先行案内','テキスト',lineBroadcast(ks,title),'<a class="btn btn-ghost" href="https://manager.line.biz/" target="_blank">LINE公式を開く ↗</a>')+
+    chan('cKoneko','🏆','みんなの子猫ブリーダー登録項目','貼付用',marketplaceFields(ks),'<a class="btn btn-ghost" href="'+KONEKO+'" target="_blank">出品ページを開く ↗</a>')+
+    chan('cIg','📸','Instagram キャプション','SNS',igCaption(ks,title),'<a class="btn btn-ghost" href="https://www.instagram.com/fuluckpet/" target="_blank">IGを開く ↗</a>')+
+    chan('cTt','🎵','TikTok キャプション','SNS',tiktokCaption(ks),'<a class="btn btn-ghost" href="https://www.tiktok.com/@fuluckpet" target="_blank">TikTokを開く ↗</a>')+
+    chan('cYt','▶️','YouTube 説明欄','SNS',ytDesc(ks,title),'<a class="btn btn-ghost" href="https://www.youtube.com/@fuluckpet" target="_blank">YouTubeを開く ↗</a>');
+
+  // checklist (traffic-optimal order)
+  var steps=[
+    {h:'① LINEで候補リストへ先行案内',p:'満額・予約済みになりやすい最良の需要から。',copy:'cLine',open:LINE,btn:'LINEを開く'},
+    {h:'② 公式ブログに投稿',p:'新鮮なSEOコンテンツ＋内部リンク。ブログ編集に貼り付けて公開。',copy:'cBlog',open:'blog-editor.html',btn:'ブログ編集'},
+    {h:'③ みんなの子猫ブリーダーを新着に更新',p:'一番の集客源。新規/再掲載で「新着」を獲得＝大阪サイベリアン1ページ目へ。',copy:'cKoneko',open:KONEKO,btn:'出品ページ'},
+    {h:'④ Instagram に投稿',p:'写真/リール＋キャプション。',copy:'cIg',open:'https://www.instagram.com/fuluckpet/',btn:'Instagram'},
+    {h:'⑤ TikTok に投稿',p:'最初の3秒がカギ。短い縦動画＋キャプション。',copy:'cTt',open:'https://www.tiktok.com/@fuluckpet',btn:'TikTok'},
+    {h:'⑥ YouTube に投稿',p:'成長動画＋説明欄（SEO）。',copy:'cYt',open:'https://www.youtube.com/@fuluckpet',btn:'YouTube'}
+  ];
+  document.getElementById('checklist').innerHTML=steps.map(function(s,i){
+    return '<div class="step-row" data-i="'+i+'"><div class="step-no" data-toggle="'+i+'">'+(i+1)+'</div>'+
+      '<div class="step-main"><h4>'+s.h+'</h4><p>'+s.p+'</p><div class="acts">'+
+      '<button class="btn btn-mint" data-copy="'+s.copy+'">📋 内容をコピー</button>'+
+      '<a class="btn btn-ghost" href="'+s.open+'" target="_blank">'+s.btn+' ↗</a></div></div></div>';
+  }).join('');
+  document.getElementById('genPanel').style.display='';
+  document.getElementById('pubPanel').style.display='';
+  document.getElementById('genPanel').scrollIntoView({behavior:'smooth'});
+  updateProg();
+});
+
+// copy + checklist toggle (event-delegated)
+document.body.addEventListener('click',function(e){
+  var c=e.target.closest('[data-copy]');
+  if(c){var ta=document.getElementById(c.dataset.copy); if(ta){navigator.clipboard.writeText(ta.value).then(function(){
+    var f=document.getElementById('cp-'+c.dataset.copy); if(f){f.classList.add('show');setTimeout(function(){f.classList.remove('show');},1500);}
+  });} return;}
+  var t=e.target.closest('[data-toggle]');
+  if(t){var row=t.closest('.step-row'); row.classList.toggle('done'); updateProg();}
+});
+function updateProg(){
+  var rows=document.querySelectorAll('.step-row'); if(!rows.length)return;
+  var done=document.querySelectorAll('.step-row.done').length;
+  document.getElementById('progBar').style.width=Math.round(done/rows.length*100)+'%';
+}
+
+// load kittens
+fetch(API+'/api/kittens').then(function(r){return r.json();}).then(function(d){
+  kittens=Array.isArray(d)?d:[]; render();
+}).catch(function(){document.getElementById('litterGroups').innerHTML='<div class="empty">子猫データの読み込みに失敗しました。ネットワークをご確認ください。</div>';});
+</script>
+</body>
+</html>
