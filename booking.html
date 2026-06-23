@@ -498,6 +498,7 @@
               <span class="btn-text" data-i18n="booking.submit"><i class="ico ico-mail" aria-hidden="true"></i> 予約を送信する</span>
               <span class="spinner"></span>
             </button>
+            <p style="text-align:center;color:var(--text-note);font-size:0.82rem;margin:12px 0 0"><i class="ico ico-lock" aria-hidden="true"></i> ご記入の情報はご予約のご連絡のみに使用し、第三者には提供しません。すぐのご相談はLINEからもどうぞ。</p>
           </form>
 
           <!-- Success -->
@@ -505,6 +506,10 @@
             <div class="result-icon" aria-hidden="true"><i class="ico ico-party-popper" aria-hidden="true"></i></div>
             <h3 data-i18n="booking.successTitle">予約を送信しました！</h3>
             <p data-i18n="booking.successDesc">24時間以内にメールまたはLINEでご連絡いたします。お待ちくださいませ。</p>
+            <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px">
+              <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="btn btn-line" target="_blank" rel="noopener"><i class="ico ico-message-circle" aria-hidden="true"></i> LINEを追加して優先案内を受け取る</a>
+              <a href="/kittens.html" class="btn btn-secondary"><i class="ico ico-paw-print" aria-hidden="true"></i> 子猫一覧を見る</a>
+            </div>
           </div>
 
           <!-- Error -->
@@ -792,5 +797,6 @@
   <!-- AI customer service chat widget -->
   <link rel="stylesheet" href="/assets/chat/widget.css?v=20260623b">
   <script defer src="/assets/chat/widget.js?v=20260623b"></script>
+  <script>(function(){var t=new Date().toISOString().slice(0,10);["bk-date","bk-date2"].forEach(function(id){var e=document.getElementById(id);if(e)e.setAttribute("min",t);});})();</script>
 </body>
 </html>
