@@ -1636,3 +1636,31 @@ document.addEventListener('click', function (e) {
     }
   } catch (_) {}
 }, true);
+
+/* ===== YouTube lazy-load facade: swap thumbnail for iframe on first interaction ===== */
+(function () {
+  function loadFacade(f) {
+    if (!f || f.dataset.loaded) return;
+    var id = f.getAttribute('data-yt');
+    if (!id) return;
+    f.dataset.loaded = '1';
+    var ifr = document.createElement('iframe');
+    ifr.src = 'https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&rel=0';
+    ifr.title = f.getAttribute('aria-label') || 'YouTube';
+    ifr.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+    ifr.setAttribute('allowfullscreen', '');
+    ifr.loading = 'lazy';
+    f.innerHTML = '';
+    f.appendChild(ifr);
+    try { if (typeof window.gtag === 'function') window.gtag('event', 'video_play', { video_id: id }); } catch (_) {}
+  }
+  document.addEventListener('click', function (e) {
+    var f = e.target.closest('.yt-facade');
+    if (f) loadFacade(f);
+  }, false);
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+    var f = e.target.closest && e.target.closest('.yt-facade');
+    if (f) { e.preventDefault(); loadFacade(f); }
+  }, false);
+})();
