@@ -22,8 +22,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css?v=20260623b">
-  <link rel="stylesheet" href="/guide/guide.css?v=20260623b">
+  <link rel="stylesheet" href="/style.css?v=20260624">
+  <link rel="stylesheet" href="/guide/guide.css?v=20260624">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%235BC4A8'/><g fill='%23ffffff'><ellipse cx='11' cy='12' rx='2.3' ry='2.7'/><ellipse cx='21' cy='12' rx='2.3' ry='2.7'/><ellipse cx='7.5' cy='17.5' rx='2.1' ry='2.4'/><ellipse cx='24.5' cy='17.5' rx='2.1' ry='2.4'/><path d='M16 16.5c3.1 0 5.6 2.2 5.6 4.9 0 2.2-1.9 3.1-5.6 3.1s-5.6-.9-5.6-3.1c0-2.7 2.5-4.9 5.6-4.9z'/></g></svg>">
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-EK459EK55M");</script>
@@ -136,6 +136,14 @@
     <h1><i class="ico ico-cat" aria-hidden="true"></i> 猫の知識ライブラリ</h1>
     <p>サイベリアンの特徴から猫の健康管理、子猫の育て方まで。<br>大阪の福楽キャッテリーが専門ブリーダーの視点でお届けする猫の知識集です。</p>
   </section>
+
+    <div class="blog-search" style="max-width:600px;margin:0 auto 18px;padding:0 24px">
+      <div style="position:relative">
+        <span style="position:absolute;left:18px;top:50%;transform:translateY(-50%);color:#5BC4A8;pointer-events:none"><i class="ico ico-search" aria-hidden="true"></i></span>
+        <input type="search" id="blogSearch" placeholder="記事を検索（例：アレルギー、爪切り、食事）" aria-label="記事を検索" autocomplete="off" style="width:100%;padding:13px 18px 13px 46px;border:1.5px solid #e8f5f0;border-radius:30px;font-size:1rem;font-family:inherit;outline:none;background:#fff;box-shadow:0 2px 10px rgba(91,196,168,.06)">
+      </div>
+      <div id="blogSearchResults" hidden style="margin-top:16px" aria-live="polite"></div>
+    </div>
 
     <div class="blog-cat-nav">
       <a href="#breed" class="blog-cat-tag">猫種知識（15）</a>
@@ -816,11 +824,11 @@
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 15l-6-6-6 6"/></svg>
   </button>
 
-  <script src="/i18n.js?v=20260623b"></script>
-  <script src="/blog-listing-i18n.js?v=20260623b" defer></script>
-  <script src="/blog-listing-i18n-apply.js?v=20260623b" defer></script>
+  <script src="/i18n.js?v=20260624"></script>
+  <script src="/blog-listing-i18n.js?v=20260624" defer></script>
+  <script src="/blog-listing-i18n-apply.js?v=20260624" defer></script>
   <!-- legacy cta-widget.js removed — superseded by mobile-cta.js below -->
-  <script src="/script.js?v=20260623b"></script>
+  <script src="/script.js?v=20260624"></script>
 
   <!-- ========== FLOATING MOBILE NAV BUTTON (always-visible nav, mobile only) ========== -->
   <button class="mobile-nav-fab" id="mobileNavFab" aria-label="メニューを開く" aria-controls="mobileNav" aria-expanded="false" type="button">
@@ -843,10 +851,33 @@
     </div>
   </div>
 
-  <script defer src="mobile-cta.js?v=20260623b"></script>
-  <script defer src="analytics.js?v=20260623b"></script>
+  <script defer src="mobile-cta.js?v=20260624"></script>
+  <script defer src="analytics.js?v=20260624"></script>
   <!-- AI customer service chat widget -->
-  <link rel="stylesheet" href="/assets/chat/widget.css?v=20260623b">
-  <script defer src="/assets/chat/widget.js?v=20260623b"></script>
+  <link rel="stylesheet" href="/assets/chat/widget.css?v=20260624">
+  <script defer src="/assets/chat/widget.js?v=20260624"></script>
+  <script>
+  (function(){
+    var input=document.getElementById('blogSearch'), out=document.getElementById('blogSearchResults');
+    if(!input||!out) return;
+    var idx=null, sections=document.querySelectorAll('.blog-cat-nav, .blog-cat-heading, .blog-grid, .blog-related, .blog-cta-box');
+    function esc(s){return String(s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+    function load(cb){ if(idx){cb();return;} fetch('/blog-search-index.json').then(function(r){return r.json();}).then(function(d){idx=d;cb();}).catch(function(){idx=[];cb();}); }
+    function run(){
+      var q=input.value.trim().toLowerCase();
+      if(!q){ out.hidden=true; out.innerHTML=''; sections.forEach(function(s){s.style.display='';}); return; }
+      load(function(){
+        var hits=idx.filter(function(p){return (p.t+' '+(p.d||'')+' '+(p.c||'')).toLowerCase().indexOf(q)>=0;}).slice(0,40);
+        sections.forEach(function(s){s.style.display='none';});
+        out.hidden=false;
+        out.innerHTML='<p style="color:#7a8a87;font-size:.9rem;margin:0 0 12px;text-align:center">「'+esc(input.value.trim())+'」: '+hits.length+' 件</p>'+
+          (hits.length? '<div class="blog-grid" style="display:grid">'+hits.map(function(p){return '<a href="'+p.u+'" class="blog-card"><span class="blog-card-cat">'+esc(p.c||'記事')+'</span><span class="blog-card-title">'+esc(p.t)+'</span><span class="blog-card-desc">'+esc(p.d)+'</span></a>';}).join('')+'</div>'
+            : '<p style="text-align:center;color:#7a8a87;padding:30px 0">該当する記事が見つかりませんでした。別のキーワードでお試しください。</p>');
+      });
+    }
+    input.addEventListener('input', run);
+    if(input.value) run();
+  })();
+  </script>
 </body>
 </html>
