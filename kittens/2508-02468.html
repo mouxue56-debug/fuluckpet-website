@@ -241,7 +241,7 @@
   <header class="header" id="header">
     <div class="header-inner">
       <a href="/index.html" class="logo">
-        <span class="logo-icon">🐾</span>
+        <span class="logo-icon"><i class="ico ico-paw-print" aria-hidden="true"></i></span>
         <span class="logo-text">福楽キャッテリー</span>
       </a>
 
@@ -254,9 +254,12 @@
         <a href="/guide/" class="nav-link" data-i18n="nav.guide">お迎えガイド</a>
         <a href="/blog.html" class="nav-link" data-i18n="nav.blog">知識ライブラリ</a>
         <div class="nav-dropdown">
-          <button class="nav-link nav-dropdown-toggle" data-i18n="nav.more">もっと見る <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <button class="nav-link nav-dropdown-toggle" aria-haspopup="true" aria-expanded="false" data-i18n="nav.more">もっと見る <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
           <div class="nav-dropdown-menu">
             <a href="/siberian.html" class="nav-dropdown-item" data-i18n="nav.siberian">サイベリアンの魅力</a>
+            <a href="/siberian-allergy.html" class="nav-dropdown-item">猫アレルギーと飼育</a>
+            <a href="/siberian-breeder-osaka.html" class="nav-dropdown-item">大阪・関西のお迎え</a>
+            <a href="/waitlist.html" class="nav-dropdown-item">お迎え予約（ウェイトリスト）</a>
             <a href="/about.html" class="nav-dropdown-item" data-i18n="nav.aboutPage">受賞歴・認定</a>
             <a href="/gallery.html" class="nav-dropdown-item" data-i18n="nav.gallery">卒業猫ギャラリー</a>
             <a href="/reviews.html" class="nav-dropdown-item" data-i18n="nav.reviews">お客様の声</a>
@@ -270,13 +273,13 @@
       </nav>
 
       <div class="header-right">
-        <div class="lang-switch">
-          <button class="lang-btn active" data-lang="ja">JP</button>
-          <button class="lang-btn" data-lang="en">EN</button>
-          <button class="lang-btn" data-lang="zh">中</button>
+        <div class="lang-switch" role="group" aria-label="言語切替 / Language">
+          <button class="lang-btn active" aria-pressed="true" data-lang="ja">JP</button>
+          <button class="lang-btn" aria-pressed="false" data-lang="en">EN</button>
+          <button class="lang-btn" aria-pressed="false" data-lang="zh">中</button>
         </div>
 
-        <a href="https://page.line.me/915hnnlk?call=1" class="header-tel" aria-label="LINEで電話相談" target="_blank" rel="noopener" data-i18n-aria="header.telAria" data-i18n="header.telLabel"><span aria-hidden="true">📞</span>　お電話 / LINE</a>
+        <a href="https://page.line.me/915hnnlk?call=1" class="header-tel" aria-label="LINEで電話相談" target="_blank" rel="noopener" data-i18n-aria="header.telAria" data-i18n="header.telLabel"><span aria-hidden="true"><i class="ico ico-phone" aria-hidden="true"></i></span>　お電話 / LINE</a>
         <div class="header-sns">
           <a href="https://www.instagram.com/fuluckpet/" class="sns-icon" aria-label="Instagram" target="_blank" rel="noopener">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
@@ -305,6 +308,9 @@
       <a href="/index.html#visit" class="mobile-nav-link" data-i18n="nav.visit">見学案内</a>
       <a href="/index.html#faq" class="mobile-nav-link" data-i18n="nav.faq">よくある質問</a>
       <a href="/siberian.html" class="mobile-nav-link" data-i18n="nav.siberian">サイベリアン</a>
+      <a href="/siberian-allergy.html" class="mobile-nav-link">猫アレルギーと飼育</a>
+      <a href="/siberian-breeder-osaka.html" class="mobile-nav-link">大阪・関西のお迎え</a>
+      <a href="/waitlist.html" class="mobile-nav-link">お迎え予約（ウェイトリスト）</a>
       <a href="/kittens.html" class="mobile-nav-link" data-i18n="nav.allKittens">子猫一覧（すべて）</a>
       <a href="/parents.html" class="mobile-nav-link" data-i18n="nav.allParents">親猫紹介（すべて）</a>
       <a href="/gallery.html" class="mobile-nav-link" data-i18n="nav.gallery">ギャラリー</a>
@@ -316,9 +322,9 @@
     </nav>
     <div class="mobile-nav-bottom">
       <div class="lang-switch mobile-lang">
-        <button class="lang-btn active" data-lang="ja">JP</button>
-        <button class="lang-btn" data-lang="en">EN</button>
-        <button class="lang-btn" data-lang="zh">中</button>
+        <button class="lang-btn active" aria-pressed="true" data-lang="ja">JP</button>
+        <button class="lang-btn" aria-pressed="false" data-lang="en">EN</button>
+        <button class="lang-btn" aria-pressed="false" data-lang="zh">中</button>
       </div>
       <div class="mobile-nav-sns">
         <a href="https://www.instagram.com/fuluckpet/" class="sns-icon" target="_blank" rel="noopener" aria-label="Instagramでフォロー"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg></a>
@@ -421,7 +427,7 @@
       <div class="footer-top">
         <div class="footer-brand">
           <div class="f-logo">
-            <span class="logo-icon">🐾</span>
+            <span class="logo-icon"><i class="ico ico-paw-print" aria-hidden="true"></i></span>
             <span class="f-logo-text">福楽キャッテリー</span>
           </div>
           <p class="f-tagline">サイベリアン｜大阪・福楽キャッテリー</p>
@@ -463,7 +469,7 @@
             <p>所在地: 大阪市城東区東中浜 2-6-23</p>
           </div>
           <div class="law-notice-compact">
-            <div class="law-notice-title">📋 動物愛護管理法に基づく対面販売</div>
+            <div class="law-notice-title"><i class="ico ico-clipboard-list" aria-hidden="true"></i> 動物愛護管理法に基づく対面販売</div>
             <p>法律の規定により、ご購入前に対面での説明と現物確認が必要です。</p>
           </div>
         </div>
@@ -477,7 +483,7 @@
   <!-- ========== FIXED LINE BUTTON ========== -->
   <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="fixed-line" aria-label="LINEでお問い合わせ" id="fixedLine" target="_blank" rel="noopener">
     <span class="fixed-line-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596a.626.626 0 0 1-.199.031c-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.271.173-.508.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg></span>
-    <span class="fixed-line-content"><span class="fixed-line-label">見学予約・ご相談</span><span class="fixed-line-cta">LINEで相談 🐾</span></span>
+    <span class="fixed-line-content"><span class="fixed-line-label">見学予約・ご相談</span><span class="fixed-line-cta">LINEで相談 <i class="ico ico-paw-print" aria-hidden="true"></i></span></span>
   </a>
 
   <!-- Back to Top -->
