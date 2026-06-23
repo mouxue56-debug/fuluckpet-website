@@ -1585,13 +1585,25 @@ function setLanguage(lang) {
  * Initialize i18n system
  */
 function initI18n() {
-  document.querySelectorAll('.lang-btn').forEach(btn => {
+  // Detect a static language prefix in the URL path (/en/... or /zh/...).
+  // Static localized pages live under /en/ and /zh/; this keeps them in-language.
+  var path = window.location.pathname;
+  var pathLang = path.indexOf('/en/') === 0 ? 'en' : (path.indexOf('/zh/') === 0 ? 'zh' : null);
+  var rootPath = pathLang ? path.substring(3) : path; // strip "/en" or "/zh"
+
+  document.querySelectorAll('.lang-btn').forEach(function (btn) {
     btn.addEventListener('click', function () {
-      setLanguage(this.getAttribute('data-lang'));
+      var target = this.getAttribute('data-lang');
+      if (pathLang) {
+        // On a static localized page: navigate to the sibling language version.
+        window.location.href = (target === 'ja' ? '' : '/' + target) + rootPath;
+      } else {
+        setLanguage(target);
+      }
     });
   });
 
-  // Check URL parameter first (?lang=en, ?lang=zh)
+  // Check URL parameter (?lang=en, ?lang=zh)
   var urlParams = new URLSearchParams(window.location.search);
   var urlLang = urlParams.get('lang');
 
@@ -1600,8 +1612,8 @@ function initI18n() {
     savedLang = localStorage.getItem('fuluckpet-lang');
   } catch (e) {}
 
-  // URL parameter takes priority over saved preference
-  var activeLang = (urlLang && translations[urlLang]) ? urlLang : savedLang;
+  // Priority: static path prefix > URL parameter > saved preference
+  var activeLang = pathLang || ((urlLang && translations[urlLang]) ? urlLang : savedLang);
   if (activeLang && translations[activeLang]) {
     setLanguage(activeLang);
   }
