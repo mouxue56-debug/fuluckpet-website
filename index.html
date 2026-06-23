@@ -41,6 +41,9 @@
     "@id": "https://fuluckpet.com/#cattery",
     "name": "福楽キャッテリー",
     "alternateName": ["サイベリアン｜大阪・福楽キャッテリー", "Fuluck Cattery"],
+    "url": "https://fuluckpet.com/",
+    "image": "https://fuluckpet.com/images/ogp.jpg",
+    "logo": "https://fuluckpet.com/images/ogp.jpg",
     "description": "大阪のサイベリアン専門キャッテリー。低アレルゲンで穏やかな性格の子猫をお届けします。",
     "founder": {
       "@type": "Person",
@@ -970,8 +973,26 @@
     </div>
   </section>
 
-  <!-- TikTok Embed JS -->
-  <script async src="https://www.tiktok.com/embed.js"></script>
+  <!-- TikTok Embed JS — lazy-loaded when the SNS section nears the viewport (saves upfront fetch on every page load) -->
+  <script>
+  (function () {
+    var sec = document.getElementById('sns-media');
+    if (!sec) return;
+    var loaded = false;
+    function load() {
+      if (loaded) return; loaded = true;
+      var s = document.createElement('script');
+      s.async = true; s.src = 'https://www.tiktok.com/embed.js';
+      document.body.appendChild(s);
+    }
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (entries) {
+        if (entries.some(function (e) { return e.isIntersecting; })) { load(); io.disconnect(); }
+      }, { rootMargin: '400px' });
+      io.observe(sec);
+    } else { load(); }
+  })();
+  </script>
 
   <!-- ========== FOOTER ========== -->
   <footer class="footer" id="footer">
