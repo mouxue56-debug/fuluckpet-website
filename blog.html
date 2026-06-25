@@ -138,18 +138,20 @@
     </div>
   </div>
 
-  <section class="blog-hero" id="main">
-    <h1><i class="ico ico-cat" aria-hidden="true"></i> 猫の知識ライブラリ</h1>
-    <p>サイベリアンの特徴から猫の健康管理、子猫の育て方まで。<br>大阪の福楽キャッテリーが専門ブリーダーの視点でお届けする猫の知識集です。</p>
-  </section>
+  <main id="main">
+    <section class="blog-hero">
+      <h1><i class="ico ico-cat" aria-hidden="true"></i> 猫の知識ライブラリ</h1>
+      <p>サイベリアンの特徴から猫の健康管理、子猫の育て方まで。<br>大阪の福楽キャッテリーが専門ブリーダーの視点でお届けする猫の知識集です。</p>
+    </section>
 
-    <div class="blog-search" style="max-width:600px;margin:0 auto 18px;padding:0 24px">
+    <form class="blog-search" role="search" action="/blog.html" method="get" style="max-width:600px;margin:0 auto 18px;padding:0 24px">
       <div style="position:relative">
-        <span style="position:absolute;left:18px;top:50%;transform:translateY(-50%);color:#5BC4A8;pointer-events:none"><i class="ico ico-search" aria-hidden="true"></i></span>
-        <input type="search" id="blogSearch" placeholder="記事を検索（例：アレルギー、爪切り、食事）" aria-label="記事を検索" autocomplete="off" style="width:100%;padding:13px 18px 13px 46px;border:1.5px solid #e8f5f0;border-radius:30px;font-size:1rem;font-family:inherit;outline:none;background:#fff;box-shadow:0 2px 10px rgba(91,196,168,.06)">
+        <label for="blogSearch" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;border:0">記事を検索</label>
+        <input type="search" id="blogSearch" name="q" placeholder="記事を検索（例：アレルギー、爪切り、食事）" aria-label="記事を検索" aria-controls="blogSearchResults" autocomplete="off" enterkeyhint="search" style="width:100%;padding:13px 58px 13px 18px;border:1.5px solid #e8f5f0;border-radius:30px;font-size:1rem;font-family:inherit;outline:none;background:#fff;box-shadow:0 2px 10px rgba(91,196,168,.06)">
+        <button type="submit" aria-label="検索する" style="position:absolute;right:30px;top:50%;transform:translateY(-50%);width:34px;height:34px;border:0;border-radius:50%;background:#5BC4A8;color:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer"><i class="ico ico-search" aria-hidden="true"></i></button>
       </div>
-      <div id="blogSearchResults" hidden style="margin-top:16px" aria-live="polite"></div>
-    </div>
+      <div id="blogSearchResults" hidden style="margin-top:16px" aria-live="polite" role="status"></div>
+    </form>
 
     <div class="blog-cat-nav">
       <a href="#breed" class="blog-cat-tag">猫種知識（15）</a>
@@ -759,6 +761,7 @@
       <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:12px 24px;background:#06C755;color:#fff;border-radius:30px;font-weight:600;font-size:0.92rem;text-decoration:none;"><i class="ico ico-message-circle" aria-hidden="true"></i> LINEで相談する</a>
     </div>
   </div>
+  </main>
 
   <!-- ========== FOOTER ========== -->
   <footer class="footer" id="footer">
@@ -864,7 +867,7 @@
   <script defer src="/assets/chat/widget.js?v=20260624"></script>
   <script>
   (function(){
-    var input=document.getElementById('blogSearch'), out=document.getElementById('blogSearchResults');
+    var form=document.querySelector('.blog-search'), input=document.getElementById('blogSearch'), out=document.getElementById('blogSearchResults');
     if(!input||!out) return;
     var idx=null, sections=document.querySelectorAll('.blog-cat-nav, .blog-cat-heading, .blog-grid, .blog-related, .blog-cta-box');
     var params=new URLSearchParams(window.location.search);
@@ -889,6 +892,7 @@
       });
     }
     input.addEventListener('input', run);
+    if(form){form.addEventListener('submit',function(e){e.preventDefault();run();});}
     if(params.get('q')) input.value=params.get('q');
     if(input.value) run();
   })();
