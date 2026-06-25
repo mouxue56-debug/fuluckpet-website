@@ -120,8 +120,8 @@ window._blogArticleI18n = {
 
   // Insert before blog-i18n.js
   html = html.replace(
-    '<script src="/blog/blog-i18n.js"></script>',
-    i18nScript + '  <script src="/blog/blog-i18n.js"></script>'
+    /<script src="\/blog\/blog-i18n\.js(?:\?v=[^"]*)?"><\/script>/,
+    i18nScript + '  <script src="/blog/blog-i18n.js?v=20260624v2"></script>'
   );
 
   fs.writeFileSync(htmlPath, html, 'utf8');

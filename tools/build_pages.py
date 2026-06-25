@@ -28,17 +28,17 @@ def build(spec):
 
 def hero(h1, sub, btns=True):
     cta = (f'<div class="hero-buttons" style="justify-content:center;margin-top:24px">'
-           f'<a href="/booking.html" class="btn btn-primary">📅 見学を予約する</a>'
-           f'<a href="{LINE}" class="btn btn-line" target="_blank" rel="noopener">💬 LINEで相談する</a>'
-           f'<a href="/kittens.html" class="btn btn-secondary">🐾 子猫一覧を見る</a></div>') if btns else ''
+           f'<a href="/booking.html" class="btn btn-primary"><i class="ico ico-calendar-check" aria-hidden="true"></i> 見学を予約する</a>'
+           f'<a href="{LINE}" class="btn btn-line" target="_blank" rel="noopener"><i class="ico ico-message-circle" aria-hidden="true"></i> LINEで相談する</a>'
+           f'<a href="/kittens.html" class="btn btn-secondary"><i class="ico ico-paw-print" aria-hidden="true"></i> 子猫一覧を見る</a></div>') if btns else ''
     return (f'<section class="page-hero" id="main"><div class="container" style="text-align:center;max-width:820px">'
             f'<h1 class="page-hero-title">{h1}</h1><p class="page-hero-sub" style="font-size:1.05rem;color:var(--text-note);margin-top:14px">{sub}</p>{cta}</div></section>')
 
 def trust_strip():
     return ('<section style="padding:8px 0 0"><div class="container" style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;text-align:center">'
-            '<span style="background:#fff;border:1px solid #e8f5f0;border-radius:30px;padding:8px 18px;font-weight:600;color:#5A7A7A">⭐ 5.00／113件</span>'
-            '<span style="background:#fff;border:1px solid #e8f5f0;border-radius:30px;padding:8px 18px;font-weight:600;color:#5A7A7A">🏆 みんなの子猫ブリーダー 全国1位（2025上半期）</span>'
-            '<span style="background:#fff;border:1px solid #e8f5f0;border-radius:30px;padding:8px 18px;font-weight:600;color:#5A7A7A">🐾 200+ 卒業猫</span></div></section>')
+            '<span style="background:#fff;border:1px solid #e8f5f0;border-radius:30px;padding:8px 18px;font-weight:600;color:#5A7A7A"><i class="ico ico-star" aria-hidden="true"></i> 5.00／113件</span>'
+            '<span style="background:#fff;border:1px solid #e8f5f0;border-radius:30px;padding:8px 18px;font-weight:600;color:#5A7A7A"><i class="ico ico-trophy" aria-hidden="true"></i> みんなの子猫ブリーダー 全国1位（2025上半期）</span>'
+            '<span style="background:#fff;border:1px solid #e8f5f0;border-radius:30px;padding:8px 18px;font-weight:600;color:#5A7A7A"><i class="ico ico-paw-print" aria-hidden="true"></i> 200+ 卒業猫</span></div></section>')
 
 def cta_section(title="子猫のお迎えをご検討の方へ"):
     return (f'<section style="padding:48px 0"><div class="container" style="max-width:720px;text-align:center;'
@@ -46,9 +46,9 @@ def cta_section(title="子猫のお迎えをご検討の方へ"):
             f'<h2 style="border:none">{title}</h2>'
             f'<p style="color:var(--text-note);margin:12px 0 24px">完全予約制。対面・LINEビデオ通話での見学を承っております。まずはお気軽にご相談ください。</p>'
             f'<div class="hero-buttons" style="justify-content:center">'
-            f'<a href="/booking.html" class="btn btn-primary">📅 見学を予約する</a>'
-            f'<a href="{LINE}" class="btn btn-line" target="_blank" rel="noopener">💬 LINEで相談する</a></div>'
-            f'<p style="margin-top:18px;font-size:0.88rem"><a href="{KONEKO}" target="_blank" rel="noopener" style="color:#5BC4A8;font-weight:600">🏆 みんなの子猫ブリーダーで最新の子猫を見る →</a></p></div></section>')
+            f'<a href="/booking.html" class="btn btn-primary"><i class="ico ico-calendar-check" aria-hidden="true"></i> 見学を予約する</a>'
+            f'<a href="{LINE}" class="btn btn-line" target="_blank" rel="noopener"><i class="ico ico-message-circle" aria-hidden="true"></i> LINEで相談する</a></div>'
+            f'<p style="margin-top:18px;font-size:0.88rem"><a href="{KONEKO}" target="_blank" rel="noopener" style="color:#5BC4A8;font-weight:600"><i class="ico ico-trophy" aria-hidden="true"></i> みんなの子猫ブリーダーで最新の子猫を見る</a></p></div></section>')
 
 def jsonld_breadcrumb(name, slug, extra=""):
     e = "," + extra if extra else ""
@@ -134,7 +134,7 @@ WAITLIST_BODY = (hero(
   '<div style="background:#f8fdfb;border:1px solid #e8f5f0;border-radius:16px;padding:24px;margin:24px 0;text-align:center">'
   '<p style="margin-bottom:16px;color:var(--text-note)">いま在籍中の子猫は<a href="/kittens.html">子猫一覧</a>と'
   '<a href="' + KONEKO + '" target="_blank" rel="noopener">みんなの子猫ブリーダー</a>でご覧いただけます。</p>'
-  '<a href="' + LINE + '" class="btn btn-line" target="_blank" rel="noopener" style="margin:0 auto">💬 LINEでウェイトリストに登録</a></div>'
+  '<a href="' + LINE + '" class="btn btn-line" target="_blank" rel="noopener" style="margin:0 auto"><i class="ico ico-message-circle" aria-hidden="true"></i> LINEでウェイトリストに登録</a></div>'
   '<p style="color:var(--text-note);font-size:0.95rem">次回の出産・お迎え予定が決まり次第、このページとLINEでお知らせします。ウェイトリストにご登録いただいた方には、一般公開前に優先してご案内いたします。</p>'
   '</div></section>' + cta_section())
 
