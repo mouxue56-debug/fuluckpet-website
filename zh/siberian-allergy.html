@@ -149,9 +149,9 @@
     <div class="acq-head">
       <span class="acq-badge">自我测评（约 30 秒）</span>
       <h2 style="border:none;margin:10px 0 6px">您与西伯利亚猫的相性确认</h2>
-      <p class="acq-note">用 6 个问题，帮您梳理接猫前需要确认的事项。<b>这并非医疗诊断。</b>若有令您担心的症状，请务必咨询医疗机构。</p>
+      <p class="acq-note" id="acqIntro">用 6 个问题，帮您梳理接猫前需要确认的事项。<b>这并非医疗诊断。</b>若有令您担心的症状，请务必咨询医疗机构。</p>
     </div>
-    <form id="acqForm" class="acq-form">
+    <form id="acqForm" class="acq-form" novalidate aria-describedby="acqIntro acqErr">
       <fieldset class="acq-q"><legend>① 您此前是否被诊断过猫过敏？</legend>
         <label><input type="radio" name="q1" value="2"><span>曾被诊断过</span></label>
         <label><input type="radio" name="q1" value="1"><span>不清楚／未检测</span></label>
@@ -181,9 +181,9 @@
         <label><input type="radio" name="q6" value="1"><span>考虑中</span></label>
       </fieldset>
       <button type="submit" class="btn btn-primary acq-submit">查看结果</button>
-      <p class="acq-err" id="acqErr" hidden>请回答全部问题。</p>
+      <p class="acq-err" id="acqErr" role="alert" hidden>请回答全部问题。</p>
     </form>
-    <div id="acqResult" class="acq-result" hidden aria-live="polite"></div>
+    <div id="acqResult" class="acq-result" hidden aria-live="polite" tabindex="-1"></div>
   </div>
 </div></section><style>
 .acq{background:#fff;border:1px solid #e8f5f0;border-radius:24px;padding:30px 26px;box-shadow:0 8px 30px rgba(91,196,168,.08)}
@@ -193,6 +193,9 @@
 .acq-q legend{font-weight:700;color:#3a5a55;margin-bottom:10px;line-height:1.5;font-size:1rem}
 .acq-q label{display:flex;align-items:center;gap:10px;background:#f7fbfa;border:1.5px solid #e8f5f0;border-radius:12px;padding:11px 14px;margin:7px 0;cursor:pointer;transition:.15s;font-size:.95rem}
 .acq-q label:hover{border-color:#bfe6da;background:#f0faf7}
+.acq-q label:has(input:focus-visible){outline:3px solid rgba(91,196,168,.45);outline-offset:2px;border-color:#5BC4A8;background:#f0faf7}
+.acq-q.acq-q-error legend{color:#a33124}
+.acq-q.acq-q-error label{border-color:#e0a095;background:#fff6f3}
 .acq-q input{accent-color:#5BC4A8;width:18px;height:18px;flex:none}
 .acq-q input:checked+span{font-weight:700;color:#2f8d74}
 .acq-q label:has(input:checked){border-color:#5BC4A8;background:#eafaf4}
@@ -208,12 +211,35 @@
 </style><script>
 (function(){
   var f=document.getElementById('acqForm');if(!f)return;
+  function clearQuestionState(q){
+    if(!q)return;
+    q.classList.remove('acq-q-error');
+    q.removeAttribute('aria-invalid');
+    q.removeAttribute('aria-describedby');
+  }
+  f.addEventListener('change',function(e){
+    var target=e.target;
+    if(target&&target.matches&&target.matches('input[type="radio"]')){
+      clearQuestionState(target.closest('.acq-q'));
+    }
+  });
   f.addEventListener('submit',function(e){
     e.preventDefault();
-    var qs=['q1','q2','q3','q4','q5','q6'],total=0,all=true;
-    qs.forEach(function(n){var c=f.querySelector('input[name="'+n+'"]:checked');if(!c){all=false;}else{total+=parseInt(c.value,10);}});
+    var qs=['q1','q2','q3','q4','q5','q6'],total=0,all=true,missing=[];
+    f.querySelectorAll('.acq-q').forEach(clearQuestionState);
+    qs.forEach(function(n){var c=f.querySelector('input[name="'+n+'"]:checked');if(!c){all=false;var first=f.querySelector('input[name="'+n+'"]');if(first){missing.push(first.closest('.acq-q'));}}else{total+=parseInt(c.value,10);}});
     var err=document.getElementById('acqErr');
-    if(!all){err.hidden=false;return;} err.hidden=true;
+    if(!all){
+      err.hidden=false;
+      missing.forEach(function(q){if(q){q.classList.add('acq-q-error');q.setAttribute('aria-invalid','true');q.setAttribute('aria-describedby','acqErr');}});
+      if(missing[0]){
+        missing[0].scrollIntoView({behavior:'smooth',block:'center'});
+        var firstInput=missing[0].querySelector('input');
+        if(firstInput){try{firstInput.focus({preventScroll:true});}catch(_){firstInput.focus();}}
+      }
+      return;
+    }
+    err.hidden=true;
     var r=document.getElementById('acqResult'),cls,h;
     if(total<=2){cls='acq-r-good';h='<h3><i class="ico ico-leaf" aria-hidden="true"></i> 相性可能良好</h3><p>就目前来看，重大顾虑较少。不过 Fel d1 的含量存在<b>个体差异</b>，并不代表「绝对不会出现症状」。最后请务必<b>实际见面确认反应</b>后再接猫。欢迎在试看参观中，与西伯利亚猫多相处一段时间。</p>';}
     else if(total<=6){cls='acq-r-mid';h='<h3><i class="ico ico-handshake" aria-hidden="true"></i> 用心安排，或可一同生活</h3><p>通过应对措施与循序渐进的适应，有许多家庭都能与西伯利亚猫共同生活。建议营造好环境，如空气净化器、勤打扫、分房睡等，并在<b>接猫前进行过敏检测</b>。参观时请多预留时间，好好确认自己的反应。</p>';}
@@ -223,6 +249,7 @@
     r.hidden=false;
     if(typeof gtag==='function'){gtag('event','allergy_selfcheck',{score:total});}
     r.scrollIntoView({behavior:'smooth',block:'center'});
+    try{r.focus({preventScroll:true});}catch(_){r.focus();}
   });
 })();
 </script><section style="padding:8px 0 40px"><div class="container" style="max-width:760px"><h2 style="text-align:center;margin-bottom:14px">常见问题</h2><div class="landing-faq"><details><summary>猫过敏也能养西伯利亚猫吗？</summary><div class="faq-a-body">据说西伯利亚猫的过敏原 Fel d1 分泌量往往低于其他猫种，但存在个体差异，并非「绝对没问题」。我们强烈建议在接猫前进行过敏检测，并在参观时做相性确认。</div></details><details><summary>Fel d1 是什么？</summary><div class="faq-a-body">Fel d1 是猫的唾液与皮脂中所含的主要过敏原蛋白质。猫在理毛时，会将其扩散到被毛和周围环境中。据报告，西伯利亚猫中 Fel d1 含量相对较少的个体较多。</div></details><details><summary>接猫前能做些什么？</summary><div class="faq-a-body">①在医院进行过敏检测；②参观时与西伯利亚猫长时间接触并确认反应；③循序渐进地接触，让身体逐渐适应；④咨询医生。在福乐猫舍，我们可以在参观时为相性确认预留更充裕的时间。</div></details></div></div></section><style>

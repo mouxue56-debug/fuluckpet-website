@@ -156,9 +156,9 @@
     <div class="acq-head">
       <span class="acq-badge">セルフチェック（約30秒）</span>
       <h2 style="border:none;margin:10px 0 6px">あなたとサイベリアンの相性チェック</h2>
-      <p class="acq-note">6つの質問で、お迎え前に確認したいことを整理します。<b>これは医療診断ではありません。</b>気になる症状がある方は、必ず医療機関にご相談ください。</p>
+      <p class="acq-note" id="acqIntro">6つの質問で、お迎え前に確認したいことを整理します。<b>これは医療診断ではありません。</b>気になる症状がある方は、必ず医療機関にご相談ください。</p>
     </div>
-    <form id="acqForm" class="acq-form">
+    <form id="acqForm" class="acq-form" novalidate aria-describedby="acqIntro acqErr">
       <fieldset class="acq-q"><legend>① これまでに猫アレルギーと診断されたことは？</legend>
         <label><input type="radio" name="q1" value="2"><span>診断されたことがある</span></label>
         <label><input type="radio" name="q1" value="1"><span>わからない／未検査</span></label>
@@ -188,9 +188,9 @@
         <label><input type="radio" name="q6" value="1"><span>検討中</span></label>
       </fieldset>
       <button type="submit" class="btn btn-primary acq-submit">結果を見る</button>
-      <p class="acq-err" id="acqErr" hidden>すべての質問にお答えください。</p>
+      <p class="acq-err" id="acqErr" role="alert" hidden>すべての質問にお答えください。</p>
     </form>
-    <div id="acqResult" class="acq-result" hidden aria-live="polite"></div>
+    <div id="acqResult" class="acq-result" hidden aria-live="polite" tabindex="-1"></div>
   </div>
 </div></section><style>
 .acq{background:#fff;border:1px solid #e8f5f0;border-radius:24px;padding:30px 26px;box-shadow:0 8px 30px rgba(91,196,168,.08)}
@@ -200,6 +200,9 @@
 .acq-q legend{font-weight:700;color:#3a5a55;margin-bottom:10px;line-height:1.5;font-size:1rem}
 .acq-q label{display:flex;align-items:center;gap:10px;background:#f7fbfa;border:1.5px solid #e8f5f0;border-radius:12px;padding:11px 14px;margin:7px 0;cursor:pointer;transition:.15s;font-size:.95rem}
 .acq-q label:hover{border-color:#bfe6da;background:#f0faf7}
+.acq-q label:has(input:focus-visible){outline:3px solid rgba(91,196,168,.45);outline-offset:2px;border-color:#5BC4A8;background:#f0faf7}
+.acq-q.acq-q-error legend{color:#a33124}
+.acq-q.acq-q-error label{border-color:#e0a095;background:#fff6f3}
 .acq-q input{accent-color:#5BC4A8;width:18px;height:18px;flex:none}
 .acq-q input:checked+span{font-weight:700;color:#2f8d74}
 .acq-q label:has(input:checked){border-color:#5BC4A8;background:#eafaf4}
@@ -215,12 +218,35 @@
 </style><script>
 (function(){
   var f=document.getElementById('acqForm');if(!f)return;
+  function clearQuestionState(q){
+    if(!q)return;
+    q.classList.remove('acq-q-error');
+    q.removeAttribute('aria-invalid');
+    q.removeAttribute('aria-describedby');
+  }
+  f.addEventListener('change',function(e){
+    var target=e.target;
+    if(target&&target.matches&&target.matches('input[type="radio"]')){
+      clearQuestionState(target.closest('.acq-q'));
+    }
+  });
   f.addEventListener('submit',function(e){
     e.preventDefault();
-    var qs=['q1','q2','q3','q4','q5','q6'],total=0,all=true;
-    qs.forEach(function(n){var c=f.querySelector('input[name="'+n+'"]:checked');if(!c){all=false;}else{total+=parseInt(c.value,10);}});
+    var qs=['q1','q2','q3','q4','q5','q6'],total=0,all=true,missing=[];
+    f.querySelectorAll('.acq-q').forEach(clearQuestionState);
+    qs.forEach(function(n){var c=f.querySelector('input[name="'+n+'"]:checked');if(!c){all=false;var first=f.querySelector('input[name="'+n+'"]');if(first){missing.push(first.closest('.acq-q'));}}else{total+=parseInt(c.value,10);}});
     var err=document.getElementById('acqErr');
-    if(!all){err.hidden=false;return;} err.hidden=true;
+    if(!all){
+      err.hidden=false;
+      missing.forEach(function(q){if(q){q.classList.add('acq-q-error');q.setAttribute('aria-invalid','true');q.setAttribute('aria-describedby','acqErr');}});
+      if(missing[0]){
+        missing[0].scrollIntoView({behavior:'smooth',block:'center'});
+        var firstInput=missing[0].querySelector('input');
+        if(firstInput){try{firstInput.focus({preventScroll:true});}catch(_){firstInput.focus();}}
+      }
+      return;
+    }
+    err.hidden=true;
     var r=document.getElementById('acqResult'),cls,h;
     if(total<=2){cls='acq-r-good';h='<h3><i class="ico ico-leaf" aria-hidden="true"></i> 相性は良い可能性があります</h3><p>現時点では大きな懸念は少なそうです。ただし Fel d1 の量には<b>個体差</b>があり、「絶対に症状が出ない」わけではありません。最後は必ず<b>実際に会って反応を確認</b>してからお迎えを。お試し見学で、サイベリアンと長めの時間を過ごしてみてください。</p>';}
     else if(total<=6){cls='acq-r-mid';h='<h3><i class="ico ico-handshake" aria-hidden="true"></i> 工夫しだいで一緒に暮らせる可能性</h3><p>対策と段階的な慣らしで、サイベリアンと暮らせるご家庭は多くいらっしゃいます。空気清浄機・こまめな掃除・寝室を分けるなどの環境づくりと、<b>お迎え前のアレルギー検査</b>をおすすめします。見学では時間を長めに取り、ご自身の反応をしっかり確認しましょう。</p>';}
@@ -230,6 +256,7 @@
     r.hidden=false;
     if(typeof gtag==='function'){gtag('event','allergy_selfcheck',{score:total});}
     r.scrollIntoView({behavior:'smooth',block:'center'});
+    try{r.focus({preventScroll:true});}catch(_){r.focus();}
   });
 })();
 </script><section style="padding:8px 0 40px"><div class="container" style="max-width:760px"><h2 style="text-align:center;margin-bottom:14px">よくあるご質問</h2><div class="landing-faq"><details><summary>サイベリアンは猫アレルギーでも飼えますか？</summary><div class="faq-a-body">サイベリアンはアレルゲンであるFel d1の分泌量が他の猫種より少ない傾向があるとされますが、個人差があり「絶対大丈夫」ではありません。お迎え前のアレルギー検査と、見学時の相性チェックを強くおすすめします。</div></details><details><summary>Fel d1とは何ですか？</summary><div class="faq-a-body">Fel d1は猫の唾液や皮脂に含まれる主要なアレルゲンたんぱく質です。猫が毛づくろいをすることで被毛や環境に広がります。サイベリアンはこのFel d1が比較的少ない個体が多いと報告されています。</div></details><details><summary>お迎え前にできることは？</summary><div class="faq-a-body">①病院でのアレルギー検査、②見学時にサイベリアンと長めに接触して反応を確認、③段階的な接触で体を慣らす、④医師に相談。福楽キャッテリーでは見学時の相性チェックのお時間を長めにお取りできます。</div></details></div></div></section><style>

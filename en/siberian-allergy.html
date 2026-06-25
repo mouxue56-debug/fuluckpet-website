@@ -149,9 +149,9 @@
     <div class="acq-head">
       <span class="acq-badge">Self-Check (about 30 seconds)</span>
       <h2 style="border:none;margin:10px 0 6px">Your Compatibility Check with a Siberian</h2>
-      <p class="acq-note">Six questions to help you sort out what to confirm before adopting. <b>This is not a medical diagnosis.</b> If you have symptoms that concern you, please always consult a medical professional.</p>
+      <p class="acq-note" id="acqIntro">Six questions to help you sort out what to confirm before adopting. <b>This is not a medical diagnosis.</b> If you have symptoms that concern you, please always consult a medical professional.</p>
     </div>
-    <form id="acqForm" class="acq-form">
+    <form id="acqForm" class="acq-form" novalidate aria-describedby="acqIntro acqErr">
       <fieldset class="acq-q"><legend>1. Have you ever been diagnosed with a cat allergy?</legend>
         <label><input type="radio" name="q1" value="2"><span>Yes, I have been diagnosed</span></label>
         <label><input type="radio" name="q1" value="1"><span>Not sure / never tested</span></label>
@@ -181,9 +181,9 @@
         <label><input type="radio" name="q6" value="1"><span>Considering it</span></label>
       </fieldset>
       <button type="submit" class="btn btn-primary acq-submit">See Results</button>
-      <p class="acq-err" id="acqErr" hidden>Please answer all of the questions.</p>
+      <p class="acq-err" id="acqErr" role="alert" hidden>Please answer all of the questions.</p>
     </form>
-    <div id="acqResult" class="acq-result" hidden aria-live="polite"></div>
+    <div id="acqResult" class="acq-result" hidden aria-live="polite" tabindex="-1"></div>
   </div>
 </div></section><style>
 .acq{background:#fff;border:1px solid #e8f5f0;border-radius:24px;padding:30px 26px;box-shadow:0 8px 30px rgba(91,196,168,.08)}
@@ -193,6 +193,9 @@
 .acq-q legend{font-weight:700;color:#3a5a55;margin-bottom:10px;line-height:1.5;font-size:1rem}
 .acq-q label{display:flex;align-items:center;gap:10px;background:#f7fbfa;border:1.5px solid #e8f5f0;border-radius:12px;padding:11px 14px;margin:7px 0;cursor:pointer;transition:.15s;font-size:.95rem}
 .acq-q label:hover{border-color:#bfe6da;background:#f0faf7}
+.acq-q label:has(input:focus-visible){outline:3px solid rgba(91,196,168,.45);outline-offset:2px;border-color:#5BC4A8;background:#f0faf7}
+.acq-q.acq-q-error legend{color:#a33124}
+.acq-q.acq-q-error label{border-color:#e0a095;background:#fff6f3}
 .acq-q input{accent-color:#5BC4A8;width:18px;height:18px;flex:none}
 .acq-q input:checked+span{font-weight:700;color:#2f8d74}
 .acq-q label:has(input:checked){border-color:#5BC4A8;background:#eafaf4}
@@ -208,12 +211,35 @@
 </style><script>
 (function(){
   var f=document.getElementById('acqForm');if(!f)return;
+  function clearQuestionState(q){
+    if(!q)return;
+    q.classList.remove('acq-q-error');
+    q.removeAttribute('aria-invalid');
+    q.removeAttribute('aria-describedby');
+  }
+  f.addEventListener('change',function(e){
+    var target=e.target;
+    if(target&&target.matches&&target.matches('input[type="radio"]')){
+      clearQuestionState(target.closest('.acq-q'));
+    }
+  });
   f.addEventListener('submit',function(e){
     e.preventDefault();
-    var qs=['q1','q2','q3','q4','q5','q6'],total=0,all=true;
-    qs.forEach(function(n){var c=f.querySelector('input[name="'+n+'"]:checked');if(!c){all=false;}else{total+=parseInt(c.value,10);}});
+    var qs=['q1','q2','q3','q4','q5','q6'],total=0,all=true,missing=[];
+    f.querySelectorAll('.acq-q').forEach(clearQuestionState);
+    qs.forEach(function(n){var c=f.querySelector('input[name="'+n+'"]:checked');if(!c){all=false;var first=f.querySelector('input[name="'+n+'"]');if(first){missing.push(first.closest('.acq-q'));}}else{total+=parseInt(c.value,10);}});
     var err=document.getElementById('acqErr');
-    if(!all){err.hidden=false;return;} err.hidden=true;
+    if(!all){
+      err.hidden=false;
+      missing.forEach(function(q){if(q){q.classList.add('acq-q-error');q.setAttribute('aria-invalid','true');q.setAttribute('aria-describedby','acqErr');}});
+      if(missing[0]){
+        missing[0].scrollIntoView({behavior:'smooth',block:'center'});
+        var firstInput=missing[0].querySelector('input');
+        if(firstInput){try{firstInput.focus({preventScroll:true});}catch(_){firstInput.focus();}}
+      }
+      return;
+    }
+    err.hidden=true;
     var r=document.getElementById('acqResult'),cls,h;
     if(total<=2){cls='acq-r-good';h='<h3><i class="ico ico-leaf" aria-hidden="true"></i> You may be a good match</h3><p>At this point there seem to be few major concerns. That said, the amount of Fel d1 varies from <b>cat to cat</b>, so it does not mean "you will never have symptoms." In the end, always <b>meet the cat in person and check your reaction</b> before adopting. During a trial visit, try spending an extended time with a Siberian.</p>';}
     else if(total<=6){cls='acq-r-mid';h='<h3><i class="ico ico-handshake" aria-hidden="true"></i> Living together may be possible with the right approach</h3><p>With proper measures and gradual acclimatization, many households are able to live with a Siberian. We recommend creating the right environment&mdash;an air purifier, frequent cleaning, a separate bedroom and so on&mdash;along with an <b>allergy test before adopting</b>. During your visit, set aside plenty of time and carefully check your own reaction.</p>';}
@@ -223,6 +249,7 @@
     r.hidden=false;
     if(typeof gtag==='function'){gtag('event','allergy_selfcheck',{score:total});}
     r.scrollIntoView({behavior:'smooth',block:'center'});
+    try{r.focus({preventScroll:true});}catch(_){r.focus();}
   });
 })();
 </script><section style="padding:8px 0 40px"><div class="container" style="max-width:760px"><h2 style="text-align:center;margin-bottom:14px">Frequently Asked Questions</h2><div class="landing-faq"><details><summary>Can I keep a Siberian even if I have a cat allergy?</summary><div class="faq-a-body">Siberians are said to tend to produce less of the allergen Fel d1 than other breeds, but there is individual variation, so it is not a guaranteed "definitely fine." We strongly recommend an allergy test before adopting and a compatibility check during your visit.</div></details><details><summary>What is Fel d1?</summary><div class="faq-a-body">Fel d1 is the main allergen protein found in a cat's saliva and skin oils. As the cat grooms itself, it spreads onto the coat and into the environment. Many Siberians are reported to have comparatively low levels of Fel d1.</div></details><details><summary>What can I do before adopting?</summary><div class="faq-a-body">1. Get an allergy test at a clinic. 2. Spend extended time with a Siberian during your visit to check your reaction. 3. Build up exposure gradually to acclimatize your body. 4. Consult a doctor. At Fuluck Cattery, we can set aside extra time for a compatibility check during your visit.</div></details></div></div></section><style>
