@@ -127,8 +127,22 @@
  .booking-input:focus,
  .booking-select:focus,
  .booking-textarea:focus {
- border-color: var(--mint);
- box-shadow: 0 0 0 4px rgba(125, 211, 192, 0.15);
+ border-color: var(--text-heading);
+ box-shadow: 0 0 0 4px rgba(90, 122, 122, 0.16);
+ }
+ .booking-input:focus-visible,
+ .booking-select:focus-visible,
+ .booking-textarea:focus-visible,
+ .booking-submit:focus-visible,
+ .line-btn:focus-visible {
+ outline: 3px solid var(--text-heading);
+ outline-offset: 3px;
+ box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.96);
+ }
+ .booking-input[aria-invalid="true"],
+ .booking-select[aria-invalid="true"],
+ .booking-textarea[aria-invalid="true"] {
+ border-color: #D32F2F;
  }
  .booking-input::placeholder,
  .booking-textarea::placeholder {
@@ -665,8 +679,12 @@
     var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     var PHONE_RE = /^[0-9+\-()\s]{9,20}$/;
 
-    function setInvalid(el) { el.style.borderColor = '#E57373'; }
-    function clearInvalid(el) { el.style.borderColor = ''; }
+    function setInvalid(el) {
+      el.setAttribute('aria-invalid', 'true');
+    }
+    function clearInvalid(el) {
+      el.removeAttribute('aria-invalid');
+    }
 
     function validateField(el) {
       var v = (el.value || '').trim();
@@ -709,9 +727,16 @@
         if (el && !validateField(el)) { setInvalid(el); allValid = false; }
       });
       if (!allValid) {
-        // Scroll first invalid into view
-        var firstBad = form.querySelector('[style*="border-color"]');
-        if (firstBad) firstBad.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Move keyboard and screen-reader users directly to the first invalid field.
+        var firstBad = form.querySelector('[aria-invalid="true"]');
+        if (firstBad) {
+          firstBad.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          try {
+            firstBad.focus({ preventScroll: true });
+          } catch (_e) {
+            firstBad.focus();
+          }
+        }
         return;
       }
 
