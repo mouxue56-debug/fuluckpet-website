@@ -29,6 +29,9 @@ jobs:
       - name: Regenerate static pages from API
         run: node tools/generate-site.js
 
+      - name: Regenerate diary static pages from API
+        run: node tools/generate-diary.js
+
       - name: Commit and push with retry (handles concurrent dispatch race)
         run: |
           git config user.name "github-actions[bot]"
