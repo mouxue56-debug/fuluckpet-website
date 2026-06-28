@@ -335,7 +335,7 @@ function diaryStyles() {
   </style>`;
 }
 
-function buildHead({ title, description, pageUrl, image, jsonLd }) {
+function buildHead({ title, description, pageUrl, image, jsonLd, ogType = 'article' }) {
   const imageUrl = absoluteUrl(image) || `${BASE_URL}/images/ogp.jpg`;
   return `<!DOCTYPE html>
 <html lang="ja">
@@ -347,7 +347,7 @@ function buildHead({ title, description, pageUrl, image, jsonLd }) {
   <meta name="keywords" content="">
   <meta property="og:title" content="${escapeHtml(title)}">
   <meta property="og:description" content="${escapeHtml(description)}">
-  <meta property="og:type" content="article">
+  <meta property="og:type" content="${escapeHtml(ogType)}">
   <meta property="og:url" content="${escapeHtml(pageUrl)}">
   <meta property="og:image" content="${escapeHtml(imageUrl)}">
   <meta property="og:site_name" content="サイベリアン｜大阪・福楽キャッテリー">
@@ -698,11 +698,17 @@ function buildDiaryIndexHtml(entries, context) {
     jsonLdScript({
       "@context": "https://schema.org",
       "@type": "CollectionPage",
+      "@id": `${BASE_URL}/diary/#collection`,
       "name": "子猫成長日記",
       "description": description,
       "url": pageUrl,
       "inLanguage": "ja",
-      "publisher": { "@type": "Organization", "name": "福楽キャッテリー", "url": BASE_URL }
+      "isPartOf": { "@id": `${BASE_URL}/#website` },
+      "about": [
+        { "@id": `${BASE_URL}/#cattery` },
+        { "@type": "Thing", "name": "子猫の成長記録" }
+      ],
+      "publisher": { "@id": `${BASE_URL}/#cattery` }
     }),
     jsonLdScript({
       "@context": "https://schema.org",
@@ -758,7 +764,7 @@ function buildDiaryIndexHtml(entries, context) {
         <p><a href="/kittens.html" class="blog-nav-link"><i class="ico ico-cat" aria-hidden="true"></i> 現在紹介中の子猫を見る</a></p>
       </div>`;
 
-  return `${buildHead({ title, description, pageUrl, image: '/images/ogp.jpg', jsonLd })}
+  return `${buildHead({ title, description, pageUrl, image: '/images/ogp.jpg', jsonLd, ogType: 'website' })}
 <body ${chrome.bodyAttrs}>
 
 ${chrome.headerHtml}
