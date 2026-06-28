@@ -93,9 +93,14 @@
     .editor-inner { padding: 20px 24px; max-width: 920px; margin: 0 auto; width: 100%; }
 
     /* Lang tabs */
-    .lang-tabs { display: flex; gap: 4px; margin-bottom: 12px; }
+    .lang-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+    .lang-tabs { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
     .lang-tab { padding: 6px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--white); cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 600; color: var(--text-light); }
     .lang-tab.active { background: var(--mint); color: white; border-color: var(--mint); }
+    .translation-badge { display: none; align-items: center; padding: 4px 8px; border-radius: 999px; border: 1px solid var(--warning); background: #FFFBEA; color: #744210; font-size: 11px; font-weight: 700; line-height: 1.2; }
+    .translation-badge.show { display: inline-flex; }
+    .btn:disabled { opacity: .55; cursor: not-allowed; }
+    .btn:disabled:hover { transform: none; box-shadow: none; }
     .lang-hint { font-size: 11px; color: var(--text-light); margin-bottom: 16px; }
 
     /* Form fields */
@@ -235,10 +240,16 @@
         <div class="editor-inner">
 
           <!-- Lang tabs -->
-          <div class="lang-tabs">
-            <button class="lang-tab active" data-lang="ja">日本語</button>
-            <button class="lang-tab" data-lang="zh">中文</button>
-            <button class="lang-tab" data-lang="en">English</button>
+          <div class="lang-row">
+            <div class="lang-tabs">
+              <button class="lang-tab active" data-lang="ja">日本語</button>
+              <button class="lang-tab" data-lang="zh">中文</button>
+              <button class="lang-tab" data-lang="en">English</button>
+              <span id="staleTranslationBadge" class="translation-badge"
+                    data-adm-ja="翻訳が古い可能性" data-adm-zh="翻译可能已过期">翻訳が古い可能性</span>
+            </div>
+            <button id="btnTranslateDiary" class="btn btn-secondary" type="button"
+                    data-adm-ja="AIで翻訳 (EN/中)" data-adm-zh="AI翻译 (EN/中)">AIで翻訳 (EN/中)</button>
           </div>
           <div class="lang-hint" id="langHint"></div>
 

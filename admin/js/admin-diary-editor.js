@@ -40,6 +40,71 @@
   function nowIso() { return new Date().toISOString(); }
   function nowDate() { return new Date().toISOString().slice(0, 10); }
 
+  function simpleHash(s) {
+    var text = String(s == null ? '' : s);
+    var hash = 0;
+    for (var i = 0; i < text.length; i += 1) {
+      hash = ((hash << 5) - hash + text.charCodeAt(i)) | 0;
+    }
+    return 'h' + (hash >>> 0).toString(36);
+  }
+
+  function articleLangValue(a, field, lang) {
+    if (!a) return '';
+    var bucket = a[field] || {};
+    return String(bucket[lang] || '');
+  }
+
+  function currentLangValue(field, lang) {
+    if (!currentArticle) return '';
+    if (lang === currentLang) {
+      if (field === 'title') return $('titleInput') ? $('titleInput').value : '';
+      if (field === 'excerpt') return $('excerptInput') ? $('excerptInput').value : '';
+      if (field === 'body') return (editor() ? getEditorContent() : '');
+    }
+    return articleLangValue(currentArticle, field, lang);
+  }
+
+  function hashParts(title, excerpt, body) {
+    return simpleHash([title || '', excerpt || '', body || ''].join('\n---\n'));
+  }
+
+  function computeArticleSourceHashJa(a) {
+    return hashParts(
+      articleLangValue(a, 'title', 'ja'),
+      articleLangValue(a, 'excerpt', 'ja'),
+      articleLangValue(a, 'body', 'ja')
+    );
+  }
+
+  function computeCurrentSourceHashJa() {
+    return hashParts(
+      currentLangValue('title', 'ja'),
+      currentLangValue('excerpt', 'ja'),
+      currentLangValue('body', 'ja')
+    );
+  }
+
+  function articleHasTranslationContent(a) {
+    return ['en', 'zh'].some(function(lang) {
+      return articleLangValue(a, 'title', lang) || articleLangValue(a, 'excerpt', lang) || articleLangValue(a, 'body', lang);
+    });
+  }
+
+  function currentHasTranslationContent() {
+    return ['en', 'zh'].some(function(lang) {
+      return currentLangValue('title', lang) || currentLangValue('excerpt', lang) || currentLangValue('body', lang);
+    });
+  }
+
+  function updateStaleTranslationBadge() {
+    var badge = $('staleTranslationBadge');
+    if (!badge || !currentArticle) return;
+    var savedHash = currentArticle.sourceHashJa || '';
+    var stale = !!savedHash && computeCurrentSourceHashJa() !== savedHash && currentHasTranslationContent();
+    badge.classList.toggle('show', stale);
+  }
+
   function showToast(msg, type) {
     var el = $('toast');
     if (!el) return;
@@ -52,6 +117,7 @@
     dirty = !!flag;
     var ind = $('dirtyIndicator');
     if (ind) ind.style.visibility = dirty ? 'visible' : 'hidden';
+    updateStaleTranslationBadge();
   }
 
   // ===== Login =====
@@ -157,6 +223,8 @@
       publishedAt: null,
       createdAt: nowIso(),
       updatedAt: nowIso(),
+      sourceHashJa: '',
+      translatedAt: null,
     };
     fillFormFromArticle();
     renderArticleList();
@@ -176,6 +244,8 @@
     if (!currentArticle.cats) currentArticle.cats = { kittens: [], parents: [], group: '' };
     if (!Array.isArray(currentArticle.cats.kittens)) currentArticle.cats.kittens = [];
     if (!Array.isArray(currentArticle.cats.parents)) currentArticle.cats.parents = [];
+    if (!currentArticle.sourceHashJa) currentArticle.sourceHashJa = '';
+    if (currentArticle.translatedAt === undefined) currentArticle.translatedAt = null;
     fillFormFromArticle();
     renderArticleList();
     setDirty(false);
@@ -210,6 +280,7 @@
       'すべての言語が同じ slug を共有します（' + currentLang.toUpperCase() + ' 編集中）',
       '所有语言共享同一 slug（正在编辑 ' + currentLang.toUpperCase() + '）'
     );
+    updateStaleTranslationBadge();
   }
 
   function captureFormIntoArticle() {
@@ -232,6 +303,7 @@
     a.updatedAt = nowIso();
     if (!a.createdAt) a.createdAt = a.updatedAt;
     a.body[currentLang] = getEditorContent();
+    updateStaleTranslationBadge();
   }
 
   // ===== Live cat data / diary picker =====
@@ -640,6 +712,51 @@
   }
 
   // ===== Save / Delete / Preview =====
+  function setTranslateBusy(flag) {
+    var btn = $('btnTranslateDiary');
+    if (!btn) return;
+    btn.disabled = !!flag;
+    btn.textContent = flag ? tt('翻訳中...', '翻译中...') : tt('AIで翻訳 (EN/中)', 'AI翻译 (EN/中)');
+  }
+
+  function translateArticle() {
+    if (typeof FuluckAPI === 'undefined' || !currentArticle) return;
+    captureFormIntoArticle();
+    var a = currentArticle;
+    var source = {
+      title: articleLangValue(a, 'title', 'ja'),
+      excerpt: articleLangValue(a, 'excerpt', 'ja'),
+      body: articleLangValue(a, 'body', 'ja'),
+    };
+    if (!(source.title || source.excerpt || source.body)) {
+      showToast(tt('先に日本語の内容を入力してください', '请先输入日文内容'), 'error');
+      return;
+    }
+
+    setTranslateBusy(true);
+    FuluckAPI.post('/api/admin/diary/translate', source).then(function(res) {
+      if (!res || !res.en || !res.zh) throw new Error('Invalid translation response');
+      if (!a.title) a.title = { ja: '', en: '', zh: '' };
+      if (!a.excerpt) a.excerpt = { ja: '', en: '', zh: '' };
+      if (!a.body) a.body = { ja: '', en: '', zh: '' };
+      a.title.en = String(res.en.title || '');
+      a.excerpt.en = String(res.en.excerpt || '');
+      a.body.en = String(res.en.body || '');
+      a.title.zh = String(res.zh.title || '');
+      a.excerpt.zh = String(res.zh.excerpt || '');
+      a.body.zh = String(res.zh.body || '');
+      a.sourceHashJa = computeArticleSourceHashJa(a);
+      a.translatedAt = nowIso();
+      fillFormFromArticle();
+      setDirty(true);
+      showToast(tt('翻訳を反映しました。保存前に確認してください', '已填入翻译，请保存前确认'), 'success');
+    }).catch(function(err) {
+      showToast('Translation error: ' + (err.message || err), 'error');
+    }).finally(function() {
+      setTranslateBusy(false);
+    });
+  }
+
   function saveArticle() {
     captureFormIntoArticle();
     var a = currentArticle;
@@ -653,6 +770,8 @@
       return;
     }
     if (!a.id) a.id = 'diary-' + a.slug;
+    a.sourceHashJa = computeArticleSourceHashJa(a);
+    a.translatedAt = articleHasTranslationContent(a) ? nowIso() : null;
     FuluckAPI.post('/api/admin/diary', a).then(function(saved) {
       currentSlug = (saved && saved.slug) || a.slug;
       currentArticle = saved || a;
@@ -905,6 +1024,8 @@
     $('btnSave').addEventListener('click', saveArticle);
     $('btnDelete').addEventListener('click', deleteArticle);
     $('btnPreview').addEventListener('click', previewArticle);
+    var translateBtn = $('btnTranslateDiary');
+    if (translateBtn) translateBtn.addEventListener('click', translateArticle);
     $('articleSearch').addEventListener('input', renderArticleList);
     $('btnReload').addEventListener('click', function() {
       loadCatData().then(loadArticles);

@@ -783,7 +783,7 @@ async function callDashScopeChat(env, messages) {
 // localhost proxy (127.0.0.1:8645), so MAYUKI_GATEWAY_URL must be a PUBLIC tunnel
 // fronted by an auth layer (the proxy itself enforces no auth). Model via
 // env.MAYUKI_MODEL (default grok-4.3).
-async function callMayukiChat(env, messages, model) {
+async function callMayukiChat(env, messages, model, maxTokens) {
   const base = env.MAYUKI_GATEWAY_URL;
   if (!base) throw new Error('MAYUKI_GATEWAY_URL not configured');
 
@@ -796,7 +796,7 @@ async function callMayukiChat(env, messages, model) {
     body: JSON.stringify({
       model: model || env.MAYUKI_MODEL || 'grok-4.3',
       messages, // OpenAI format already includes the system role.
-      max_tokens: 2048,
+      max_tokens: Number.isFinite(maxTokens) && maxTokens > 0 ? maxTokens : 2048,
       temperature: 0.7,
       stream: false,
     }),
@@ -810,6 +810,34 @@ async function callMayukiChat(env, messages, model) {
   const text = data?.choices?.[0]?.message?.content;
   if (!text) throw new Error('Mayuki gateway returned empty content');
   return String(text).trim();
+}
+
+function parseStrictJsonFromAiText(raw) {
+  let text = String(raw == null ? '' : raw).trim();
+  const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fence) text = fence[1].trim();
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start !== -1 && end !== -1 && end >= start) text = text.slice(start, end + 1);
+  return JSON.parse(text);
+}
+
+function normalizeDiaryTranslationResult(value) {
+  if (!value || typeof value !== 'object' || !value.en || !value.zh) {
+    throw new Error('translation JSON must include en and zh objects');
+  }
+  return {
+    en: {
+      title: String(value.en.title || ''),
+      excerpt: String(value.en.excerpt || ''),
+      body: String(value.en.body || ''),
+    },
+    zh: {
+      title: String(value.zh.title || ''),
+      excerpt: String(value.zh.excerpt || ''),
+      body: String(value.zh.body || ''),
+    },
+  };
 }
 
 // Gemini — text only, single-turn collapse with system prompt as preamble.
@@ -1975,6 +2003,40 @@ export default {
       if (path === '/api/admin/diary' && method === 'GET') {
         const data = await env.DATA.get('diary', 'json');
         return addCors(json(data || []));
+      }
+
+      if (path === '/api/admin/diary/translate' && method === 'POST') {
+        let source;
+        try {
+          source = await request.json();
+        } catch (_err) {
+          return addCors(json({ error: 'invalid_request_json' }, 400));
+        }
+
+        const title = String((source && source.title) || '');
+        const excerpt = String((source && source.excerpt) || '');
+        const body = String((source && source.body) || '');
+        const systemPrompt = 'You are translating posts for Fuluck Cattery\'s kitten-growth diary. Translate the provided Japanese fields into BOTH English (en) and Simplified Chinese (zh). Use a warm, natural tone suited to a cattery\'s kitten-growth diary. Preserve the body\'s HTML exactly: translate only human-readable text nodes. NEVER alter tags, attributes, URLs, class names, <figure>, <img>, <a href>, or any yt-facade / iframe / data-* markup. Do not add or drop elements. Keep the translation faithful; do not invent facts. Return ONLY strict minified JSON with this exact shape and no markdown fences: {"en":{"title":"","excerpt":"","body":""},"zh":{"title":"","excerpt":"","body":""}}';
+        const messages = [
+          { role: 'system', content: systemPrompt },
+          {
+            role: 'user',
+            content: JSON.stringify({ title, excerpt, body }),
+          },
+        ];
+
+        let raw;
+        try {
+          raw = await callMayukiChat(env, messages, undefined, 12000);
+        } catch (err) {
+          return addCors(json({ error: 'translation_gateway_failed', message: err && err.message ? err.message : String(err) }, 502));
+        }
+
+        try {
+          return addCors(json(normalizeDiaryTranslationResult(parseStrictJsonFromAiText(raw)), 200));
+        } catch (_err) {
+          return addCors(json({ error: 'translation_parse_failed', raw }, 502));
+        }
       }
 
       if (path === '/api/admin/diary' && method === 'POST') {
