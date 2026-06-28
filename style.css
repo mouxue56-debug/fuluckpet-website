@@ -3354,6 +3354,70 @@ body.cta-hidden .mobile-cta-bar {
    subtle inner ring + raise blur intensity so it always reads as "above". */
 .mobile-cta-bar { box-shadow: 0 -1px 0 rgba(125, 211, 192, 0.18) inset, 0 -4px 20px rgba(90, 122, 122, 0.12); }
 
+/* 10b. Mobile detail polish: 44px touch floors + predictable bottom stacking. */
+@media (max-width: 768px) {
+  .lang-btn {
+    min-height: 44px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .hamburger {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 10px;
+  }
+
+  .header-sns a,
+  .sns-icon,
+  .f-sns .sns-icon,
+  .mobile-nav-sns .sns-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .footer-links a,
+  .footer-legal a,
+  .footer-bottom a {
+    min-height: 44px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .footer-links a {
+    display: flex;
+  }
+
+  .fuluck-chat-root,
+  .fuluck-chat-bubble,
+  .fuluck-chat-panel,
+  .back-to-top {
+    z-index: 1200 !important;
+  }
+
+  .fuluck-chat-bubble,
+  .fuluck-chat-panel {
+    bottom: calc(96px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .back-to-top {
+    right: 12px !important;
+    left: auto !important;
+    bottom: calc(152px + env(safe-area-inset-bottom, 0px)) !important;
+    width: 44px;
+    height: 44px;
+  }
+}
+
 /* 11. Modal-overlay safe-area padding bottom (iPhone X+ home indicator).
    Modal already has padding: 16px; just ensure scroll target aligns. */
 .modal-overlay { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
