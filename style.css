@@ -25,7 +25,7 @@
   /* Text Colors */
   --text-heading: #5A7A7A;
   --text-body: #5A6A6A;
-  --text-note: #90A8A8;
+  --text-note: #5A6E6E;
   --text-white: #FFFFFF;
 
   /* Functional */
@@ -61,7 +61,7 @@
   --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.7);
 
   /* Accessibility tokens (additive, 2026-04 elderly + mobile readability layer) */
-  /* WCAG AA: #5A6E6E on #FFFCF0 = 5.33:1 (passes 4.5:1 normal-text threshold) */
+  /* WCAG AA: #5A6E6E on #FFFCF0 = 5.25:1 (passes 4.5:1 normal-text threshold) */
   --text-note-strong: #5A6E6E;
 
   /* Star/rating amber — replaces --mango (#FFE5A0) for review/rating star fills.
@@ -1426,7 +1426,8 @@ button { font-family: inherit; cursor: pointer; }
   outline-offset: 3px;
 }
 .footer-links { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
-.footer-links h4, .footer-legal h4 {
+.footer-links h2, .footer-links h4,
+.footer-legal h2, .footer-legal h4 {
   font-family: 'Noto Sans JP', sans-serif;
   font-size: 12.5px;
   font-weight: 700;
@@ -1887,7 +1888,11 @@ button { font-family: inherit; cursor: pointer; }
 .detail-label { color: var(--text-note); font-weight: 500; }
 .detail-value { color: var(--text-heading); font-weight: 600; }
 .modal-parents { margin-bottom: 20px; }
-.modal-parents h4, .modal-desc h4, .modal-health h4, .modal-delivery h4, .modal-children h4 {
+.modal-parents h3, .modal-parents h4,
+.modal-desc h3, .modal-desc h4,
+.modal-health h3, .modal-health h4,
+.modal-delivery h3, .modal-delivery h4,
+.modal-children h3, .modal-children h4 {
   font-family: 'Noto Sans JP', sans-serif;
   font-size: 14.5px;
   font-weight: 700;
@@ -2707,7 +2712,7 @@ button { font-family: inherit; cursor: pointer; }
 /* ----- Contrast: bump informational text to AA-compliant note color -----
    Applies on ALL viewports (desktop + mobile). The previous --text-note
    (#90A8A8) measured 2.45:1 on cream — failed AA. --text-note-strong
-   (#5A6E6E) measures 5.33:1 on cream. Hoisted out of any media query so
+   (#5A6E6E) measures 5.25:1 on cream. Hoisted out of any media query so
    informational text reads on desktop too. */
 .kit-meta,
 .tax,
@@ -2733,10 +2738,15 @@ button { font-family: inherit; cursor: pointer; }
 .trust-text,
 .hero-subtitle,
 .modal-desc p,
+.modal-parents h3,
 .modal-parents h4,
+.modal-desc h3,
 .modal-desc h4,
+.modal-health h3,
 .modal-health h4,
+.modal-delivery h3,
 .modal-delivery h4,
+.modal-children h3,
 .modal-children h4,
 .filter-btn,
 .page-hero p,
@@ -2819,10 +2829,15 @@ a.nav-link,
 
 
 /* ----- Headings: bump small heading sizes for elderly readers ----- */
+.modal-parents h3,
 .modal-parents h4,
+.modal-desc h3,
 .modal-desc h4,
+.modal-health h3,
 .modal-health h4,
+.modal-delivery h3,
 .modal-delivery h4,
+.modal-children h3,
 .modal-children h4 {
   font-size: 16px;
 }
@@ -3456,7 +3471,9 @@ body.cta-hidden .mobile-cta-bar {
     margin-bottom: 20px;
   }
 
+  .footer-links h2,
   .footer-links h4,
+  .footer-legal h2,
   .footer-legal h4 {
     margin-bottom: 10px;
   }
