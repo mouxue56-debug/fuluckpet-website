@@ -3549,3 +3549,253 @@ body.cta-hidden .mobile-cta-bar {
 .yt-facade .yt-play svg{width:26px;height:26px;margin-left:3px;fill:#fff}
 .yt-facade:focus-visible{outline:3px solid var(--brand,#5BC4A8);outline-offset:2px}
 .yt-facade iframe{width:100%;height:100%;border:0;display:block}
+
+/* ============================================================
+   READABILITY + SPACING REFINEMENT (2026-06)
+   CSS-only, conservative layer for running prose and rhythm.
+   ============================================================ */
+:root {
+  --read-prose-max: 68ch;
+  --read-h1: 42px;
+  --read-h2: 30px;
+  --read-h3: 20px;
+}
+
+body {
+  line-height: 1.86;
+}
+
+p,
+li {
+  max-inline-size: none;
+}
+
+.section {
+  padding-block: 108px;
+}
+
+.sec-header {
+  margin-bottom: 68px;
+}
+
+.sec-title {
+  line-height: 1.32;
+  margin-bottom: 18px;
+}
+
+body .page-hero h1,
+body .blog-hero h1,
+body .faq-hero h1,
+body .guide-header h1 {
+  color: var(--text-heading);
+  font-size: var(--read-h1);
+  line-height: 1.32;
+  margin: 0 0 20px;
+}
+
+body .page-content h2,
+body .blog-detail-content h2,
+body .guide-article .guide-section-title {
+  color: var(--text-heading);
+  font-size: var(--read-h2);
+  line-height: 1.38;
+  margin-block: 56px 18px;
+}
+
+body .page-content h2:first-child {
+  margin-top: 0;
+}
+
+body .about-card h3,
+body .feature-card h3,
+body .flow-content h3,
+body .visit-card h3,
+body .line-cta-card h3,
+body .blog-detail-content h3 {
+  color: var(--text-heading);
+  font-size: var(--read-h3);
+  line-height: 1.45;
+  margin-bottom: 12px;
+}
+
+body .page-content p,
+body .page-content li,
+body .blog-detail-content p,
+body .blog-detail-content li,
+body .guide-article .guide-section p,
+body .guide-article .guide-section li,
+body .siberian-text-block p,
+body .faq-a p,
+body .law-notice p,
+body .law-notice-compact p,
+body .modal-desc p,
+.body-text {
+  line-height: 1.86;
+  max-inline-size: var(--read-prose-max);
+  overflow-wrap: break-word;
+}
+
+body .page-content p,
+body .blog-detail-content p,
+body .guide-article .guide-section p,
+body .siberian-text-block p,
+.body-text {
+  margin-bottom: 1.05em;
+}
+
+body .page-content a:not(.btn):not(.btn-primary):not(.btn-secondary):not(.btn-line),
+body .blog-detail-content a:not(.btn):not(.blog-card),
+body .guide-article .guide-section a:not(.guide-cta-btn),
+body .faq-a a,
+body .law-notice a,
+body .modal-desc a {
+  color: var(--text-heading);
+  font-weight: 600;
+  text-decoration-line: underline;
+  text-decoration-color: var(--mint-dark);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+}
+
+body .page-content a:not(.btn):not(.btn-primary):not(.btn-secondary):not(.btn-line):hover,
+body .blog-detail-content a:not(.btn):not(.blog-card):hover,
+body .guide-article .guide-section a:not(.guide-cta-btn):hover,
+body .faq-a a:hover,
+body .law-notice a:hover,
+body .modal-desc a:hover {
+  color: var(--text-heading);
+  text-decoration-thickness: 0.12em;
+}
+
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-line,
+.cta-button {
+  align-items: center;
+  display: inline-flex;
+  gap: 10px;
+  justify-content: center;
+  line-height: 1.35;
+  max-width: 100%;
+  min-height: 52px;
+  text-align: center;
+}
+
+.btn {
+  padding: 15px 34px;
+}
+
+.btn-primary:not(.btn),
+.btn-secondary:not(.btn),
+.btn-line:not(.btn),
+.cta-button {
+  border-radius: 100px;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 15px 34px;
+  text-decoration: none;
+}
+
+.btn-line {
+  padding-inline: 40px;
+}
+
+.btn svg,
+.btn .ico,
+.btn-primary svg,
+.btn-primary .ico,
+.btn-secondary svg,
+.btn-secondary .ico,
+.btn-line svg,
+.btn-line .ico,
+.cta-button svg,
+.cta-button .ico {
+  flex-shrink: 0;
+}
+
+.btn-primary:hover,
+.btn-secondary:hover,
+.btn-line:hover,
+.cta-button:hover {
+  transform: translateY(-2px);
+}
+
+body .page-content ul,
+body .page-content ol,
+body .blog-detail-content ul,
+body .blog-detail-content ol {
+  margin: 14px 0 24px 1.4em;
+  padding-left: 1.15em;
+}
+
+body .page-content li,
+body .blog-detail-content li {
+  margin-bottom: 0.55em;
+}
+
+.check-list li {
+  line-height: 1.82;
+  padding-block: 9px;
+  padding-left: 26px;
+}
+
+body .guide-article .guide-list li,
+body .guide-article .guide-steps li {
+  line-height: 1.82;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --read-h1: 30px;
+    --read-h2: 24px;
+    --read-h3: 20px;
+  }
+
+  body {
+    font-size: 18px;
+    line-height: 1.86;
+  }
+
+  .section {
+    padding-block: 68px;
+  }
+
+  .sec-header {
+    margin-bottom: 48px;
+  }
+
+  body .page-content p,
+  body .page-content li,
+  body .blog-detail-content p,
+  body .blog-detail-content li,
+  body .guide-article .guide-section p,
+  body .guide-article .guide-section li,
+  body .siberian-text-block p,
+  body .faq-a p,
+  body .law-notice p,
+  body .law-notice-compact p,
+  body .modal-desc p,
+  .body-text {
+    font-size: max(16px, 1rem);
+    line-height: 1.86;
+  }
+
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .btn-line,
+  .cta-button {
+    min-height: 56px;
+    white-space: normal;
+  }
+
+  .btn {
+    padding: 14px 28px;
+  }
+
+  .btn-line {
+    padding-inline: 28px;
+  }
+}
