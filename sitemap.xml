@@ -360,7 +360,7 @@
     <priority>0.8</priority>
   </url>
 
-                                                                                                                                                                                                                                                            <!-- 子猫詳細ページ -->
+                                                                                                                                                                                                                                                              <!-- 子猫詳細ページ -->
   <url>
     <loc>https://fuluckpet.com/kittens/2602-00625.html</loc>
     <lastmod>2026-06-29</lastmod>
@@ -602,16 +602,6 @@
     </image:image>
   </url>
   <url>
-    <loc>https://fuluckpet.com/kittens/2509-01171.html</loc>
-    <lastmod>2026-06-29</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/193ftvlYymW8ls3P1wy3eCDl9QQ51fopz</image:loc>
-      <image:caption>サイベリアンの子猫 レッドリンクスポイント 男の子・個体番号2509-01171</image:caption>
-    </image:image>
-  </url>
-  <url>
     <loc>https://fuluckpet.com/kittens/2509-02441.html</loc>
     <lastmod>2026-06-29</lastmod>
     <changefreq>weekly</changefreq>
@@ -689,26 +679,6 @@
     <image:image>
       <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_8dca1e05dfa6.jpg.webp</image:loc>
       <image:caption>サイベリアンの子猫 ブラウンタビー&amp;ホワイト（トリプルコート） 男の子・個体番号2603-02033</image:caption>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/kittens/2508-00310.html</loc>
-    <lastmod>2026-06-29</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1GoruWUhUw-I5vCGTDA9FaXcCsU6I5V-c</image:loc>
-      <image:caption>サイベリアンの子猫 シルバーシェーデット 男の子・個体番号2508-00310</image:caption>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/kittens/2508-02468.html</loc>
-    <lastmod>2026-06-29</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1jNmtznG2H2_vrHyyYoLWXlxqP8bN1ati</image:loc>
-      <image:caption>サイベリアンの子猫 シルバー&amp;ホワイト（トリプルコート） 男の子・個体番号2508-02468</image:caption>
     </image:image>
   </url>
   <url>

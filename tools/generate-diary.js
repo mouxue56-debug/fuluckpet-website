@@ -243,7 +243,7 @@ function ver(file, fallback) {
 }
 function extractAssetVersions(html) {
   const map = {};
-  const re = /\/((?:[\w-]+\/)?[\w.-]+\.(?:css|js))\?v=([\w.-]+)/g;
+  const re = /\/?((?:[\w-]+\/)?[\w.-]+\.(?:css|js))\?v=([\w.-]+)/g; // optional leading slash: capture relative refs too
   let m;
   while ((m = re.exec(html))) { map[m[1]] = m[2]; }
   return map;

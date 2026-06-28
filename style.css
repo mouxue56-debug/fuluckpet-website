@@ -667,7 +667,7 @@ button { font-family: inherit; cursor: pointer; }
   font-weight: 600;
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: var(--mint);
+  color: #357C68; /* AA: dark mint, 4.8:1 on cream (was --mint #7DD3C0 ~1.7:1) */
   margin-bottom: 14px;
 }
 .sec-title {
@@ -992,7 +992,7 @@ button { font-family: inherit; cursor: pointer; }
     padding-top: 14px;
   }
 }
-.sold-text { font-size: 14.5px !important; font-weight: 500 !important; color: var(--strawberry) !important; }
+.sold-text { font-size: 14.5px !important; font-weight: 500 !important; color: #C2185B !important; /* AA: deep rose, 5.7:1 (was --strawberry #F9B8D0 ~1.6:1) */ }
 
 
 /* ========================================
@@ -2182,7 +2182,7 @@ button { font-family: inherit; cursor: pointer; }
   font-size: 14px;
   color: var(--text-note);
 }
-.breadcrumb a { color: var(--mint-dark); }
+.breadcrumb a { color: #357C68; /* AA: dark mint, 4.8:1 on cream (was --mint-dark #5BC4A8 ~2.1:1) */ }
 .breadcrumb a:hover { text-decoration: underline; }
 .breadcrumb span { opacity: 0.5; }
 

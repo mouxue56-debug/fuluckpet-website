@@ -20,7 +20,7 @@ function verAsset(file, fallback) {
 }
 function extractAssetVersions(html) {
   const map = {};
-  const re = /\/((?:[\w-]+\/)?[\w.-]+\.(?:css|js))\?v=([\w.-]+)/g;
+  const re = /\/?((?:[\w-]+\/)?[\w.-]+\.(?:css|js))\?v=([\w.-]+)/g; // optional leading slash: capture relative refs too (kittens.html uses style.css, not /style.css)
   let m;
   while ((m = re.exec(html))) { map[m[1]] = m[2]; }
   return map;
@@ -1231,8 +1231,11 @@ function updateSitemap(articles, kittenDetailPages) {
   // Build kitten detail page URLs (with image:image entries for image sitemap)
   let kittenEntries = `  ${kittenDetailMarker}\n`;
   const detailPages = kittenDetailPages || [];
+  const sitemapSeen = new Set(); // dedup: duplicate breederId in data must not emit duplicate <loc>
   for (const k of detailPages) {
     const fileId = k.breederId || k.id;
+    if (sitemapSeen.has(fileId)) continue;
+    sitemapSeen.add(fileId);
     const photo = getCoverPhoto(k);
     const gt = genderText(k.gender);
     const caption = `${k.breed}の子猫 ${k.color || ''} ${gt}・個体番号${fileId}`.trim();
