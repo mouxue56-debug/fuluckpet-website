@@ -19,6 +19,7 @@ function fetchJSON(endpoint) {
     const url = API_BASE + endpoint;
     https.get(url, (res) => {
       let data = '';
+      res.setEncoding('utf8'); // decode multi-byte UTF-8 across chunk boundaries (avoid mojibake)
       res.on('data', (chunk) => { data += chunk; });
       res.on('end', () => {
         try {

@@ -12,6 +12,20 @@ const SITE_DIR = path.resolve(__dirname, '..');
 const BASE_URL = 'https://fuluckpet.com';
 const FAVICON_HREF = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%235BC4A8'/><g fill='%23ffffff'><ellipse cx='11' cy='12' rx='2.3' ry='2.7'/><ellipse cx='21' cy='12' rx='2.3' ry='2.7'/><ellipse cx='7.5' cy='17.5' rx='2.1' ry='2.4'/><ellipse cx='24.5' cy='17.5' rx='2.1' ry='2.4'/><path d='M16 16.5c3.1 0 5.6 2.2 5.6 4.9 0 2.2-1.9 3.1-5.6 3.1s-5.6-.9-5.6-3.1c0-2.7 2.5-4.9 5.6-4.9z'/></g></svg>";
 
+// Asset cache-version map, read from the live kittens.html template so detail
+// pages never drift from the rest of the site when style.css / i18n.js / nav.* bump.
+let ASSET_VERSIONS = {};
+function verAsset(file, fallback) {
+  return (ASSET_VERSIONS && ASSET_VERSIONS[file]) || fallback;
+}
+function extractAssetVersions(html) {
+  const map = {};
+  const re = /\/((?:[\w-]+\/)?[\w.-]+\.(?:css|js))\?v=([\w.-]+)/g;
+  let m;
+  while ((m = re.exec(html))) { map[m[1]] = m[2]; }
+  return map;
+}
+
 // ── Breed Config ──────────────────────────────────────────────
 
 const BREED_CONFIG = [
@@ -68,6 +82,7 @@ function fetchJSON(endpoint) {
     const url = API_BASE + endpoint;
     https.get(url, (res) => {
       let data = '';
+      res.setEncoding('utf8'); // decode multi-byte UTF-8 across chunk boundaries (avoid mojibake)
       res.on('data', (chunk) => { data += chunk; });
       res.on('end', () => {
         try {
@@ -752,8 +767,10 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml) {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css?v=20260624v2">
+  <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260628g')}">
+  <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20260628a')}">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
+  <script defer src="/nav.js?v=${verAsset('nav.js', '20260628a')}"></script>
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
@@ -1052,10 +1069,10 @@ ${footerHtml}
     });
   });
   </script>
-  <script src="/i18n.js?v=20260624v2"></script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20260628f')}"></script>
   <script src="/kitten-carousel.js"></script>
-  <script src="/cta-widget.js?v=20260623b"></script>
-  <script src="/script.js?v=20260623b"></script>
+  <script src="/cta-widget.js?v=${verAsset('cta-widget.js', '20260623b')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20260623b')}"></script>
 </body>
 </html>`;
 }
@@ -1067,6 +1084,8 @@ ${footerHtml}
 function extractDetailTemplate() {
   const filepath = path.join(SITE_DIR, 'kittens.html');
   const html = fs.readFileSync(filepath, 'utf-8');
+
+  ASSET_VERSIONS = extractAssetVersions(html);
 
   // Header: from <header> to end of </div> (mobileNav)
   // We want: header element + mobile nav
