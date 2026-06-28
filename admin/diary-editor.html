@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>子猫成長日記 編集 | 福楽キャッテリー</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --mint: #7DD3C0;
+      --mint-dark: #5BC4A8;
+      --mint-light: #F0FFFA;
+      --bg: #FFFCF0;
+      --bg-card: #FFFFFF;
+      --white: #FFFFFF;
+      --text: #5A7A7A;
+      --text-body: #5A6A6A;
+      --text-light: #90A8A8;
+      --text-note-strong: #5A6E6E;
+      --border: #E5EDF0;
+      --danger: #FC8181;
+      --danger-dark: #E53E3E;
+      --success: #68D391;
+      --warning: #F6E05E;
+      --header-h: 56px;
+      --radius: 12px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter','Noto Sans JP',sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.6; }
+
+    /* Login (mirrors admin/index.html) */
+    .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--mint-light), var(--bg), #FFF8FB); }
+    .login-card { background: var(--white); border-radius: 20px; padding: 48px 40px; box-shadow: 0 8px 40px rgba(0,0,0,0.08); width: 100%; max-width: 400px; text-align: center; }
+    .login-logo { font-size: 48px; margin-bottom: 16px; }
+    .login-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .login-sub { font-size: 13px; color: var(--text-light); margin-bottom: 32px; }
+    .login-input { width: 100%; padding: 14px 20px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 15px; font-family: inherit; margin-bottom: 16px; outline: none; }
+    .login-input:focus { border-color: var(--mint); }
+    .login-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, var(--mint), var(--mint-dark)); color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; }
+    .login-error { color: var(--danger-dark); font-size: 13px; margin-top: 12px; display: none; }
+
+    /* Layout */
+    .editor-layout { display: none; min-height: 100vh; flex-direction: column; }
+    .editor-layout.active { display: flex; }
+
+    /* Top bar */
+    .top-bar { height: var(--header-h); background: rgba(255,252,240,0.85); backdrop-filter: blur(12px) saturate(160%); -webkit-backdrop-filter: blur(12px) saturate(160%); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; gap: 12px; flex-shrink: 0; }
+    .top-bar-left { display: flex; align-items: center; gap: 16px; }
+    .page-brand { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+    .page-brand a { text-decoration: none; color: var(--text); display: inline-flex; align-items: center; gap: 4px; }
+    .page-brand a:hover { color: var(--mint-dark); }
+    .top-bar-actions { display: flex; gap: 8px; align-items: center; }
+    .btn { padding: 8px 16px; border-radius: 8px; border: none; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .2s; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-primary { background: linear-gradient(135deg, var(--mint), var(--mint-dark)); color: white; }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(125,211,192,0.3); }
+    .btn-secondary { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--white); }
+    .btn-danger { background: var(--danger-dark); color: white; }
+    .btn-danger:hover { opacity: .9; }
+    .btn-ghost { background: transparent; color: var(--text-light); border: 1px solid transparent; }
+    .btn-ghost:hover { color: var(--text); border-color: var(--border); }
+    #dirtyIndicator { color: var(--warning); font-size: 18px; visibility: hidden; }
+
+    /* Main split */
+    .split { flex: 1; display: grid; grid-template-columns: 320px 1fr; min-height: 0; }
+    @media (max-width: 900px) {
+      .split { grid-template-columns: 1fr; }
+      .article-list-pane { max-height: 280px; }
+    }
+
+    /* Article list */
+    .article-list-pane { background: var(--white); border-right: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0; }
+    .list-header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; gap: 8px; align-items: center; }
+    .list-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; }
+    .list-scroll { flex: 1; overflow-y: auto; padding: 8px; }
+    .article-item { display: flex; gap: 10px; padding: 10px 12px; border-radius: 8px; cursor: pointer; align-items: flex-start; transition: background .15s; margin-bottom: 4px; }
+    .article-item:hover { background: var(--mint-light); }
+    .article-item.active { background: linear-gradient(135deg, var(--mint), var(--mint-dark)); color: white; }
+    .article-item.active .article-sub { color: rgba(255,255,255,0.8); }
+    .pub-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
+    .pub-on { background: var(--success); }
+    .pub-off { background: var(--text-light); opacity: .6; }
+    .article-item.active .pub-on { background: white; }
+    .article-meta { flex: 1; min-width: 0; }
+    .article-title { font-size: 13px; font-weight: 600; line-height: 1.4; word-break: break-word; }
+    .article-sub { font-size: 11px; color: var(--text-light); margin-top: 2px; word-break: break-all; }
+    .empty-list { padding: 24px; text-align: center; color: var(--text-light); font-size: 13px; }
+
+    /* Editor pane */
+    .editor-pane { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; background: var(--bg); }
+    .editor-inner { padding: 20px 24px; max-width: 920px; margin: 0 auto; width: 100%; }
+
+    /* Lang tabs */
+    .lang-tabs { display: flex; gap: 4px; margin-bottom: 12px; }
+    .lang-tab { padding: 6px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--white); cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 600; color: var(--text-light); }
+    .lang-tab.active { background: var(--mint); color: white; border-color: var(--mint); }
+    .lang-hint { font-size: 11px; color: var(--text-light); margin-bottom: 16px; }
+
+    /* Form fields */
+    .field-grid { display: grid; gap: 14px; margin-bottom: 16px; }
+    .form-field label { display: block; font-size: 12px; font-weight: 600; color: var(--text-note-strong); margin-bottom: 4px; }
+    .form-input { width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; background: var(--white); outline: none; transition: border-color .2s; }
+    .form-input:focus { border-color: var(--mint); }
+    .form-textarea { min-height: 60px; resize: vertical; }
+    .row-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
+    .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    @media (max-width: 700px) { .row-2, .row-3 { grid-template-columns: 1fr; } }
+    .checkbox-row { display: flex; align-items: center; gap: 8px; padding-top: 22px; }
+    .checkbox-row input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--mint-dark); }
+
+    /* Cover image */
+    .cover-card { display: flex; gap: 12px; align-items: stretch; padding: 12px; background: var(--white); border-radius: 8px; border: 1px solid var(--border); }
+    .cover-preview { width: 120px; height: 80px; border-radius: 6px; background: var(--bg); border: 1.5px dashed var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; flex-shrink: 0; }
+    .cover-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .cover-placeholder { font-size: 11px; color: var(--text-light); }
+    .cover-controls { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .cover-controls label { font-size: 12px; font-weight: 600; }
+
+    /* Cat picker */
+    .cat-picker { background: var(--white); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 16px; }
+    .cat-picker-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+    .cat-picker-title { font-size: 13px; font-weight: 700; color: var(--text-note-strong); }
+    .cat-picker-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .cat-picker-search { min-width: 180px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; outline: none; }
+    .cat-picker-search:focus { border-color: var(--mint); }
+    .cat-picker-sections { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 800px) { .cat-picker-sections { grid-template-columns: 1fr; } }
+    .cat-section { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--bg); }
+    .cat-section-title { padding: 8px 10px; font-size: 12px; font-weight: 700; color: var(--text-note-strong); border-bottom: 1px solid var(--border); background: var(--mint-light); }
+    .cat-list { max-height: 260px; overflow-y: auto; padding: 6px; }
+    .cat-row { display: grid; grid-template-columns: 20px 42px 1fr auto; align-items: center; gap: 8px; padding: 7px; border-radius: 7px; cursor: pointer; }
+    .cat-row:hover { background: var(--white); }
+    .cat-row input { width: 16px; height: 16px; accent-color: var(--mint-dark); }
+    .cat-thumb { width: 42px; height: 42px; border-radius: 7px; background: var(--white); border: 1px solid var(--border); object-fit: cover; overflow: hidden; display: block; }
+    .cat-thumb.empty { display: flex; align-items: center; justify-content: center; color: var(--text-light); font-size: 10px; }
+    .cat-main { min-width: 0; }
+    .cat-name { font-size: 12px; font-weight: 700; line-height: 1.3; color: var(--text); word-break: break-word; }
+    .cat-sub { font-size: 10px; color: var(--text-light); line-height: 1.4; word-break: break-word; margin-top: 1px; }
+    .cat-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px; white-space: nowrap; }
+    .cat-badge.available { background: #C6F6D5; color: #22543D; }
+    .cat-badge.reserved { background: #FEFCBF; color: #744210; }
+    .cat-badge.sold { background: #FED7E2; color: #702459; }
+    .cat-empty { padding: 16px; color: var(--text-light); font-size: 12px; text-align: center; }
+    .selected-summary { margin-top: 10px; color: var(--text-light); font-size: 11px; }
+
+    /* Drop zone */
+    .drop-zone { padding: 14px; border: 2px dashed var(--mint); border-radius: 8px; background: var(--mint-light); text-align: center; font-size: 13px; color: var(--mint-dark); margin-bottom: 12px; cursor: pointer; transition: all .15s; }
+    .drop-zone:hover, .drop-zone.drag-over { background: var(--mint); color: white; border-style: solid; }
+    .upload-progress { padding: 8px 12px; background: var(--white); border: 1px solid var(--mint); border-radius: 8px; font-size: 12px; color: var(--mint-dark); margin-bottom: 12px; display: none; font-weight: 600; }
+
+    /* Toolbar */
+    .toolbar { display: flex; flex-wrap: wrap; gap: 4px; padding: 8px; background: var(--white); border: 1px solid var(--border); border-radius: 8px 8px 0 0; border-bottom: none; }
+    .tb-group { display: flex; gap: 2px; padding-right: 6px; margin-right: 2px; border-right: 1px solid var(--border); }
+    .tb-group:last-child { border-right: none; }
+    .tb-btn { width: 32px; height: 32px; border-radius: 6px; border: 1px solid transparent; background: transparent; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; color: var(--text-body); display: inline-flex; align-items: center; justify-content: center; }
+    .tb-btn:hover { background: var(--mint-light); color: var(--mint-dark); }
+    .tb-btn.active { background: var(--mint); color: white; }
+    .tb-btn.wide { width: auto; padding: 0 10px; font-size: 12px; }
+
+    /* Editor body */
+    .editor-shell { background: var(--white); border: 1px solid var(--border); border-radius: 0 0 8px 8px; min-height: 480px; }
+    .rt-editor { min-height: 480px; padding: 18px 22px; outline: none; font-size: 15px; line-height: 1.85; color: var(--text); }
+    .rt-editor:focus { outline: none; }
+    .rt-editor h2 { font-size: 22px; font-weight: 700; margin: 24px 0 12px; color: var(--text); }
+    .rt-editor h3 { font-size: 18px; font-weight: 700; margin: 20px 0 10px; color: var(--text); }
+    .rt-editor p { margin: 0 0 12px; }
+    .rt-editor blockquote { border-left: 3px solid var(--mint); padding: 4px 14px; color: var(--text-body); background: var(--mint-light); margin: 12px 0; border-radius: 0 8px 8px 0; }
+    .rt-editor img { max-width: 100%; height: auto; border-radius: 8px; margin: 12px 0; display: block; }
+    .rt-editor ul, .rt-editor ol { margin: 12px 0 12px 28px; }
+    .rt-editor li { margin-bottom: 6px; }
+    .rt-editor a { color: var(--mint-dark); text-decoration: underline; }
+    .rt-editor:empty::before { content: attr(data-placeholder); color: var(--text-light); font-style: italic; pointer-events: none; }
+    .source-area { display: none; min-height: 480px; width: 100%; padding: 18px 22px; border: none; outline: none; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6; resize: vertical; background: #fafbfc; color: #2d3748; }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 24px; right: 24px; padding: 14px 24px; background: var(--text); color: white; border-radius: 10px; font-size: 14px; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,0.15); z-index: 300; transform: translateY(100px); opacity: 0; transition: all .3s; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { background: #38A169; }
+    .toast.error { background: #E53E3E; }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <div class="login-logo">📝</div>
+      <h1 class="login-title" data-adm-ja="子猫成長日記 編集" data-adm-zh="子猫成长日记编辑">子猫成長日記 編集</h1>
+      <p class="login-sub" data-adm-ja="パスワードを入力してログインしてください" data-adm-zh="请输入密码登录">パスワードを入力してログインしてください</p>
+      <input type="password" id="loginPassword" class="login-input" placeholder="パスワード" autocomplete="current-password">
+      <button id="loginBtn" class="login-btn" data-adm-ja="ログイン" data-adm-zh="登录">ログイン</button>
+      <p id="loginError" class="login-error" data-adm-ja="パスワードが正しくありません" data-adm-zh="密码不正确">パスワードが正しくありません</p>
+    </div>
+  </div>
+
+  <!-- EDITOR LAYOUT -->
+  <div id="editorLayout" class="editor-layout">
+
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <div class="page-brand">
+          <a href="index.html" title="管理画面トップ">🐾</a>
+          <span data-adm-ja="子猫成長日記 編集" data-adm-zh="子猫成长日记编辑">子猫成長日記 編集</span>
+          <span id="dirtyIndicator" title="未保存">●</span>
+        </div>
+      </div>
+      <div class="top-bar-actions">
+        <button id="btnNew" class="btn btn-secondary"><span data-adm-ja="新規" data-adm-zh="新建">新規</span></button>
+        <button id="btnReload" class="btn btn-ghost" title="再読込">⟳</button>
+        <button id="btnPreview" class="btn btn-secondary"><span data-adm-ja="プレビュー" data-adm-zh="预览">プレビュー</span></button>
+        <button id="btnDelete" class="btn btn-danger"><span data-adm-ja="削除" data-adm-zh="删除">削除</span></button>
+        <button id="btnSave" class="btn btn-primary"><span data-adm-ja="保存" data-adm-zh="保存">保存</span></button>
+        <button id="btnLangToggle" class="btn btn-ghost">🌐 中文</button>
+        <button id="btnLogout" class="btn btn-ghost"><span data-adm-ja="ログアウト" data-adm-zh="退出">ログアウト</span></button>
+      </div>
+    </div>
+
+    <div class="split">
+
+      <!-- LEFT: ARTICLE LIST -->
+      <aside class="article-list-pane">
+        <div class="list-header">
+          <input type="search" id="articleSearch"
+                 placeholder="日記を検索..."
+                 data-adm-ja-attr-placeholder="日記を検索..."
+                 data-adm-zh-attr-placeholder="搜索日记...">
+        </div>
+        <div class="list-scroll" id="articleList"></div>
+      </aside>
+
+      <!-- RIGHT: EDITOR -->
+      <main class="editor-pane">
+        <div class="editor-inner">
+
+          <!-- Lang tabs -->
+          <div class="lang-tabs">
+            <button class="lang-tab active" data-lang="ja">日本語</button>
+            <button class="lang-tab" data-lang="zh">中文</button>
+            <button class="lang-tab" data-lang="en">English</button>
+          </div>
+          <div class="lang-hint" id="langHint"></div>
+
+          <!-- Diary meta fields -->
+          <div class="field-grid">
+            <div class="row-2">
+              <div class="form-field">
+                <label data-adm-ja="タイトル *" data-adm-zh="标题 *">タイトル *</label>
+                <input id="titleInput" class="form-input" type="text">
+              </div>
+              <div class="form-field">
+                <label data-adm-ja="Slug *" data-adm-zh="Slug *">Slug *</label>
+                <input id="slugInput" class="form-input" type="text" placeholder="kitten-growth">
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label data-adm-ja="抄録 (200字まで)" data-adm-zh="摘要 (最多200字)">抄録 (200字まで)</label>
+              <textarea id="excerptInput" class="form-input form-textarea" maxlength="200"></textarea>
+            </div>
+
+            <!-- Cover image -->
+            <div class="cover-card">
+              <div class="cover-preview" id="coverPreview" title="クリックして画像を選択">
+                <span class="cover-placeholder">カバー画像</span>
+              </div>
+              <div class="cover-controls">
+                <label data-adm-ja="カバー画像 URL" data-adm-zh="封面图片 URL">カバー画像 URL</label>
+                <input id="coverImage" class="form-input" type="text" placeholder="https://...">
+                <input id="coverPicker" type="file" accept="image/*" style="display:none;">
+              </div>
+            </div>
+
+            <div class="row-3">
+              <div class="form-field">
+                <label data-adm-ja="窝 (litter / group)" data-adm-zh="窝 (litter / group)">窝 (litter / group)</label>
+                <select id="litterSelect" class="form-input">
+                  <option value="" data-adm-ja="-- 選択 --" data-adm-zh="-- 选择 --">-- 選択 --</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label data-adm-ja="ステージ" data-adm-zh="阶段">ステージ</label>
+                <input id="stageInput" class="form-input" type="text" list="stageSuggestions" placeholder="生後1週">
+                <datalist id="stageSuggestions">
+                  <option value="妊娠"></option>
+                  <option value="誕生"></option>
+                  <option value="生後1週"></option>
+                  <option value="生後2週"></option>
+                  <option value="生後3週"></option>
+                  <option value="生後1ヶ月"></option>
+                  <option value="生後2ヶ月"></option>
+                  <option value="卒業前"></option>
+                </datalist>
+              </div>
+              <div class="form-field">
+                <label data-adm-ja="日付" data-adm-zh="日期">日付</label>
+                <input id="dateInput" class="form-input" type="date">
+              </div>
+            </div>
+
+            <div class="row-2">
+              <div class="form-field checkbox-row">
+                <input id="publishedCheckbox" type="checkbox">
+                <label for="publishedCheckbox" data-adm-ja="公開する" data-adm-zh="发布">公開する</label>
+              </div>
+              <div class="form-field">
+                <label data-adm-ja="公開日" data-adm-zh="发布日期">公開日</label>
+                <input id="publishedAt" class="form-input" type="date">
+              </div>
+            </div>
+          </div>
+
+          <section class="cat-picker" aria-labelledby="catPickerTitle">
+            <div class="cat-picker-head">
+              <div class="cat-picker-title" id="catPickerTitle" data-adm-ja="登場する猫" data-adm-zh="登场的猫">登場する猫</div>
+              <div class="cat-picker-actions">
+                <input id="catSearch" class="cat-picker-search" type="search"
+                       placeholder="猫を検索..."
+                       data-adm-ja-attr-placeholder="猫を検索..."
+                       data-adm-zh-attr-placeholder="搜索猫...">
+                <button id="btnSelectLitterCats" class="btn btn-secondary" type="button">
+                  <span data-adm-ja="この窝の子を全選択" data-adm-zh="选择此窝全部猫">この窝の子を全選択</span>
+                </button>
+              </div>
+            </div>
+            <div class="cat-picker-sections">
+              <div class="cat-section">
+                <div class="cat-section-title" data-adm-ja="親猫" data-adm-zh="亲猫">親猫</div>
+                <div class="cat-list" id="parentPickerList"><div class="cat-empty">読み込み中...</div></div>
+              </div>
+              <div class="cat-section">
+                <div class="cat-section-title" data-adm-ja="子猫(在売)" data-adm-zh="子猫(在售)">子猫(在売)</div>
+                <div class="cat-list" id="kittenPickerList"><div class="cat-empty">読み込み中...</div></div>
+              </div>
+            </div>
+            <div class="selected-summary" id="selectedCatsSummary"></div>
+          </section>
+
+          <!-- Drop zone for images -->
+          <div class="drop-zone" id="dropZone" onclick="document.getElementById('imagePicker').click()">
+            <span data-adm-ja="📷 画像をここにドラッグ または クリックして選択（複数可）"
+                  data-adm-zh="📷 将图片拖到这里 或 点击选择（支持多张）">
+              📷 画像をここにドラッグ または クリックして選択（複数可）
+            </span>
+          </div>
+          <input id="imagePicker" type="file" accept="image/*" multiple style="display:none;">
+          <div id="uploadProgress" class="upload-progress"></div>
+
+          <!-- Toolbar -->
+          <div class="toolbar" id="toolbar">
+            <div class="tb-group">
+              <button class="tb-btn" id="btnBold" title="Bold (Cmd+B)"><b>B</b></button>
+              <button class="tb-btn" id="btnItalic" title="Italic (Cmd+I)"><i>I</i></button>
+              <button class="tb-btn" id="btnUnderline" title="Underline (Cmd+U)"><u>U</u></button>
+            </div>
+            <div class="tb-group">
+              <button class="tb-btn wide" id="btnH2" title="Heading 2">H2</button>
+              <button class="tb-btn wide" id="btnH3" title="Heading 3">H3</button>
+              <button class="tb-btn wide" id="btnP" title="Paragraph">P</button>
+              <button class="tb-btn" id="btnQuote" title="Quote">❝</button>
+            </div>
+            <div class="tb-group">
+              <button class="tb-btn" id="btnUL" title="Bullet list">• ☰</button>
+              <button class="tb-btn" id="btnOL" title="Numbered list">1.</button>
+            </div>
+            <div class="tb-group">
+              <button class="tb-btn" id="btnLink" title="Insert link">🔗</button>
+              <button class="tb-btn" id="btnImage" title="Insert image">🖼</button>
+              <button class="tb-btn" id="btnYT" title="YouTube embed">▶</button>
+            </div>
+            <div class="tb-group">
+              <button class="tb-btn" id="btnUndo" title="Undo">↶</button>
+              <button class="tb-btn" id="btnRedo" title="Redo">↷</button>
+              <button class="tb-btn wide" id="btnSource" title="HTML source">&lt;/&gt;</button>
+            </div>
+          </div>
+
+          <div class="editor-shell">
+            <div id="rtEditor" class="rt-editor" contenteditable="true"
+                 data-placeholder="ここに本文を書いてください..."></div>
+            <textarea id="sourceArea" class="source-area"></textarea>
+          </div>
+
+        </div>
+      </main>
+    </div>
+
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="js/api-client.js"></script>
+  <script src="js/admin-diary-editor.js"></script>
+</body>
+</html>
