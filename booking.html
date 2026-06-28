@@ -78,54 +78,113 @@
  .booking-form-card {
  background: var(--bg-white);
  border-radius: var(--radius-lg);
- padding: 40px;
- box-shadow: var(--shadow-card);
+ padding: clamp(28px, 4vw, 44px);
+ border: 1px solid rgba(125, 211, 192, 0.22);
+ box-shadow: 0 18px 50px rgba(90, 122, 122, 0.1);
  }
  .booking-form-card h2 {
  font-size: 1.3rem;
  font-weight: 700;
  color: var(--text-heading);
- margin-bottom: 28px;
+ margin-bottom: 10px;
  display: flex;
  align-items: center;
  gap: 10px;
  }
+ .form-intro {
+ font-size: 0.94rem;
+ color: var(--text-note);
+ line-height: 1.8;
+ margin: 0 0 14px;
+ max-inline-size: 100%;
+ }
+ .form-required-note {
+ display: inline-flex;
+ align-items: center;
+ gap: 8px;
+ color: var(--text-note);
+ font-size: 0.84rem;
+ line-height: 1.6;
+ background: var(--mint-milk);
+ border: 1px solid rgba(125, 211, 192, 0.32);
+ border-radius: 999px;
+ padding: 6px 12px;
+ margin: 0 0 24px;
+ }
+ .form-section {
+ border: 0;
+ border-top: 1px solid #E7F1EE;
+ padding: 26px 0 4px;
+ margin: 0;
+ }
+ .form-section:first-of-type {
+ border-top: 0;
+ padding-top: 4px;
+ }
+ .form-section legend {
+ display: flex;
+ align-items: center;
+ gap: 10px;
+ color: var(--text-heading);
+ font-size: 0.98rem;
+ font-weight: 700;
+ padding: 0 0 18px;
+ }
+ .section-step {
+ display: inline-flex;
+ align-items: center;
+ justify-content: center;
+ width: 28px;
+ height: 28px;
+ border-radius: 999px;
+ background: var(--mint);
+ color: #fff;
+ font-size: 0.82rem;
+ font-weight: 700;
+ line-height: 1;
+ }
 
  .form-group {
- margin-bottom: 20px;
+ margin-bottom: 22px;
  }
  .form-group label {
  display: block;
  font-size: 0.92rem;
  font-weight: 600;
  color: var(--text-heading);
- margin-bottom: 6px;
+ margin-bottom: 8px;
  }
  .form-group label .required {
- color: #E57373;
- font-size: 0.8rem;
- margin-left: 4px;
+ display: inline-flex;
+ align-items: center;
+ justify-content: center;
+ min-width: 1.2em;
+ color: var(--mint-dark);
+ font-size: 0.88rem;
+ font-weight: 700;
+ margin-left: 6px;
  }
  .form-group .hint {
  display: block;
  font-size: 0.82rem;
  color: var(--text-note);
- margin-top: 2px;
- margin-bottom: 6px;
+ margin: -2px 0 8px;
+ line-height: 1.7;
  }
 
  .booking-input,
  .booking-select,
  .booking-textarea {
  width: 100%;
- padding: 12px 16px;
- font-size: 1rem;
+ min-height: 54px;
+ padding: 14px 16px;
+ font-size: max(16px, 1rem);
  font-family: inherit;
- border: 2px solid #E0E8E8;
+ border: 1.5px solid #DCEAE7;
  border-radius: var(--radius-sm);
- background: var(--bg-white);
+ background: #FCFFFE;
  color: var(--text-body);
- transition: all 0.3s var(--ease-out);
+ transition: border-color 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out), background-color 0.2s var(--ease-out);
  outline: none;
  -webkit-appearance: none;
  appearance: none;
@@ -133,15 +192,16 @@
  .booking-input:focus,
  .booking-select:focus,
  .booking-textarea:focus {
- border-color: var(--text-heading);
- box-shadow: 0 0 0 4px rgba(90, 122, 122, 0.16);
+ border-color: var(--mint-dark);
+ background: #fff;
+ box-shadow: 0 0 0 4px rgba(125, 211, 192, 0.18);
  }
  .booking-input:focus-visible,
  .booking-select:focus-visible,
  .booking-textarea:focus-visible,
  .booking-submit:focus-visible,
  .line-btn:focus-visible {
- outline: 3px solid var(--text-heading);
+ outline: 3px solid var(--mint-dark);
  outline-offset: 3px;
  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.96);
  }
@@ -152,7 +212,7 @@
  }
  .booking-input::placeholder,
  .booking-textarea::placeholder {
- color: #B8C8C8;
+ color: #8EA4A1;
  }
  .booking-select {
  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%2390A8A8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
@@ -161,7 +221,7 @@
  padding-right: 40px;
  }
  .booking-textarea {
- min-height: 100px;
+ min-height: 130px;
  resize: vertical;
  line-height: 1.6;
  }
@@ -169,12 +229,18 @@
  .form-row {
  display: grid;
  grid-template-columns: 1fr 1fr;
- gap: 16px;
+ gap: 18px;
+ }
+ .form-action {
+ border-top: 1px solid #E7F1EE;
+ padding-top: 28px;
+ margin-top: 4px;
  }
 
  .booking-submit {
  width: 100%;
- padding: 16px;
+ min-height: 58px;
+ padding: 17px 20px;
  font-size: 1.1rem;
  font-weight: 700;
  color: white;
@@ -183,13 +249,20 @@
  border-radius: var(--radius-md);
  cursor: pointer;
  transition: all 0.3s var(--ease-out);
- margin-top: 8px;
+ margin-top: 0;
  position: relative;
  overflow: hidden;
+ box-shadow: 0 12px 28px rgba(91, 196, 168, 0.28);
+ }
+ .booking-submit .btn-text {
+ display: inline-flex;
+ align-items: center;
+ justify-content: center;
+ gap: 8px;
  }
  .booking-submit:hover {
  transform: translateY(-2px);
- box-shadow: 0 8px 24px rgba(125, 211, 192, 0.35);
+ box-shadow: 0 14px 32px rgba(91, 196, 168, 0.34);
  }
  .booking-submit:active {
  transform: translateY(0);
@@ -214,26 +287,72 @@
  /* Success / Error messages */
  .booking-result {
  display: none;
- padding: 24px;
- border-radius: var(--radius-sm);
- margin-top: 16px;
+ padding: 30px;
+ border-radius: var(--radius-lg);
+ margin-top: 18px;
  text-align: center;
  }
  .booking-result.success {
  display: block;
- background: linear-gradient(135deg, var(--mint-milk) 0%, #E8FFF5 100%);
- border: 2px solid var(--mint);
+ background: linear-gradient(135deg, var(--mint-milk) 0%, var(--bg-cream) 100%);
+ border: 1.5px solid rgba(125, 211, 192, 0.45);
+ box-shadow: 0 16px 42px rgba(90, 122, 122, 0.1);
  }
- .booking-result.success .result-icon { font-size: 2rem; margin-bottom: 8px; }
- .booking-result.success h3 { color: var(--mint-dark); font-size: 1.1rem; margin-bottom: 6px; }
- .booking-result.success p { color: var(--text-body); font-size: 0.92rem; }
+ .booking-result.success .result-icon {
+ display: inline-flex;
+ align-items: center;
+ justify-content: center;
+ width: 54px;
+ height: 54px;
+ border-radius: 50%;
+ background: #fff;
+ color: var(--mint-dark);
+ font-size: 1.55rem;
+ margin-bottom: 14px;
+ box-shadow: 0 8px 24px rgba(91, 196, 168, 0.18);
+ }
+ .booking-result.success h3 { color: var(--text-heading); font-size: 1.18rem; margin-bottom: 8px; }
+ .booking-result.success p { color: var(--text-body); font-size: 0.95rem; line-height: 1.8; margin: 0 auto; }
  .booking-result.error {
  display: block;
  background: #FFF5F5;
- border: 2px solid #E57373;
+ border: 1.5px solid #E57373;
  }
  .booking-result.error h3 { color: #D32F2F; font-size: 1.1rem; margin-bottom: 6px; }
  .booking-result.error p { color: var(--text-body); font-size: 0.92rem; }
+ .result-actions {
+ display: flex;
+ gap: 12px;
+ justify-content: center;
+ flex-wrap: wrap;
+ margin-top: 22px;
+ }
+ .result-link {
+ display: inline-flex;
+ align-items: center;
+ justify-content: center;
+ gap: 8px;
+ min-height: 46px;
+ padding: 11px 18px;
+ border-radius: 999px;
+ font-size: 0.92rem;
+ font-weight: 700;
+ transition: all 0.2s var(--ease-out);
+ }
+ .result-link-line {
+ color: #137544;
+ background: #fff;
+ border: 1px solid rgba(6, 199, 85, 0.28);
+ }
+ .result-link-secondary {
+ color: var(--text-heading);
+ background: #fff;
+ border: 1px solid #E2ECEA;
+ }
+ .result-link:hover {
+ transform: translateY(-1px);
+ box-shadow: var(--shadow-soft);
+ }
 
  /* Sidebar */
  .booking-sidebar {
@@ -275,11 +394,12 @@
  .info-card ul li .icon { flex-shrink: 0; }
 
  .line-card {
- background: linear-gradient(135deg, #E8FFF5 0%, var(--mint-milk) 100%);
- border: 2px solid var(--mint);
+ background: rgba(255, 255, 255, 0.86);
+ border: 1px solid rgba(125, 211, 192, 0.32);
  border-radius: var(--radius-lg);
  padding: 28px;
  text-align: center;
+ box-shadow: var(--shadow-soft);
  }
  .line-card h3 {
  font-size: 1rem;
@@ -297,18 +417,23 @@
  display: inline-flex;
  align-items: center;
  gap: 8px;
- padding: 12px 28px;
- font-size: 1rem;
+ min-height: 46px;
+ padding: 11px 24px;
+ font-size: 0.96rem;
  font-weight: 700;
- color: white;
- background: var(--line-green);
+ color: #137544;
+ background: #fff;
+ border: 1px solid rgba(6, 199, 85, 0.32);
  border-radius: 50px;
  transition: all 0.3s var(--ease-out);
  }
+ .line-btn svg {
+ fill: currentColor;
+ }
  .line-btn:hover {
  transform: translateY(-2px);
- box-shadow: 0 6px 20px rgba(6, 199, 85, 0.3);
- color: white;
+ box-shadow: 0 6px 20px rgba(6, 199, 85, 0.14);
+ color: #0B6D39;
  }
 
  /* Responsive */
@@ -327,6 +452,47 @@
  }
  .booking-hero {
  padding: 100px 0 40px;
+ }
+ }
+ @media (max-width: 520px) {
+ .booking-section {
+ padding: 42px 0 72px;
+ }
+ .booking-form-card,
+ .info-card,
+ .line-card {
+ border-radius: 20px;
+ }
+ .booking-form-card {
+ padding: 24px 18px;
+ }
+ .form-required-note {
+ align-items: flex-start;
+ border-radius: 14px;
+ }
+ .form-section {
+ padding-top: 24px;
+ }
+ .form-section legend {
+ font-size: 0.96rem;
+ padding-bottom: 16px;
+ }
+ .booking-input,
+ .booking-select,
+ .booking-textarea,
+ .booking-submit {
+ font-size: 16px;
+ }
+ .booking-result {
+ padding: 26px 18px;
+ }
+ .result-actions,
+ .result-link {
+ width: 100%;
+ }
+ .line-btn {
+ width: 100%;
+ justify-content: center;
  }
  }
  </style>
@@ -451,90 +617,106 @@
         <!-- Form -->
         <div class="booking-form-card">
           <h2><i class="ico ico-square-pen" aria-hidden="true"></i> <span data-i18n="booking.formTitle">予約フォーム</span></h2>
+          <p class="form-intro" data-i18n="booking.formIntro">ご希望の日時と見学方法をお知らせください。分かる範囲で大丈夫です。</p>
+          <p class="form-required-note"><span class="required" aria-hidden="true">*</span><span data-i18n="booking.requiredNote">必須項目です。</span></p>
 
           <form id="bookingForm" novalidate>
-            <!-- Name -->
-            <div class="form-group">
-              <label for="bk-name"><span data-i18n="booking.name">お名前</span><span class="required">*</span></label>
-              <input type="text" id="bk-name" class="booking-input" required data-placeholder-ja="例：田中 太郎" data-placeholder-en="e.g. Taro Tanaka" data-placeholder-zh="例：田中 太郎" placeholder="例：田中 太郎">
-            </div>
+            <fieldset class="form-section">
+              <legend><span class="section-step" aria-hidden="true">1</span><span data-i18n="booking.sectionContact">ご連絡先</span></legend>
 
-            <!-- Email -->
-            <div class="form-group">
-              <label for="bk-email"><span data-i18n="booking.email">メールアドレス</span><span class="required">*</span></label>
-              <input type="email" id="bk-email" class="booking-input" required placeholder="example@email.com">
-            </div>
-
-            <!-- Phone -->
-            <div class="form-group">
-              <label for="bk-phone"><span data-i18n="booking.phone">電話番号</span></label>
-              <input type="tel" id="bk-phone" class="booking-input" data-placeholder-ja="例：090-1234-5678" data-placeholder-en="e.g. 090-1234-5678" data-placeholder-zh="例：090-1234-5678" placeholder="例：090-1234-5678">
-            </div>
-
-            <!-- Date + Time Row -->
-            <div class="form-row">
+              <!-- Name -->
               <div class="form-group">
-                <label for="bk-date"><span data-i18n="booking.date">第一希望日</span><span class="required">*</span></label>
-                <input type="date" id="bk-date" class="booking-input" required>
+                <label for="bk-name"><span data-i18n="booking.name">お名前</span><span class="required" aria-hidden="true">*</span></label>
+                <input type="text" id="bk-name" class="booking-input" required data-placeholder-ja="例：田中 太郎" data-placeholder-en="e.g. Taro Tanaka" data-placeholder-zh="例：田中 太郎" placeholder="例：田中 太郎">
               </div>
+
+              <!-- Email -->
               <div class="form-group">
-                <label for="bk-time"><span data-i18n="booking.time">ご希望の時間帯</span></label>
-                <select id="bk-time" class="booking-select">
-                  <option value="" data-i18n="booking.timePlaceholder">選択してください</option>
-                  <option value="午前（10:00〜12:00）" data-i18n="booking.timeMorning">午前（10:00〜12:00）</option>
-                  <option value="午後（13:00〜15:00）" data-i18n="booking.timeAfternoon">午後（13:00〜15:00）</option>
-                  <option value="夕方（15:00〜17:00）" data-i18n="booking.timeEvening">夕方（15:00〜17:00）</option>
+                <label for="bk-email"><span data-i18n="booking.email">メールアドレス</span><span class="required" aria-hidden="true">*</span></label>
+                <input type="email" id="bk-email" class="booking-input" required placeholder="example@email.com">
+              </div>
+
+              <!-- Phone -->
+              <div class="form-group">
+                <label for="bk-phone"><span data-i18n="booking.phone">電話番号</span></label>
+                <input type="tel" id="bk-phone" class="booking-input" data-placeholder-ja="例：090-1234-5678" data-placeholder-en="e.g. 090-1234-5678" data-placeholder-zh="例：090-1234-5678" placeholder="例：090-1234-5678">
+              </div>
+            </fieldset>
+
+            <fieldset class="form-section">
+              <legend><span class="section-step" aria-hidden="true">2</span><span data-i18n="booking.sectionSchedule">見学日時・方法</span></legend>
+
+              <!-- Date + Time Row -->
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="bk-date"><span data-i18n="booking.date">第一希望日</span><span class="required" aria-hidden="true">*</span></label>
+                  <input type="date" id="bk-date" class="booking-input" required>
+                </div>
+                <div class="form-group">
+                  <label for="bk-time"><span data-i18n="booking.time">ご希望の時間帯</span></label>
+                  <select id="bk-time" class="booking-select">
+                    <option value="" data-i18n="booking.timePlaceholder">選択してください</option>
+                    <option value="午前（10:00〜12:00）" data-i18n="booking.timeMorning">午前（10:00〜12:00）</option>
+                    <option value="午後（13:00〜15:00）" data-i18n="booking.timeAfternoon">午後（13:00〜15:00）</option>
+                    <option value="夕方（15:00〜17:00）" data-i18n="booking.timeEvening">夕方（15:00〜17:00）</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Date 2 -->
+              <div class="form-group">
+                <label for="bk-date2"><span data-i18n="booking.date2">第二希望日</span></label>
+                <span class="hint" id="bk-date2-hint" data-i18n="booking.date2Hint">日程調整のため、第二希望もご記入いただけると助かります。</span>
+                <input type="date" id="bk-date2" class="booking-input" aria-describedby="bk-date2-hint">
+              </div>
+
+              <!-- Visit Type -->
+              <div class="form-group">
+                <label for="bk-method"><span data-i18n="booking.method">見学方法</span><span class="required" aria-hidden="true">*</span></label>
+                <select id="bk-method" class="booking-select" required>
+                  <option value="" data-i18n="booking.methodPlaceholder">選択してください</option>
+                  <option value="対面見学（来場）" data-i18n="booking.methodInPerson">対面見学（来場）</option>
+                  <option value="LINEビデオ通話" data-i18n="booking.methodVideo">LINEビデオ通話</option>
+                  <option value="どちらでも可" data-i18n="booking.methodEither">どちらでも可</option>
                 </select>
               </div>
-            </div>
+            </fieldset>
 
-            <!-- Date 2 -->
-            <div class="form-group">
-              <label for="bk-date2"><span data-i18n="booking.date2">第二希望日</span></label>
-              <span class="hint" data-i18n="booking.date2Hint">日程調整のため、第二希望もご記入いただけると助かります。</span>
-              <input type="date" id="bk-date2" class="booking-input">
-            </div>
+            <fieldset class="form-section">
+              <legend><span class="section-step" aria-hidden="true">3</span><span data-i18n="booking.sectionMessage">気になる子・ご相談内容</span></legend>
 
-            <!-- Visit Type -->
-            <div class="form-group">
-              <label for="bk-method"><span data-i18n="booking.method">見学方法</span><span class="required">*</span></label>
-              <select id="bk-method" class="booking-select" required>
-                <option value="" data-i18n="booking.methodPlaceholder">選択してください</option>
-                <option value="対面見学（来場）" data-i18n="booking.methodInPerson">対面見学（来場）</option>
-                <option value="LINEビデオ通話" data-i18n="booking.methodVideo">LINEビデオ通話</option>
-                <option value="どちらでも可" data-i18n="booking.methodEither">どちらでも可</option>
-              </select>
-            </div>
+              <!-- Interested Kitten -->
+              <div class="form-group">
+                <label for="bk-kitten"><span data-i18n="booking.kitten">気になる子猫</span></label>
+                <span class="hint" id="bk-kitten-hint" data-i18n="booking.kittenHint">子猫の名前や掲載番号をお書きください（複数可）。</span>
+                <input type="text" id="bk-kitten" class="booking-input" aria-describedby="bk-kitten-hint" data-placeholder-ja="例：ムーン、c995680-8" data-placeholder-en="e.g. Moon, c995680-8" data-placeholder-zh="例：Moon、c995680-8" placeholder="例：ムーン、c995680-8">
+              </div>
 
-            <!-- Interested Kitten -->
-            <div class="form-group">
-              <label for="bk-kitten"><span data-i18n="booking.kitten">気になる子猫</span></label>
-              <span class="hint" data-i18n="booking.kittenHint">子猫の名前や掲載番号をお書きください（複数可）。</span>
-              <input type="text" id="bk-kitten" class="booking-input" data-placeholder-ja="例：ムーン、c995680-8" data-placeholder-en="e.g. Moon, c995680-8" data-placeholder-zh="例：Moon、c995680-8" placeholder="例：ムーン、c995680-8">
-            </div>
-
-            <!-- Message -->
-            <div class="form-group">
-              <label for="bk-message"><span data-i18n="booking.message">ご質問・ご要望</span></label>
-              <textarea id="bk-message" class="booking-textarea" rows="4" data-placeholder-ja="ご質問やご要望があればお気軽にどうぞ" data-placeholder-en="Any questions or requests" data-placeholder-zh="如有任何问题或要求请随意填写" placeholder="ご質問やご要望があればお気軽にどうぞ"></textarea>
-            </div>
+              <!-- Message -->
+              <div class="form-group">
+                <label for="bk-message"><span data-i18n="booking.message">ご質問・ご要望</span></label>
+                <textarea id="bk-message" class="booking-textarea" rows="4" data-placeholder-ja="ご質問やご要望があればお気軽にどうぞ" data-placeholder-en="Any questions or requests" data-placeholder-zh="如有任何问题或要求请随意填写" placeholder="ご質問やご要望があればお気軽にどうぞ"></textarea>
+              </div>
+            </fieldset>
 
             <!-- Submit -->
-            <button type="submit" class="booking-submit" id="bookingSubmit">
-              <span class="btn-text" data-i18n="booking.submit"><i class="ico ico-mail" aria-hidden="true"></i> 予約を送信する</span>
-              <span class="spinner"></span>
-            </button>
-            <p style="text-align:center;color:var(--text-note);font-size:0.82rem;margin:12px 0 0"><i class="ico ico-lock" aria-hidden="true"></i> ご記入の情報はご予約のご連絡のみに使用し、第三者には提供しません。すぐのご相談はLINEからもどうぞ。</p>
+            <div class="form-action">
+              <button type="submit" class="booking-submit" id="bookingSubmit">
+                <span class="btn-text" data-i18n="booking.submit"><i class="ico ico-mail" aria-hidden="true"></i> 予約を送信する</span>
+                <span class="spinner"></span>
+              </button>
+              <p class="form-intro" style="text-align:center;font-size:0.82rem;margin:12px 0 0"><i class="ico ico-lock" aria-hidden="true"></i> <span data-i18n="booking.privacyNote">ご記入の情報はご予約のご連絡のみに使用し、第三者には提供しません。すぐのご相談はLINEからもどうぞ。</span></p>
+            </div>
           </form>
 
           <!-- Success -->
           <div id="bookingSuccess" class="booking-result" role="status" aria-live="polite">
-            <div class="result-icon" aria-hidden="true"><i class="ico ico-party-popper" aria-hidden="true"></i></div>
+            <div class="result-icon" aria-hidden="true"><i class="ico ico-circle-check" aria-hidden="true"></i></div>
             <h3 data-i18n="booking.successTitle">予約を送信しました！</h3>
             <p data-i18n="booking.successDesc">24時間以内にメールまたはLINEでご連絡いたします。お待ちくださいませ。</p>
-            <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px">
-              <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="btn btn-line" target="_blank" rel="noopener"><i class="ico ico-message-circle" aria-hidden="true"></i> LINEを追加して優先案内を受け取る</a>
-              <a href="/kittens.html" class="btn btn-secondary"><i class="ico ico-paw-print" aria-hidden="true"></i> 子猫一覧を見る</a>
+            <div class="result-actions">
+              <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="result-link result-link-line" target="_blank" rel="noopener"><i class="ico ico-message-circle" aria-hidden="true"></i> <span data-i18n="booking.successLine">LINEでも相談する</span></a>
+              <a href="/kittens.html" class="result-link result-link-secondary"><i class="ico ico-paw-print" aria-hidden="true"></i> <span data-i18n="booking.successKittens">子猫一覧を見る</span></a>
             </div>
           </div>
 
@@ -655,7 +837,7 @@
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
   </button>
 
-  <script src="i18n.js?v=20260628a"></script>
+  <script src="i18n.js?v=20260628f"></script>
   <script src="script.js?v=20260623b"></script>
   <script>
   // ===== Booking Form Submission — POSTs to fuluck-api Worker =====
@@ -778,9 +960,6 @@
           // Success: hide form, show card, scroll
           form.style.display = 'none';
           successEl.className = 'booking-result success';
-          // Updated user-facing copy per spec
-          var p = successEl.querySelector('p');
-          if (p) p.textContent = 'ご予約ありがとうございました。担当者から24時間以内にご連絡いたします。';
           successEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
           // GA4 generate_lead (Agent A also wants this — coordinate by JUST emitting it)
