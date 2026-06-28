@@ -234,9 +234,25 @@ function jsonLdScript(data) {
 
 // -- Template --------------------------------------------------------------
 
+// Asset cache-version map, read from the live blog template so diary pages
+// never drift from the rest of the site when style.css / i18n.js / nav.* are bumped.
+let ASSET_VERSIONS = {};
+function ver(file, fallback) {
+  return (ASSET_VERSIONS && ASSET_VERSIONS[file]) || fallback;
+}
+function extractAssetVersions(html) {
+  const map = {};
+  const re = /\/((?:[\w-]+\/)?[\w.-]+\.(?:css|js))\?v=([\w.-]+)/g;
+  let m;
+  while ((m = re.exec(html))) { map[m[1]] = m[2]; }
+  return map;
+}
+
 function extractBlogChrome() {
   const templatePath = path.join(SITE_DIR, 'blog', 'siberian-grooming-basics.html');
   const html = fs.readFileSync(templatePath, 'utf-8');
+
+  ASSET_VERSIONS = extractAssetVersions(html);
 
   const bodyMatch = html.match(/<body([^>]*)>/);
   const bodyAttrs = bodyMatch ? bodyMatch[1].trim() : 'class="has-mobile-cta"';
@@ -362,10 +378,12 @@ function buildHead({ title, description, pageUrl, image, jsonLd, ogType = 'artic
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
-  <link rel="stylesheet" href="/style.css?v=20260624v2">
-  <link rel="stylesheet" href="/guide/guide.css?v=20260623b">
-  <link rel="stylesheet" href="/blog.css?v=20260624v2">
+  <link rel="stylesheet" href="/style.css?v=${ver('style.css', '20260628g')}">
+  <link rel="stylesheet" href="/nav.css?v=${ver('nav.css', '20260628a')}">
+  <link rel="stylesheet" href="/guide/guide.css?v=${ver('guide/guide.css', '20260623b')}">
+  <link rel="stylesheet" href="/blog.css?v=${ver('blog.css', '20260624v2')}">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
+  <script defer src="/nav.js?v=${ver('nav.js', '20260628a')}"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
 ${jsonLd.join('\n')}
@@ -616,10 +634,10 @@ ${bodyJa}
 
 ${chrome.footerHtml}
 
-  <script src="/i18n.js?v=20260624v2"></script>
+  <script src="/i18n.js?v=${ver('i18n.js', '20260628f')}"></script>
   <script>window._diaryArticleI18n = ${safeJsonForScript(i18n)}; window._blogArticleI18n = window._diaryArticleI18n;</script>
-  <script src="/blog/blog-i18n.js?v=20260624v2"></script>
-  <script src="/script.js?v=20260623b"></script>
+  <script src="/blog/blog-i18n.js?v=${ver('blog/blog-i18n.js', '20260624v2')}"></script>
+  <script src="/script.js?v=${ver('script.js', '20260623b')}"></script>
 
   <div class="mobile-cta-bar" role="navigation" aria-label="クイック連絡">
     <div class="mobile-cta-bar-inner">
@@ -633,7 +651,7 @@ ${chrome.footerHtml}
       </a>
     </div>
   </div>
-  <script defer src="/mobile-cta.js?v=20260623b"></script>
+  <script defer src="/mobile-cta.js?v=${ver('mobile-cta.js', '20260623b')}"></script>
 </body>
 </html>
 `;
@@ -784,8 +802,8 @@ ${chrome.headerHtml}
 
 ${chrome.footerHtml}
 
-  <script src="/i18n.js?v=20260624v2"></script>
-  <script src="/script.js?v=20260623b"></script>
+  <script src="/i18n.js?v=${ver('i18n.js', '20260628f')}"></script>
+  <script src="/script.js?v=${ver('script.js', '20260623b')}"></script>
 
   <div class="mobile-cta-bar" role="navigation" aria-label="クイック連絡">
     <div class="mobile-cta-bar-inner">
@@ -799,7 +817,7 @@ ${chrome.footerHtml}
       </a>
     </div>
   </div>
-  <script defer src="/mobile-cta.js?v=20260623b"></script>
+  <script defer src="/mobile-cta.js?v=${ver('mobile-cta.js', '20260623b')}"></script>
 </body>
 </html>
 `;
