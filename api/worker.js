@@ -1345,6 +1345,22 @@ export default {
         return addCors(json(article, 200, 'public, max-age=3600'));
       }
 
+      // GET /api/diary — 公開：子猫成長日記一覧（published only, publishedAt DESC）
+      if (path === '/api/diary' && method === 'GET') {
+        const all = (await env.DATA.get('diary', 'json')) || [];
+        const published = all.filter(d => d.published).sort((a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || ''));
+        return addCors(json(published, 200, 'public, max-age=3600'));
+      }
+
+      // GET /api/diary/:slug — 公開：子猫成長日記詳細（slug検索）
+      if (path.match(/^\/api\/diary\/[^/]+$/) && method === 'GET') {
+        const slug = path.split('/').pop();
+        const all = (await env.DATA.get('diary', 'json')) || [];
+        const post = all.find(d => d.slug === slug && d.published);
+        if (!post) return addCors(notFound());
+        return addCors(json(post, 200, 'public, max-age=3600'));
+      }
+
       // GET /api/faq — 公開：FAQ一覧（order ASC, published only）
       if (path === '/api/faq' && method === 'GET') {
         const all = (await env.DATA.get('faq', 'json')) || [];
@@ -1953,6 +1969,79 @@ export default {
         articles = articles.filter(a => a.id !== id);
         await env.DATA.put('articles', JSON.stringify(articles));
         return addCors(json({ success: true }));
+      }
+
+      // --- Diary CRUD ---
+      if (path === '/api/admin/diary' && method === 'GET') {
+        const data = await env.DATA.get('diary', 'json');
+        return addCors(json(data || []));
+      }
+
+      if (path === '/api/admin/diary' && method === 'POST') {
+        const body = await request.json();
+        const slug = typeof body.slug === 'string' ? body.slug.trim() : '';
+        if (!slug) {
+          return addCors(json({ error: 'slug is required' }, 400));
+        }
+        if (!/^[A-Za-z0-9][A-Za-z0-9._~-]*$/.test(slug)) {
+          return addCors(json({ error: 'slug must be url-safe' }, 400));
+        }
+
+        let diary = (await env.DATA.get('diary', 'json')) || [];
+        const idx = diary.findIndex(d => d.slug === slug);
+        const nowIso = new Date().toISOString();
+        const prev = idx === -1 ? {} : diary[idx];
+        const post = {
+          ...prev,
+          ...body,
+          id: idx === -1 ? (body.id || crypto.randomUUID()) : (prev.id || body.id || crypto.randomUUID()),
+          slug,
+          title: { ja: '', en: '', zh: '', ...(prev.title || {}), ...(body.title || {}) },
+          excerpt: { ja: '', en: '', zh: '', ...(prev.excerpt || {}), ...(body.excerpt || {}) },
+          body: { ja: '', en: '', zh: '', ...(prev.body || {}), ...(body.body || {}) },
+          coverImage: body.coverImage !== undefined ? body.coverImage : (prev.coverImage || ''),
+          cats: {
+            kittens: [],
+            parents: [],
+            group: '',
+            ...(prev.cats || {}),
+            ...(body.cats || {}),
+          },
+          published: body.published !== undefined ? body.published : (prev.published || false),
+          publishedAt: body.publishedAt !== undefined ? body.publishedAt : (prev.publishedAt || null),
+          createdAt: idx === -1 ? nowIso : (prev.createdAt || nowIso),
+          updatedAt: nowIso,
+          sourceHashJa: body.sourceHashJa !== undefined ? body.sourceHashJa : (prev.sourceHashJa || ''),
+          translatedAt: body.translatedAt !== undefined ? body.translatedAt : (prev.translatedAt || null),
+        };
+        if (post.published && !post.publishedAt) post.publishedAt = nowIso;
+        if (!post.published) post.publishedAt = body.publishedAt || prev.publishedAt || null;
+
+        if (idx === -1) {
+          diary.push(post);
+          await env.DATA.put('diary', JSON.stringify(diary));
+          return addCors(json(post, 201));
+        }
+
+        diary[idx] = post;
+        await env.DATA.put('diary', JSON.stringify(diary));
+        return addCors(json(post, 200));
+      }
+
+      if (path === '/api/admin/diary/delete' && method === 'POST') {
+        const body = await request.json();
+        if (!body || (!body.slug && !body.id)) {
+          return addCors(json({ error: 'slug or id is required' }, 400));
+        }
+        let diary = (await env.DATA.get('diary', 'json')) || [];
+        const before = diary.length;
+        diary = diary.filter(d => {
+          if (body.slug) return d.slug !== body.slug;
+          if (body.id) return d.id !== body.id;
+          return true;
+        });
+        await env.DATA.put('diary', JSON.stringify(diary));
+        return addCors(json({ success: true, removed: before - diary.length }));
       }
 
       // --- FAQ CRUD ---
