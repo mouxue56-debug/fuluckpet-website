@@ -24,13 +24,16 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
 
       - name: Regenerate static pages from API
         run: node tools/generate-site.js
 
       - name: Regenerate diary static pages from API
         run: node tools/generate-diary.js
+
+      - name: Verify generated output (integrity gate — blocks bad deploys)
+        run: node tools/verify-generated.js
 
       - name: Commit and push with retry (handles concurrent dispatch race)
         run: |
