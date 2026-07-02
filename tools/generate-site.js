@@ -1177,6 +1177,22 @@ function generateKittenDetailPages(kittens, parents) {
   const { headerHtml, footerHtml } = extractDetailTemplate();
 
   // 6. Generate each detail page
+  // Detect duplicate breederId collisions (data error): two distinct kittens sharing a
+  // fileId silently overwrite each other's page. Surface it loudly instead of hiding it.
+  // NOTE: once the owner assigns unique breederIds (no dupes remain), flip this to a hard
+  // failure — `throw new Error(...)` — so a data error can never silently ship again.
+  // Kept as a warning for now because ~3 known dupes exist; a hard fail would break the cron.
+  const seenFileIds = new Set();
+  const collisions = new Set();
+  for (const k of eligible) {
+    const fileId = k.breederId || k.id;
+    if (seenFileIds.has(fileId)) collisions.add(fileId);
+    seenFileIds.add(fileId);
+  }
+  if (collisions.size) {
+    console.warn(`  [COLLISION] ${collisions.size} duplicate breederId(s): ${[...collisions].join(', ')} — each collapses multiple kittens into ONE detail page (data must be deduped in admin).`);
+  }
+
   let generatedCount = 0;
   for (const k of eligible) {
     const fileId = k.breederId || k.id;
