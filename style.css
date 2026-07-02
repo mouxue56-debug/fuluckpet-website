@@ -70,6 +70,12 @@
      (prior #E8A317 measured 2.17:1 — failed AA).
      --mango stays unchanged because milk-tinted backgrounds elsewhere don't need this contrast. */
   --star-amber: #946000;
+  /* Fable DESIGN_SPEC §4.1 tokens */
+  --mint-deep: #357C68;  /* only interactive color: links, primary buttons, focus, signature line-art */
+  --ink: #26332F;        /* body text (green-tinted near-black) */
+  --ink-soft: #5C6B66;   /* secondary text: dates, sources, captions */
+  --line: #E8E2D4;       /* dividers, card hairlines (a step deeper than cream) */
+  --danger: #B3261E;     /* form errors ONLY (amber is never a warning color) */
 }
 
 /* ===== Reset & Base ===== */
@@ -4220,4 +4226,44 @@ body .guide-article .guide-steps li {
     width: 64px;
     background: linear-gradient(to right, transparent, rgba(125, 211, 192, 0.36), transparent);
   }
+}
+
+/* ========================================
+   実績帯 · Achievement band (DESIGN_SPEC §4.4-①)
+   3 real trust facts directly below the hero.
+   ======================================== */
+.jisseki-obi {
+  background: var(--bg-white);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.jisseki-obi-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+.jisseki-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 20px 16px;
+  text-align: center;
+}
+.jisseki-cell + .jisseki-cell { border-left: 1px solid var(--mint); }
+.jisseki-num {
+  font-family: 'Inter', 'Noto Sans JP', sans-serif;
+  font-weight: 700;
+  font-size: clamp(20px, 3.4vw, 26px);
+  line-height: 1.15;
+  color: var(--star-amber);
+  font-variant-numeric: tabular-nums;
+}
+.jisseki-num .ico { font-size: .82em; vertical-align: -0.02em; }
+.jisseki-label { font-size: 13px; line-height: 1.5; color: var(--ink-soft); }
+@media (max-width: 640px) {
+  .jisseki-obi-inner { grid-template-columns: 1fr; }
+  .jisseki-cell { padding: 15px 16px; }
+  .jisseki-cell + .jisseki-cell { border-left: none; border-top: 1px solid var(--line); }
 }
