@@ -4267,3 +4267,17 @@ body .guide-article .guide-steps li {
   .jisseki-cell { padding: 15px 16px; }
   .jisseki-cell + .jisseki-cell { border-left: none; border-top: 1px solid var(--line); }
 }
+
+/* ── 低致敏 USP chip (DESIGN_SPEC §4.4-③) ── */
+.usp-chip {
+  display: inline-flex;
+  align-items: center;
+  background: var(--mint);
+  color: var(--ink);
+  border-radius: 12px;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+.hero-usp { margin: 2px 0 20px; }

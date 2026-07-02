@@ -56,6 +56,7 @@ const translations = {
     'obi.reviews': 'レビュー113件',
     'obi.all': '全頭',
     'obi.tested': '遺伝子検査済み',
+    'chip.hypoallergenic': '低アレルゲンのシベリアン',
 
     // About
     'about.title': '福楽キャッテリーについて',
@@ -577,6 +578,7 @@ const translations = {
     'obi.reviews': '113 reviews',
     'obi.all': 'Every cat',
     'obi.tested': 'Genetically tested',
+    'chip.hypoallergenic': 'Hypoallergenic Siberian',
 
     // About
     'about.title': 'About Fuluck Cattery',
@@ -1098,6 +1100,7 @@ const translations = {
     'obi.reviews': '113条评价',
     'obi.all': '全部',
     'obi.tested': '已做基因检测',
+    'chip.hypoallergenic': '低致敏西伯利亚猫',
 
     // About
     'about.title': '关于福楽猫舍',
