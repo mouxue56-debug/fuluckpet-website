@@ -51,6 +51,11 @@ const translations = {
     'hero.stat1': 'お客様評価',
     'hero.stat2': 'レビュー',
     'hero.stat3': '卒業猫',
+    'obi.rank': '全国 1位',
+    'obi.rankSub': 'みんなの子猫ブリーダー 2025年上半期',
+    'obi.reviews': 'レビュー113件',
+    'obi.all': '全頭',
+    'obi.tested': '遺伝子検査済み',
 
     // About
     'about.title': '福楽キャッテリーについて',
@@ -567,6 +572,11 @@ const translations = {
     'hero.stat1': 'Customer Rating',
     'hero.stat2': 'Reviews',
     'hero.stat3': 'Kittens Adopted',
+    'obi.rank': '#1 Nationwide',
+    'obi.rankSub': 'Minna no Koneko Breeder · H1 2025',
+    'obi.reviews': '113 reviews',
+    'obi.all': 'Every cat',
+    'obi.tested': 'Genetically tested',
 
     // About
     'about.title': 'About Fuluck Cattery',
@@ -1083,6 +1093,11 @@ const translations = {
     'hero.stat1': '客户评分',
     'hero.stat2': '条评价',
     'hero.stat3': '已出窝',
+    'obi.rank': '全国第1位',
+    'obi.rankSub': 'みんなの子猫ブリーダー · 2025上半年',
+    'obi.reviews': '113条评价',
+    'obi.all': '全部',
+    'obi.tested': '已做基因检测',
 
     // About
     'about.title': '关于福楽猫舍',
