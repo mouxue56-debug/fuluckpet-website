@@ -36,6 +36,7 @@ jobs:
         run: node tools/verify-generated.js
 
       - name: Commit and push with retry (handles concurrent dispatch race)
+        id: commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -43,15 +44,19 @@ jobs:
 
           if git diff --staged --quiet; then
             echo "No changes to commit, skipping."
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
+          BEFORE=$(git rev-parse HEAD)
           git commit -m "Auto-regenerate static pages"
 
           # Retry push up to 5 times with rebase on rejection.
           for attempt in 1 2 3 4 5; do
             if git push; then
               echo "Push succeeded on attempt $attempt."
+              echo "pushed=true" >> "$GITHUB_OUTPUT"
+              echo "before=$BEFORE" >> "$GITHUB_OUTPUT"
               exit 0
             fi
             echo "Push attempt $attempt rejected, rebasing..."
@@ -65,3 +70,46 @@ jobs:
 
           echo "Push failed after 5 attempts."
           exit 1
+
+      # IndexNow: ping search engines with the .html pages that changed in the pushed
+      # commit(s). Never fails the build (|| true, and the step itself does not error).
+      - name: IndexNow ping (changed HTML only)
+        if: steps.commit.outputs.pushed == 'true'
+        env:
+          INDEXNOW_KEY: 3e58aa9db1af85697843d7e987cbcc2d
+          BEFORE_SHA: ${{ steps.commit.outputs.before }}
+        run: |
+          set -u
+          # Changed .html files across everything pushed (BEFORE_SHA..HEAD covers the
+          # local commit plus any rebased-in commits from the push retry loop).
+          CHANGED=$(git diff --name-only "${BEFORE_SHA}" HEAD -- '*.html' 2>/dev/null || true)
+          if [ -z "$CHANGED" ]; then
+            echo "No changed .html files to submit; skipping IndexNow."
+            exit 0
+          fi
+
+          # Map paths -> https URLs (index.html -> /, others kept as-is), cap at 100.
+          URLS=$(printf '%s\n' "$CHANGED" | awk '
+            {
+              p=$0;
+              if (p=="index.html") { print "https://fuluckpet.com/"; next }
+              sub(/\/index\.html$/, "/", p);
+              print "https://fuluckpet.com/" p;
+            }' | head -100)
+
+          COUNT=$(printf '%s\n' "$URLS" | grep -c . || true)
+          if [ "$COUNT" -eq 0 ]; then
+            echo "No URLs to submit; skipping IndexNow."
+            exit 0
+          fi
+          echo "Submitting $COUNT URL(s) to IndexNow."
+
+          # Build JSON urlList array.
+          URLLIST=$(printf '%s\n' "$URLS" | awk 'BEGIN{ORS=""} NR>1{print ","} {gsub(/"/,"\\\"");print "\"" $0 "\""}')
+          BODY=$(printf '{"host":"fuluckpet.com","key":"%s","keyLocation":"https://fuluckpet.com/%s.txt","urlList":[%s]}' \
+            "$INDEXNOW_KEY" "$INDEXNOW_KEY" "$URLLIST")
+
+          curl -sS -m 30 -X POST "https://api.indexnow.org/indexnow" \
+            -H "Content-Type: application/json; charset=utf-8" \
+            -d "$BODY" || true
+          echo "IndexNow ping done (non-blocking)."
