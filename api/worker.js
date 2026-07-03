@@ -935,6 +935,51 @@ function internalError(err, requestId) {
   return json({ error: 'INTERNAL_ERROR', request_id: requestId }, 500);
 }
 
+// ===== D3-B: breederId uniqueness validation (GRANDFATHER rule) =====
+//
+// Pure function — no I/O, no Worker globals — so it is unit-testable in Node.
+// See tests/validate-breederid.test.js (copies this logic; keep the two in sync).
+//
+// RULE: We compute, for each non-empty breederId, how many EXTRA copies exist
+// beyond the first (its "duplicate count") in both the currently-stored array and
+// the incoming array. A save is REJECTED only when the incoming array either:
+//   (a) introduces a breederId that is newly duplicated (dupCount 0 -> >0), or
+//   (b) increases the duplicate count of an id that was already duplicated.
+// Otherwise the save is ALLOWED. This "grandfathers" the owner's 3 known legacy
+// dupes (2509-01171 / 2508-00310 / 2508-02468): they keep saving at their existing
+// duplicate level until the owner cleans them up, but no NEW or WORSE dup slips in.
+//
+// Empty / missing breederIds are ignored (a fresh draft row has no id yet).
+function dupCounts(list) {
+  // Map<breederId, extraCopies> — extraCopies = occurrences - 1 (>=1 means duplicated).
+  const counts = new Map();
+  for (const item of (Array.isArray(list) ? list : [])) {
+    const id = item && typeof item.breederId === 'string' ? item.breederId.trim() : '';
+    if (!id) continue;
+    counts.set(id, (counts.get(id) || 0) + 1);
+  }
+  const dups = new Map();
+  for (const [id, n] of counts) {
+    if (n > 1) dups.set(id, n - 1);
+  }
+  return dups;
+}
+
+// Returns { ok: true } if the incoming array may be saved, else
+// { ok: false, ids: [...] } listing the offending breederIds.
+function validateBreederIdUniqueness(currentList, incomingList) {
+  const currentDups = dupCounts(currentList);
+  const incomingDups = dupCounts(incomingList);
+  const offending = [];
+  for (const [id, incomingExtra] of incomingDups) {
+    const currentExtra = currentDups.get(id) || 0;
+    // Reject only if this id's duplication is NEW or WORSE than what's stored.
+    if (incomingExtra > currentExtra) offending.push(id);
+  }
+  if (offending.length) return { ok: false, ids: offending };
+  return { ok: true };
+}
+
 // ===== Password hashing (Web Crypto, SHA-256 + per-install salt) =====
 
 function bytesToHex(buf) {
@@ -1654,25 +1699,53 @@ export default {
         return addCors(json(result));
       }
 
-      // GET /api/drive/img/:fileId — 画像配信（R2キャッシュ + 自動圧縮付き）
+      // GET /api/drive/img/:fileId — 画像配信（多層キャッシュ: Edge → R2 → Drive）
+      //
+      // D4 layered cache. This is the conversion-critical LCP image on kitten cards,
+      // so we cache aggressively. CACHE-KEY ASSUMPTION: the Drive fileId is immutable —
+      // the owner never mutates an existing image in place; a replacement is uploaded
+      // as a NEW Drive file (new id, new URL). So it is safe to serve this fileId with
+      // `immutable` + a 1-year max-age and to key both the edge cache (on the request
+      // URL) and R2 (on the fileId) permanently. NEVER cache a non-200 response —
+      // errors fall through to the outer try/catch and preserve today's error shape.
       if (path.match(/^\/api\/drive\/img\/[^/]+$/) && method === 'GET') {
         const fileId = path.split('/').pop();
-        const r2Key = `drive/${fileId}`;
+        const r2Key = `drive-img/${fileId}`;
+        const legacyR2Key = `drive/${fileId}`; // pre-D4 key — read as fallback so the warm cache survives
+        const cache = caches.default;
 
-        // Check R2 cache first
-        const r2Obj = await env.BUCKET.get(r2Key);
-        if (r2Obj) {
-          return addCors(new Response(r2Obj.body, {
-            headers: {
-              'Content-Type': r2Obj.httpMetadata?.contentType || 'image/jpeg',
-              'Cache-Control': 'public, max-age=604800',
-              'X-Cache': 'HIT',
-              'X-Original-Size': r2Obj.customMetadata?.originalSize || 'unknown',
-            },
-          }));
+        // Common success headers (immutable, 1-year, ETag = fileId).
+        const imgHeaders = (contentType, cacheTag, extra) => ({
+          'Content-Type': contentType || 'image/jpeg',
+          'Cache-Control': 'public, max-age=31536000, immutable',
+          'ETag': `"${fileId}"`,
+          'X-Img-Cache': cacheTag,
+          ...(extra || {}),
+        });
+
+        // ---- Layer 1: edge cache (caches.default) ----
+        const edgeHit = await cache.match(request);
+        if (edgeHit) {
+          const h = new Headers(edgeHit.headers);
+          h.set('X-Img-Cache', 'EDGE');
+          return addCors(new Response(edgeHit.body, { status: edgeHit.status, headers: h }));
         }
 
-        // Download original from Drive
+        // ---- Layer 2: R2 (new key, then legacy key) ----
+        const r2Obj = (await env.BUCKET.get(r2Key)) || (await env.BUCKET.get(legacyR2Key));
+        if (r2Obj) {
+          const contentType = r2Obj.httpMetadata?.contentType || 'image/jpeg';
+          const buf = await r2Obj.arrayBuffer();
+          const resHeaders = imgHeaders(contentType, 'R2', {
+            'X-Original-Size': r2Obj.customMetadata?.originalSize || 'unknown',
+          });
+          // Warm the edge cache from R2 (non-blocking). Clone so the body we return stays intact.
+          const toCache = new Response(buf, { status: 200, headers: resHeaders });
+          ctx.waitUntil(cache.put(request, toCache.clone()));
+          return addCors(toCache);
+        }
+
+        // ---- Layer 3: origin (Google Drive) — exactly as before, incl. auto-compress ----
         const downloaded = await driveDownload(env, fileId);
         const originalBuf = await new Response(downloaded.body).arrayBuffer();
         const originalSize = originalBuf.byteLength;
@@ -1695,26 +1768,26 @@ export default {
           // If all resize attempts failed, use original anyway
         }
 
-        // Store in R2 (non-blocking)
-        ctx.waitUntil(
+        const resHeaders = imgHeaders(finalContentType, 'ORIGIN', {
+          'X-Original-Size': String(originalSize),
+          'X-Resized': String(wasResized),
+        });
+        // Build the outgoing response once, then clone for the edge cache. R2 gets the
+        // raw ArrayBuffer (body-consumed-once: the ArrayBuffer is reusable; the Response
+        // body is not, which is why we clone before caching).
+        const response = new Response(finalBuf, { status: 200, headers: resHeaders });
+        ctx.waitUntil(Promise.all([
           env.BUCKET.put(r2Key, finalBuf, {
             httpMetadata: { contentType: finalContentType },
             customMetadata: {
               originalSize: String(originalSize),
               resized: String(wasResized),
             },
-          })
-        );
+          }),
+          cache.put(request, response.clone()),
+        ]));
 
-        return addCors(new Response(finalBuf, {
-          headers: {
-            'Content-Type': finalContentType,
-            'Cache-Control': 'public, max-age=604800',
-            'X-Cache': 'MISS',
-            'X-Original-Size': String(originalSize),
-            'X-Resized': String(wasResized),
-          },
-        }));
+        return addCors(response);
       }
 
       // ===== R2 PUBLIC IMAGE SERVING =====
@@ -1840,6 +1913,18 @@ export default {
         const type = bulkMatch[1];
         const items = await request.json();
         if (!Array.isArray(items)) return addCors(json({ error: 'Expected array' }, 400));
+        // D3-B: the admin panel saves the whole kittens catalogue through this
+        // endpoint (admin/js/admin-core.js saveData -> bulkImport). Enforce breederId
+        // uniqueness with the GRANDFATHER rule: allow the 3 known legacy dupes to keep
+        // saving, but reject any save that introduces a NEW dup or worsens an existing
+        // one. Compare against what's CURRENTLY stored so a clean-up save still passes.
+        if (type === 'kittens') {
+          const currentKittens = (await env.DATA.get('kittens', 'json')) || [];
+          const check = validateBreederIdUniqueness(currentKittens, items);
+          if (!check.ok) {
+            return addCors(json({ error: `breederIdが重複しています: ${check.ids.join(', ')}` }, 400));
+          }
+        }
         await env.DATA.put(type, JSON.stringify(items));
         return addCors(json({ success: true, count: items.length }));
       }
@@ -2432,3 +2517,8 @@ export default {
     }
   },
 };
+
+// Named exports for unit testing (ignored by the Workers runtime, which only reads
+// the default export). tests/validate-breederid.test.js keeps a synced copy because
+// this project has no package.json / module toolchain to import ESM from plain Node.
+export { validateBreederIdUniqueness, dupCounts };

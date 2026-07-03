@@ -239,6 +239,14 @@ function taxIncl(lang) {
   return '（税込）';
 }
 
+// Hypoallergenic chip text, baked per language on the list-page cards (no data-i18n
+// hooks there). Matches i18n.js chip.hypoallergenic exactly.
+function hypoChipText(lang) {
+  if (lang === 'en') return 'Hypoallergenic Siberian';
+  if (lang === 'zh') return '低致敏西伯利亚猫';
+  return '低アレルゲンのシベリアン';
+}
+
 // Breed label. FABLE VERDICT: サイベリアン×ブリティッシュ mix rendering; folds into Siberian section.
 const BREED_MAP = {
   'サイベリアン': { en: 'Siberian', zh: '西伯利亚猫' },
@@ -433,7 +441,7 @@ function buildListHeader(jaHeader, lang) {
   // Chrome = HEADER marker through just before PAGE HERO (nav + mobile nav), absolutized.
   const chrome = listToAbsoluteLinks(jaHeader.substring(headerIdx, heroIdx).replace(/\s*$/, ''));
 
-  const styleV = verAsset('style.css', '20260628j');
+  const styleV = verAsset('style.css', '20260628k');
   const navCssV = verAsset('nav.css', '20260628a');
   const navJsV = verAsset('nav.js', '20260628a');
   const relPath = 'kittens.html';
@@ -599,6 +607,12 @@ function generateKittens(kittens, lang = 'ja') {
       const metaLine = lang === 'ja'
         ? `${escapeHtml(k.gender)} ${escapeHtml(gt)} ・ ${escapeHtml(k.color)}`
         : `${escapeHtml(genderCard)} ・ ${escapeHtml(colorCard)}`;
+      // Hypoallergenic chip: ONLY on pure Siberian (raw breed exactly 'サイベリアン').
+      // The mix 'サイベリアン×ブリティッシュ' folds into this Siberian section but must
+      // NOT get the chip — a hypoallergenic claim on a mixed breed would overclaim.
+      const hypoChip = k.breed === 'サイベリアン'
+        ? `\n            <span class="usp-chip usp-chip--card" data-i18n="chip.hypoallergenic">${escapeHtml(hypoChipText(lang))}</span>`
+        : '';
       cardsHtml += `
         <div class="kitten-card" data-status="${escapeHtml(k.status)}" data-price="${k.price || ''}" data-birthday="${escapeHtml(k.birthday)}" data-images="${escapeHtml(photo)}" data-video="" data-papa="${escapeHtml(k.papa)}" data-mama="${escapeHtml(k.mama)}" data-new="${k.isNew ? 'true' : 'false'}" data-name="" data-breeder-id="${escapeHtml(k.breederId)}">
           <div class="kitten-img">
@@ -606,7 +620,7 @@ function generateKittens(kittens, lang = 'ja') {
             <span class="kit-status st-${escapeHtml(k.status)}">${escapeHtml(stL)}</span>${isNewBadge}
           </div>
           <div class="kitten-body">
-            <h3>${escapeHtml(breedCard)}</h3>
+            <h3>${escapeHtml(breedCard)}</h3>${hypoChip}
             <p class="kit-meta">${metaLine}</p>
             <p class="kit-meta">${bornCard}</p>
             ${k.note ? `<p class="kit-meta" style="font-size:11px;color:var(--text-note);">${escapeHtml(k.note)}</p>` : ''}
@@ -1115,7 +1129,7 @@ ${hreflangBlock(`kittens/${fileId}.html`)}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260628g')}">
+  <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260628k')}">
   <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20260628a')}">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
   <script defer src="/nav.js?v=${verAsset('nav.js', '20260628a')}"></script>

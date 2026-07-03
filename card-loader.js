@@ -19,7 +19,8 @@
       dnaTested: '<i class="ico ico-check" aria-hidden="true"></i> 遺伝子検査済', verifiedReview: '<i class="ico ico-check" aria-hidden="true"></i> 認証済みレビュー',
       reviewPlatform: 'みんなの子猫ブリーダー',
       bornFmt: function(y, m) { return y + '年' + m + '月生まれ'; },
-      counter: '匹'
+      counter: '匹',
+      hypoallergenic: '低アレルゲンのシベリアン'
     },
     en: {
       available: 'Available', reserved: 'Reserved', sold: 'Adopted',
@@ -29,6 +30,7 @@
       reviewPlatform: 'Minna no Koneko Breeder',
       bornFmt: function(y, m) { return 'Born ' + y + '/' + m; },
       counter: '',
+      hypoallergenic: 'Hypoallergenic Siberian',
       breeds: { 'サイベリアン': 'Siberian', 'ブリティッシュショートヘア': 'British Shorthair', 'ブリティッシュロングヘア': 'British Longhair', 'ラグドール': 'Ragdoll' },
       roles: { 'パパ猫': 'Father', 'ママ猫': 'Mother' }
     },
@@ -40,6 +42,7 @@
       reviewPlatform: '大家的幼猫繁殖者',
       bornFmt: function(y, m) { return y + '年' + m + '月出生'; },
       counter: '只',
+      hypoallergenic: '低致敏西伯利亚猫',
       breeds: { 'サイベリアン': '西伯利亚猫', 'ブリティッシュショートヘア': '英国短毛猫', 'ブリティッシュロングヘア': '英国长毛猫', 'ラグドール': '布偶猫' },
       roles: { 'パパ猫': '父猫', 'ママ猫': '母猫' }
     }
@@ -116,6 +119,11 @@
     var imgLoad = opts && opts.priority ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"';
 
     var detailUrl = '/kittens/' + (k.breederId || k.id) + '.html';
+    // Hypoallergenic chip: ONLY on pure Siberian (breed exactly 'サイベリアン').
+    // NOT on the mix 'サイベリアン×ブリティッシュ' — that would overclaim on a mixed breed.
+    var hypoChip = k.breed === 'サイベリアン'
+      ? '<span class="usp-chip usp-chip--card" data-i18n="chip.hypoallergenic">' + ct('hypoallergenic') + '</span>'
+      : '';
     return '<div class="kitten-card" data-status="' + escAttr(k.status) + '" data-price="' + k.price + '" data-birthday="' + escAttr(fmtBdayAttr(k.birthday)) + '" data-images="' + dataImages + '" data-video="' + escAttr(k.video || '') + '" data-papa="' + escAttr(k.papa || '') + '" data-mama="' + escAttr(k.mama || '') + '" data-new="' + k.isNew + '" data-name="" data-breeder-id="' + escAttr(k.breederId || '') + '" data-detail-url="' + escAttr(detailUrl) + '">' +
       '<div class="kitten-img">' +
         (cover ? '<img src="' + cover + '" alt="' + ct('photoAlt') + '" ' + imgLoad + ' style="width:100%;height:100%;object-fit:cover;">' : '<div class="img-placeholder"><span><i class="ico ico-cat" aria-hidden="true"></i></span></div>') +
@@ -124,6 +132,7 @@
       '</div>' +
       '<div class="kitten-body">' +
         '<h3>' + escAttr(ctBreed(k.breed)) + '</h3>' +
+        hypoChip +
         '<p class="kit-meta">' + genderFull + ' ・ ' + escAttr(k.color) + '</p>' +
         '<p class="kit-meta">' + bdayText + '</p>' +
         (k.note ? '<p class="kit-meta" style="font-size:11px;color:var(--text-note);">' + escAttr(k.note) + '</p>' : '') +

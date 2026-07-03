@@ -1,0 +1,132 @@
+#!/usr/bin/env bash
+#
+# deploy-and-smoke-worker.sh — deploy the fuluck-api Worker and smoke-test it.
+#
+# Covers D4 (drive-img layered cache: edge + R2) and D3-B (breederId uniqueness).
+# Idempotent and safe to re-run. Each check prints a clear PASS/FAIL line; the
+# script exits non-zero if any check fails.
+#
+# Usage:  scripts/deploy-and-smoke-worker.sh            # deploy, then smoke
+#         SKIP_DEPLOY=1 scripts/deploy-and-smoke-worker.sh   # smoke only (no deploy)
+#
+# Requires: wrangler (via npx) authenticated for the fuluck-api account; curl.
+
+set -u -o pipefail
+
+API_BASE="https://fuluck-api.mouxue56.workers.dev"
+# Two REAL kitten-card LCP images (Drive file ids from kittens.html).
+IMG_A="1WgbZ2SZ1c8Q43wBdqu8vu9w3a3Idxj-A"
+IMG_B="11A__yaCqHdX2DQWdoJJt09SL96fommeS"
+# A never-existing Drive id — must error and must NOT be cached.
+IMG_BOGUS="BOGUS_nonexistent_id_smoke_xyz123"
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+pass_count=0
+fail_count=0
+pass() { echo "  PASS  $1"; pass_count=$((pass_count+1)); }
+fail() { echo "  FAIL  $1"; fail_count=$((fail_count+1)); }
+
+# ---------------------------------------------------------------------------
+# 1. DEPLOY
+# ---------------------------------------------------------------------------
+if [ "${SKIP_DEPLOY:-0}" = "1" ]; then
+  echo "== DEPLOY skipped (SKIP_DEPLOY=1) =="
+else
+  echo "== DEPLOY: cd api && npx wrangler deploy =="
+  ( cd "$REPO_ROOT/api" && npx wrangler deploy ) || { echo "DEPLOY FAILED — aborting smoke tests."; exit 1; }
+  echo "   deploy complete; waiting 5s for propagation..."
+  sleep 5
+fi
+
+echo ""
+echo "== SMOKE TESTS against $API_BASE =="
+
+# ---------------------------------------------------------------------------
+# 2. GET /api/kittens -> 200 + 38 records
+# ---------------------------------------------------------------------------
+body="$(curl -s -w $'\n%{http_code}' "$API_BASE/api/kittens")"
+code="$(printf '%s' "$body" | tail -n1)"
+json="$(printf '%s' "$body" | sed '$d')"
+count="$(printf '%s' "$json" | python3 -c 'import sys,json; print(len(json.load(sys.stdin)))' 2>/dev/null || echo -1)"
+if [ "$code" = "200" ] && [ "$count" = "38" ]; then
+  pass "/api/kittens -> 200 with 38 records"
+else
+  fail "/api/kittens -> HTTP $code, count=$count (expected 200 / 38)"
+fi
+
+# ---------------------------------------------------------------------------
+# 3. Unauthed admin route -> 401 or 403 (existing auth/CORS gate must still bite)
+# ---------------------------------------------------------------------------
+code="$(curl -s -o /dev/null -w '%{http_code}' "$API_BASE/api/admin/kittens")"
+if [ "$code" = "401" ] || [ "$code" = "403" ]; then
+  pass "unauthed /api/admin/kittens -> $code"
+else
+  fail "unauthed /api/admin/kittens -> $code (expected 401/403)"
+fi
+
+# ---------------------------------------------------------------------------
+# 4. drive-img cached path: two GETs, print X-Img-Cache + timing each time.
+#    1st hit: ORIGIN or R2 (warm legacy R2 key).  2nd hit: EDGE or R2.
+#    Also assert Cache-Control immutable + ETag present.
+# ---------------------------------------------------------------------------
+smoke_img() {
+  local id="$1"
+  local url="$API_BASE/api/drive/img/$id"
+  echo "  -- drive-img $id --"
+  local hdr1 t1 x1 cc etag code1
+  hdr1="$(curl -s -o /dev/null -D - -w 'TIME %{time_total} CODE %{http_code}' "$url")"
+  t1="$(printf '%s' "$hdr1" | grep -o 'TIME [0-9.]*' | awk '{print $2}')"
+  code1="$(printf '%s' "$hdr1" | grep -o 'CODE [0-9]*' | awk '{print $2}')"
+  x1="$(printf '%s' "$hdr1" | tr -d '\r' | awk -F': ' 'tolower($1)=="x-img-cache"{print $2}')"
+  cc="$(printf '%s' "$hdr1" | tr -d '\r' | awk -F': ' 'tolower($1)=="cache-control"{print $2}')"
+  etag="$(printf '%s' "$hdr1" | tr -d '\r' | awk -F': ' 'tolower($1)=="etag"{print $2}')"
+  echo "     GET#1  HTTP $code1  X-Img-Cache=${x1:-<none>}  ${t1}s"
+
+  local hdr2 t2 x2 code2
+  hdr2="$(curl -s -o /dev/null -D - -w 'TIME %{time_total} CODE %{http_code}' "$url")"
+  t2="$(printf '%s' "$hdr2" | grep -o 'TIME [0-9.]*' | awk '{print $2}')"
+  code2="$(printf '%s' "$hdr2" | grep -o 'CODE [0-9]*' | awk '{print $2}')"
+  x2="$(printf '%s' "$hdr2" | tr -d '\r' | awk -F': ' 'tolower($1)=="x-img-cache"{print $2}')"
+  echo "     GET#2  HTTP $code2  X-Img-Cache=${x2:-<none>}  ${t2}s"
+
+  # Assertions
+  case "$x1" in ORIGIN|R2) pass "$id GET#1 X-Img-Cache=$x1 (ORIGIN|R2)";; *) fail "$id GET#1 X-Img-Cache=${x1:-<none>} (expected ORIGIN|R2)";; esac
+  case "$x2" in EDGE|R2)   pass "$id GET#2 X-Img-Cache=$x2 (EDGE|R2, cache warmed)";; *) fail "$id GET#2 X-Img-Cache=${x2:-<none>} (expected EDGE|R2)";; esac
+  case "$cc" in *immutable*) pass "$id Cache-Control has immutable ($cc)";; *) fail "$id Cache-Control='$cc' (expected immutable)";; esac
+  if [ -n "$etag" ]; then pass "$id ETag present ($etag)"; else fail "$id ETag missing"; fi
+}
+smoke_img "$IMG_A"
+smoke_img "$IMG_B"
+
+# ---------------------------------------------------------------------------
+# 5. Bogus drive-img id -> non-200, error shape preserved, and NOT cached
+#    (repeat returns the same error, never an X-Img-Cache=EDGE/R2 hit).
+# ---------------------------------------------------------------------------
+echo "  -- drive-img bogus id (must not cache errors) --"
+url="$API_BASE/api/drive/img/$IMG_BOGUS"
+h1="$(curl -s -D - -o /dev/null -w 'CODE %{http_code}' "$url")"
+c1="$(printf '%s' "$h1" | grep -o 'CODE [0-9]*' | awk '{print $2}')"
+xc1="$(printf '%s' "$h1" | tr -d '\r' | awk -F': ' 'tolower($1)=="x-img-cache"{print $2}')"
+h2="$(curl -s -D - -o /dev/null -w 'CODE %{http_code}' "$url")"
+c2="$(printf '%s' "$h2" | grep -o 'CODE [0-9]*' | awk '{print $2}')"
+xc2="$(printf '%s' "$h2" | tr -d '\r' | awk -F': ' 'tolower($1)=="x-img-cache"{print $2}')"
+echo "     GET#1 HTTP $c1  X-Img-Cache=${xc1:-<none>}"
+echo "     GET#2 HTTP $c2  X-Img-Cache=${xc2:-<none>}"
+if [ "$c1" != "200" ] && [ "$c2" != "200" ]; then
+  pass "bogus id -> non-200 both times ($c1, $c2)"
+else
+  fail "bogus id -> HTTP $c1 / $c2 (expected non-200 both)"
+fi
+if [ -z "$xc1" ] && [ -z "$xc2" ]; then
+  pass "bogus id error NOT cached (no X-Img-Cache header either time)"
+else
+  fail "bogus id error was cached: X-Img-Cache #1=${xc1:-<none>} #2=${xc2:-<none>}"
+fi
+
+# ---------------------------------------------------------------------------
+# Summary
+# ---------------------------------------------------------------------------
+echo ""
+echo "== RESULT: $pass_count passed, $fail_count failed =="
+[ "$fail_count" -eq 0 ] || exit 1

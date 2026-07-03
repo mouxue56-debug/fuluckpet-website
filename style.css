@@ -4281,3 +4281,15 @@ body .guide-article .guide-steps li {
   line-height: 1.5;
 }
 .hero-usp { margin: 2px 0 20px; }
+
+/* Card variant: smaller chip that lives in the kitten card body (below the breed
+   line), never over the photo — so it can't collide with the NEW badge (top-right)
+   or status pill (top-left). Pure-Siberian cards only; see generate-site.js /
+   card-loader.js for the breed==='サイベリアン' gate. */
+.usp-chip--card {
+  padding: 2px 8px;
+  font-size: 11px;
+  border-radius: 10px;
+  margin: 2px 0 6px;
+  max-width: 100%;
+}
