@@ -6,6 +6,7 @@
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+const { createLastmodStore } = require('./lastmod-store');
 
 const API_BASE = 'https://fuluck-api.mouxue56.workers.dev';
 const SITE_DIR = path.resolve(__dirname, '..');
@@ -1212,6 +1213,9 @@ function updateSitemap(articles, kittenDetailPages) {
   const filepath = path.join(SITE_DIR, 'sitemap.xml');
   const existing = fs.readFileSync(filepath, 'utf-8');
   const today = todayISO();
+  // Honest lastmod: reuse stored date when the file content is unchanged (asset-version
+  // bumps stripped before hashing); stamp today only on genuine content change / new URL.
+  const store = createLastmodStore(SITE_DIR, today);
 
   // Extract the static (non-blog) portion: everything before "<!-- 子猫詳細ページ -->" or "<!-- ブログ記事 -->"
   const kittenDetailMarker = '<!-- 子猫詳細ページ -->';
@@ -1229,19 +1233,20 @@ function updateSitemap(articles, kittenDetailPages) {
     // No markers found - everything before </urlset>
     staticPart = existing.substring(0, existing.indexOf('</urlset>'));
   }
+  // Normalize the boundary: the substring above keeps the whitespace that preceded the
+  // marker, and the marker line below re-adds its own indent — without this trim the
+  // leading whitespace grew every run (non-idempotent churn). Collapse trailing
+  // whitespace/newlines to exactly one newline.
+  staticPart = staticPart.replace(/\s*$/, '') + '\n';
 
-  // Update lastmod for kittens, parents, reviews in the static part
+  // Honest lastmod for EVERY handwritten static entry: rewrite each <url> block's
+  // <lastmod> based on the content hash of the file its <loc> maps to. This subsumes
+  // the old blanket today-stamp of kittens/parents/reviews and also stops /, /story/,
+  // /siberian.html, /about.html, /gallery.html, /blog.html, /faq.html, /booking.html
+  // from ever drifting on a no-op cron day.
   staticPart = staticPart.replace(
-    /(<loc>https:\/\/fuluckpet\.com\/kittens\.html<\/loc>\s*<lastmod>)[^<]*/,
-    `$1${today}`
-  );
-  staticPart = staticPart.replace(
-    /(<loc>https:\/\/fuluckpet\.com\/parents\.html<\/loc>\s*<lastmod>)[^<]*/,
-    `$1${today}`
-  );
-  staticPart = staticPart.replace(
-    /(<loc>https:\/\/fuluckpet\.com\/reviews\.html<\/loc>\s*<lastmod>)[^<]*/,
-    `$1${today}`
+    /(<url>[\s\S]*?<loc>)([^<]+)(<\/loc>[\s\S]*?<lastmod>)[^<]*(<\/lastmod>)/g,
+    (full, pre, loc, mid, post) => `${pre}${loc}${mid}${store.lastmodForUrl(loc)}${post}`
   );
 
   // Build kitten detail page URLs (with image:image entries for image sitemap)
@@ -1260,9 +1265,10 @@ function updateSitemap(articles, kittenDetailPages) {
       <image:loc>${escapeHtml(photo)}</image:loc>
       <image:caption>${escapeHtml(caption)}</image:caption>
     </image:image>` : '';
+    const url = `${BASE_URL}/kittens/${fileId}.html`;
     kittenEntries += `  <url>
     <loc>${BASE_URL}/kittens/${escapeHtml(fileId)}.html</loc>
-    <lastmod>${today}</lastmod>
+    <lastmod>${store.lastmodForUrl(url)}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>${imageBlock}
   </url>\n`;
@@ -1284,9 +1290,10 @@ function updateSitemap(articles, kittenDetailPages) {
 
   const sortedSlugs = [...blogSlugs].sort();
   for (const slug of sortedSlugs) {
+    const url = `${BASE_URL}/blog/${slug}.html`;
     blogEntries += `  <url>
     <loc>${BASE_URL}/blog/${escapeHtml(slug)}.html</loc>
-    <lastmod>${today}</lastmod>
+    <lastmod>${store.lastmodForUrl(url)}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>\n`;
@@ -1294,6 +1301,7 @@ function updateSitemap(articles, kittenDetailPages) {
 
   const output = staticPart + kittenEntries + blogEntries + '</urlset>\n';
   fs.writeFileSync(filepath, output, 'utf-8');
+  store.save();
   const diskOnly = sortedSlugs.length - publishedArticles.length;
   console.log(`  sitemap.xml -> ${detailPages.length} kitten detail pages, ${sortedSlugs.length} blog articles updated${diskOnly > 0 ? ` (${diskOnly} from disk only)` : ''}`);
 }

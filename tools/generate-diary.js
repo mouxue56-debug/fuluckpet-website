@@ -6,6 +6,7 @@
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+const { createLastmodStore } = require('./lastmod-store');
 
 const API_BASE = 'https://fuluck-api.mouxue56.workers.dev';
 const SITE_DIR = path.resolve(__dirname, '..');
@@ -841,23 +842,32 @@ function updateSitemap(entries) {
     }
   }
 
+  // Honest lastmod: reuse the stored date when the diary page's content is unchanged
+  // (asset-version bumps stripped before hashing). Shares tools/sitemap-lastmod.json
+  // with generate-site.js; generate-site runs first and this run preserves its keys.
+  const store = createLastmodStore(SITE_DIR, today);
+
   const diaryEntries = `  ${marker}
   <url>
     <loc>${BASE_URL}/diary/</loc>
-    <lastmod>${today}</lastmod>
+    <lastmod>${store.lastmodForUrl(`${BASE_URL}/diary/`)}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
-${sortEntriesDesc(entries).map((entry) => `  <url>
-    <loc>${BASE_URL}${escapeHtml(pagePathForEntry(entry))}</loc>
-    <lastmod>${escapeHtml(displayDate(entry.updatedAt || entry.publishedAt || entry.date || today))}</lastmod>
+${sortEntriesDesc(entries).map((entry) => {
+    const loc = `${BASE_URL}${pagePathForEntry(entry)}`;
+    return `  <url>
+    <loc>${escapeHtml(loc)}</loc>
+    <lastmod>${store.lastmodForUrl(loc)}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
-  </url>`).join('\n')}
+  </url>`;
+  }).join('\n')}
 `;
 
   xml = xml.replace(/\s*<\/urlset>\s*$/, `\n${diaryEntries}</urlset>\n`);
   fs.writeFileSync(filepath, xml, 'utf-8');
+  store.save();
   console.log(`  sitemap.xml -> diary index + ${entries.length} diary pages updated`);
 }
 
