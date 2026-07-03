@@ -230,6 +230,35 @@ function extractYouTubeIds(html) {
   return [...ids];
 }
 
+// Build-time transform: convert the admin editor's eager `.yt-embed` iframe block
+// into the site-standard lazy-load `.yt-facade` pattern (see blog/siberian-grooming-basics.html;
+// the .yt-facade click handler lives in i18n.js, which diary pages load). This keeps diary
+// video embeds off the critical path — no eager YouTube iframe ships. Non-YouTube iframes and
+// any content outside a `.yt-embed` wrapper are left untouched. The emitted markup carries
+// data-yt="<id>", so extractYouTubeIds() still finds every id → VideoObject schema survives.
+function facadeMarkup(id) {
+  return '<div class="yt-video-wrap" style="max-width:560px;margin:8px auto 24px;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.1)">'
+    + `<div class="yt-facade" data-yt="${id}" role="button" tabindex="0" aria-label="動画を再生">`
+    + `<img src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="" loading="lazy" width="480" height="360">`
+    + '<span class="yt-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>'
+    + '</div></div>';
+}
+
+function transformYouTubeEmbeds(html) {
+  const text = String(html || '');
+  if (text.indexOf('yt-embed') === -1) return text;
+  // Match each `<div class="yt-embed" ...> … </div>` block (the editor's eager wrapper).
+  // [^>]* on the opening tag tolerates the inline style attr; [\s\S]*? is non-greedy so
+  // adjacent blocks don't merge. Only rewrite when the block contains a YouTube /embed/<id>
+  // (or youtu.be/watch) iframe; otherwise leave the block as-is.
+  const blockRe = /<div class="yt-embed"[^>]*>[\s\S]*?<\/div>/g;
+  return text.replace(blockRe, (block) => {
+    const idMatch = block.match(/(?:youtube(?:-nocookie)?\.com\/(?:embed\/|watch\?(?:[^"'\s>]*?&amp;|[^"'\s>]*?&)?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    if (!idMatch) return block; // no YouTube id found → leave untouched
+    return facadeMarkup(idMatch[1]);
+  });
+}
+
 function jsonLdScript(data) {
   return `  <script type="application/ld+json">\n${JSON.stringify(data, null, 2)}\n  </script>`;
 }
@@ -574,7 +603,10 @@ function buildDiaryEntryHtml(entry, context) {
   const { chrome, groupedEntries, maps } = context;
   const titleJa = localizedField(entry.title, 'ja', '子猫成長日記');
   const excerptJa = localizedField(entry.excerpt, 'ja', '');
-  const bodyJa = localizedField(entry.body, 'ja', '<p>本文は準備中です。</p>');
+  // Lazy-load YouTube: rewrite the editor's eager .yt-embed iframe to the site .yt-facade
+  // BEFORE the body is injected or scanned. extractYouTubeIds (used for VideoObject schema
+  // via buildEntryJsonLd below) reads data-yt= from the transformed markup, so ids survive.
+  const bodyJa = transformYouTubeEmbeds(localizedField(entry.body, 'ja', '<p>本文は準備中です。</p>'));
   const coverImage = normalizeAssetUrl(entry.coverImage);
   const pageUrl = pageUrlForEntry(entry);
   const pageTitle = `${titleJa}｜子猫成長日記｜福楽キャッテリー`;
@@ -587,12 +619,12 @@ function buildDiaryEntryHtml(entry, context) {
     en: {
       title: localizedField(entry.title, 'en', titleJa),
       excerpt: localizedField(entry.excerpt, 'en', excerptJa),
-      content: localizedField(entry.body, 'en', bodyJa)
+      content: transformYouTubeEmbeds(localizedField(entry.body, 'en', bodyJa))
     },
     zh: {
       title: localizedField(entry.title, 'zh', titleJa),
       excerpt: localizedField(entry.excerpt, 'zh', excerptJa),
-      content: localizedField(entry.body, 'zh', bodyJa)
+      content: transformYouTubeEmbeds(localizedField(entry.body, 'zh', bodyJa))
     }
   };
 
