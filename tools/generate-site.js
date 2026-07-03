@@ -1852,10 +1852,17 @@ async function main() {
     console.log('  [skip] kittens.html (no data)');
   }
 
-  // Generate kitten detail pages (individual pages per kitten).
+  // Generate kitten detail pages (individual pages per kitten), ja then en + zh.
   let kittenDetailPages = [];
   if (kittens.length > 0) {
+    // ja detail pass first — it populates ASSET_VERSIONS (via extractDetailTemplate) that
+    // the en/zh list-header builder reads. Same eligible set drives all langs, so the
+    // hreflang triad stays symmetric (a kitten in ja exists in en+zh, never a 404).
     kittenDetailPages = generateKittenDetailPages(kittens, parents, 'ja');
+    generateKittens(kittens, 'en');
+    generateKittens(kittens, 'zh');
+    generateKittenDetailPages(kittens, parents, 'en');
+    generateKittenDetailPages(kittens, parents, 'zh');
   } else {
     console.log('  [skip] kittens/ detail pages (no data)');
   }

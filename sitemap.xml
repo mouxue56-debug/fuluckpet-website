@@ -710,6 +710,721 @@
       <image:caption>サイベリアンの子猫 ブラウンタビー&amp;ホワイト（トリプルコート） 男の子・個体番号2603-00563</image:caption>
     </image:image>
   </url>
+  <!-- 子猫一覧ページ (en/zh) -->
+  <url>
+    <loc>https://fuluckpet.com/en/kittens.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  子猫詳細ページ (en)
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2602-00625.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1WgbZ2SZ1c8Q43wBdqu8vu9w3a3Idxj-A</image:loc>
+      <image:caption>Siberian kitten Blue Lynx Point Neva Masquerade Male · ID 2602-00625</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2601-01855.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/11A__yaCqHdX2DQWdoJJt09SL96fommeS</image:loc>
+      <image:caption>Siberian kitten Silver Tabby, Triple Coat Male · ID 2601-01855</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2601-00909.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1VAz9cpKRYcZjzNASJK6t34q4dCNTNRxX</image:loc>
+      <image:caption>Siberian kitten Blue Lynx Point Neva Masquerade Female · ID 2601-00909</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2509-01171.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/193ftvlYymW8ls3P1wy3eCDl9QQ51fopz</image:loc>
+      <image:caption>Siberian kitten Red Lynx Point Male · ID 2509-01171</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2511-02287.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1FnPV_ZpT2-SzUfjADTv-XlIwJ39xKXmN</image:loc>
+      <image:caption>Siberian kitten Brown Tabby, Triple Coat Male · ID 2511-02287</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2509-02086.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1KJLJEc--MYuybNtF_y--ljq03m4u3E2P</image:loc>
+      <image:caption>Siberian kitten Silver Tabby Female · ID 2509-02086</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2511-01887.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1pK5C5fzKUgxjyfabO3QeVeBShcbBkX-J</image:loc>
+      <image:caption>Siberian kitten White, Triple Coat Male · ID 2511-01887</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2601-00912.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1dIAA6WFEi36_6X_RlGU2_V40QZOh6c2B</image:loc>
+      <image:caption>Siberian kitten Blue Lynx Point Neva Masquerade Female · ID 2601-00912</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2508-00310.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1GoruWUhUw-I5vCGTDA9FaXcCsU6I5V-c</image:loc>
+      <image:caption>Siberian kitten Silver Shaded Male · ID 2508-00310</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2512-01681.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/162HOfrOJzdas1RIsQ0oiiVomld5AZ256</image:loc>
+      <image:caption>Siberian kitten Blue Patched Tabby &amp; White Male · ID 2512-01681</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2510-01286.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1FB4TEXbPgDe2YZqFbnTMB0LAXKuc4eu6</image:loc>
+      <image:caption>Siberian kitten Brown Tabby, Triple Coat Female · ID 2510-01286</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2511-00142.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1pk1MOHABDWqrbyz6HC7xVcwgYsTQ5aUw</image:loc>
+      <image:caption>Siberian kitten White Male · ID 2511-00142</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2511-00143.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1QafLMbnQKTZXHo4EfH_iJczJ9IrHtAjI</image:loc>
+      <image:caption>Siberian kitten White Female · ID 2511-00143</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2508-02468.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1jNmtznG2H2_vrHyyYoLWXlxqP8bN1ati</image:loc>
+      <image:caption>Siberian kitten Silver &amp; White, Triple Coat Male · ID 2508-02468</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2509-01027.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/135TrbskgxmpoWOfSUASscWN9AyPM8ztX</image:loc>
+      <image:caption>Siberian kitten Red Lynx Point, Triple Coat Male · ID 2509-01027</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2508-03366.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1rvyCV6pmZXeN9hmOz5EmRHS7ANZtfSqj</image:loc>
+      <image:caption>British Shorthair kitten Golden Shaded Female · ID 2508-03366</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2508-03312.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_ae83160357f5.jpg</image:loc>
+      <image:caption>British Shorthair kitten Chinchilla Golden Longhair Female · ID 2508-03312</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2508-03355.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_fef0dac4d322.jpg</image:loc>
+      <image:caption>British Shorthair kitten Golden Shaded Male · ID 2508-03355</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2509-00562.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/14o8tkxhUGSVQML5Ls6AYTtwbguIwbEFO</image:loc>
+      <image:caption>British Shorthair kitten Golden Shaded &amp; White Female · ID 2509-00562</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2512-00115.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_98b9c6bfeaf2.jpg</image:loc>
+      <image:caption>Siberian × British mix kitten Brown Tabby &amp; White Female · ID 2512-00115</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2509-02907.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1-OwpIDClai6jYPUsO3u4-Tuy9Cs8ETK1</image:loc>
+      <image:caption>British Shorthair kitten Brown Tabby &amp; White Female · ID 2509-02907</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2510-01844.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_aad8b700cc92.jpg</image:loc>
+      <image:caption>British Shorthair kitten White Male · ID 2510-01844</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2408-03054.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_85a6f25bfdc0.jpg</image:loc>
+      <image:caption>British Longhair kitten Chocolate Golden Longhair Male · ID 2408-03054</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2512-00112.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_ed4f2b764841.jpg</image:loc>
+      <image:caption>Siberian × British mix kitten White Male · ID 2512-00112</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2509-02441.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_4136ef30f4c8.jpg.webp</image:loc>
+      <image:caption>Siberian kitten Female · ID 2509-02441</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2604-02934.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_3844a5e4fc52.jpg.webp</image:loc>
+      <image:caption>Siberian kitten Silver &amp; White (Triple Coat) Male · ID 2604-02934</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2603-02736.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_430f30501847.jpg.webp</image:loc>
+      <image:caption>Siberian kitten Solid White (Triple Coat) Male · ID 2603-02736</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2603-02733.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_42b63cf00f27.jpg.webp</image:loc>
+      <image:caption>Siberian kitten Brown Tabby &amp; White (Triple Coat) Female · ID 2603-02733</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2602-02050.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_b7256954c397.jpg.webp</image:loc>
+      <image:caption>Siberian kitten Blue Lynx Point (Neva Masquerade) (Triple Coat) Male · ID 2602-02050</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2603-02735.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_446d01983869.jpg.webp</image:loc>
+      <image:caption>Siberian kitten Blue &amp; White (Triple Coat) Male · ID 2603-02735</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2603-02684.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_5b39de4a0d10.jpg.webp</image:loc>
+      <image:caption>Siberian kitten Brown Tabby (Triple Coat) Female · ID 2603-02684</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2603-02033.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_8dca1e05dfa6.jpg.webp</image:loc>
+      <image:caption>Siberian kitten Brown Tabby &amp; White (Triple Coat) Male · ID 2603-02033</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2604-01883.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_1b0286ca4923.jpg.webp</image:loc>
+      <image:caption>Siberian kitten Blue Lynx Point (Neva Masquerade) (Triple Coat) Male · ID 2604-01883</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2604-00477.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_899dec220705.jpg.webp</image:loc>
+      <image:caption>Siberian kitten Seal Point (Neva Masquerade) (Triple Coat) Female · ID 2604-00477</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2603-00563.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_f1e88c051771.jpg.webp</image:loc>
+      <image:caption>Siberian kitten Brown Tabby &amp; White (Triple Coat) Male · ID 2603-00563</image:caption>
+    </image:image>
+  </url>
+  子猫詳細ページ (zh)
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2602-00625.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1WgbZ2SZ1c8Q43wBdqu8vu9w3a3Idxj-A</image:loc>
+      <image:caption>西伯利亚猫幼猫 蓝色山猫重点色 涅瓦假面 男孩・个体编号2602-00625</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2601-01855.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/11A__yaCqHdX2DQWdoJJt09SL96fommeS</image:loc>
+      <image:caption>西伯利亚猫幼猫 银虎斑 三层被毛 男孩・个体编号2601-01855</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2601-00909.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1VAz9cpKRYcZjzNASJK6t34q4dCNTNRxX</image:loc>
+      <image:caption>西伯利亚猫幼猫 蓝色山猫重点色 涅瓦假面 女孩・个体编号2601-00909</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2509-01171.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/193ftvlYymW8ls3P1wy3eCDl9QQ51fopz</image:loc>
+      <image:caption>西伯利亚猫幼猫 红色山猫重点色 男孩・个体编号2509-01171</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2511-02287.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1FnPV_ZpT2-SzUfjADTv-XlIwJ39xKXmN</image:loc>
+      <image:caption>西伯利亚猫幼猫 棕虎斑 三层被毛 男孩・个体编号2511-02287</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2509-02086.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1KJLJEc--MYuybNtF_y--ljq03m4u3E2P</image:loc>
+      <image:caption>西伯利亚猫幼猫 银虎斑 女孩・个体编号2509-02086</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2511-01887.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1pK5C5fzKUgxjyfabO3QeVeBShcbBkX-J</image:loc>
+      <image:caption>西伯利亚猫幼猫 白色 三层被毛 男孩・个体编号2511-01887</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2601-00912.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1dIAA6WFEi36_6X_RlGU2_V40QZOh6c2B</image:loc>
+      <image:caption>西伯利亚猫幼猫 蓝色山猫重点色 涅瓦假面 女孩・个体编号2601-00912</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2508-00310.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1GoruWUhUw-I5vCGTDA9FaXcCsU6I5V-c</image:loc>
+      <image:caption>西伯利亚猫幼猫 银色阴影 男孩・个体编号2508-00310</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2512-01681.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/162HOfrOJzdas1RIsQ0oiiVomld5AZ256</image:loc>
+      <image:caption>西伯利亚猫幼猫 蓝玳瑁虎斑加白 男孩・个体编号2512-01681</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2510-01286.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1FB4TEXbPgDe2YZqFbnTMB0LAXKuc4eu6</image:loc>
+      <image:caption>西伯利亚猫幼猫 棕虎斑 三层被毛 女孩・个体编号2510-01286</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2511-00142.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1pk1MOHABDWqrbyz6HC7xVcwgYsTQ5aUw</image:loc>
+      <image:caption>西伯利亚猫幼猫 白色 男孩・个体编号2511-00142</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2511-00143.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1QafLMbnQKTZXHo4EfH_iJczJ9IrHtAjI</image:loc>
+      <image:caption>西伯利亚猫幼猫 白色 女孩・个体编号2511-00143</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2508-02468.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1jNmtznG2H2_vrHyyYoLWXlxqP8bN1ati</image:loc>
+      <image:caption>西伯利亚猫幼猫 银色&amp;白色 三层被毛 男孩・个体编号2508-02468</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2509-01027.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/135TrbskgxmpoWOfSUASscWN9AyPM8ztX</image:loc>
+      <image:caption>西伯利亚猫幼猫 红色山猫重点色 三层被毛 男孩・个体编号2509-01027</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2508-03366.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1rvyCV6pmZXeN9hmOz5EmRHS7ANZtfSqj</image:loc>
+      <image:caption>英国短毛猫幼猫 金色阴影 女孩・个体编号2508-03366</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2508-03312.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_ae83160357f5.jpg</image:loc>
+      <image:caption>英国短毛猫幼猫 金吉拉金色 长毛 女孩・个体编号2508-03312</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2508-03355.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_fef0dac4d322.jpg</image:loc>
+      <image:caption>英国短毛猫幼猫 金色阴影 男孩・个体编号2508-03355</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2509-00562.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/14o8tkxhUGSVQML5Ls6AYTtwbguIwbEFO</image:loc>
+      <image:caption>英国短毛猫幼猫 金色阴影&amp;白色 女孩・个体编号2509-00562</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2512-00115.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_98b9c6bfeaf2.jpg</image:loc>
+      <image:caption>西伯利亚×英系混血幼猫 棕虎斑&amp;白色 女孩・个体编号2512-00115</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2509-02907.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1-OwpIDClai6jYPUsO3u4-Tuy9Cs8ETK1</image:loc>
+      <image:caption>英国短毛猫幼猫 棕虎斑&amp;白色 女孩・个体编号2509-02907</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2510-01844.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_aad8b700cc92.jpg</image:loc>
+      <image:caption>英国短毛猫幼猫 白色 男孩・个体编号2510-01844</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2408-03054.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_85a6f25bfdc0.jpg</image:loc>
+      <image:caption>英国长毛猫幼猫 巧克力金色 长毛 男孩・个体编号2408-03054</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2512-00112.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_ed4f2b764841.jpg</image:loc>
+      <image:caption>西伯利亚×英系混血幼猫 白色 男孩・个体编号2512-00112</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2509-02441.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_4136ef30f4c8.jpg.webp</image:loc>
+      <image:caption>西伯利亚猫幼猫 女孩・个体编号2509-02441</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2604-02934.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_3844a5e4fc52.jpg.webp</image:loc>
+      <image:caption>西伯利亚猫幼猫 银色&amp;白色（三层被毛） 男孩・个体编号2604-02934</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2603-02736.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_430f30501847.jpg.webp</image:loc>
+      <image:caption>西伯利亚猫幼猫 纯白色（三层被毛） 男孩・个体编号2603-02736</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2603-02733.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_42b63cf00f27.jpg.webp</image:loc>
+      <image:caption>西伯利亚猫幼猫 棕虎斑&amp;白色（三层被毛） 女孩・个体编号2603-02733</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2602-02050.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_b7256954c397.jpg.webp</image:loc>
+      <image:caption>西伯利亚猫幼猫 蓝色山猫重点色（涅瓦假面）（三层被毛） 男孩・个体编号2602-02050</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2603-02735.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_446d01983869.jpg.webp</image:loc>
+      <image:caption>西伯利亚猫幼猫 蓝色&amp;白色（三层被毛） 男孩・个体编号2603-02735</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2603-02684.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_5b39de4a0d10.jpg.webp</image:loc>
+      <image:caption>西伯利亚猫幼猫 棕虎斑（三层被毛） 女孩・个体编号2603-02684</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2603-02033.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_8dca1e05dfa6.jpg.webp</image:loc>
+      <image:caption>西伯利亚猫幼猫 棕虎斑&amp;白色（三层被毛） 男孩・个体编号2603-02033</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2604-01883.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_1b0286ca4923.jpg.webp</image:loc>
+      <image:caption>西伯利亚猫幼猫 蓝色山猫重点色（涅瓦假面）（三层被毛） 男孩・个体编号2604-01883</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2604-00477.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_899dec220705.jpg.webp</image:loc>
+      <image:caption>西伯利亚猫幼猫 海豹重点色（涅瓦假面）（三层被毛） 女孩・个体编号2604-00477</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2603-00563.html</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_f1e88c051771.jpg.webp</image:loc>
+      <image:caption>西伯利亚猫幼猫 棕虎斑&amp;白色（三层被毛） 男孩・个体编号2603-00563</image:caption>
+    </image:image>
+  </url>
   <!-- ブログ記事 -->
   <url>
     <loc>https://fuluckpet.com/blog/air-purifier-for-cats.html</loc>
