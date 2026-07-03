@@ -281,7 +281,7 @@ const translations = {
     'kitten.male': '男の子',
     'kitten.female': '女の子',
     'kitten.available': '販売中',
-    'kitten.reserved': '商談中',
+    'kitten.reserved': 'ご予約済',
     'kitten.sold': 'ご家族決定',
     'kitten.taxIncl': '（税込）',
     'kitten.bornYear': '年',

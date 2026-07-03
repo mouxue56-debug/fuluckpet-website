@@ -175,6 +175,155 @@ function todayISO() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+// ── Localization (trilingual static output: ja / en / zh) ─────
+// D2: emit static /en/ + /zh/ versions of the kittens list + detail pages.
+// The detail page carries data-i18n hooks (client-side localization); the list page
+// has none, so EVERY baked string must be emitted in-language at generation time.
+// These tables/helpers are the single source of truth for the baked text.
+//
+// FABLE VERDICT bindings baked here:
+//  - mix breed サイベリアン×ブリティッシュ → EN "Siberian × British mix" / ZH "西伯利亚×英系混血"
+//  - color ブルーパッチドタビー＆ホワイト ZH → "蓝玳瑁虎斑加白"
+//  - gender labels carry NO ♂/♀ symbol in en/zh (matches i18n keys); symbol kept only where ja shows it raw
+const LANG_PREFIX = { ja: '', en: '/en', zh: '/zh' };
+
+// URL path prefix segment for a language ('' for ja, 'en/' / 'zh/' for the others).
+function langDir(lang) { return lang === 'ja' ? '' : `${lang}/`; }
+
+// hreflang triad + x-default, emitted identically on all three language versions.
+// relPath is the path WITHOUT any /en//zh prefix, e.g. "kittens.html" or "kittens/2408-03054.html".
+function hreflangBlock(relPath) {
+  const p = relPath.replace(/^\/+/, '');
+  return `  <link rel="alternate" hreflang="ja" href="${BASE_URL}/${p}">
+  <link rel="alternate" hreflang="en" href="${BASE_URL}/en/${p}">
+  <link rel="alternate" hreflang="zh" href="${BASE_URL}/zh/${p}">
+  <link rel="alternate" hreflang="x-default" href="${BASE_URL}/${p}">`;
+}
+
+function statusTextL(status, lang) {
+  const map = {
+    available: { ja: '販売中', en: 'Available', zh: '可预约' },
+    reserved: { ja: 'ご予約済', en: 'Reserved', zh: '已预订' },
+    sold: { ja: 'sold', en: 'Adopted', zh: '已出售' },
+  };
+  const row = map[status];
+  if (row) return row[lang] || row.ja;
+  return status || '';
+}
+
+function genderTextL(gender, lang) {
+  const map = {
+    '♂': { ja: '男の子', en: 'Male', zh: '男孩' },
+    '♀': { ja: '女の子', en: 'Female', zh: '女孩' },
+  };
+  const row = map[gender];
+  return row ? (row[lang] || row.ja) : '';
+}
+
+// Localized "born" phrase. ja "Y年M月生まれ" / en "Born Y/M" / zh "Y年M月出生".
+// Returns '' when birthday is absent.
+function bornPhrase(birthday, lang) {
+  if (!birthday) return '';
+  const parts = birthday.split('-');
+  if (parts.length < 2) return birthday;
+  const y = parts[0];
+  const m = parseInt(parts[1], 10);
+  if (lang === 'en') return `Born ${y}/${m}`;
+  if (lang === 'zh') return `${y}年${m}月出生`;
+  return `${y}年${m}月生まれ`;
+}
+
+function taxIncl(lang) {
+  if (lang === 'en') return '(tax incl.)';
+  if (lang === 'zh') return '（含税）';
+  return '（税込）';
+}
+
+// Breed label. FABLE VERDICT: サイベリアン×ブリティッシュ mix rendering; folds into Siberian section.
+const BREED_MAP = {
+  'サイベリアン': { en: 'Siberian', zh: '西伯利亚猫' },
+  'ブリティッシュショートヘア': { en: 'British Shorthair', zh: '英国短毛猫' },
+  'ブリティッシュロングヘア': { en: 'British Longhair', zh: '英国长毛猫' },
+  'ラグドール': { en: 'Ragdoll', zh: '布偶猫' },
+  'サイベリアン×ブリティッシュ': { en: 'Siberian × British mix', zh: '西伯利亚×英系混血' },
+};
+function breedLabel(breed, lang) {
+  if (lang === 'ja' || !breed) return breed || '';
+  const row = BREED_MAP[breed];
+  if (row && row[lang]) return row[lang];
+  console.warn(`  [i18n] no ${lang} breed mapping for "${breed}" — passthrough ja`);
+  return breed;
+}
+
+// Color dictionary (25 distinct ja strings from live data). Standard cat-fancy vocabulary.
+// Both シェーデット/シェーデッド variants map to the same term. Empty → ''.
+// Missing key → passthrough raw ja + console.warn (so a new color can't silently ship untranslated).
+const COLOR_MAP = {
+  'ホワイト': { en: 'White', zh: '白色' },
+  'ブラウンタビー&ホワイト（トリプルコート）': { en: 'Brown Tabby & White (Triple Coat)', zh: '棕虎斑&白色（三层被毛）' },
+  'ブルーリンクスポイント ネヴァマスカレード': { en: 'Blue Lynx Point Neva Masquerade', zh: '蓝色山猫重点色 涅瓦假面' },
+  'ゴールデンシェーデッド': { en: 'Golden Shaded', zh: '金色阴影' },
+  'シルバー&ホワイト（トリプルコート）': { en: 'Silver & White (Triple Coat)', zh: '银色&白色（三层被毛）' },
+  'ブラウンタビー トリプルコート': { en: 'Brown Tabby, Triple Coat', zh: '棕虎斑 三层被毛' },
+  'ブラウンタビー＆ホワイト': { en: 'Brown Tabby & White', zh: '棕虎斑&白色' },
+  'ブルーリンクスポイント(ネヴァマスカレード)（トリプルコート）': { en: 'Blue Lynx Point (Neva Masquerade) (Triple Coat)', zh: '蓝色山猫重点色（涅瓦假面）（三层被毛）' },
+  'レッドリンクスポイント': { en: 'Red Lynx Point', zh: '红色山猫重点色' },
+  'ゴールデンシェーデッド＆ホワイト': { en: 'Golden Shaded & White', zh: '金色阴影&白色' },
+  'シルバーシェーデット': { en: 'Silver Shaded', zh: '银色阴影' },
+  'シルバーシェーデッド': { en: 'Silver Shaded', zh: '银色阴影' },
+  'シルバータビー': { en: 'Silver Tabby', zh: '银虎斑' },
+  'シルバータビー トリプルコート': { en: 'Silver Tabby, Triple Coat', zh: '银虎斑 三层被毛' },
+  'シルバー＆ホワイト トリプルコート': { en: 'Silver & White, Triple Coat', zh: '银色&白色 三层被毛' },
+  'シールポイント(ネヴァマスカレード)（トリプルコート）': { en: 'Seal Point (Neva Masquerade) (Triple Coat)', zh: '海豹重点色（涅瓦假面）（三层被毛）' },
+  'チョコレートゴールデン ロングヘア': { en: 'Chocolate Golden Longhair', zh: '巧克力金色 长毛' },
+  'チンチラゴールデン ロングヘア': { en: 'Chinchilla Golden Longhair', zh: '金吉拉金色 长毛' },
+  'ブラウンタビー（トリプルコート）': { en: 'Brown Tabby (Triple Coat)', zh: '棕虎斑（三层被毛）' },
+  'ブルー&ホワイト（トリプルコート）': { en: 'Blue & White (Triple Coat)', zh: '蓝色&白色（三层被毛）' },
+  'ブルーパッチドタビー＆ホワイト': { en: 'Blue Patched Tabby & White', zh: '蓝玳瑁虎斑加白' },
+  'ホワイト トリプルコート': { en: 'White, Triple Coat', zh: '白色 三层被毛' },
+  'ホワイトソリッド（トリプルコート）': { en: 'Solid White (Triple Coat)', zh: '纯白色（三层被毛）' },
+  'レッドリンクスポイント トリプルコート': { en: 'Red Lynx Point, Triple Coat', zh: '红色山猫重点色 三层被毛' },
+};
+function colorLabel(color, lang) {
+  if (lang === 'ja' || !color) return color || '';
+  const row = COLOR_MAP[color];
+  if (row && row[lang]) return row[lang];
+  console.warn(`  [i18n] no ${lang} color mapping for "${color}" — passthrough ja`);
+  return color;
+}
+
+// Section counter suffix: ja "サイベリアン (31匹)" / en "Siberian (31)" / zh "西伯利亚猫（31只）".
+function countLabel(n, lang) {
+  if (lang === 'en') return ` (${n})`;
+  if (lang === 'zh') return `（${n}只）`;
+  return ` (${n}匹)`;
+}
+
+// Per-breed section description (BREED_CONFIG.desc is ja; en/zh live here to keep the
+// generator self-contained). Keyed by BREED_CONFIG.key.
+const BREED_DESC_L = {
+  'サイベリアン': { en: 'Low-allergen, gentle-natured Siberian kittens.', zh: '低致敏、性格温和的西伯利亚猫幼猫。' },
+  'ブリティッシュショートヘア': { en: 'British Shorthair kittens — sturdy build and a lovable round face.', zh: '体型敦实、圆脸惹人喜爱的英国短毛猫幼猫。' },
+  'ブリティッシュロングヘア': { en: 'The longhair British — calm and refined in temperament.', zh: '英国短毛猫的长毛品种，性格温和优雅。' },
+  'ラグドール': { en: 'Ragdolls — the "plush toy" cat that loves being held.', zh: '喜欢被抱的“布偶”猫——布偶猫。' },
+};
+function breedDesc(cfg, lang) {
+  if (lang === 'ja') return cfg.desc;
+  const row = BREED_DESC_L[cfg.key];
+  return (row && row[lang]) || cfg.desc;
+}
+
+// List page hero subtitle (no i18n key on the list page → baked per lang).
+const HERO_SUB = {
+  ja: '新しいご家族を待っている子猫たちをご紹介します。価格帯: ¥140,000～¥290,000（税込）',
+  en: 'Meet the kittens waiting for their new families. Price range: ¥140,000–¥290,000 (tax incl.).',
+  zh: '为您介绍正在等待新家庭的猫咪们。价格区间：¥140,000～¥290,000（含税）。',
+};
+
+// Breadcrumb "Kittens" label (kitten.breadcrumb.kittens key mirror for baked list/detail).
+const KITTENS_LABEL = { ja: '子猫一覧', en: 'Kittens', zh: '幼猫一览' };
+const HOME_LABEL = { ja: 'ホーム', en: 'Home', zh: '首页' };
+
 // ── Template Extraction ───────────────────────────────────────
 
 /**
@@ -261,9 +410,119 @@ function waveDivider(toClass) {
 
 // ── Generate Kittens ──────────────────────────────────────────
 
-function generateKittens(kittens) {
+// Absolutize relative header/footer links so the en/zh list pages (one level deep) resolve
+// chrome links to the site root, exactly as the precedent en|zh/*.html pages do.
+function listToAbsoluteLinks(html) {
+  return html
+    .replace(/href="(?!\/|https?:|#|mailto:|tel:)([^"]+)"/g, 'href="/$1"')
+    .replace(/src="(?!\/|https?:|data:)([^"]+)"/g, 'src="/$1"');
+}
+
+// Build the en/zh list-page header from the ja header:
+//  - rebuild <html lang>, <head> (title/meta/OG/twitter/canonical/hreflang/breadcrumb JSON-LD)
+//    from a per-lang template,
+//  - keep the nav/mobile-nav chrome VERBATIM (data-i18n localizes it at runtime; links
+//    absolutized for depth) — matches the established precedent,
+//  - localize the page-hero (breadcrumb + h1 + subtitle).
+function buildListHeader(jaHeader, lang) {
+  if (lang === 'ja') return jaHeader; // untouched → byte-identical
+  const headerMarker = '<!-- ========== HEADER ========== -->';
+  const heroMarker = '<!-- ========== PAGE HERO ========== -->';
+  const headerIdx = jaHeader.indexOf(headerMarker);
+  const heroIdx = jaHeader.indexOf(heroMarker);
+  // Chrome = HEADER marker through just before PAGE HERO (nav + mobile nav), absolutized.
+  const chrome = listToAbsoluteLinks(jaHeader.substring(headerIdx, heroIdx).replace(/\s*$/, ''));
+
+  const styleV = verAsset('style.css', '20260628j');
+  const navCssV = verAsset('nav.css', '20260628a');
+  const navJsV = verAsset('nav.js', '20260628a');
+  const relPath = 'kittens.html';
+  const selfUrl = `${BASE_URL}/${langDir(lang)}kittens.html`;
+  const kittensLabel = KITTENS_LABEL[lang];
+  const homeLabel = HOME_LABEL[lang];
+  const heroSub = HERO_SUB[lang];
+
+  let title, desc, ogSite;
+  if (lang === 'en') {
+    title = 'Kittens for Sale | Siberian Cats in Osaka | Fuluck Cattery';
+    desc = 'Available kittens at Fuluck Cattery in Osaka — Siberian, British Shorthair, British Longhair and Ragdoll. Low-allergen, gentle-natured kittens. Reviews 5.00.';
+    ogSite = 'Fuluck Cattery';
+  } else {
+    title = '幼猫一览｜大阪西伯利亚猫繁育｜福楽キャッテリー';
+    desc = '大阪福楽キャッテリー在售幼猫一览。西伯利亚猫、英国短毛猫、英国长毛猫、布偶猫。低致敏、性格温和。口碑评分5.00。';
+    ogSite = '西伯利亚猫｜大阪·福楽キャッテリー';
+  }
+
+  const head = `<!DOCTYPE html>
+<html lang="${lang}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHtml(title)}</title>
+  <meta name="description" content="${escapeHtml(desc)}">
+  <meta property="og:title" content="${escapeHtml(title)}">
+  <meta property="og:description" content="${escapeHtml(desc)}">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="${selfUrl}">
+  <meta property="og:site_name" content="${escapeHtml(ogSite)}">
+  <meta property="og:image" content="${BASE_URL}/images/ogp.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${escapeHtml(title)}">
+  <meta name="twitter:description" content="${escapeHtml(desc)}">
+  <meta name="twitter:image" content="${BASE_URL}/images/ogp.jpg">
+  <meta name="theme-color" content="#7DD3C0">
+  <link rel="canonical" href="${selfUrl}">
+${hreflangBlock(relPath)}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
+  <link rel="stylesheet" href="/style.css?v=${styleV}">
+  <link rel="stylesheet" href="/nav.css?v=${navCssV}">
+  <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
+  <script type="application/ld+json">
+  { "@context":"https://schema.org", "@type":"BreadcrumbList", "inLanguage":"${lang}", "itemListElement":[
+    {"@type":"ListItem","position":1,"name":"${homeLabel}","item":"${BASE_URL}/"},
+    {"@type":"ListItem","position":2,"name":"${kittensLabel}","item":"${selfUrl}"}
+  ]}
+  </script>
+  <script defer src="/nav.js?v=${navJsV}"></script>
+</head>
+<body class="has-mobile-cta">
+  <a class="skip-link" href="#main">メインコンテンツへスキップ</a>
+
+  <!-- Scroll Progress Bar -->
+  <div class="scroll-progress"></div>
+
+`;
+
+  const hero = `  <!-- ========== PAGE HERO ========== -->
+  <section class="page-hero">
+    <div class="breadcrumb">
+      <a href="/" data-i18n="common.home">${escapeHtml(homeLabel)}</a>
+      <span>/</span>
+      <span data-i18n="kitten.breadcrumb.kittens">${escapeHtml(kittensLabel)}</span>
+    </div>
+    <h1 data-i18n="kitten.breadcrumb.kittens">${escapeHtml(kittensLabel)}</h1>
+    <p>${escapeHtml(heroSub)}</p>
+  </section>`;
+
+  return head + chrome + '\n\n' + hero;
+}
+
+function generateKittens(kittens, lang = 'ja') {
   const filepath = path.join(SITE_DIR, 'kittens.html');
-  const { header, tail } = extractTemplate(filepath);
+  const { header: jaHeader, tail } = extractTemplate(filepath);
+  const header = buildListHeader(jaHeader, lang);
+  const outPath = lang === 'ja'
+    ? filepath
+    : path.join(SITE_DIR, lang, 'kittens.html');
+  if (lang !== 'ja') {
+    fs.mkdirSync(path.dirname(outPath), { recursive: true });
+  }
 
   // Group kittens by breed
   const breedGroups = new Map();
@@ -322,23 +581,43 @@ function generateKittens(kittens) {
       const pr = formatPrice(k.price);
       const isNewBadge = k.isNew ? '\n            <span class="kit-badge-new">NEW</span>' : '';
 
-      const cardAlt = `${k.breed}の子猫 ${k.color || ''} ${gt}・個体番号${k.breederId}`.trim();
+      // Localized baked strings (ja passthrough → byte-identical). The card has no
+      // data-i18n, so every visible value is emitted in-language here.
+      const stL = lang === 'ja' ? st : statusTextL(k.status, lang);
+      const breedCard = lang === 'ja' ? k.breed : breedLabel(k.breed, lang);
+      const colorCard = lang === 'ja' ? k.color : colorLabel(k.color, lang);
+      const genderCard = lang === 'ja' ? k.gender : genderTextL(k.gender, lang); // en/zh: no ♂/♀ symbol
+      const genderWord = lang === 'ja' ? gt : ''; // ja shows "♂ 男の子"; en/zh label already carries the word
+      const bornCard = lang === 'ja' ? `${escapeHtml(bd)}生まれ` : escapeHtml(bornPhrase(k.birthday, lang));
+
+      const cardAlt = lang === 'ja'
+        ? `${k.breed}の子猫 ${k.color || ''} ${gt}・個体番号${k.breederId}`.trim()
+        : (lang === 'en'
+            ? `${breedCard} kitten ${colorCard || ''} ${genderCard} · ID ${k.breederId}`.replace(/\s+/g, ' ').trim()
+            : `${breedCard}幼猫 ${colorCard || ''} ${genderCard}・个体编号${k.breederId}`.replace(/\s+/g, ' ').trim());
+      // Card meta line. ja: "♂ 男の子 ・ <color>"; en/zh: "Male ・ <color>".
+      const metaLine = lang === 'ja'
+        ? `${escapeHtml(k.gender)} ${escapeHtml(gt)} ・ ${escapeHtml(k.color)}`
+        : `${escapeHtml(genderCard)} ・ ${escapeHtml(colorCard)}`;
       cardsHtml += `
         <div class="kitten-card" data-status="${escapeHtml(k.status)}" data-price="${k.price || ''}" data-birthday="${escapeHtml(k.birthday)}" data-images="${escapeHtml(photo)}" data-video="" data-papa="${escapeHtml(k.papa)}" data-mama="${escapeHtml(k.mama)}" data-new="${k.isNew ? 'true' : 'false'}" data-name="" data-breeder-id="${escapeHtml(k.breederId)}">
           <div class="kitten-img">
             <img src="${escapeHtml(photo)}" alt="${escapeHtml(cardAlt)}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
-            <span class="kit-status st-${escapeHtml(k.status)}">${escapeHtml(st)}</span>${isNewBadge}
+            <span class="kit-status st-${escapeHtml(k.status)}">${escapeHtml(stL)}</span>${isNewBadge}
           </div>
           <div class="kitten-body">
-            <h3>${escapeHtml(k.breed)}</h3>
-            <p class="kit-meta">${escapeHtml(k.gender)} ${escapeHtml(gt)} ・ ${escapeHtml(k.color)}</p>
-            <p class="kit-meta">${escapeHtml(bd)}生まれ</p>
+            <h3>${escapeHtml(breedCard)}</h3>
+            <p class="kit-meta">${metaLine}</p>
+            <p class="kit-meta">${bornCard}</p>
             ${k.note ? `<p class="kit-meta" style="font-size:11px;color:var(--text-note);">${escapeHtml(k.note)}</p>` : ''}
-            <p class="kit-price">&yen;${pr} <span class="tax">（税込）</span></p>
+            <p class="kit-price">&yen;${pr} <span class="tax">${taxIncl(lang)}</span></p>
           </div>
         </div>`;
     }
 
+    const secTitle = lang === 'ja'
+      ? `${escapeHtml(cfg.key)} (${group.length}匹)`
+      : `${escapeHtml(breedLabel(cfg.key, lang))}${countLabel(group.length, lang)}`;
     sections += `
 
   <!-- ========== ${cfg.tag.toUpperCase()} KITTENS ========== -->
@@ -349,8 +628,8 @@ ${shapesHtml}
     <div class="container" style="position:relative;z-index:1;">
       <div class="sec-header">
         <span class="sec-tag">${escapeHtml(cfg.tag)}</span>
-        <h2 class="sec-title">${escapeHtml(cfg.key)} (${group.length}匹)</h2>
-        <p class="sec-desc">${escapeHtml(cfg.desc)}</p>
+        <h2 class="sec-title">${secTitle}</h2>
+        <p class="sec-desc">${escapeHtml(breedDesc(cfg, lang))}</p>
       </div>
       <div class="kittens-grid" style="grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));">${cardsHtml}
       </div>
@@ -368,24 +647,42 @@ ${shapesHtml}
   })();
   const products = [];
   let pIdx = 0;
+  const listPageUrl = `${BASE_URL}/${langDir(lang)}kittens.html`;
   for (const k of kittens) {
     const photo = getCoverPhoto(k);
     if (!photo) continue;
     const gt = genderText(k.gender);
     const fileId = k.breederId || k.id;
     const trait = traitPick(pIdx++);
-    const description = `${trait}${k.breed} ${k.color || ''} ${gt}。大阪・福楽キャッテリー`.trim();
+    // Localized name/description (ja passthrough → byte-identical).
+    let name, description;
+    if (lang === 'ja') {
+      name = `${k.breed}・${k.color || ''}・${gt}・${fileId}`;
+      description = `${trait}${k.breed} ${k.color || ''} ${gt}。大阪・福楽キャッテリー`.trim();
+    } else {
+      const bL = breedLabel(k.breed, lang);
+      const cL = colorLabel(k.color, lang);
+      const gL = genderTextL(k.gender, lang);
+      if (lang === 'en') {
+        name = `${bL} · ${cL || ''} · ${gL} · ${fileId}`.replace(/\s+/g, ' ').trim();
+        description = `${bL} kitten ${cL || ''} ${gL} at Fuluck Cattery, Osaka.`.replace(/\s+/g, ' ').trim();
+      } else {
+        name = `${bL}・${cL || ''}・${gL}・${fileId}`;
+        description = `${bL} ${cL || ''} ${gL}。大阪·福楽キャッテリー`.replace(/\s+/g, ' ').trim();
+      }
+    }
     products.push({
       "@context": "https://schema.org",
       "@type": "Product",
-      "@id": `${BASE_URL}/kittens.html#${fileId}`,
-      "name": `${k.breed}・${k.color || ''}・${gt}・${fileId}`,
+      "@id": `${listPageUrl}#${fileId}`,
+      "name": name,
+      ...(lang !== 'ja' ? { "inLanguage": lang } : {}),
       "image": [photo],
       "description": description,
       "brand": { "@type": "Brand", "name": "福楽キャッテリー" },
       "offers": {
         "@type": "Offer",
-        "url": `${BASE_URL}/kittens/${fileId}.html`,
+        "url": `${BASE_URL}/${langDir(lang)}kittens/${fileId}.html`,
         "priceCurrency": "JPY",
         "price": String(k.price || 0),
         "priceValidUntil": "2026-12-31",
@@ -422,15 +719,19 @@ ${shapesHtml}
     '\n  </script>\n';
 
   // Strip any prior generated block from the tail (idempotent regen)
-  const cleanedTail = tail.replace(
+  let cleanedTail = tail.replace(
     /\n\s*<!-- Per-kitten Product schema \(generated by SEO sweep\) -->\s*\n\s*<script type="application\/ld\+json">[\s\S]*?<\/script>\s*\n/,
     '\n'
   );
+  // For en/zh, absolutize the ja tail's chrome links (footer/CTA/scripts) so they resolve
+  // from the one-level-deep /en//zh path, mirroring the detail-page precedent. ja untouched.
+  if (lang !== 'ja') cleanedTail = listToAbsoluteLinks(cleanedTail);
   const tailWithSchema = cleanedTail.replace('</body>', `${productJsonLd}</body>`);
 
   const output = header + '\n' + sections + '\n\n' + tailWithSchema;
-  fs.writeFileSync(filepath, output, 'utf-8');
-  console.log(`  kittens.html -> ${kittens.length} kittens (${sectionIdx} breed sections), ${products.length} Product schemas`);
+  fs.writeFileSync(outPath, output, 'utf-8');
+  const label = lang === 'ja' ? 'kittens.html' : `${lang}/kittens.html`;
+  console.log(`  ${label} -> ${kittens.length} kittens (${sectionIdx} breed sections), ${products.length} Product schemas`);
 }
 
 // ── Generate Parents ──────────────────────────────────────────
@@ -632,7 +933,7 @@ function extractYouTubeId(video) {
 /**
  * Build the full HTML for a kitten detail page
  */
-function buildKittenDetailHtml(kitten, headerHtml, footerHtml) {
+function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja') {
   const fileId = kitten.breederId || kitten.id;
   const gt = genderText(kitten.gender);
   const genderFull = kitten.gender ? `${kitten.gender} ${gt}` : '';
@@ -641,23 +942,57 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml) {
   const pr = formatPrice(kitten.price);
   const coverPhoto = getCoverPhoto(kitten);
   const photos = kitten.photos || [];
-  const pageUrl = `${BASE_URL}/kittens/${fileId}.html`;
+  const pageUrl = `${BASE_URL}/${langDir(lang)}kittens/${fileId}.html`;
 
-  const titleText = `${kitten.breed || ''} ${genderFull} ${kitten.color || ''}`.trim();
-  const pageTitle = `${titleText}｜子猫詳細｜福楽キャッテリー`;
-  const metaDesc = `大阪の福楽キャッテリーの${kitten.breed || ''}の子猫。${kitten.color || ''}、${genderFull}、${bd ? bd + '生まれ' : ''}。¥${pr}（税込）${st}。`;
+  // Localized values for the baked (non-data-i18n) fields: title / meta / OG / JSON-LD /
+  // <h1> / color <td> / breadcrumb tail / alt. Chrome (labels/buttons/status) keeps its
+  // data-i18n hooks and localizes at runtime.
+  const breedL = breedLabel(kitten.breed, lang);
+  const colorL = colorLabel(kitten.color, lang);
+  const genderL = genderTextL(kitten.gender, lang);
+  const genderFullL = lang === 'ja' ? genderFull : genderL; // en/zh drop the ♂/♀ symbol (matches i18n keys)
+  const bornL = bornPhrase(kitten.birthday, lang);
+  const stL = statusTextL(kitten.status, lang);
+
+  // titleText: ja keeps the exact legacy form (byte-identity contract); en/zh collapse
+  // whitespace so a missing field (empty color / no gender) doesn't leave a double space.
+  const titleText = lang === 'ja'
+    ? `${kitten.breed || ''} ${genderFull} ${kitten.color || ''}`.trim()
+    : `${breedL || ''} ${genderFullL} ${colorL || ''}`.replace(/\s+/g, ' ').trim();
+  let pageTitle, metaDesc, ldName, ldDesc;
+  if (lang === 'en') {
+    pageTitle = `${titleText} | Kitten Detail | Fuluck Cattery`;
+    metaDesc = `${breedL} kitten at Fuluck Cattery in Osaka. ${colorL || ''}, ${genderFullL}${bornL ? ', ' + bornL : ''}. ¥${pr} (tax incl.) ${statusTextL(kitten.status, 'en')}.`.replace(/\s+/g, ' ').trim();
+    ldName = titleText;
+    ldDesc = `${breedL} kitten from Fuluck Cattery (breeder: Ra Hoen) in Osaka. ${colorL || ''}, ${genderFullL}${bornL ? ', ' + bornL : ''}.`.replace(/\s+/g, ' ').trim();
+  } else if (lang === 'zh') {
+    pageTitle = `${titleText}｜幼猫详情｜福楽キャッテリー`;
+    metaDesc = `大阪福楽キャッテリー的${breedL}幼猫。${colorL || ''}、${genderFullL}${bornL ? '、' + bornL : ''}。¥${pr}（含税）${statusTextL(kitten.status, 'zh')}。`;
+    ldName = titleText;
+    ldDesc = `大阪福楽キャッテリー（繁育者：罗方远）的${breedL}幼猫。${colorL || ''}、${genderFullL}${bornL ? '、' + bornL : ''}。`;
+  } else {
+    pageTitle = `${titleText}｜子猫詳細｜福楽キャッテリー`;
+    metaDesc = `大阪の福楽キャッテリーの${kitten.breed || ''}の子猫。${kitten.color || ''}、${genderFull}、${bd ? bd + '生まれ' : ''}。¥${pr}（税込）${st}。`;
+    ldName = titleText;
+    ldDesc = `大阪の福楽キャッテリー（ブリーダー：羅方遠）の${kitten.breed || ''}の子猫。${kitten.color || ''}、${genderFull}、${bd ? bd + '生まれ' : ''}。`;
+  }
+  const homeLabel = HOME_LABEL[lang] || HOME_LABEL.ja;
+  const kittensLabel = KITTENS_LABEL[lang] || KITTENS_LABEL.ja;
+  const htmlLang = lang;
 
   // Schema availability
   const schemaAvailability = kitten.status === 'available'
     ? 'https://schema.org/InStock'
     : 'https://schema.org/LimitedAvailability';
 
-  // Product JSON-LD
+  // Product JSON-LD. inLanguage emitted for en/zh only — ja keeps its exact legacy schema
+  // (commit-1 byte-identity contract; ja implicitly = the site's default language anyway).
   const productJsonLd = JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Product",
-    "name": titleText,
-    "description": `大阪の福楽キャッテリー（ブリーダー：羅方遠）の${kitten.breed || ''}の子猫。${kitten.color || ''}、${genderFull}、${bd ? bd + '生まれ' : ''}。`,
+    "name": ldName,
+    "description": ldDesc,
+    ...(lang !== 'ja' ? { "inLanguage": lang } : {}),
     "image": photos,
     "brand": { "@type": "Brand", "name": "福楽キャッテリー" },
     "offers": {
@@ -690,23 +1025,38 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml) {
     }
   });
 
-  // Breadcrumb JSON-LD
-  const breadcrumbJsonLd = JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      { "@type": "ListItem", "position": 1, "name": "ホーム", "item": `${BASE_URL}/` },
-      { "@type": "ListItem", "position": 2, "name": "子猫一覧", "item": `${BASE_URL}/kittens.html` },
-      { "@type": "ListItem", "position": 3, "name": titleText, "item": pageUrl }
-    ]
-  });
+  // Breadcrumb JSON-LD. ja keeps its exact legacy shape (byte-identity); en/zh localize the
+  // display names, add inLanguage, and route Kittens → the per-lang list. Home stays the
+  // canonical root URL for all langs (no /en/ or /zh/ home page exists → avoid a 404 link).
+  const breadcrumbJsonLd = lang === 'ja'
+    ? JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "ホーム", "item": `${BASE_URL}/` },
+          { "@type": "ListItem", "position": 2, "name": "子猫一覧", "item": `${BASE_URL}/kittens.html` },
+          { "@type": "ListItem", "position": 3, "name": titleText, "item": pageUrl }
+        ]
+      })
+    : JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "inLanguage": lang,
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": homeLabel, "item": `${BASE_URL}/` },
+          { "@type": "ListItem", "position": 2, "name": kittensLabel, "item": `${BASE_URL}/${langDir(lang)}kittens.html` },
+          { "@type": "ListItem", "position": 3, "name": titleText, "item": pageUrl }
+        ]
+      });
 
+  // Alt-text word for "photo N": ja "写真" / en "photo" / zh "照片".
+  const photoWord = lang === 'en' ? 'photo' : (lang === 'zh' ? '照片' : '写真');
   // Thumbnails HTML
   let thumbsHtml = '';
   if (photos.length > 1) {
     thumbsHtml = `
       <div class="kitten-detail-thumbs">
-        ${photos.map((p, i) => `<img src="${escapeHtml(p)}" alt="${escapeHtml(kitten.breed || '')} ${escapeHtml(kitten.color || '')} 写真${i + 1}" class="kitten-detail-thumb${i === (kitten.coverIndex || 0) ? ' active' : ''}" data-idx="${i}" loading="lazy">`).join('\n        ')}
+        ${photos.map((p, i) => `<img src="${escapeHtml(p)}" alt="${escapeHtml(breedL || '')} ${escapeHtml(colorL || '')} ${photoWord}${i + 1}" class="kitten-detail-thumb${i === (kitten.coverIndex || 0) ? ' active' : ''}" data-idx="${i}" loading="lazy">`).join('\n        ')}
       </div>`;
   }
 
@@ -747,7 +1097,7 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml) {
   const newBadge = kitten.isNew ? ' <span class="kit-badge-new">NEW</span>' : '';
 
   return `<!DOCTYPE html>
-<html lang="ja">
+<html lang="${htmlLang}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -761,10 +1111,7 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml) {
   <meta name="twitter:card" content="summary_large_image">
   <meta name="theme-color" content="#7DD3C0">
   <link rel="canonical" href="${escapeHtml(pageUrl)}">
-  <link rel="alternate" hreflang="ja" href="${escapeHtml(pageUrl)}">
-  <link rel="alternate" hreflang="en" href="${escapeHtml(pageUrl)}?lang=en">
-  <link rel="alternate" hreflang="zh" href="${escapeHtml(pageUrl)}?lang=zh">
-  <link rel="alternate" hreflang="x-default" href="${escapeHtml(pageUrl)}">
+${hreflangBlock(`kittens/${fileId}.html`)}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -992,7 +1339,7 @@ ${headerHtml}
   <!-- Breadcrumb -->
   <nav class="breadcrumb">
     <div class="container">
-      <a href="/" data-i18n="common.home">ホーム</a> &gt; <a href="/kittens.html" data-i18n="kitten.breadcrumb.kittens">子猫一覧</a> &gt; ${escapeHtml(titleText)}
+      <a href="/" data-i18n="common.home">${escapeHtml(homeLabel)}</a> &gt; <a href="/${langDir(lang)}kittens.html" data-i18n="kitten.breadcrumb.kittens">${escapeHtml(kittensLabel)}</a> &gt; ${escapeHtml(titleText)}
     </div>
   </nav>
 
@@ -1001,7 +1348,7 @@ ${headerHtml}
     <div class="container">
       <div class="kitten-detail-gallery">
         <div class="kitten-detail-main-img">
-          <img id="mainPhoto" src="${escapeHtml(coverPhoto)}" alt="${escapeHtml(kitten.breed || '')} ${escapeHtml(kitten.color || '')}">
+          <img id="mainPhoto" src="${escapeHtml(coverPhoto)}" alt="${escapeHtml(breedL || '')} ${escapeHtml(colorL || '')}">
         </div>
         ${thumbsHtml}
       </div>
@@ -1015,19 +1362,19 @@ ${headerHtml}
 
       <!-- Status + New badge -->
       <div class="kitten-detail-status">
-        <span class="kit-status st-${escapeHtml(kitten.status)}"${statusI18nKey(kitten.status) ? ` data-i18n="${statusI18nKey(kitten.status)}"` : ''}>${escapeHtml(st)}</span>${newBadge}
+        <span class="kit-status st-${escapeHtml(kitten.status)}"${statusI18nKey(kitten.status) ? ` data-i18n="${statusI18nKey(kitten.status)}"` : ''}>${escapeHtml(stL)}</span>${newBadge}
       </div>
 
       <!-- Price -->
-      <p class="kitten-detail-price">&yen;${pr} <span class="tax" data-i18n="kitten.taxIncl">（税込）</span></p>
+      <p class="kitten-detail-price">&yen;${pr} <span class="tax" data-i18n="kitten.taxIncl">${taxIncl(lang)}</span></p>
 
       <!-- Detail table -->
       <table class="kitten-detail-table">
-        <tr><th data-i18n="kitten.breed">品種</th><td${breedI18nKey(kitten.breed) ? ` data-i18n="${breedI18nKey(kitten.breed)}"` : ''}>${escapeHtml(kitten.breed || '')}</td></tr>
-        <tr><th data-i18n="kitten.sex">性別</th><td${genderI18nKey(kitten.gender) ? ` data-i18n="${genderI18nKey(kitten.gender)}"` : ''}>${escapeHtml(genderFull)}</td></tr>
-        <tr><th data-i18n="kitten.color">毛色</th><td>${escapeHtml(kitten.color || '')}</td></tr>
-        <tr><th data-i18n="kitten.birthday">誕生日</th><td${kitten.birthday ? ` data-i18n-birthday="${escapeHtml(kitten.birthday)}"` : ''}>${bd ? escapeHtml(bd) + '生まれ' : ''}</td></tr>
-        <tr><th data-i18n="kitten.status">状態</th><td${statusI18nKey(kitten.status) ? ` data-i18n="${statusI18nKey(kitten.status)}"` : ''}>${escapeHtml(st)}</td></tr>
+        <tr><th data-i18n="kitten.breed">品種</th><td${breedI18nKey(kitten.breed) ? ` data-i18n="${breedI18nKey(kitten.breed)}"` : ''}>${escapeHtml(breedL || '')}</td></tr>
+        <tr><th data-i18n="kitten.sex">性別</th><td${genderI18nKey(kitten.gender) ? ` data-i18n="${genderI18nKey(kitten.gender)}"` : ''}>${escapeHtml(genderFullL)}</td></tr>
+        <tr><th data-i18n="kitten.color">毛色</th><td>${escapeHtml(colorL || '')}</td></tr>
+        <tr><th data-i18n="kitten.birthday">誕生日</th><td${kitten.birthday ? ` data-i18n-birthday="${escapeHtml(kitten.birthday)}"` : ''}>${escapeHtml(bornL)}</td></tr>
+        <tr><th data-i18n="kitten.status">状態</th><td${statusI18nKey(kitten.status) ? ` data-i18n="${statusI18nKey(kitten.status)}"` : ''}>${escapeHtml(stL)}</td></tr>
         ${noteRow}
       </table>
 
@@ -1143,10 +1490,13 @@ function extractDetailTemplate() {
   return { headerHtml, footerHtml };
 }
 
-function generateKittenDetailPages(kittens, parents) {
-  const kittensDir = path.join(SITE_DIR, 'kittens');
+function generateKittenDetailPages(kittens, parents, lang = 'ja') {
+  // ja → <root>/kittens/, en → <root>/en/kittens/, zh → <root>/zh/kittens/
+  const kittensDir = lang === 'ja'
+    ? path.join(SITE_DIR, 'kittens')
+    : path.join(SITE_DIR, lang, 'kittens');
 
-  // 1. Create /kittens/ directory if not exists
+  // 1. Create the target kittens dir if not exists
   if (!fs.existsSync(kittensDir)) {
     fs.mkdirSync(kittensDir, { recursive: true });
   }
@@ -1190,7 +1540,9 @@ function generateKittenDetailPages(kittens, parents) {
     if (seenFileIds.has(fileId)) collisions.add(fileId);
     seenFileIds.add(fileId);
   }
-  if (collisions.size) {
+  // Collision warning only on the ja pass (data-level issue, identical across langs —
+  // no need to log it three times).
+  if (collisions.size && lang === 'ja') {
     console.warn(`  [COLLISION] ${collisions.size} duplicate breederId(s): ${[...collisions].join(', ')} — each collapses multiple kittens into ONE detail page (data must be deduped in admin).`);
   }
 
@@ -1198,24 +1550,27 @@ function generateKittenDetailPages(kittens, parents) {
   for (const k of eligible) {
     const fileId = k.breederId || k.id;
     const outputPath = path.join(kittensDir, `${fileId}.html`);
-    const html = buildKittenDetailHtml(k, headerHtml, footerHtml);
+    const html = buildKittenDetailHtml(k, headerHtml, footerHtml, lang);
     fs.writeFileSync(outputPath, html, 'utf-8');
     generatedCount++;
   }
 
-  console.log(`  kittens/ -> ${generatedCount} detail pages generated, ${removedCount} old pages removed`);
+  const label = lang === 'ja' ? 'kittens/' : `${lang}/kittens/`;
+  console.log(`  ${label} -> ${generatedCount} detail pages generated, ${removedCount} old pages removed`);
   return eligible; // Return for sitemap use
 }
 
 // ── Update Sitemap ────────────────────────────────────────────
 
-function updateSitemap(articles, kittenDetailPages) {
+function updateSitemap(articles, kittenDetailPages, store) {
   const filepath = path.join(SITE_DIR, 'sitemap.xml');
   const existing = fs.readFileSync(filepath, 'utf-8');
   const today = todayISO();
   // Honest lastmod: reuse stored date when the file content is unchanged (asset-version
   // bumps stripped before hashing); stamp today only on genuine content change / new URL.
-  const store = createLastmodStore(SITE_DIR, today);
+  // The store is created ONCE in main() and shared across both generators / all passes
+  // (save() does not prune, so entries coexist). Fall back to a local store if not passed.
+  if (!store) store = createLastmodStore(SITE_DIR, today);
 
   // Extract the static (non-blog) portion: everything before "<!-- 子猫詳細ページ -->" or "<!-- ブログ記事 -->"
   const kittenDetailMarker = '<!-- 子猫詳細ページ -->';
@@ -1249,30 +1604,64 @@ function updateSitemap(articles, kittenDetailPages) {
     (full, pre, loc, mid, post) => `${pre}${loc}${mid}${store.lastmodForUrl(loc)}${post}`
   );
 
-  // Build kitten detail page URLs (with image:image entries for image sitemap)
-  let kittenEntries = `  ${kittenDetailMarker}\n`;
+  // Build kitten detail page URLs (with image:image entries for image sitemap).
+  // ja block first (its marker is the splitter key), then en + zh blocks. Each language
+  // dedups on the same breederId set → the 3 collision ids emit exactly one <loc> per lang.
   const detailPages = kittenDetailPages || [];
-  const sitemapSeen = new Set(); // dedup: duplicate breederId in data must not emit duplicate <loc>
-  for (const k of detailPages) {
-    const fileId = k.breederId || k.id;
-    if (sitemapSeen.has(fileId)) continue;
-    sitemapSeen.add(fileId);
-    const photo = getCoverPhoto(k);
-    const gt = genderText(k.gender);
-    const caption = `${k.breed}の子猫 ${k.color || ''} ${gt}・個体番号${fileId}`.trim();
-    const imageBlock = photo ? `
+  function detailEntriesFor(lang, marker) {
+    let out = marker ? `  ${marker}\n` : '';
+    const seen = new Set();
+    for (const k of detailPages) {
+      const fileId = k.breederId || k.id;
+      if (seen.has(fileId)) continue;
+      seen.add(fileId);
+      const photo = getCoverPhoto(k);
+      const gt = genderText(k.gender);
+      // Localized image caption (cheap consistency win per spec §4.4).
+      const caption = lang === 'ja'
+        ? `${k.breed}の子猫 ${k.color || ''} ${gt}・個体番号${fileId}`.trim()
+        : (lang === 'en'
+            ? `${breedLabel(k.breed, 'en')} kitten ${colorLabel(k.color, 'en') || ''} ${genderTextL(k.gender, 'en')} · ID ${fileId}`.replace(/\s+/g, ' ').trim()
+            : `${breedLabel(k.breed, 'zh')}幼猫 ${colorLabel(k.color, 'zh') || ''} ${genderTextL(k.gender, 'zh')}・个体编号${fileId}`.replace(/\s+/g, ' ').trim());
+      const imageBlock = photo ? `
     <image:image>
       <image:loc>${escapeHtml(photo)}</image:loc>
       <image:caption>${escapeHtml(caption)}</image:caption>
     </image:image>` : '';
-    const url = `${BASE_URL}/kittens/${fileId}.html`;
-    kittenEntries += `  <url>
-    <loc>${BASE_URL}/kittens/${escapeHtml(fileId)}.html</loc>
-    <lastmod>${store.lastmodForUrl(url)}</lastmod>
+      const loc = `${BASE_URL}/${langDir(lang)}kittens/${fileId}.html`;
+      out += `  <url>
+    <loc>${BASE_URL}/${langDir(lang)}kittens/${escapeHtml(fileId)}.html</loc>
+    <lastmod>${store.lastmodForUrl(loc)}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>${imageBlock}
   </url>\n`;
+    }
+    return out;
   }
+  // List pages (ja list already lives in the static part via its handwritten <url>; add en/zh).
+  function listEntry(lang) {
+    const loc = `${BASE_URL}/${langDir(lang)}kittens.html`;
+    return `  <url>
+    <loc>${loc}</loc>
+    <lastmod>${store.lastmodForUrl(loc)}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>\n`;
+  }
+  // Order: ja detail block (marker = splitter key, must be first) → en/zh list → en detail → zh detail.
+  // All before the blog marker; the static-part splitter keys on the FIRST 子猫詳細ページ marker.
+  // en/zh entries are emitted only when those pages actually exist on disk, so the sitemap
+  // never advertises a URL that 404s (and so this generator stays honest at commit boundaries).
+  const enExists = fs.existsSync(path.join(SITE_DIR, 'en', 'kittens.html'));
+  const zhExists = fs.existsSync(path.join(SITE_DIR, 'zh', 'kittens.html'));
+  let kittenEntries = detailEntriesFor('ja', kittenDetailMarker);
+  if (enExists || zhExists) {
+    kittenEntries += '  <!-- 子猫一覧ページ (en/zh) -->\n';
+    if (enExists) kittenEntries += listEntry('en');
+    if (zhExists) kittenEntries += listEntry('zh');
+  }
+  if (enExists) kittenEntries += detailEntriesFor('en', '子猫詳細ページ (en)');
+  if (zhExists) kittenEntries += detailEntriesFor('zh', '子猫詳細ページ (zh)');
 
   // Build blog article URLs — union of API articles + disk HTML files
   let blogEntries = `  ${blogMarker}\n`;
@@ -1458,15 +1847,15 @@ async function main() {
   console.log('Generating pages...');
 
   if (kittens.length > 0) {
-    generateKittens(kittens);
+    generateKittens(kittens, 'ja');
   } else {
     console.log('  [skip] kittens.html (no data)');
   }
 
-  // Generate kitten detail pages (individual pages per kitten)
+  // Generate kitten detail pages (individual pages per kitten).
   let kittenDetailPages = [];
   if (kittens.length > 0) {
-    kittenDetailPages = generateKittenDetailPages(kittens, parents);
+    kittenDetailPages = generateKittenDetailPages(kittens, parents, 'ja');
   } else {
     console.log('  [skip] kittens/ detail pages (no data)');
   }
@@ -1483,8 +1872,10 @@ async function main() {
     console.log('  [skip] reviews.html (no data)');
   }
 
-  // Always update sitemap (even with 0 articles, keeps static pages updated)
-  updateSitemap(articles, kittenDetailPages);
+  // Always update sitemap (even with 0 articles, keeps static pages updated).
+  // Single shared lastmod-store for the whole run (ja + en + zh URLs coexist).
+  const store = createLastmodStore(SITE_DIR, todayISO());
+  updateSitemap(articles, kittenDetailPages, store);
 
   // RSS feed of the latest blog articles (deterministic; no build timestamp).
   generateFeed(articles);
