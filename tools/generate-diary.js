@@ -373,8 +373,6 @@ function buildHead({ title, description, pageUrl, image, jsonLd, ogType = 'artic
   <meta name="theme-color" content="#7DD3C0">
   <link rel="canonical" href="${escapeHtml(pageUrl)}">
   <link rel="alternate" hreflang="ja" href="${escapeHtml(pageUrl)}">
-  <link rel="alternate" hreflang="en" href="${escapeHtml(pageUrl)}?lang=en">
-  <link rel="alternate" hreflang="zh" href="${escapeHtml(pageUrl)}?lang=zh">
   <link rel="alternate" hreflang="x-default" href="${escapeHtml(pageUrl)}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
