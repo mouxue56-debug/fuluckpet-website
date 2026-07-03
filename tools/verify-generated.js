@@ -34,9 +34,15 @@ function assetVersion(html, file) {
 }
 
 // --- Collect the set of generated pages to check ---
+// D2: the trilingual money pages under /en/ and /zh/ are generated the same way as the
+// root kittens pages and must be held to the SAME mojibake + asset-consistency bar, else
+// drift/mojibake in en/zh ships unchecked (the whole point of this gate).
 const generatedPages = [
   'kittens.html', 'parents.html', 'reviews.html', 'diary/index.html',
+  'en/kittens.html', 'zh/kittens.html',
   ...listHtml('kittens'),
+  ...listHtml('en/kittens'),
+  ...listHtml('zh/kittens'),
   ...listHtml('diary'),
 ];
 
@@ -62,8 +68,15 @@ if (!ref) {
     refVer[a] = assetVersion(ref, a);
     if (!refVer[a]) errors.push(`[drift] kittens.html is missing a versioned ${a} reference`);
   }
-  // Every kitten detail page + diary page must match kittens.html on all shared assets.
-  const driftTargets = [...listHtml('kittens'), ...listHtml('diary'), 'diary/index.html', 'parents.html', 'reviews.html'];
+  // Every kitten detail page (ja + en + zh) + the en/zh list pages + diary page must match
+  // kittens.html on all shared assets (reference = root kittens.html for all langs, since
+  // absolute /style.css /i18n.js /nav.* are shared site-wide regardless of language).
+  const driftTargets = [
+    ...listHtml('kittens'),
+    ...listHtml('en/kittens'), ...listHtml('zh/kittens'),
+    'en/kittens.html', 'zh/kittens.html',
+    ...listHtml('diary'), 'diary/index.html', 'parents.html', 'reviews.html',
+  ];
   for (const p of driftTargets) {
     const c = read(p);
     if (c == null) continue;
