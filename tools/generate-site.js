@@ -1306,6 +1306,92 @@ function updateSitemap(articles, kittenDetailPages) {
   console.log(`  sitemap.xml -> ${detailPages.length} kitten detail pages, ${sortedSlugs.length} blog articles updated${diskOnly > 0 ? ` (${diskOnly} from disk only)` : ''}`);
 }
 
+// ── RSS feed (/feed.xml) ──────────────────────────────────────
+
+// Article title/excerpt may be a plain string or an i18n object {ja,en,zh}.
+// Prefer Japanese (the default site language), fall back to any non-empty value.
+function pickText(field) {
+  if (!field) return '';
+  if (typeof field === 'string') return field;
+  if (typeof field === 'object') {
+    return field.ja || field.en || field.zh || Object.values(field).find(Boolean) || '';
+  }
+  return String(field);
+}
+
+// RFC-822 date (e.g. "Sun, 27 Apr 2026 19:50:00 GMT"). toUTCString() is RFC-822 compliant.
+function rfc822(dateStr) {
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return null;
+  return d.toUTCString();
+}
+
+function generateFeed(articles) {
+  const filepath = path.join(SITE_DIR, 'feed.xml');
+
+  // Candidate items from API articles (published only). Each needs a slug, a title,
+  // and a resolvable date. Disk-only posts without an API record fall back to the
+  // lastmod store date; posts with no date at all are skipped.
+  const today = todayISO();
+  const store = createLastmodStore(SITE_DIR, today);
+  const published = (articles || []).filter(a => a && a.published !== false && a.slug);
+
+  const items = [];
+  for (const a of published) {
+    const title = pickText(a.title).trim();
+    if (!title) continue;
+    // Prefer publishedAt; fall back through createdAt/updatedAt, then the store date.
+    let dateSource = a.publishedAt || a.createdAt || a.updatedAt || null;
+    let pub = dateSource ? rfc822(dateSource) : null;
+    let sortKey = dateSource ? new Date(dateSource).getTime() : NaN;
+    if (!pub) {
+      const storeDate = store.lastmodForUrl(`${BASE_URL}/blog/${a.slug}.html`);
+      pub = rfc822(`${storeDate}T00:00:00Z`);
+      sortKey = new Date(`${storeDate}T00:00:00Z`).getTime();
+    }
+    if (!pub || isNaN(sortKey)) continue; // no usable date -> skip
+    items.push({
+      slug: a.slug,
+      title,
+      description: pickText(a.excerpt).trim(),
+      link: `${BASE_URL}/blog/${a.slug}.html`,
+      pubDate: pub,
+      sortKey,
+    });
+  }
+
+  // Deterministic order: newest first, then slug ascending as tiebreak.
+  items.sort((x, y) => (y.sortKey - x.sortKey) || (x.slug < y.slug ? -1 : x.slug > y.slug ? 1 : 0));
+  const latest = items.slice(0, 30);
+
+  const channelDesc = 'サイベリアンの特徴、猫の健康管理、子猫の育て方など、猫に関する知識を専門ブリーダーが解説。大阪の福楽キャッテリーがお届けする猫の知識ライブラリ。';
+
+  const itemsXml = latest.map(it => `    <item>
+      <title>${escapeHtml(it.title)}</title>
+      <link>${escapeHtml(it.link)}</link>
+      <guid isPermaLink="true">${escapeHtml(it.link)}</guid>
+      <pubDate>${it.pubDate}</pubDate>
+      <description>${escapeHtml(it.description)}</description>
+    </item>`).join('\n');
+
+  // NOTE: no <lastBuildDate>/build timestamp — the feed must be byte-deterministic so
+  // the daily cron stays idempotent (Item 1). Order + content derive only from data.
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>福楽キャッテリー ブログ</title>
+    <link>${BASE_URL}/blog.html</link>
+    <description>${escapeHtml(channelDesc)}</description>
+    <language>ja</language>
+${itemsXml}
+  </channel>
+</rss>
+`;
+
+  fs.writeFileSync(filepath, xml, 'utf-8');
+  console.log(`  feed.xml -> ${latest.length} latest blog articles (RSS 2.0)`);
+}
+
 // ── Drive Photo Enrichment ────────────────────────────────────
 
 async function enrichKittensWithDrivePhotos(kittens) {
@@ -1399,6 +1485,9 @@ async function main() {
 
   // Always update sitemap (even with 0 articles, keeps static pages updated)
   updateSitemap(articles, kittenDetailPages);
+
+  // RSS feed of the latest blog articles (deterministic; no build timestamp).
+  generateFeed(articles);
 
   // Future capabilities (not yet implemented)
   console.log('  [future] blog.html — 104 article cards (not yet implemented)');
