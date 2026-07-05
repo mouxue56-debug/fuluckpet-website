@@ -11,6 +11,16 @@
     try { return localStorage.getItem('fuluckpet-lang') || 'ja'; } catch(e) { return 'ja'; }
   }
 
+  // URL prefix for language-correct BODY links: on a static /en/ or /zh/ page the carousel's
+  // kitten-detail links must stay in-language (that sibling detail page exists). ja → ''.
+  // Derived from the path (not localStorage) so it matches the page the visitor is actually on.
+  function langPathPrefix() {
+    var p = window.location.pathname || '/';
+    if (p.indexOf('/en/') === 0) return '/en';
+    if (p.indexOf('/zh/') === 0) return '/zh';
+    return '';
+  }
+
   // Breed name mapping: API returns Japanese breed names, need translation for en/zh
   var BREED_MAP = {
     'サイベリアン': { en: 'Siberian', zh: '西伯利亚猫' },
@@ -227,8 +237,9 @@
       var statusText = k.status === 'available' ? t('available') : t('reserved');
       var statusClass = k.status === 'available' ? 'kc-badge-available' : 'kc-badge-reserved';
       var isNew = k.isNew || false;
-      // Link to individual kitten detail page if available
-      var kittenUrl = '/kittens/' + (k.breederId || k.id) + '.html';
+      // Link to individual kitten detail page; prefix with /en or /zh on those static pages
+      // so the visitor stays in-language (FIX 3). ja pages emit the unprefixed path.
+      var kittenUrl = langPathPrefix() + '/kittens/' + (k.breederId || k.id) + '.html';
 
       html += '<a href="' + kittenUrl + '" class="kc-card">' +
         '<div class="kc-img">' +

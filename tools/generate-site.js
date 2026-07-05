@@ -1458,7 +1458,7 @@ ${headerHtml}
         <a href="/booking.html" class="btn btn-secondary" data-i18n="kitten.bookVisit">
           見学を予約する
         </a>
-        <a href="/kittens.html" class="btn btn-outline" data-i18n="kitten.backToList">
+        <a href="/${langDir(lang)}kittens.html" class="btn btn-outline" data-i18n="kitten.backToList">
           ← 子猫一覧に戻る
         </a>
       </div>
