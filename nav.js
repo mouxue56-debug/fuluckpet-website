@@ -300,9 +300,12 @@
     // Navigate when the page exists as a static per-language sibling (either we're already
     // on a prefixed page, or the ja root path is one of the known static-sibling pages).
     if (pathLang || STATIC_SIBLINGS[rootPath]) {
-      if (target === pathLang) return; // already on the requested language's page
-      persistLang(target); // persist before leaving so the choice survives the navigation
-      window.location.href = (target === 'ja' ? '' : '/' + target) + rootPath;
+      var destUrl = (target === 'ja' ? '' : '/' + target) + rootPath;
+      persistLang(target); // persist the choice regardless of whether we navigate
+      // Already on the target language's page → no reload (covers same-lang clicks in
+      // both directions: en→EN on /en/, and ja→JP on a ja-root sibling page).
+      if (destUrl === path) { syncLangButtons(target); return; }
+      window.location.href = destUrl;
       return;
     }
 
