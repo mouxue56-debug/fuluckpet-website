@@ -19,6 +19,19 @@
     'ラグドール': { en: 'Ragdoll', zh: '布偶猫' }
   };
 
+  // Translate a raw ja color data value via the generated single-source catalog
+  // (window.FULUCK_CATALOG_I18N from tools/generate-site.js). ja → passthrough;
+  // en/zh → lookup, fallback to raw ja if unmapped (never invent). Degrades safely
+  // when the catalog artifact is missing (returns the raw value, no exception).
+  function ctColor(color) {
+    if (!color) return color || '';
+    var lang = getLang();
+    if (lang === 'ja') return color;
+    var cat = window.FULUCK_CATALOG_I18N;
+    var table = cat && cat.colors && cat.colors[lang];
+    return (table && table[color]) || color;
+  }
+
   // Category-based CTA messaging
   var CTA_MAP = {
     ja: {
@@ -210,7 +223,7 @@
         breedName = BREED_MAP[breedJa][lang] || breedJa;
       }
       var sex = k.gender === '♀' ? t('female') : t('male');
-      var color = k.color || '';
+      var color = ctColor(k.color);
       var statusText = k.status === 'available' ? t('available') : t('reserved');
       var statusClass = k.status === 'available' ? 'kc-badge-available' : 'kc-badge-reserved';
       var isNew = k.isNew || false;

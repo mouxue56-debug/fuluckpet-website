@@ -63,6 +63,20 @@
     return (t && t.roles && t.roles[role]) || role;
   }
 
+  // Translate a raw ja color/breed data value using the generated single-source catalog
+  // (window.FULUCK_CATALOG_I18N, emitted by tools/generate-site.js). ja → passthrough;
+  // en/zh → lookup, fallback to raw ja if unmapped (never invent). Degrades safely when
+  // the catalog artifact is missing (returns the raw value, no exception).
+  function ctCatalog(kind, value) {
+    if (!value) return value || '';
+    var lang = getLang();
+    if (lang === 'ja') return value;
+    var cat = window.FULUCK_CATALOG_I18N;
+    var table = cat && cat[kind] && cat[kind][lang];
+    return (table && table[value]) || value;
+  }
+  function ctColor(color) { return ctCatalog('colors', color); }
+
   // ===== Utility Functions =====
 
   function getCoverPhoto(item) {
@@ -133,7 +147,7 @@
       '<div class="kitten-body">' +
         '<h3>' + escAttr(ctBreed(k.breed)) + '</h3>' +
         hypoChip +
-        '<p class="kit-meta">' + genderFull + ' ・ ' + escAttr(k.color) + '</p>' +
+        '<p class="kit-meta">' + genderFull + ' ・ ' + escAttr(ctColor(k.color)) + '</p>' +
         '<p class="kit-meta">' + bdayText + '</p>' +
         (k.note ? '<p class="kit-meta" style="font-size:11px;color:var(--text-note);">' + escAttr(k.note) + '</p>' : '') +
         '<p class="kit-price">' + priceText + ' <span class="tax">' + ct('taxIncl') + '</span></p>' +
@@ -152,7 +166,7 @@
       (cover ? '<img src="' + cover + '" alt="' + escAttr(p.name) + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-lg) var(--radius-lg) 0 0;">' : '') +
       '<div class="parent-body">' +
         '<h3>' + escAttr(p.name) + '</h3>' +
-        '<p>' + escAttr(ctBreed(p.breed)) + ' ・ ' + escAttr(p.gender) + ' ・ ' + escAttr(p.color) + '</p>' +
+        '<p>' + escAttr(ctBreed(p.breed)) + ' ・ ' + escAttr(p.gender) + ' ・ ' + escAttr(ctColor(p.color)) + '</p>' +
         '<p style="font-size:12px;color:var(--text-note);">' + escAttr(p.age) + '</p>' +
         '<span class="parent-role ' + roleClass + '">' + escAttr(ctRole(p.role)) + '</span>' +
       '</div>' +
