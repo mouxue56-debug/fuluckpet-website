@@ -1489,7 +1489,7 @@ ${footerHtml}
   <script src="/catalog-i18n.js?v=${verAsset('catalog-i18n.js', '20260705a')}"></script>
   <script src="/kitten-carousel.js?v=${verAsset('kitten-carousel.js', '20260623c')}"></script>
   <script src="/cta-widget.js?v=${verAsset('cta-widget.js', '20260623b')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20260623b')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20260705a')}"></script>
 </body>
 </html>`;
 }

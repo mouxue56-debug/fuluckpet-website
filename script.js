@@ -327,7 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const breederId = card.dataset.breederId || '';
     const isSold = status === 'sold';
 
-    const statusLabels = { available: '販売中', reserved: '商談中', sold: 'ご家族決定' };
+    const statusLabels = { available: '販売中', reserved: 'ご予約済', sold: 'ご家族決定' };
     const statusClasses = { available: 'st-available', reserved: 'st-reserved', sold: 'st-sold' };
 
     info.innerHTML = `
@@ -601,7 +601,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const childName = child.querySelector('h3')?.textContent || '';
         const childMeta = child.querySelector('.kit-meta')?.textContent || '';
         const childStatus = child.dataset.status || '';
-        const statusLabel = { available: '販売中', reserved: '商談中', sold: 'ご家族決定' }[childStatus] || '';
+        const statusLabel = { available: '販売中', reserved: 'ご予約済', sold: 'ご家族決定' }[childStatus] || '';
         chipsHTML += `<span class="child-chip">${childName} ${childMeta} (${statusLabel})</span>`;
       });
       childrenContainer.innerHTML = chipsHTML || '<span style="color:var(--text-note);font-size:13px">現在表示中の子猫はいません</span>';

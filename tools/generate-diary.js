@@ -183,7 +183,7 @@ function kittenStatusBadge(status, hasLiveData) {
     return { text: '在売', key: 'available' };
   }
   if (raw === 'reserved' || raw === 'pending' || raw === '商談中' || raw === '予約済') {
-    return { text: '商談中', key: 'reserved' };
+    return { text: 'ご予約済', key: 'reserved' };
   }
   return { text: '卒業', key: 'graduated' };
 }
@@ -669,7 +669,7 @@ ${chrome.footerHtml}
   <script src="/i18n.js?v=${ver('i18n.js', '20260628f')}"></script>
   <script>window._diaryArticleI18n = ${safeJsonForScript(i18n)}; window._blogArticleI18n = window._diaryArticleI18n;</script>
   <script src="/blog/blog-i18n.js?v=${ver('blog/blog-i18n.js', '20260624v2')}"></script>
-  <script src="/script.js?v=${ver('script.js', '20260623b')}"></script>
+  <script src="/script.js?v=${ver('script.js', '20260705a')}"></script>
 
   <div class="mobile-cta-bar" role="navigation" aria-label="クイック連絡">
     <div class="mobile-cta-bar-inner">
@@ -835,7 +835,7 @@ ${chrome.headerHtml}
 ${chrome.footerHtml}
 
   <script src="/i18n.js?v=${ver('i18n.js', '20260628f')}"></script>
-  <script src="/script.js?v=${ver('script.js', '20260623b')}"></script>
+  <script src="/script.js?v=${ver('script.js', '20260705a')}"></script>
 
   <div class="mobile-cta-bar" role="navigation" aria-label="クイック連絡">
     <div class="mobile-cta-bar-inner">

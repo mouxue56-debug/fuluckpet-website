@@ -82,7 +82,7 @@ const translations = {
     'kittens.desc': '新しいご家族を待っている子猫たちをご紹介します。',
     'kittens.all': 'すべて',
     'kittens.available': '販売中',
-    'kittens.reserved': '商談中',
+    'kittens.reserved': 'ご予約済',
     'kittens.sold': 'ご家族決定',
     'kittens.soldText': 'ご家族が決まりました',
     'kittens.cta': '気になる子がいたらお問い合わせ',

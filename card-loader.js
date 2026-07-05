@@ -13,7 +13,7 @@
 
   var CARD_I18N = {
     ja: {
-      available: '販売中', reserved: '商談中', sold: 'ご家族決定',
+      available: '販売中', reserved: 'ご予約済', sold: 'ご家族決定',
       male: '<i class="ico ico-mars" aria-hidden="true"></i> 男の子', female: '<i class="ico ico-venus" aria-hidden="true"></i> 女の子',
       photoAlt: '子猫の写真', taxIncl: '（税込）',
       dnaTested: '<i class="ico ico-check" aria-hidden="true"></i> 遺伝子検査済', verifiedReview: '<i class="ico ico-check" aria-hidden="true"></i> 認証済みレビュー',
