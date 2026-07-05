@@ -9,6 +9,18 @@
     zh: '关闭菜单'
   };
 
+  // Root (ja) paths that have real static /en/ + /zh/ sibling files on disk. When the lang
+  // switch is clicked on one of these, NAVIGATE to the sibling instead of translating the ja
+  // page in place (those pages have hand-baked localized content the in-place i18n can't
+  // reproduce). Any other ja page falls back to in-place setLanguage(). Kept in sync with the
+  // en/zh files the generator + static authoring produce. Normalized (no /index.html).
+  var STATIC_SIBLINGS = {
+    '/kittens.html': true,
+    '/siberian-allergy.html': true,
+    '/siberian-breeder-osaka.html': true,
+    '/waitlist.html': true
+  };
+
   var NAV_GROUPS = [
     {
       id: 'kittens',
@@ -264,6 +276,16 @@
     }
   }
 
+  function persistLang(lang) {
+    try { localStorage.setItem('fuluckpet-lang', lang); } catch (err) {}
+  }
+
+  // Single unified mechanism for the language switch (was split: i18n.js bound the static
+  // pages, nav.js the rest). One rule now:
+  //   - Determine the current page's ROOT path (strip any /en|/zh prefix, normalize index).
+  //   - If we're already on a localized page, OR the root path has a real static sibling,
+  //     NAVIGATE to the target language's URL (persisting the choice first).
+  //   - Otherwise translate in place via setLanguage().
   function handleLanguageClick(e) {
     var btn = e.target && e.target.closest ? e.target.closest('.lang-btn[data-lang]') : null;
     if (!btn) return;
@@ -273,18 +295,22 @@
 
     var path = window.location.pathname || '/';
     var pathLang = path.indexOf('/en/') === 0 ? 'en' : (path.indexOf('/zh/') === 0 ? 'zh' : null);
-    if (pathLang) {
-      var rootPath = path.substring(3) || '/';
+    var rootPath = normalizePath(path); // strips /en|/zh and /index.html
+
+    // Navigate when the page exists as a static per-language sibling (either we're already
+    // on a prefixed page, or the ja root path is one of the known static-sibling pages).
+    if (pathLang || STATIC_SIBLINGS[rootPath]) {
+      if (target === pathLang) return; // already on the requested language's page
+      persistLang(target); // persist before leaving so the choice survives the navigation
       window.location.href = (target === 'ja' ? '' : '/' + target) + rootPath;
       return;
     }
 
+    // Plain ja page with no localized sibling → translate in place.
     if (typeof window.setLanguage === 'function') {
       window.setLanguage(target);
     } else {
-      try {
-        localStorage.setItem('fuluckpet-lang', target);
-      } catch (err) {}
+      persistLang(target);
       document.documentElement.lang = target;
       syncLangButtons(target);
     }
@@ -437,6 +463,9 @@
       bindDesktop(nav);
       bindMobile(mobileNav);
 
+      // Claim sole ownership of language-switch clicks (i18n.js checks this flag and stands
+      // down, so the two don't double-fire on the same button — one unified mechanism).
+      window.__fuluckNavLangSwitch = true;
       document.addEventListener('click', handleLanguageClick);
       window.addEventListener('langChanged', function (e) {
         syncLangButtons(e && e.detail && e.detail.lang ? e.detail.lang : currentLang());

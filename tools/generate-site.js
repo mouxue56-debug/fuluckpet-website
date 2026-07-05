@@ -494,7 +494,7 @@ function buildListHeader(jaHeader, lang) {
 
   const styleV = verAsset('style.css', '20260628k');
   const navCssV = verAsset('nav.css', '20260628a');
-  const navJsV = verAsset('nav.js', '20260628a');
+  const navJsV = verAsset('nav.js', '20260703a');
   const relPath = 'kittens.html';
   const selfUrl = `${BASE_URL}/${langDir(lang)}kittens.html`;
   const kittensLabel = KITTENS_LABEL[lang];
@@ -566,7 +566,7 @@ ${hreflangBlock(relPath)}
       <span data-i18n="kitten.breadcrumb.kittens">${escapeHtml(kittensLabel)}</span>
     </div>
     <h1 data-i18n="kitten.breadcrumb.kittens">${escapeHtml(kittensLabel)}</h1>
-    <p>${escapeHtml(heroSub)}</p>
+    <p data-i18n="kittens.heroSub">${escapeHtml(heroSub)}</p>
   </section>`;
 
   return head + chrome + '\n\n' + hero;
@@ -1186,7 +1186,7 @@ ${hreflangBlock(`kittens/${fileId}.html`)}
   <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260628k')}">
   <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20260628a')}">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
-  <script defer src="/nav.js?v=${verAsset('nav.js', '20260628a')}"></script>
+  <script defer src="/nav.js?v=${verAsset('nav.js', '20260703a')}"></script>
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>

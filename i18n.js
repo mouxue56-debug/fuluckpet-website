@@ -80,6 +80,7 @@ const translations = {
     // Kittens
     'kittens.title': '子猫一覧',
     'kittens.desc': '新しいご家族を待っている子猫たちをご紹介します。',
+    'kittens.heroSub': '新しいご家族を待っている子猫たちをご紹介します。価格帯: ¥140,000～¥290,000（税込）',
     'kittens.all': 'すべて',
     'kittens.available': '販売中',
     'kittens.reserved': 'ご予約済',
@@ -602,6 +603,7 @@ const translations = {
     // Kittens
     'kittens.title': 'Available Kittens',
     'kittens.desc': 'Meet the kittens waiting for their new families.',
+    'kittens.heroSub': 'Meet the kittens waiting for their new families. Price range: ¥140,000–¥290,000 (tax incl.).',
     'kittens.all': 'All',
     'kittens.available': 'Available',
     'kittens.reserved': 'Reserved',
@@ -1124,6 +1126,7 @@ const translations = {
     // Kittens
     'kittens.title': '幼猫一览',
     'kittens.desc': '为您介绍正在等待新家人的幼猫们。',
+    'kittens.heroSub': '为您介绍正在等待新家庭的猫咪们。价格区间：¥140,000～¥290,000（含税）。',
     'kittens.all': '全部',
     'kittens.available': '在售',
     'kittens.reserved': '洽谈中',
@@ -1666,17 +1669,24 @@ function initI18n() {
   var pathLang = path.indexOf('/en/') === 0 ? 'en' : (path.indexOf('/zh/') === 0 ? 'zh' : null);
   var rootPath = pathLang ? path.substring(3) : path; // strip "/en" or "/zh"
 
-  document.querySelectorAll('.lang-btn').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      var target = this.getAttribute('data-lang');
-      if (pathLang) {
-        // On a static localized page: navigate to the sibling language version.
-        window.location.href = (target === 'ja' ? '' : '/' + target) + rootPath;
-      } else {
-        setLanguage(target);
-      }
+  // Language-switch clicks are owned SOLELY by nav.js (one unified mechanism: it handles
+  // per-language static siblings + in-place translation + localStorage persistence).
+  // i18n.js only binds a fallback IF nav.js is absent, so the two never both fire on the
+  // same button. window.__fuluckNavLangSwitch is set true by nav.js once it takes over.
+  if (!window.__fuluckNavLangSwitch) {
+    document.querySelectorAll('.lang-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        if (window.__fuluckNavLangSwitch) return; // nav.js came online after DOMContentLoaded
+        var target = this.getAttribute('data-lang');
+        if (pathLang) {
+          // On a static localized page: navigate to the sibling language version.
+          window.location.href = (target === 'ja' ? '' : '/' + target) + rootPath;
+        } else {
+          setLanguage(target);
+        }
+      });
     });
-  });
+  }
 
   // Check URL parameter (?lang=en, ?lang=zh)
   var urlParams = new URLSearchParams(window.location.search);
