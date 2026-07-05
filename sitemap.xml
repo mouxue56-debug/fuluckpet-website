@@ -19,21 +19,21 @@
   <!-- サイベリアンの魅力 -->
   <url>
     <loc>https://fuluckpet.com/siberian.html</loc>
-    <lastmod>2026-07-03</lastmod>
+    <lastmod>2026-07-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <!-- 受賞歴・認定 -->
   <url>
     <loc>https://fuluckpet.com/about.html</loc>
-    <lastmod>2026-07-03</lastmod>
+    <lastmod>2026-07-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <!-- 卒業猫ギャラリー -->
   <url>
     <loc>https://fuluckpet.com/gallery.html</loc>
-    <lastmod>2026-07-03</lastmod>
+    <lastmod>2026-07-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -341,7 +341,7 @@
   <!-- 知識ライブラリ -->
   <url>
     <loc>https://fuluckpet.com/blog.html</loc>
-    <lastmod>2026-07-03</lastmod>
+    <lastmod>2026-07-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -355,7 +355,7 @@
   <!-- 見学予約 -->
   <url>
     <loc>https://fuluckpet.com/booking.html</loc>
-    <lastmod>2026-07-03</lastmod>
+    <lastmod>2026-07-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2497,7 +2497,7 @@
   <!-- 成長日記 -->
   <url>
     <loc>https://fuluckpet.com/diary/</loc>
-    <lastmod>2026-07-03</lastmod>
+    <lastmod>2026-07-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>

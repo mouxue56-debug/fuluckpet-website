@@ -551,7 +551,7 @@ ${hreflangBlock(relPath)}
   <script defer src="/nav.js?v=${navJsV}"></script>
 </head>
 <body class="has-mobile-cta">
-  <a class="skip-link" href="#main">メインコンテンツへスキップ</a>
+  <a class="skip-link" href="#main" data-i18n="a11y.skipToMain">メインコンテンツへスキップ</a>
 
   <!-- Scroll Progress Bar -->
   <div class="scroll-progress"></div>
@@ -671,7 +671,7 @@ function generateKittens(kittens, lang = 'ja') {
         <div class="kitten-card" data-status="${escapeHtml(k.status)}" data-price="${k.price || ''}" data-birthday="${escapeHtml(k.birthday)}" data-images="${escapeHtml(photo)}" data-video="" data-papa="${escapeHtml(k.papa)}" data-mama="${escapeHtml(k.mama)}" data-new="${k.isNew ? 'true' : 'false'}" data-name="" data-breeder-id="${escapeHtml(k.breederId)}">
           <div class="kitten-img">
             <img src="${escapeHtml(photo)}" alt="${escapeHtml(cardAlt)}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
-            <span class="kit-status st-${escapeHtml(k.status)}">${escapeHtml(stL)}</span>${isNewBadge}
+            <span class="kit-status st-${escapeHtml(k.status)}"${statusI18nKey(k.status) ? ` data-i18n="${statusI18nKey(k.status)}"` : ''}>${escapeHtml(stL)}</span>${isNewBadge}
           </div>
           <div class="kitten-body">
             <h3>${escapeHtml(breedCard)}</h3>${hypoChip}
@@ -1485,7 +1485,7 @@ ${footerHtml}
     });
   });
   </script>
-  <script src="/i18n.js?v=${verAsset('i18n.js', '20260628f')}"></script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20260628j')}"></script>
   <script src="/catalog-i18n.js?v=${verAsset('catalog-i18n.js', '20260705a')}"></script>
   <script src="/kitten-carousel.js?v=${verAsset('kitten-carousel.js', '20260623c')}"></script>
   <script src="/cta-widget.js?v=${verAsset('cta-widget.js', '20260623b')}"></script>

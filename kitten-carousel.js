@@ -93,7 +93,9 @@
       lineBtn: 'LINEで見学予約',
       bookBtn: '<i class="ico ico-calendar-check" aria-hidden="true"></i> 見学を予約する',
       male: '<i class="ico ico-mars" aria-hidden="true"></i> 男の子',
-      female: '<i class="ico ico-venus" aria-hidden="true"></i> 女の子'
+      female: '<i class="ico ico-venus" aria-hidden="true"></i> 女の子',
+      prevAria: '前へ',
+      nextAria: '次へ'
     },
     en: {
       heading: 'Meet Our Kittens',
@@ -105,7 +107,9 @@
       lineBtn: 'Book a Visit on LINE',
       bookBtn: '<i class="ico ico-calendar-check" aria-hidden="true"></i> Book a Visit',
       male: '<i class="ico ico-mars" aria-hidden="true"></i> Male',
-      female: '<i class="ico ico-venus" aria-hidden="true"></i> Female'
+      female: '<i class="ico ico-venus" aria-hidden="true"></i> Female',
+      prevAria: 'Previous',
+      nextAria: 'Next'
     },
     zh: {
       heading: '这些小可爱等你来',
@@ -117,7 +121,9 @@
       lineBtn: 'LINE预约参观',
       bookBtn: '<i class="ico ico-calendar-check" aria-hidden="true"></i> 预约见学',
       male: '<i class="ico ico-mars" aria-hidden="true"></i> 公猫',
-      female: '<i class="ico ico-venus" aria-hidden="true"></i> 母猫'
+      female: '<i class="ico ico-venus" aria-hidden="true"></i> 母猫',
+      prevAria: '上一个',
+      nextAria: '下一个'
     }
   };
 
@@ -257,8 +263,8 @@
 
     html += '</div></div>' +
       '<div class="kc-arrows">' +
-        '<button class="kc-arrow kc-prev" aria-label="前へ">‹</button>' +
-        '<button class="kc-arrow kc-next" aria-label="次へ">›</button>' +
+        '<button class="kc-arrow kc-prev" aria-label="' + t('prevAria') + '">‹</button>' +
+        '<button class="kc-arrow kc-next" aria-label="' + t('nextAria') + '">›</button>' +
       '</div>' +
       '<div class="kc-actions">' +
         '<a href="' + cta.btn1Link + '" class="kc-btn kc-btn-primary"><i class="ico ico-paw-print" aria-hidden="true"></i> ' + cta.btn1 + '</a>' +

@@ -666,7 +666,7 @@ ${bodyJa}
 
 ${chrome.footerHtml}
 
-  <script src="/i18n.js?v=${ver('i18n.js', '20260628f')}"></script>
+  <script src="/i18n.js?v=${ver('i18n.js', '20260628j')}"></script>
   <script>window._diaryArticleI18n = ${safeJsonForScript(i18n)}; window._blogArticleI18n = window._diaryArticleI18n;</script>
   <script src="/blog/blog-i18n.js?v=${ver('blog/blog-i18n.js', '20260624v2')}"></script>
   <script src="/script.js?v=${ver('script.js', '20260705a')}"></script>
@@ -809,9 +809,9 @@ function buildDiaryIndexHtml(entries, context) {
   const listingHtml = groupCards.length > 0
     ? `<div class="diary-litter-grid">\n${groupCards.map((card) => card.html).join('\n')}\n      </div>`
     : `<div class="diary-empty-index">
-        <h2>公開中の成長記録はまだありません</h2>
-        <p>出産や成長の記録が公開されると、こちらできょうだいごとのタイムラインとして読めるようになります。</p>
-        <p><a href="/kittens.html" class="blog-nav-link"><i class="ico ico-cat" aria-hidden="true"></i> 現在紹介中の子猫を見る</a></p>
+        <h2 data-i18n="diary.emptyHeading">公開中の成長記録はまだありません</h2>
+        <p data-i18n="diary.emptyBody">出産や成長の記録が公開されると、こちらできょうだいごとのタイムラインとして読めるようになります。</p>
+        <p><a href="/kittens.html" class="blog-nav-link" data-i18n="diary.emptyButton"><i class="ico ico-cat" aria-hidden="true"></i> 現在紹介中の子猫を見る</a></p>
       </div>`;
 
   return `${buildHead({ title, description, pageUrl, image: '/images/ogp.jpg', jsonLd, ogType: 'website' })}
@@ -826,15 +826,15 @@ ${chrome.headerHtml}
   <main class="diary-index">
     <section class="diary-index-hero">
       <span class="sec-tag">Kitten Diary</span>
-      <h1>子猫成長日記</h1>
-      <p>妊娠から出産、週ごとの成長まで。福楽キャッテリーで生まれた子猫たちの記録を、きょうだいごとのタイムラインでまとめています。</p>
+      <h1 data-i18n="diary.title">子猫成長日記</h1>
+      <p data-i18n="diary.heroSub">妊娠から出産、週ごとの成長まで。福楽キャッテリーで生まれた子猫たちの記録を、きょうだいごとのタイムラインでまとめています。</p>
     </section>
     ${listingHtml}
   </main>
 
 ${chrome.footerHtml}
 
-  <script src="/i18n.js?v=${ver('i18n.js', '20260628f')}"></script>
+  <script src="/i18n.js?v=${ver('i18n.js', '20260628j')}"></script>
   <script src="/script.js?v=${ver('script.js', '20260705a')}"></script>
 
   <div class="mobile-cta-bar" role="navigation" aria-label="クイック連絡">
