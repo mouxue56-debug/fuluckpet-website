@@ -34,6 +34,10 @@ const DRIVE_LIST_CACHE_TTL = 1800; // 30 minutes
 const DRIVE_TOKEN_CACHE_TTL = 3300; // 55 minutes (token valid for 60)
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024; // 2MB — images larger than this get resized
 const RESIZE_WIDTHS = [1600, 1200, 800]; // Progressive resize attempts
+// B4: hard ceiling for the Drive origin body. The Worker has ~128MB of memory, and
+// we buffer the whole body into an ArrayBuffer; a huge/non-image Drive file could OOM
+// the isolate. Reject anything over this from metadata BEFORE downloading.
+const MAX_DRIVE_ORIGIN_BYTES = 10 * 1024 * 1024; // 10MB
 
 // Base64url encode for JWT
 function base64url(buf) {
@@ -911,9 +915,10 @@ function corsOrigin(request, env) {
   return allowed;
 }
 
-function json(data, status = 200, cacheControl) {
+function json(data, status = 200, cacheControl, extraHeaders) {
   const headers = { 'Content-Type': 'application/json' };
   if (cacheControl) headers['Cache-Control'] = cacheControl;
+  if (extraHeaders) Object.assign(headers, extraHeaders); // e.g. Retry-After on 429
   return new Response(JSON.stringify(data), { status, headers });
 }
 
@@ -977,6 +982,57 @@ function validateBreederIdUniqueness(currentList, incomingList) {
     if (incomingExtra > currentExtra) offending.push(id);
   }
   if (offending.length) return { ok: false, ids: offending };
+  return { ok: true };
+}
+
+// ===== B3: bulk-save kitten field-shape validation =====
+//
+// Pure function (no I/O) — unit-tested in tests/validate-kitten-shape.test.js (keep in
+// sync, same precedent as validateBreederIdUniqueness). Validates ONLY the fields the
+// static site actually consumes, and stays permissive on optional/unknown extra fields
+// (the admin panel round-trips many keys we don't model here — we must not reject those).
+//
+// Checks, per incoming kitten item:
+//   * price   — if present & non-empty, must be numeric-coercible (Number.isFinite after
+//               Number()). The site renders price via Number(k.price); '' / null default
+//               to 0 downstream, so blank price is allowed.
+//   * status  — if present, must be one of the known enum the site/generator understand
+//               (statusText / statusI18nKey: available | reserved | sold).
+//   * photos  — if present, must be an array of strings (the gallery maps over it).
+// A non-object item is rejected outright.
+const KITTEN_STATUS_ENUM = ['available', 'reserved', 'sold'];
+
+// Returns { ok: true } or { ok: false, errors: [{ breederId, field, reason }] }.
+function validateKittenShapes(items) {
+  const errors = [];
+  const list = Array.isArray(items) ? items : [];
+  for (let i = 0; i < list.length; i++) {
+    const k = list[i];
+    const bid = (k && typeof k.breederId === 'string' && k.breederId.trim()) || `#${i}`;
+    if (!k || typeof k !== 'object' || Array.isArray(k)) {
+      errors.push({ breederId: bid, field: '(item)', reason: 'not an object' });
+      continue;
+    }
+    // price — allow missing/empty; reject non-numeric when a value is actually present.
+    if (k.price !== undefined && k.price !== null && String(k.price).trim() !== '') {
+      if (!Number.isFinite(Number(k.price))) {
+        errors.push({ breederId: bid, field: 'price', reason: 'not numeric' });
+      }
+    }
+    // status — allow missing; reject unknown values.
+    if (k.status !== undefined && k.status !== null && k.status !== '') {
+      if (!KITTEN_STATUS_ENUM.includes(k.status)) {
+        errors.push({ breederId: bid, field: 'status', reason: `not in [${KITTEN_STATUS_ENUM.join(', ')}]` });
+      }
+    }
+    // photos — allow missing; when present must be an array of strings.
+    if (k.photos !== undefined && k.photos !== null) {
+      if (!Array.isArray(k.photos) || !k.photos.every((p) => typeof p === 'string')) {
+        errors.push({ breederId: bid, field: 'photos', reason: 'not an array of strings' });
+      }
+    }
+  }
+  if (errors.length) return { ok: false, errors };
   return { ok: true };
 }
 
@@ -1307,6 +1363,45 @@ function isPrivatePath(path) {
   );
 }
 
+// A1: the paid-AI story endpoints. Public (no auth, used same-origin by /story/),
+// but they call metered vision/text models, so we CORS-lock them to the site origin
+// (no '*') AND per-IP rate-limit them below. Not folded into isPrivatePath because
+// they must NOT require a whitelisted Origin to run (same-origin browser POSTs send
+// Origin: https://fuluckpet.com, but we don't want to 403 an Origin-less client before
+// the throttle can answer — we just refuse to echo a wide-open ACAO).
+function isStoryPath(path) {
+  return path === '/api/story/analyze-photo' || path === '/api/story/generate';
+}
+
+// Per-IP KV throttle shared by the story endpoints (A1) and, as a second cap, by
+// chat (A2). Returns { limited, count, retryAfter }. Fails OPEN on KV error so a
+// KV blip never takes the feature down. Hour-bucketed key so it self-expires.
+async function ipRateLimit(env, prefix, ip, cap) {
+  const safeIp = ip || 'unknown';
+  const key = `${prefix}:${safeIp}:${Math.floor(Date.now() / 3600000)}`;
+  try {
+    const count = parseInt((await env.DATA.get(key)) || '0', 10);
+    if (count >= cap) {
+      // Seconds until the top of the next hour — a sane Retry-After.
+      const retryAfter = 3600 - Math.floor((Date.now() % 3600000) / 1000);
+      return { limited: true, count, retryAfter };
+    }
+    await env.DATA.put(key, String(count + 1), { expirationTtl: 3600 });
+    return { limited: false, count: count + 1, retryAfter: 0 };
+  } catch (_) {
+    return { limited: false, count: 0, retryAfter: 0 };
+  }
+}
+
+// A1: story endpoints hit paid Gemini/Qianwen vision+text with no auth. A real user
+// making a keepsake card triggers a handful of calls; 20/hour/IP is well clear of that
+// but caps a scripted abuser hammering the metered APIs. Bucketed per clock-hour.
+const STORY_RATE_LIMIT_PER_HOUR = 20;
+// A2: second chat cap keyed on IP (the existing 30/hour keys on client-supplied
+// session_id, which a script can rotate freely). 60/hour/IP > the 30/session cap so a
+// legit multi-tab user is unaffected, but a rotating-session flood from one IP is capped.
+const CHAT_IP_RATE_LIMIT_PER_HOUR = 60;
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -1315,9 +1410,16 @@ export default {
 
     // Resolve CORS origin per request based on path classification.
     const isPrivate = isPrivatePath(path);
+    const isStory = isStoryPath(path);
+    // Site origin the code already knows — the CORS lock target for story endpoints (A1).
+    const siteOrigin = env.CORS_ORIGIN || 'https://fuluckpet.com';
     let allowedOrigin;
     if (isPrivate) {
       allowedOrigin = corsForPrivate(request); // null if not whitelisted
+    } else if (isStory) {
+      // Lock to the site origin — never '*'. A foreign origin gets an ACAO it can't
+      // match, so the browser blocks the paid-AI response; same-origin calls succeed.
+      allowedOrigin = siteOrigin;
     } else {
       allowedOrigin = corsForPublic(); // always '*'
     }
@@ -1331,8 +1433,9 @@ export default {
       return new Response(null, {
         headers: {
           ...CORS_HEADERS,
+          // Story preflight advertises the locked site origin, never '*'.
           'Access-Control-Allow-Origin': allowedOrigin || '*',
-          ...(isPrivate ? { 'Vary': 'Origin' } : {}),
+          ...(isPrivate || isStory ? { 'Vary': 'Origin' } : {}),
         },
       });
     }
@@ -1351,7 +1454,7 @@ export default {
     const addCors = (res) => {
       const headers = new Headers(res.headers);
       headers.set('Access-Control-Allow-Origin', allowedOrigin || '*');
-      if (isPrivate) headers.set('Vary', 'Origin');
+      if (isPrivate || isStory) headers.set('Vary', 'Origin');
       for (const [k, v] of Object.entries(CORS_HEADERS)) {
         headers.set(k, v);
       }
@@ -1467,6 +1570,16 @@ export default {
           .slice(-CHAT_MAX_HISTORY);
         if (cleaned.length === 0 || cleaned[cleaned.length - 1].role !== 'user') {
           return addCors(json({ error: 'Last message must be from user' }, 400));
+        }
+
+        // A2: second throttle keyed on CF-Connecting-IP, checked ALONGSIDE the per-session
+        // cap below. The session cap keys on client-supplied session_id, which a script can
+        // rotate to bypass; the IP cap (60/hour > the 30/session cap) leaves a legit
+        // multi-tab user alone but caps a rotating-session flood from one IP. Checked first
+        // so a rotating-session abuser is stopped before any provider work.
+        const ipRl = await ipRateLimit(env, 'chat:iprl', request.headers.get('CF-Connecting-IP'), CHAT_IP_RATE_LIMIT_PER_HOUR);
+        if (ipRl.limited) {
+          return addCors(json({ error: 'rate_limited', detail: 'ip hourly limit reached' }, 429, undefined, { 'Retry-After': String(ipRl.retryAfter) }));
         }
 
         // Rate limit: 30 messages / hour / session
@@ -1585,6 +1698,11 @@ export default {
 
       // POST /api/story/analyze-photo — Gemini Vision で猫写真を分析
       if (path === '/api/story/analyze-photo' && method === 'POST') {
+        // A1: per-IP throttle BEFORE any body read or paid vision call.
+        const rl = await ipRateLimit(env, 'story:rl', request.headers.get('CF-Connecting-IP'), STORY_RATE_LIMIT_PER_HOUR);
+        if (rl.limited) {
+          return addCors(json({ error: 'rate_limited', detail: 'story endpoint hourly limit reached' }, 429, undefined, { 'Retry-After': String(rl.retryAfter) }));
+        }
         const body = await request.json();
         const dataUri = body.image;
         if (!dataUri || typeof dataUri !== 'string') {
@@ -1617,6 +1735,11 @@ export default {
 
       // POST /api/story/generate — AI文案生成（Gemini JA + Qianwen ZH 並列）
       if (path === '/api/story/generate' && method === 'POST') {
+        // A1: per-IP throttle BEFORE any body read or paid text-generation call.
+        const rl = await ipRateLimit(env, 'story:rl', request.headers.get('CF-Connecting-IP'), STORY_RATE_LIMIT_PER_HOUR);
+        if (rl.limited) {
+          return addCors(json({ error: 'rate_limited', detail: 'story endpoint hourly limit reached' }, 429, undefined, { 'Retry-After': String(rl.retryAfter) }));
+        }
         const body = await request.json();
         if (!body.name) return addCors(json({ error: 'name is required' }, 400));
 
@@ -1713,6 +1836,10 @@ export default {
         const r2Key = `drive-img/${fileId}`;
         const legacyR2Key = `drive/${fileId}`; // pre-D4 key — read as fallback so the warm cache survives
         const cache = caches.default;
+        // B4: normalize the edge cache key to origin+pathname only (strip query string),
+        // so `?cachebust=…` spam can't mint unlimited distinct edge entries for the same
+        // immutable fileId. Used for BOTH cache.match and every cache.put below.
+        const cacheKey = new Request(url.origin + url.pathname, { method: 'GET' });
 
         // Common success headers (immutable, 1-year, ETag = fileId).
         const imgHeaders = (contentType, cacheTag, extra) => ({
@@ -1724,7 +1851,7 @@ export default {
         });
 
         // ---- Layer 1: edge cache (caches.default) ----
-        const edgeHit = await cache.match(request);
+        const edgeHit = await cache.match(cacheKey);
         if (edgeHit) {
           const h = new Headers(edgeHit.headers);
           h.set('X-Img-Cache', 'EDGE');
@@ -1741,11 +1868,23 @@ export default {
           });
           // Warm the edge cache from R2 (non-blocking). Clone so the body we return stays intact.
           const toCache = new Response(buf, { status: 200, headers: resHeaders });
-          ctx.waitUntil(cache.put(request, toCache.clone()));
+          ctx.waitUntil(cache.put(cacheKey, toCache.clone()));
           return addCors(toCache);
         }
 
-        // ---- Layer 3: origin (Google Drive) — exactly as before, incl. auto-compress ----
+        // ---- Layer 3: origin (Google Drive) ----
+        // B4: check Drive metadata BEFORE buffering the body. Reject non-image MIME types
+        // (this endpoint only serves images) and anything over the 10MB ceiling (a huge
+        // file would OOM the 128MB isolate on arrayBuffer()). These rejections use the
+        // existing JSON error shape and are NEVER cached (edge/R2 puts only run on 200).
+        const meta = await driveGetMeta(env, fileId);
+        if (meta && meta.mimeType && !String(meta.mimeType).startsWith('image/')) {
+          return addCors(json({ error: 'Not an image', mimeType: meta.mimeType }, 415));
+        }
+        if (meta && meta.size && parseInt(meta.size, 10) > MAX_DRIVE_ORIGIN_BYTES) {
+          return addCors(json({ error: 'Image too large', size: meta.size }, 413));
+        }
+
         const downloaded = await driveDownload(env, fileId);
         const originalBuf = await new Response(downloaded.body).arrayBuffer();
         const originalSize = originalBuf.byteLength;
@@ -1784,7 +1923,7 @@ export default {
               resized: String(wasResized),
             },
           }),
-          cache.put(request, response.clone()),
+          cache.put(cacheKey, response.clone()),
         ]));
 
         return addCors(response);
@@ -1923,6 +2062,12 @@ export default {
           const check = validateBreederIdUniqueness(currentKittens, items);
           if (!check.ok) {
             return addCors(json({ error: `breederIdが重複しています: ${check.ids.join(', ')}` }, 400));
+          }
+          // B3: field-shape validation (price numeric / status enum / photos string[]).
+          const shape = validateKittenShapes(items);
+          if (!shape.ok) {
+            const summary = shape.errors.map((e) => `${e.breederId}.${e.field} (${e.reason})`).join('; ');
+            return addCors(json({ error: `不正なフィールド: ${summary}`, details: shape.errors }, 400));
           }
         }
         await env.DATA.put(type, JSON.stringify(items));

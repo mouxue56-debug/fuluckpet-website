@@ -125,6 +125,89 @@ else
 fi
 
 # ---------------------------------------------------------------------------
+# 6. A1 — story endpoints CORS-locked: OPTIONS/POST from a FOREIGN origin must NOT
+#    return Access-Control-Allow-Origin: *  (expect the locked site origin, or none).
+# ---------------------------------------------------------------------------
+echo "  -- A1 story CORS lock (foreign origin must not get ACAO:*) --"
+SITE_ORIGIN="https://fuluckpet.com"
+FOREIGN_ORIGIN="https://evil.example.com"
+for ep in "/api/story/analyze-photo" "/api/story/generate"; do
+  # Preflight (OPTIONS) from a foreign origin.
+  acao="$(curl -s -D - -o /dev/null -X OPTIONS \
+      -H "Origin: $FOREIGN_ORIGIN" \
+      -H 'Access-Control-Request-Method: POST' \
+      -H 'Access-Control-Request-Headers: content-type' \
+      "$API_BASE$ep" | tr -d '\r' | awk -F': ' 'tolower($1)=="access-control-allow-origin"{print $2}')"
+  if [ "$acao" = "*" ]; then
+    fail "$ep OPTIONS foreign-origin returned ACAO:* (must be locked)"
+  elif [ -z "$acao" ] || [ "$acao" = "$SITE_ORIGIN" ]; then
+    pass "$ep OPTIONS foreign-origin ACAO=${acao:-<none>} (not *)"
+  else
+    fail "$ep OPTIONS foreign-origin ACAO=$acao (expected $SITE_ORIGIN or none, never *)"
+  fi
+done
+# And confirm a SAME-origin preflight is still allowed (ACAO echoes the site origin).
+acao_same="$(curl -s -D - -o /dev/null -X OPTIONS \
+    -H "Origin: $SITE_ORIGIN" -H 'Access-Control-Request-Method: POST' \
+    -H 'Access-Control-Request-Headers: content-type' \
+    "$API_BASE/api/story/generate" | tr -d '\r' | awk -F': ' 'tolower($1)=="access-control-allow-origin"{print $2}')"
+if [ "$acao_same" = "$SITE_ORIGIN" ]; then
+  pass "story OPTIONS same-origin ACAO=$SITE_ORIGIN (legit calls preserved)"
+else
+  fail "story OPTIONS same-origin ACAO=${acao_same:-<none>} (expected $SITE_ORIGIN)"
+fi
+
+# ---------------------------------------------------------------------------
+# 7. A1 — story per-IP throttle: a burst of >cap requests returns 429. The body is
+#    intentionally minimal/invalid so it fails validation fast — but the throttle runs
+#    BEFORE the paid AI call and before the body read, so once the cap (20/hour) is hit
+#    we get a 429 (not a 400/500). We fire 25 to clear the cap, then assert a 429 shows.
+#    NOTE: this consumes the hour bucket for the test runner's egress IP — expected.
+# ---------------------------------------------------------------------------
+echo "  -- A1 story per-IP throttle (>cap -> 429 before paid call) --"
+STORY_EP="$API_BASE/api/story/generate"
+saw_429=0
+last_code=""
+for i in $(seq 1 25); do
+  last_code="$(curl -s -o /dev/null -w '%{http_code}' -X POST \
+      -H 'Content-Type: application/json' \
+      --data '{}' "$STORY_EP")"
+  if [ "$last_code" = "429" ]; then saw_429=1; break; fi
+done
+if [ "$saw_429" = "1" ]; then
+  pass "story burst hit 429 within 25 requests (throttle fired at ~20/hr before paid call)"
+else
+  fail "story burst never returned 429 in 25 requests (last=$last_code) — throttle not biting"
+fi
+# The 429 body should carry a Retry-After header.
+ra="$(curl -s -D - -o /dev/null -X POST -H 'Content-Type: application/json' --data '{}' "$STORY_EP" \
+      | tr -d '\r' | awk -F': ' 'tolower($1)=="retry-after"{print $2}')"
+if [ -n "$ra" ]; then
+  pass "story 429 carries Retry-After ($ra s)"
+else
+  # Only meaningful if we're actually capped now; treat as soft-info if not capped.
+  echo "     (Retry-After not observed — bucket may have reset; non-fatal)"
+fi
+
+# ---------------------------------------------------------------------------
+# 8. B4 — drive-img edge cache key normalized: the SAME fileId with a junk ?cachebust
+#    must resolve to the SAME cached entry (not a fresh ORIGIN miss each time), proving
+#    the query string is stripped from the cache key. Warm once, then hit with a random
+#    cachebust and expect EDGE or R2 (a cache hit), never a cold ORIGIN.
+# ---------------------------------------------------------------------------
+echo "  -- B4 drive-img cache-key normalization (?cachebust must not bypass cache) --"
+warm_url="$API_BASE/api/drive/img/$IMG_A"
+curl -s -o /dev/null "$warm_url"   # warm
+curl -s -o /dev/null "$warm_url"   # ensure edge/R2 populated
+bust_url="$API_BASE/api/drive/img/$IMG_A?cachebust=$RANDOM$RANDOM"
+xbust="$(curl -s -D - -o /dev/null "$bust_url" | tr -d '\r' | awk -F': ' 'tolower($1)=="x-img-cache"{print $2}')"
+case "$xbust" in
+  EDGE|R2) pass "?cachebust served from cache (X-Img-Cache=$xbust) — query stripped from key";;
+  ORIGIN)  fail "?cachebust caused a cold ORIGIN fetch (X-Img-Cache=ORIGIN) — key not normalized";;
+  *)       echo "     ?cachebust X-Img-Cache=${xbust:-<none>} (inconclusive; non-fatal)";;
+esac
+
+# ---------------------------------------------------------------------------
 # Summary
 # ---------------------------------------------------------------------------
 echo ""
