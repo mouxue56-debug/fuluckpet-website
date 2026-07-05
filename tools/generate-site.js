@@ -167,6 +167,23 @@ function getCoverPhoto(item) {
   return item.photos[idx] || item.photos[0];
 }
 
+// FIX 9 — display-consistency dedupe (NOT a data fix). A few breederIds have two API
+// records; the kitten DETAIL page already collapses them last-write-wins (later record
+// overwrites the earlier file). Mirror that exact semantics in the LISTINGS so a listing
+// card's price matches its surviving detail page. Keep the LAST record per fileId
+// (breederId||id) in array order. Interim measure pending the owner's data cleanup — we
+// are NOT deciding which duplicate is "true" (owner decision; flagged separately).
+function dedupeByFileId(kittens) {
+  const order = [];
+  const byId = new Map();
+  for (const k of kittens) {
+    const id = k.breederId || k.id;
+    if (!byId.has(id)) order.push(id);
+    byId.set(id, k); // last write wins
+  }
+  return order.map((id) => byId.get(id));
+}
+
 function todayISO() {
   const d = new Date();
   const yyyy = d.getFullYear();
@@ -556,6 +573,9 @@ ${hreflangBlock(relPath)}
 }
 
 function generateKittens(kittens, lang = 'ja') {
+  // FIX 9: dedupe listing records by fileId (keep-last) so baked cards + per-kitten
+  // Product schema match the surviving detail page. Mirrors card-loader.js.
+  kittens = dedupeByFileId(kittens);
   const filepath = path.join(SITE_DIR, 'kittens.html');
   const { header: jaHeader, tail } = extractTemplate(filepath);
   const header = buildListHeader(jaHeader, lang);

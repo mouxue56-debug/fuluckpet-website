@@ -77,6 +77,70 @@
   }
   function ctColor(color) { return ctCatalog('colors', color); }
 
+  // ===== Breed taxonomy — MUST mirror tools/generate-site.js BREED_CONFIG =====
+  // The list page bakes exactly these breed sections, in this order, and assigns each
+  // kitten to a section by BREED (never by platform group). The partial-match rule folds
+  // the mix 'サイベリアン×ブリティッシュ' into the Siberian section, matching the generator.
+  // Grid order on kittens.html: [0]=Siberian, [1]=British Shorthair, [2]=British Longhair.
+  var BREED_ORDER = ['サイベリアン', 'ブリティッシュショートヘア', 'ブリティッシュロングヘア', 'ラグドール'];
+
+  // The baked .sec-tag (English, language-invariant) identifies each rendered section's
+  // breed. Used to align API-side breed groups to the actual grids on the page, which the
+  // generator emits ONLY for breeds that have inventory (so grid order can vary). Anchoring
+  // to sec-tag — not a fixed grid index — keeps assignment correct even if a breed is absent.
+  var TAG_TO_BREED = {
+    'Siberian': 'サイベリアン',
+    'British Shorthair': 'ブリティッシュショートヘア',
+    'British Longhair': 'ブリティッシュロングヘア',
+    'Ragdoll': 'ラグドール'
+  };
+
+  // Return the BREED_ORDER index a kitten's breed belongs to. Exact match first, then the
+  // generator's partial-match fallback (breed.includes(key) || key.includes(breed)).
+  // Unknown/empty breed → 0 (Siberian): never drop inventory (FIX 7 — was dropping 14).
+  function breedSectionIndex(breed) {
+    breed = breed || '';
+    var exact = BREED_ORDER.indexOf(breed);
+    if (exact !== -1) return exact;
+    for (var i = 0; i < BREED_ORDER.length; i++) {
+      var key = BREED_ORDER[i];
+      if (breed.indexOf(key) >= 0 || key.indexOf(breed) >= 0) return i;
+    }
+    if (breed) console.warn('card-loader: unknown breed "' + breed + '" — folding into Siberian section (kept visible)');
+    return 0;
+  }
+
+  // Localized breed name for a section header (uses the same breeds table as ctBreed).
+  function sectionBreedName(breedJa) {
+    var t = CARD_I18N[getLang()];
+    return (t && t.breeds && t.breeds[breedJa]) || breedJa;
+  }
+
+  // Count suffix — mirrors tools/generate-site.js countLabel() exactly per language:
+  // ja " (N匹)"  en " (N)"  zh "（N只）" (fullwidth, no leading space).
+  function countLabel(n) {
+    var lang = getLang();
+    if (lang === 'en') return ' (' + n + ')';
+    if (lang === 'zh') return '（' + n + '只）';
+    return ' (' + n + '匹)';
+  }
+
+  // FIX 9 — display-consistency dedupe (NOT a data fix). A few breederIds have two API
+  // records; the detail-page generator collapses them last-write-wins. Mirror that here so
+  // a listing card's price matches its surviving detail page. Keep the LAST record per
+  // fileId (breederId||id) in array order. Interim measure pending owner data cleanup —
+  // we are NOT choosing which record is "true" (owner decision, flagged separately).
+  function dedupeByFileId(kittens) {
+    var order = [];
+    var byId = {};
+    kittens.forEach(function(k) {
+      var id = k.breederId || k.id;
+      if (byId[id] === undefined) order.push(id);
+      byId[id] = k; // last write wins
+    });
+    return order.map(function(id) { return byId[id]; });
+  }
+
   // ===== Utility Functions =====
 
   function getCoverPhoto(item) {
@@ -188,6 +252,53 @@
     '</div>';
   }
 
+  // Render the kittens.html list: assign every kitten to its breed section grid
+  // (FIX 7 — breed-based, never group-based, so no inventory is dropped), rewrite each
+  // section header with ITS OWN grid's true count in the current language (FIX 8), and
+  // dedupe listing cards by fileId keeping the last record (FIX 9). One shared function
+  // for both the initial render and the langChanged re-render (was duplicated + drifting).
+  function renderKittensPage(kittens) {
+    var sections = document.querySelectorAll('.section');
+    // Collect the rendered breed sections: each carries one .kittens-grid + .sec-tag + .sec-title.
+    var slots = [];
+    for (var si = 0; si < sections.length; si++) {
+      var grid = sections[si].querySelector('.kittens-grid');
+      if (!grid) continue;
+      var tagEl = sections[si].querySelector('.sec-tag');
+      var title = sections[si].querySelector('.sec-title');
+      var breedJa = tagEl ? TAG_TO_BREED[tagEl.textContent.trim()] : null;
+      slots.push({ grid: grid, title: title, breedJa: breedJa });
+    }
+    if (slots.length === 0) return;
+
+    var deduped = dedupeByFileId(kittens);
+    // Bucket each kitten to the slot whose breed matches its breed-section; if no slot
+    // matches (a breed the page didn't bake a section for), append to the first slot so the
+    // kitten stays visible — never silently drop inventory (FIX 7).
+    var buckets = slots.map(function() { return []; });
+    var slotByBreed = {};
+    slots.forEach(function(s, idx) { if (s.breedJa) slotByBreed[s.breedJa] = idx; });
+    deduped.forEach(function(k) {
+      var breedJa = BREED_ORDER[breedSectionIndex(k.breed)];
+      var idx = slotByBreed[breedJa];
+      if (idx === undefined) idx = 0;
+      buckets[idx].push(k);
+    });
+
+    // Render each grid and rewrite its OWN header (breed name + count) in the current lang —
+    // per-section, so the ブリティッシュ substring collision that copied the BSH count onto
+    // the BLH header can't happen (FIX 8), and the count format matches the baked per-lang form.
+    slots.forEach(function(s, idx) {
+      var group = buckets[idx];
+      s.grid.innerHTML = group.map(function(k, i) {
+        return kittenCardHTML(k, { showImages: true, priority: idx === 0 && i < 2 });
+      }).join('');
+      if (s.title && s.breedJa) {
+        s.title.textContent = sectionBreedName(s.breedJa) + countLabel(group.length);
+      }
+    });
+  }
+
   // ===== Page Detection =====
 
   var kittensGrid = document.getElementById('kittensGrid');   // index.html
@@ -210,7 +321,9 @@
       var reviews = results[2] || [];
 
       // Kittens: only Siberian group, not sold
-      var sib = kittens.filter(function(k) { return k.group === 'c995680' && k.status !== 'sold'; });
+      // Homepage Siberian subset: select by BREED (folds the mix into Siberian), not by
+      // platform group — empty-group Siberian records were being dropped here too (FIX 7).
+      var sib = dedupeByFileId(kittens).filter(function(k) { return breedSectionIndex(k.breed) === 0 && k.status !== 'sold'; });
       if (sib.length > 0 && kittensGrid) {
         kittensGrid.innerHTML = sib.map(function(k) { return kittenCardHTML(k, {showImages: false}); }).join('');
         var vc = document.getElementById('visibleCount');
@@ -248,33 +361,9 @@
       .then(function(kittens) {
         if (!kittens || kittens.length === 0) return;
         var grids = document.querySelectorAll('.kittens-grid');
-        if (grids.length < 2) return;
+        if (grids.length === 0) return;
 
-        var sib = kittens.filter(function(k) { return k.group === 'c995680'; });
-        var brit = kittens.filter(function(k) { return k.group === 'd696506'; });
-
-        // Render Siberian section
-        if (sib.length > 0) {
-          grids[0].innerHTML = sib.map(function(k, i) { return kittenCardHTML(k, {showImages: true, priority: i < 2}); }).join('');
-        }
-
-        // Render British section
-        if (brit.length > 0) {
-          grids[1].innerHTML = brit.map(function(k) { return kittenCardHTML(k, {showImages: true}); }).join('');
-        }
-
-        // Update section header counts
-        var headers = document.querySelectorAll('.sec-title');
-        var ctr = ct('counter');
-        headers.forEach(function(h) {
-          var text = h.textContent;
-          if (text.indexOf('サイベリアン') >= 0 || text.indexOf('Siberian') >= 0) {
-            var baseName = text.replace(/\s*\(.*\)/, '').trim();
-            h.textContent = baseName + ' (' + sib.length + ctr + ')';
-          } else if (text.indexOf('ブリティッシュ') >= 0 || text.indexOf('British') >= 0) {
-            h.textContent = h.textContent.replace(/\(\d+[匹只]*\)/, '(' + brit.length + ctr + ')');
-          }
-        });
+        renderKittensPage(kittens);
 
         // Inject per-kitten JSON-LD Product schema for SEO
         var available = kittens.filter(function(k) { return k.status === 'available'; });
@@ -366,7 +455,7 @@
         var kittens = results[0] || [];
         var parents = results[1] || [];
         var reviews = results[2] || [];
-        var sib = kittens.filter(function(k) { return k.group === 'c995680' && k.status !== 'sold'; });
+        var sib = dedupeByFileId(kittens).filter(function(k) { return breedSectionIndex(k.breed) === 0 && k.status !== 'sold'; });
         if (sib.length > 0 && kittensGrid) {
           kittensGrid.innerHTML = sib.map(function(k) { return kittenCardHTML(k, {showImages: false}); }).join('');
         }
@@ -388,12 +477,8 @@
       fetch(API + '/api/kittens').then(function(r) { return r.json(); })
         .then(function(kittens) {
           if (!kittens || kittens.length === 0) return;
-          var grids = document.querySelectorAll('.kittens-grid');
-          if (grids.length < 2) return;
-          var sib = kittens.filter(function(k) { return k.group === 'c995680'; });
-          var brit = kittens.filter(function(k) { return k.group === 'd696506'; });
-          if (sib.length > 0) grids[0].innerHTML = sib.map(function(k, i) { return kittenCardHTML(k, {showImages: true, priority: i < 2}); }).join('');
-          if (brit.length > 0) grids[1].innerHTML = brit.map(function(k) { return kittenCardHTML(k, {showImages: true}); }).join('');
+          if (document.querySelectorAll('.kittens-grid').length === 0) return;
+          renderKittensPage(kittens);
           if (typeof window.rebindCards === 'function') window.rebindCards();
           window.dispatchEvent(new Event('cardsLoaded'));
         }).catch(function() {});
