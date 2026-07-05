@@ -494,7 +494,7 @@ function buildListHeader(jaHeader, lang) {
 
   const styleV = verAsset('style.css', '20260628k');
   const navCssV = verAsset('nav.css', '20260628a');
-  const navJsV = verAsset('nav.js', '20260703a');
+  const navJsV = verAsset('nav.js', '20260705b');
   const relPath = 'kittens.html';
   const selfUrl = `${BASE_URL}/${langDir(lang)}kittens.html`;
   const kittensLabel = KITTENS_LABEL[lang];
@@ -1186,7 +1186,7 @@ ${hreflangBlock(`kittens/${fileId}.html`)}
   <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260628k')}">
   <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20260628a')}">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
-  <script defer src="/nav.js?v=${verAsset('nav.js', '20260703a')}"></script>
+  <script defer src="/nav.js?v=${verAsset('nav.js', '20260705b')}"></script>
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
@@ -1455,7 +1455,7 @@ ${headerHtml}
         <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="btn btn-line" target="_blank" rel="noopener" data-i18n="kitten.lineChat">
           LINEでこの子について相談
         </a>
-        <a href="/booking.html" class="btn btn-secondary" data-i18n="kitten.bookVisit">
+        <a href="/booking.html?kitten=${encodeURIComponent(fileId)}" class="btn btn-secondary" data-i18n="kitten.bookVisit">
           見学を予約する
         </a>
         <a href="/${langDir(lang)}kittens.html" class="btn btn-outline" data-i18n="kitten.backToList">
@@ -1485,9 +1485,9 @@ ${footerHtml}
     });
   });
   </script>
-  <script src="/i18n.js?v=${verAsset('i18n.js', '20260628j')}"></script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20260705b')}"></script>
   <script src="/catalog-i18n.js?v=${verAsset('catalog-i18n.js', '20260705a')}"></script>
-  <script src="/kitten-carousel.js?v=${verAsset('kitten-carousel.js', '20260623c')}"></script>
+  <script src="/kitten-carousel.js?v=${verAsset('kitten-carousel.js', '20260705a')}"></script>
   <script src="/cta-widget.js?v=${verAsset('cta-widget.js', '20260623b')}"></script>
   <script src="/script.js?v=${verAsset('script.js', '20260705a')}"></script>
 </body>

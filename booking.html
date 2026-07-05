@@ -494,7 +494,7 @@
  }
  }
  </style>
-  <script defer src="/nav.js?v=20260703a"></script>
+  <script defer src="/nav.js?v=20260705b"></script>
 </head>
 <body class="has-mobile-cta">
   <a class="skip-link" href="#main" data-i18n="a11y.skipToMain">メインコンテンツへスキップ</a>
@@ -835,7 +835,7 @@
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
   </button>
 
-  <script src="i18n.js?v=20260628j"></script>
+  <script src="i18n.js?v=20260705b"></script>
   <script src="script.js?v=20260705a"></script>
   <script>
   // ===== Booking Form Submission — POSTs to fuluck-api Worker =====
@@ -859,6 +859,23 @@
     }
     updatePlaceholders();
     window.addEventListener('langChanged', updatePlaceholders);
+
+    // ----- Kitten context prefill (B1) -----
+    // A kitten detail page's "Book a visit" CTA links here with ?kitten=<breederId>.
+    // Prefill the (existing, text) "気になる子猫" field so the inquiry clearly carries
+    // that kitten. We only WRITE into the field — no field/endpoint/validation change.
+    (function prefillKitten() {
+      var kittenEl = document.getElementById('bk-kitten');
+      if (!kittenEl) return;
+      var raw = '';
+      try { raw = new URLSearchParams(window.location.search).get('kitten') || ''; } catch (e) { return; }
+      // Guard against junk: breederIds are short and [A-Za-z0-9-]. Trim + cap length,
+      // never inject markup (value assignment is inert, but keep it tidy).
+      var id = raw.trim().slice(0, 100);
+      if (!id) return;
+      // Don't clobber a value the user already typed (e.g. bfcache restore).
+      if (!kittenEl.value) kittenEl.value = id;
+    })();
 
     if (!form) return;
 

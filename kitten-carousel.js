@@ -21,6 +21,25 @@
     return '';
   }
 
+  // Kitten-context for booking prefill (B1): when this carousel is mounted on a
+  // kitten DETAIL page (path /kittens/<id>.html, incl. /en//zh/ prefixes), the
+  // page's own breederId is the <id> segment. Return it so booking CTAs can carry
+  // ?kitten=<id> to booking.html. Returns '' on any non-detail page (blog/FAQ) —
+  // there the booking CTA is a generic category link with no single kitten.
+  function currentKittenId() {
+    var m = (window.location.pathname || '').match(/\/kittens\/([^\/]+)\.html$/);
+    return m ? m[1] : '';
+  }
+
+  // Append ?kitten=<id> to a booking URL when we have a kitten context. Only rewrites
+  // the booking target (leaves /kittens.html, /guide/, LINE etc. untouched).
+  function withKittenContext(href) {
+    if (href !== BOOKING_URL) return href;
+    var id = currentKittenId();
+    if (!id) return href;
+    return href + (href.indexOf('?') === -1 ? '?' : '&') + 'kitten=' + encodeURIComponent(id);
+  }
+
   // Breed name mapping: API returns Japanese breed names, need translation for en/zh
   var BREED_MAP = {
     'サイベリアン': { en: 'Siberian', zh: '西伯利亚猫' },
@@ -267,8 +286,8 @@
         '<button class="kc-arrow kc-next" aria-label="' + t('nextAria') + '">›</button>' +
       '</div>' +
       '<div class="kc-actions">' +
-        '<a href="' + cta.btn1Link + '" class="kc-btn kc-btn-primary"><i class="ico ico-paw-print" aria-hidden="true"></i> ' + cta.btn1 + '</a>' +
-        '<a href="' + cta.btn2Link + '"' + (cta.btn2Link === LINE_URL ? ' target="_blank" rel="noopener"' : '') + ' class="kc-btn ' + (cta.btn2Link === LINE_URL ? 'kc-btn-line' : 'kc-btn-book') + '">' +
+        '<a href="' + withKittenContext(cta.btn1Link) + '" class="kc-btn kc-btn-primary"><i class="ico ico-paw-print" aria-hidden="true"></i> ' + cta.btn1 + '</a>' +
+        '<a href="' + withKittenContext(cta.btn2Link) + '"' + (cta.btn2Link === LINE_URL ? ' target="_blank" rel="noopener"' : '') + ' class="kc-btn ' + (cta.btn2Link === LINE_URL ? 'kc-btn-line' : 'kc-btn-book') + '">' +
           (cta.btn2Link === LINE_URL ? LINE_SVG + ' ' : '') + cta.btn2 +
         '</a>' +
       '</div>' +

@@ -412,7 +412,7 @@ function buildHead({ title, description, pageUrl, image, jsonLd, ogType = 'artic
   <link rel="stylesheet" href="/guide/guide.css?v=${ver('guide/guide.css', '20260623b')}">
   <link rel="stylesheet" href="/blog.css?v=${ver('blog.css', '20260624v2')}">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
-  <script defer src="/nav.js?v=${ver('nav.js', '20260703a')}"></script>
+  <script defer src="/nav.js?v=${ver('nav.js', '20260705b')}"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
 ${jsonLd.join('\n')}
@@ -666,7 +666,7 @@ ${bodyJa}
 
 ${chrome.footerHtml}
 
-  <script src="/i18n.js?v=${ver('i18n.js', '20260628j')}"></script>
+  <script src="/i18n.js?v=${ver('i18n.js', '20260705b')}"></script>
   <script>window._diaryArticleI18n = ${safeJsonForScript(i18n)}; window._blogArticleI18n = window._diaryArticleI18n;</script>
   <script src="/blog/blog-i18n.js?v=${ver('blog/blog-i18n.js', '20260624v2')}"></script>
   <script src="/script.js?v=${ver('script.js', '20260705a')}"></script>
@@ -834,7 +834,7 @@ ${chrome.headerHtml}
 
 ${chrome.footerHtml}
 
-  <script src="/i18n.js?v=${ver('i18n.js', '20260628j')}"></script>
+  <script src="/i18n.js?v=${ver('i18n.js', '20260705b')}"></script>
   <script src="/script.js?v=${ver('script.js', '20260705a')}"></script>
 
   <div class="mobile-cta-bar" role="navigation" aria-label="クイック連絡">
