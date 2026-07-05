@@ -21,6 +21,35 @@
     '/waitlist.html': true
   };
 
+  // Pattern-based siblings (B2): pages whose /en/ + /zh/ variants exist by CONVENTION,
+  // too numerous (kitten details) or too specific (a fixed blog set) to list flat above.
+  // For these the language switch NAVIGATES via prefix-swap (same rootPath under /en//zh/)
+  // instead of translating in place, so the visitor lands on the hand-baked sibling.
+  //
+  //  - Kitten detail pages: /kittens/<id>.html — the generator emits all 3 langs for every
+  //    detail page (the ja-only /kittens/index.html normalizes to /kittens/ and is excluded).
+  //  - The 5 blog slugs that have hand-authored /en/blog/ + /zh/blog/ siblings. Any OTHER
+  //    blog post has no sibling and must keep the in-place fallback, so this is an explicit
+  //    allow-set, not a blanket /blog/ rule.
+  var KITTEN_DETAIL_RE = /^\/kittens\/[^\/]+\.html$/;
+  var BLOG_SIBLING_SLUGS = {
+    '/blog/breeder-visit-flow-osaka.html': true,
+    '/blog/choose-healthy-kitten-checklist.html': true,
+    '/blog/siberian-coat-color-guide.html': true,
+    '/blog/siberian-kitten-feeding-guide.html': true,
+    '/blog/siberian-vs-bsh-vs-ragdoll.html': true
+  };
+
+  // True when rootPath (ja-normalized, no /en|/zh, no /index.html) has real /en/ + /zh/
+  // siblings — either a flat STATIC_SIBLINGS entry or a pattern match above.
+  function hasStaticSibling(rootPath) {
+    return !!(
+      STATIC_SIBLINGS[rootPath] ||
+      KITTEN_DETAIL_RE.test(rootPath) ||
+      BLOG_SIBLING_SLUGS[rootPath]
+    );
+  }
+
   var NAV_GROUPS = [
     {
       id: 'kittens',
@@ -298,8 +327,8 @@
     var rootPath = normalizePath(path); // strips /en|/zh and /index.html
 
     // Navigate when the page exists as a static per-language sibling (either we're already
-    // on a prefixed page, or the ja root path is one of the known static-sibling pages).
-    if (pathLang || STATIC_SIBLINGS[rootPath]) {
+    // on a prefixed page, or the ja root path has a known/patterned static sibling).
+    if (pathLang || hasStaticSibling(rootPath)) {
       var destUrl = (target === 'ja' ? '' : '/' + target) + rootPath;
       persistLang(target); // persist the choice regardless of whether we navigate
       // Already on the target language's page → no reload (covers same-lang clicks in

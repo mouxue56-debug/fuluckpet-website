@@ -1687,6 +1687,24 @@ function initI18n() {
   var pathLang = path.indexOf('/en/') === 0 ? 'en' : (path.indexOf('/zh/') === 0 ? 'zh' : null);
   var rootPath = pathLang ? path.substring(3) : path; // strip "/en" or "/zh"
 
+  // Ja-root paths that have hand-baked /en/ + /zh/ siblings but whose page lacks a
+  // .mobile-nav element, so nav.js bails and i18n.js owns the switch here (B2). On these
+  // the switch must NAVIGATE to the sibling, not translate in place. Kept in sync with
+  // nav.js hasStaticSibling(): the 5 blog slugs with real localized siblings. (Kitten
+  // detail pages DO have .mobile-nav, so nav.js handles those — not needed here, but the
+  // kitten-detail pattern is included for defence-in-depth in case that ever changes.)
+  var I18N_BLOG_SIBLINGS = {
+    '/blog/breeder-visit-flow-osaka.html': true,
+    '/blog/choose-healthy-kitten-checklist.html': true,
+    '/blog/siberian-coat-color-guide.html': true,
+    '/blog/siberian-kitten-feeding-guide.html': true,
+    '/blog/siberian-vs-bsh-vs-ragdoll.html': true
+  };
+  var I18N_KITTEN_DETAIL_RE = /^\/kittens\/[^\/]+\.html$/;
+  function jaHasStaticSibling(p) {
+    return !!(I18N_BLOG_SIBLINGS[p] || I18N_KITTEN_DETAIL_RE.test(p));
+  }
+
   // Language-switch clicks are owned SOLELY by nav.js (one unified mechanism: it handles
   // per-language static siblings + in-place translation + localStorage persistence).
   // i18n.js only binds a fallback IF nav.js is absent, so the two never both fire on the
@@ -1696,8 +1714,10 @@ function initI18n() {
       btn.addEventListener('click', function () {
         if (window.__fuluckNavLangSwitch) return; // nav.js came online after DOMContentLoaded
         var target = this.getAttribute('data-lang');
-        if (pathLang) {
-          // On a static localized page: navigate to the sibling language version.
+        if (pathLang || jaHasStaticSibling(rootPath)) {
+          // On a static localized page, OR a ja page with a hand-baked sibling:
+          // navigate to the target language's URL instead of translating in place.
+          try { localStorage.setItem('fuluckpet-lang', target); } catch (e) {}
           window.location.href = (target === 'ja' ? '' : '/' + target) + rootPath;
         } else {
           setLanguage(target);
