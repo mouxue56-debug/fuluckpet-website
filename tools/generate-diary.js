@@ -409,8 +409,8 @@ function buildHead({ title, description, pageUrl, image, jsonLd, ogType = 'artic
   <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="/style.css?v=${ver('style.css', '20260628g')}">
   <link rel="stylesheet" href="/nav.css?v=${ver('nav.css', '20260628a')}">
-  <link rel="stylesheet" href="/guide/guide.css?v=${ver('guide/guide.css', '20260623b')}">
-  <link rel="stylesheet" href="/blog.css?v=${ver('blog.css', '20260624v2')}">
+  <link rel="stylesheet" href="/guide/guide.css?v=${ver('guide/guide.css', '20260706a')}">
+  <link rel="stylesheet" href="/blog.css?v=${ver('blog.css', '20260706a')}">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
   <script defer src="/nav.js?v=${ver('nav.js', '20260705b')}"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>

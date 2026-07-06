@@ -14,12 +14,14 @@
   padding: 24px 0; margin-bottom: 8px;
 }
 .blog-filter-btn {
+  min-height: 44px; /* touch-target floor (site convention) */
   padding: 6px 18px; border-radius: 100px; border: 1.5px solid var(--border);
   background: var(--white); font-size: 13px; font-weight: 500; cursor: pointer;
   font-family: inherit; color: var(--text-note); transition: all .2s;
 }
 .blog-filter-btn:hover { border-color: var(--mint); color: var(--mint-dark); }
-.blog-filter-btn.active { background: var(--mint); color: white; border-color: var(--mint); }
+/* active: ink on mint = 7.5:1 AA (was white on mint = 1.76:1) */
+.blog-filter-btn.active { background: var(--mint); color: var(--ink, #26332F); font-weight: 600; border-color: var(--mint); }
 
 /* Card grid */
 .blog-grid {

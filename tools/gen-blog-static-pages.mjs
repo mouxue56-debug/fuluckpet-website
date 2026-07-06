@@ -58,8 +58,8 @@ function buildPage(art) {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/style.css?v=20260624v2">
-  <link rel="stylesheet" href="/guide/guide.css?v=20260624v2">
-  <link rel="stylesheet" href="/blog.css?v=20260624v2">
+  <link rel="stylesheet" href="/guide/guide.css?v=20260706a">
+  <link rel="stylesheet" href="/blog.css?v=20260706a">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>

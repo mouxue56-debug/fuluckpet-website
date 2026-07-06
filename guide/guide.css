@@ -266,7 +266,7 @@
   padding: 14px 32px;
   background: var(--line-green);
   color: white;
-  border-radius: 50px;
+  border-radius: 100px; /* match site-wide .btn/.btn-line pill radius */
   text-decoration: none;
   font-weight: 600;
   font-size: 1rem;

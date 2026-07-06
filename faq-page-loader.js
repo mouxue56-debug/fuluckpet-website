@@ -85,14 +85,33 @@
       return;
     }
 
-    listContainer.innerHTML = items.map(function(item) {
+    function itemHtml(item) {
       var q = txt(item.question);
       var a = txt(item.answer);
       return '<div class="faq-item">' +
         '<button class="faq-q">' + q + '</button>' +
         '<div class="faq-a"><p>' + a + '</p></div>' +
         '</div>';
-    }).join('\n');
+    }
+
+    // 'all' view: group by category with the designed .faq-cat-label dividers.
+    // (The static HTML ships these labels for SEO/no-JS, but this re-render used to
+    // drop them — visitors never saw the grouped layout. Keep flat when filtered.)
+    if (currentFilter === 'all') {
+      var groups = [];
+      Object.keys(CATEGORIES).forEach(function(c) {
+        var inCat = items.filter(function(f) { return f.category === c; });
+        if (inCat.length) {
+          groups.push('<div class="faq-cat-label cat-' + c + '">' + catIcon(c) + ' ' + catLabel(c) + '</div>');
+          groups.push(inCat.map(itemHtml).join('\n'));
+        }
+      });
+      var uncat = items.filter(function(f) { return !CATEGORIES[f.category]; });
+      if (uncat.length) groups.push(uncat.map(itemHtml).join('\n'));
+      listContainer.innerHTML = groups.join('\n');
+    } else {
+      listContainer.innerHTML = items.map(itemHtml).join('\n');
+    }
 
     // Bind accordion click handlers (+ a11y: expose expand state and link Q→A)
     listContainer.querySelectorAll('.faq-q').forEach(function(btn, idx) {
