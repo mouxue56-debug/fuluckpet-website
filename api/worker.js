@@ -1168,6 +1168,307 @@ function validateBooking(body) {
   return { errors, data };
 }
 
+// ===== Calendar (booking-calendar system) =====
+//
+// Pure functions below (validateCalendarEvent / rangeOverlap / icsEscape / buildIcs)
+// have NO I/O and NO Worker globals — they are unit-tested in
+// tests/calendar-lib.test.js, which keeps a byte-for-byte synced copy (same house
+// convention as validateBreederIdUniqueness). If you change the logic here, change
+// it there too. Spec: docs/CALENDAR_SPEC.md.
+
+const CAL_EVENT_TYPES = ['visit', 'boarding', 'block', 'note'];
+const CAL_STATUSES = ['pending', 'confirmed', 'done', 'cancelled'];
+const CAL_PET_TYPES = ['cat', 'small_dog', 'medium_dog', 'large_dog'];
+const CAL_SOURCES = ['booking-form', 'admin', 'ai'];
+const CAL_TIME_RE = /^\d{2}:\d{2}$/;
+
+// Validate a calendar event body. Returns { errors: [...], data: {...} } like
+// validateBooking. Unknown fields are stripped (only modelled fields survive).
+// In partial mode (PUT merge), only fields actually present in `body` are validated
+// and copied — absent fields are simply omitted so the caller can merge over prev.
+function validateCalendarEvent(body, { partial = false } = {}) {
+  const errors = [];
+  const data = {};
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    return { errors: ['Invalid JSON body'], data };
+  }
+  const has = (k) => Object.prototype.hasOwnProperty.call(body, k);
+
+  // type — required on create; enum-checked whenever present.
+  if (has('type') || !partial) {
+    const type = typeof body.type === 'string' ? body.type.trim() : '';
+    if (!CAL_EVENT_TYPES.includes(type)) {
+      errors.push(`type must be one of [${CAL_EVENT_TYPES.join(', ')}]`);
+    }
+    data.type = type;
+  }
+
+  // title — required on create; ≤120 chars.
+  if (has('title') || !partial) {
+    const title = typeof body.title === 'string' ? body.title.trim() : '';
+    if (!title || title.length > 120) errors.push('title (1-120 chars) required');
+    data.title = title;
+  }
+
+  // start / end — YYYY-MM-DD; end≥start (end inclusive). On create both required;
+  // in partial mode each is validated only when present, but if either is present we
+  // still enforce end≥start against whichever we have (caller merges the other).
+  if (has('start') || !partial) {
+    const start = typeof body.start === 'string' ? body.start.trim() : '';
+    if (!DATE_RE.test(start)) errors.push('start (YYYY-MM-DD) required');
+    data.start = start;
+  }
+  if (has('end') || !partial) {
+    const end = typeof body.end === 'string' ? body.end.trim() : '';
+    if (!DATE_RE.test(end)) errors.push('end (YYYY-MM-DD) required');
+    data.end = end;
+  }
+  // end≥start check when both are valid dates in this payload.
+  if (
+    typeof data.start === 'string' && DATE_RE.test(data.start) &&
+    typeof data.end === 'string' && DATE_RE.test(data.end) &&
+    data.end < data.start
+  ) {
+    errors.push('end must be >= start');
+  }
+
+  // time — optional HH:MM.
+  if (has('time')) {
+    const time = typeof body.time === 'string' ? body.time.trim() : '';
+    if (time && !CAL_TIME_RE.test(time)) errors.push('time must be HH:MM');
+    data.time = time;
+  }
+
+  // petType — optional enum.
+  if (has('petType')) {
+    const petType = typeof body.petType === 'string' ? body.petType.trim() : '';
+    if (petType && !CAL_PET_TYPES.includes(petType)) {
+      errors.push(`petType must be one of [${CAL_PET_TYPES.join(', ')}]`);
+    }
+    data.petType = petType;
+  }
+
+  // status — optional enum; default pending (block/note default confirmed) on create.
+  if (has('status')) {
+    const status = typeof body.status === 'string' ? body.status.trim() : '';
+    if (status && !CAL_STATUSES.includes(status)) {
+      errors.push(`status must be one of [${CAL_STATUSES.join(', ')}]`);
+    }
+    data.status = status;
+  } else if (!partial) {
+    data.status = (data.type === 'block' || data.type === 'note') ? 'confirmed' : 'pending';
+  }
+
+  // notes — optional, ≤2000 chars.
+  if (has('notes')) {
+    const notes = typeof body.notes === 'string' ? body.notes : '';
+    if (notes.length > 2000) errors.push('notes exceeds 2000 chars');
+    data.notes = notes.trim();
+  }
+
+  // source — optional enum.
+  if (has('source')) {
+    const source = typeof body.source === 'string' ? body.source.trim() : '';
+    if (source && !CAL_SOURCES.includes(source)) {
+      errors.push(`source must be one of [${CAL_SOURCES.join(', ')}]`);
+    }
+    data.source = source;
+  }
+
+  // updatedBy — optional, ≤40 chars; default 'admin' handled by caller.
+  if (has('updatedBy')) {
+    const updatedBy = typeof body.updatedBy === 'string' ? body.updatedBy.trim().slice(0, 40) : '';
+    data.updatedBy = updatedBy;
+  }
+
+  return { errors, data };
+}
+
+// Inclusive date-range overlap: does [evStart, evEnd] intersect [from, to]?
+// All args are YYYY-MM-DD strings (lexical compare == chronological). Endpoints
+// count as overlap: an event ending exactly on `from`, or starting exactly on `to`,
+// still overlaps. `from`/`to` may be falsy (open-ended) — a missing bound never excludes.
+function rangeOverlap(evStart, evEnd, from, to) {
+  if (from && evEnd < from) return false;
+  if (to && evStart > to) return false;
+  return true;
+}
+
+// Escape a text value for an iCal (RFC 5545) property. Order matters: backslash
+// first, then the structural chars, then newlines → literal \n.
+function icsEscape(s) {
+  return String(s == null ? '' : s)
+    .replace(/\\/g, '\\\\')
+    .replace(/;/g, '\\;')
+    .replace(/,/g, '\\,')
+    .replace(/\r\n|\r|\n/g, '\\n');
+}
+
+// Zero-pad a number to `len` digits.
+function calPad(n, len = 2) {
+  return String(n).padStart(len, '0');
+}
+
+// YYYYMMDD from a YYYY-MM-DD string (drop the hyphens).
+function calDateCompact(ymd) {
+  return String(ymd).replace(/-/g, '');
+}
+
+// end+1 day (iCal all-day DTEND is exclusive). Input/return YYYY-MM-DD → YYYYMMDD.
+function calDatePlusOneCompact(ymd) {
+  const [y, m, d] = String(ymd).split('-').map((x) => parseInt(x, 10));
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  dt.setUTCDate(dt.getUTCDate() + 1);
+  return `${dt.getUTCFullYear()}${calPad(dt.getUTCMonth() + 1)}${calPad(dt.getUTCDate())}`;
+}
+
+// A timed JST visit → UTC basic-format timestamp (YYYYMMDDTHHMMSSZ), shifting -9h.
+// Handles day/month rollback (e.g. 08:00 JST → previous-day 23:00:00Z).
+function calJstToUtcStamp(ymd, hhmm) {
+  const [y, m, d] = String(ymd).split('-').map((x) => parseInt(x, 10));
+  const [hh, mm] = String(hhmm).split(':').map((x) => parseInt(x, 10));
+  const dt = new Date(Date.UTC(y, m - 1, d, hh - 9, mm, 0));
+  return (
+    `${dt.getUTCFullYear()}${calPad(dt.getUTCMonth() + 1)}${calPad(dt.getUTCDate())}` +
+    `T${calPad(dt.getUTCHours())}${calPad(dt.getUTCMinutes())}${calPad(dt.getUTCSeconds())}Z`
+  );
+}
+
+// SUMMARY type prefix per spec.
+const CAL_TYPE_PREFIX = {
+  visit: '【見学】',
+  boarding: '【お預かり】',
+  block: '【休業】',
+  note: '【メモ】',
+};
+
+// Build a full iCalendar (VCALENDAR) document string from events. CRLF line endings
+// (RFC 5545). All-day events (boarding/block/note, and visits without a time) use
+// DATE values with an exclusive DTEND = end+1day. Timed visits become 1h UTC events
+// (JST−9h). Cancelled events carry STATUS:CANCELLED. `nowStamp` overridable for tests.
+function buildIcs(events, nowStamp) {
+  const dtstamp = nowStamp || (() => {
+    const n = new Date();
+    return (
+      `${n.getUTCFullYear()}${calPad(n.getUTCMonth() + 1)}${calPad(n.getUTCDate())}` +
+      `T${calPad(n.getUTCHours())}${calPad(n.getUTCMinutes())}${calPad(n.getUTCSeconds())}Z`
+    );
+  })();
+
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'PRODID:-//fuluckpet//calendar//JA',
+    'VERSION:2.0',
+    'CALSCALE:GREGORIAN',
+  ];
+
+  for (const ev of (Array.isArray(events) ? events : [])) {
+    if (!ev || typeof ev !== 'object') continue;
+    const prefix = CAL_TYPE_PREFIX[ev.type] || '';
+    const summary = icsEscape(prefix + (ev.title || ''));
+    const uid = `${ev.id}@fuluckpet`;
+    const isTimedVisit = ev.type === 'visit' && typeof ev.time === 'string' && CAL_TIME_RE.test(ev.time);
+
+    lines.push('BEGIN:VEVENT');
+    lines.push(`UID:${uid}`);
+    lines.push(`DTSTAMP:${dtstamp}`);
+    if (isTimedVisit) {
+      const startStamp = calJstToUtcStamp(ev.start, ev.time);
+      // 1h duration.
+      const [y, m, d] = String(ev.start).split('-').map((x) => parseInt(x, 10));
+      const [hh, mm] = String(ev.time).split(':').map((x) => parseInt(x, 10));
+      const endDt = new Date(Date.UTC(y, m - 1, d, hh - 9 + 1, mm, 0));
+      const endStamp =
+        `${endDt.getUTCFullYear()}${calPad(endDt.getUTCMonth() + 1)}${calPad(endDt.getUTCDate())}` +
+        `T${calPad(endDt.getUTCHours())}${calPad(endDt.getUTCMinutes())}${calPad(endDt.getUTCSeconds())}Z`;
+      lines.push(`DTSTART:${startStamp}`);
+      lines.push(`DTEND:${endStamp}`);
+    } else {
+      lines.push(`DTSTART;VALUE=DATE:${calDateCompact(ev.start)}`);
+      lines.push(`DTEND;VALUE=DATE:${calDatePlusOneCompact(ev.end || ev.start)}`);
+    }
+    lines.push(`SUMMARY:${summary}`);
+    if (ev.notes) lines.push(`DESCRIPTION:${icsEscape(ev.notes)}`);
+    if (ev.status === 'cancelled') lines.push('STATUS:CANCELLED');
+    lines.push('END:VEVENT');
+  }
+
+  lines.push('END:VCALENDAR');
+  return lines.join('\r\n') + '\r\n';
+}
+
+// ----- Calendar KV I/O (impure — needs env / crypto) -----
+
+// Hard ceiling on stored events (spec §data model). Creating beyond this → 400.
+const CAL_MAX_EVENTS = 2000;
+
+// Server-side event id: evt_<ts36>-<rand4>.
+function newCalEventId() {
+  const rand = new Uint8Array(2);
+  crypto.getRandomValues(rand);
+  const suffix = bytesToHex(rand.buffer); // 4 hex chars
+  return `evt_${Date.now().toString(36)}-${suffix}`;
+}
+
+// Read-modify-write the single `calendar_events` KV doc. Reads the doc (default
+// {rev:0,events:[]}), runs fn(doc) — which may mutate doc.events and returns a
+// result — writes back with rev+1, and returns { result, rev }. Low-traffic
+// optimistic concurrency: the bumped rev lets clients detect drift.
+async function mutateCalendar(env, fn) {
+  const doc = (await env.DATA.get('calendar_events', 'json')) || { rev: 0, events: [] };
+  if (!Array.isArray(doc.events)) doc.events = [];
+  if (typeof doc.rev !== 'number') doc.rev = 0;
+  const result = fn(doc);
+  doc.rev = doc.rev + 1;
+  await env.DATA.put('calendar_events', JSON.stringify(doc));
+  return { result, rev: doc.rev };
+}
+
+// /api/booking hook: append a pending visit event built from a booking submission.
+// Skips silently unless preferred_date is a valid YYYY-MM-DD. Never throws into the
+// booking path (belt & braces: internal try/catch, plus the caller wraps in .catch()).
+async function appendVisitEventFromBooking(env, data) {
+  try {
+    if (!data || !DATE_RE.test(String(data.preferred_date || ''))) return;
+
+    const time = (typeof data.preferred_time === 'string' && CAL_TIME_RE.test(data.preferred_time.trim()))
+      ? data.preferred_time.trim()
+      : '';
+
+    // Compact notes: kitten_id + second-choice date when present.
+    const noteParts = [];
+    if (data.kitten_id) noteParts.push(`kitten_id: ${data.kitten_id}`);
+    if (data.preferred_date2 && DATE_RE.test(String(data.preferred_date2))) {
+      noteParts.push(`第二希望日: ${data.preferred_date2}`);
+    }
+    const notes = noteParts.join(' / ').slice(0, 2000);
+
+    const nowIso = new Date().toISOString();
+    const event = {
+      id: newCalEventId(),
+      type: 'visit',
+      title: (`見学希望：${data.name || ''}`).slice(0, 120),
+      start: data.preferred_date,
+      end: data.preferred_date,
+      time,
+      petType: '',
+      status: 'pending',
+      notes,
+      source: 'booking-form',
+      createdAt: nowIso,
+      updatedAt: nowIso,
+      updatedBy: 'booking-form',
+    };
+
+    await mutateCalendar(env, (doc) => {
+      if (doc.events.length >= CAL_MAX_EVENTS) return; // silently skip if at cap
+      doc.events.push(event);
+    });
+  } catch (e) {
+    console.error('[calendar-hook]', e && e.stack ? e.stack : e);
+  }
+}
+
 // Escape for HTML email body (defence against header/HTML injection from user input).
 function escapeHtml(s) {
   return String(s)
@@ -1989,6 +2290,11 @@ export default {
           };
           await env.DATA.put(kvKey, JSON.stringify(stored), { expirationTtl: 90 * 24 * 3600 });
 
+          // Calendar hook: mirror this booking as a pending visit event on the shared
+          // calendar. Best-effort & fully isolated — appendVisitEventFromBooking swallows
+          // its own errors, and this .catch is a second net so it can never break booking.
+          ctx.waitUntil(appendVisitEventFromBooking(env, data).catch(e => console.error('[calendar-hook]', e)));
+
           // Email via Resend (no-op until RESEND_API_KEY is set). Telegram always fires and
           // the booking is already in KV, so a missing/failed email never loses the lead.
           let emailErr = null;
@@ -2014,6 +2320,27 @@ export default {
         } catch (err) {
           return addCors(internalError(err, requestId));
         }
+      }
+
+      // ===== CALENDAR iCAL FEED (PUBLIC; KEY-GATED) =====
+      // GET /api/calendar.ics?key=<hex> — subscribe URL for staff phones (Google
+      // Calendar / iPhone). Key must match KV `cal_feed_key` (missing/mismatch → 403).
+      // no-store so a rotated key takes effect immediately.
+      if (path === '/api/calendar.ics' && method === 'GET') {
+        const key = url.searchParams.get('key') || '';
+        const stored = await env.DATA.get('cal_feed_key');
+        if (!stored || !key || key !== stored) {
+          return addCors(json({ error: 'Forbidden — invalid feed key' }, 403));
+        }
+        const doc = (await env.DATA.get('calendar_events', 'json')) || { rev: 0, events: [] };
+        const ics = buildIcs(Array.isArray(doc.events) ? doc.events : []);
+        return addCors(new Response(ics, {
+          status: 200,
+          headers: {
+            'Content-Type': 'text/calendar; charset=utf-8',
+            'Cache-Control': 'no-store',
+          },
+        }));
       }
 
       // ===== AUTH CHECK =====
@@ -2602,6 +2929,128 @@ export default {
         return addCors(json(merged));
       }
 
+      // --- Calendar CRUD (booking-calendar system) ---
+      // GET /api/admin/calendar?from=&to= → { rev, events } (inclusive range overlap;
+      // no params = all). See docs/CALENDAR_SPEC.md.
+      if (path === '/api/admin/calendar' && method === 'GET') {
+        const doc = (await env.DATA.get('calendar_events', 'json')) || { rev: 0, events: [] };
+        const events = Array.isArray(doc.events) ? doc.events : [];
+        const from = url.searchParams.get('from') || '';
+        const to = url.searchParams.get('to') || '';
+        const filtered = (from || to)
+          ? events.filter(ev => rangeOverlap(ev.start, ev.end || ev.start, from, to))
+          : events;
+        return addCors(json({ rev: doc.rev || 0, events: filtered }));
+      }
+
+      // POST /api/admin/calendar body=event → validate + insert → { rev, event }.
+      if (path === '/api/admin/calendar' && method === 'POST') {
+        let body;
+        try { body = await request.json(); }
+        catch (_e) { return addCors(json({ error: 'Invalid JSON' }, 400)); }
+        const { errors, data } = validateCalendarEvent(body, { partial: false });
+        if (errors.length) {
+          return addCors(json({ error: 'Validation failed', details: errors }, 400));
+        }
+        const nowIso = new Date().toISOString();
+        const event = {
+          id: newCalEventId(),
+          type: data.type,
+          title: data.title,
+          start: data.start,
+          end: data.end,
+          time: data.time || '',
+          petType: data.petType || '',
+          status: data.status,
+          notes: data.notes || '',
+          source: data.source || 'admin',
+          createdAt: nowIso,
+          updatedAt: nowIso,
+          updatedBy: data.updatedBy || 'admin',
+        };
+        const { rev, result } = await mutateCalendar(env, (doc) => {
+          if (doc.events.length >= CAL_MAX_EVENTS) return { capped: true };
+          doc.events.push(event);
+          return { capped: false };
+        });
+        if (result && result.capped) {
+          return addCors(json({ error: '予定が上限に達しました' }, 400));
+        }
+        return addCors(json({ rev, event }, 201));
+      }
+
+      // PUT /api/admin/calendar?id=evt_x body=partial → merge update → { rev, event }; 404 if absent.
+      if (path === '/api/admin/calendar' && method === 'PUT') {
+        const id = url.searchParams.get('id') || '';
+        if (!id) return addCors(json({ error: 'id query param required' }, 400));
+        let body;
+        try { body = await request.json(); }
+        catch (_e) { return addCors(json({ error: 'Invalid JSON' }, 400)); }
+        const { errors, data } = validateCalendarEvent(body, { partial: true });
+        if (errors.length) {
+          return addCors(json({ error: 'Validation failed', details: errors }, 400));
+        }
+        let notFoundFlag = false;
+        let merged = null;
+        const { rev } = await mutateCalendar(env, (doc) => {
+          const idx = doc.events.findIndex(e => e && e.id === id);
+          if (idx === -1) { notFoundFlag = true; return; }
+          const prev = doc.events[idx];
+          // Cross-field end≥start guard against the MERGED result (partial validate
+          // only sees the fields in this body).
+          const nextStart = data.start !== undefined ? data.start : prev.start;
+          const nextEnd = data.end !== undefined ? data.end : prev.end;
+          if (DATE_RE.test(nextStart) && DATE_RE.test(nextEnd) && nextEnd < nextStart) {
+            notFoundFlag = false;
+            merged = { _err: 'end must be >= start' };
+            return;
+          }
+          merged = {
+            ...prev,
+            ...data,
+            id: prev.id,               // id immutable
+            createdAt: prev.createdAt, // createdAt immutable
+            updatedAt: new Date().toISOString(),
+            updatedBy: data.updatedBy || prev.updatedBy || 'admin',
+          };
+          doc.events[idx] = merged;
+        });
+        if (notFoundFlag) return addCors(notFound());
+        if (merged && merged._err) {
+          return addCors(json({ error: 'Validation failed', details: [merged._err] }, 400));
+        }
+        return addCors(json({ rev, event: merged }));
+      }
+
+      // DELETE /api/admin/calendar?id=evt_x → { rev, ok:true }; 404 if absent.
+      if (path === '/api/admin/calendar' && method === 'DELETE') {
+        const id = url.searchParams.get('id') || '';
+        if (!id) return addCors(json({ error: 'id query param required' }, 400));
+        let removed = false;
+        const { rev } = await mutateCalendar(env, (doc) => {
+          const before = doc.events.length;
+          doc.events = doc.events.filter(e => !(e && e.id === id));
+          removed = doc.events.length < before;
+        });
+        if (!removed) return addCors(notFound());
+        return addCors(json({ rev, ok: true }));
+      }
+
+      // GET /api/admin/calendar/feed-key → { key: <hex>|null }.
+      if (path === '/api/admin/calendar/feed-key' && method === 'GET') {
+        const key = await env.DATA.get('cal_feed_key');
+        return addCors(json({ key: key || null }));
+      }
+
+      // POST /api/admin/calendar/feed-key → generate/rotate 32-hex key → { key }.
+      if (path === '/api/admin/calendar/feed-key' && method === 'POST') {
+        const bytes = new Uint8Array(16);
+        crypto.getRandomValues(bytes);
+        const key = bytesToHex(bytes.buffer); // 32 hex chars
+        await env.DATA.put('cal_feed_key', key);
+        return addCors(json({ key }));
+      }
+
       // --- Publish: trigger GitHub Actions to regenerate static pages ---
       if (path === '/api/admin/publish' && method === 'POST') {
         const ghToken = env.GITHUB_TOKEN;
@@ -2666,4 +3115,4 @@ export default {
 // Named exports for unit testing (ignored by the Workers runtime, which only reads
 // the default export). tests/validate-breederid.test.js keeps a synced copy because
 // this project has no package.json / module toolchain to import ESM from plain Node.
-export { validateBreederIdUniqueness, dupCounts };
+export { validateBreederIdUniqueness, dupCounts, validateCalendarEvent, rangeOverlap, icsEscape, buildIcs };

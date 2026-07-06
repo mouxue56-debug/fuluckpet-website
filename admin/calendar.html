@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>カレンダー | 福楽キャッテリー</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --mint: #7DD3C0;
+      --mint-dark: #5BC4A8;
+      --mint-light: #F0FFFA;
+      --bg: #FFFCF0;
+      --white: #FFFFFF;
+      --text: #5A7A7A;
+      --text-body: #5A6A6A;
+      --text-light: #90A8A8;
+      --border: #E5EDF0;
+      --danger: #FC8181;
+      --danger-dark: #E53E3E;
+      --success: #68D391;
+      --warning: #F6E05E;
+      --header-h: 56px;
+      --radius: 12px;
+      /* Calendar chip palette — reuses admin tokens, no new colors */
+      --cal-visit: var(--mint);
+      --cal-visit-bg: var(--mint-light);
+      --cal-visit-fg: #22543D;
+      --cal-boarding: #2F855A;
+      --cal-boarding-bg: #C6F6D5;
+      --cal-boarding-fg: #22543D;
+      --cal-block: #A0AEC0;
+      --cal-block-bg: #EDF2F7;
+      --cal-block-fg: #4A5568;
+      --cal-note: #CBD5E0;
+      --cal-note-bg: #F7FAFC;
+      --cal-note-fg: #5A6A6A;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter','Noto Sans JP',sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.6; }
+
+    .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--mint-light), var(--bg), #FFF8FB); }
+    .login-card { background: var(--white); border-radius: 20px; padding: 48px 40px; box-shadow: 0 8px 40px rgba(0,0,0,0.08); width: 100%; max-width: 400px; text-align: center; }
+    .login-logo { font-size: 48px; margin-bottom: 16px; }
+    .login-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .login-sub { font-size: 13px; color: var(--text-light); margin-bottom: 32px; }
+    .login-input { width: 100%; padding: 14px 20px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 15px; font-family: inherit; margin-bottom: 16px; outline: none; }
+    .login-input:focus { border-color: var(--mint); }
+    .login-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, var(--mint), var(--mint-dark)); color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; }
+    .login-error { color: var(--danger-dark); font-size: 13px; margin-top: 12px; display: none; }
+
+    .editor-layout { display: none; min-height: 100vh; flex-direction: column; }
+    .editor-layout.active { display: flex; }
+
+    .top-bar { height: var(--header-h); background: rgba(255,252,240,0.85); backdrop-filter: blur(12px) saturate(160%); -webkit-backdrop-filter: blur(12px) saturate(160%); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; gap: 12px; flex-shrink: 0; flex-wrap: wrap; }
+    .page-brand { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+    .page-brand a { text-decoration: none; color: var(--text); }
+    .page-brand a:hover { color: var(--mint-dark); }
+    .top-bar-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .btn { padding: 8px 16px; border-radius: 8px; border: none; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .2s; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+    .btn-primary { background: linear-gradient(135deg, var(--mint), var(--mint-dark)); color: white; }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(125,211,192,0.3); }
+    .btn-ghost { background: transparent; color: var(--text-light); border: 1px solid transparent; }
+    .btn-ghost:hover { color: var(--text); border-color: var(--border); }
+    .btn-secondary { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--white); }
+    .btn-danger { background: var(--danger-dark); color: white; }
+    .btn-danger:hover { opacity: .9; }
+
+    .content { padding: 24px; max-width: 1200px; margin: 0 auto; width: 100%; }
+
+    /* === Filter bar & legend === */
+    .filter-bar { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 18px; }
+    .filter-group { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .filter-check { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: var(--text-body); cursor: pointer; }
+    .filter-check input { accent-color: var(--mint-dark); }
+    .filter-select { padding: 6px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; font-family: inherit; background: var(--white); color: var(--text); }
+    .legend { display: flex; gap: 12px; flex-wrap: wrap; margin-left: auto; }
+    .legend-item { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-light); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+    /* === Calendar grid === */
+    .cal-card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; margin-bottom: 24px; }
+    .cal-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
+    .cal-nav { display: flex; align-items: center; gap: 8px; }
+    .cal-nav-btn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: var(--white); cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; }
+    .cal-nav-btn:hover { background: var(--bg); }
+    .cal-title { font-size: 17px; font-weight: 700; min-width: 120px; text-align: center; }
+    .cal-today-btn { padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--white); font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .cal-today-btn:hover { background: var(--bg); }
+
+    .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); border-bottom: 1px solid var(--border); }
+    .cal-weekday { padding: 10px 6px; text-align: center; font-size: 11px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: .5px; }
+    .cal-weekday.sun { color: #E53E3E; }
+    .cal-weekday.sat { color: #3182CE; }
+
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+    .cal-cell { min-height: 108px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 6px; cursor: pointer; transition: background .15s; display: flex; flex-direction: column; gap: 3px; }
+    .cal-cell:hover { background: var(--mint-light); }
+    .cal-cell:nth-child(7n) { border-right: none; }
+    .cal-cell.other-month { background: #FAFBF8; color: var(--text-light); }
+    .cal-cell.other-month .cal-date { color: var(--text-light); }
+    .cal-cell.is-today .cal-date { background: var(--mint); color: white; }
+    .cal-cell.is-selected { box-shadow: inset 0 0 0 2px var(--mint-dark); }
+    .cal-date { font-size: 12px; font-weight: 700; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border-radius: 50%; flex-shrink: 0; }
+    .cal-chips { display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
+    .cal-chip { font-size: 10px; padding: 2px 5px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+    .cal-chip.type-visit { background: var(--cal-visit-bg); color: var(--cal-visit-fg); }
+    .cal-chip.type-boarding { background: var(--cal-boarding-bg); color: var(--cal-boarding-fg); }
+    .cal-chip.type-block { background: var(--cal-block-bg); color: var(--cal-block-fg); }
+    .cal-chip.type-note { background: var(--cal-note-bg); color: var(--cal-note-fg); }
+    .cal-chip.is-cancelled { text-decoration: line-through; opacity: .55; }
+    .cal-more { font-size: 10px; color: var(--text-light); padding-left: 5px; }
+
+    .cal-dots { display: none; gap: 3px; flex-wrap: wrap; padding-left: 2px; }
+    .cal-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+    .cal-dot.type-visit { background: var(--cal-visit); }
+    .cal-dot.type-boarding { background: var(--cal-boarding); }
+    .cal-dot.type-block { background: var(--cal-block); }
+    .cal-dot.type-note { background: var(--cal-note); }
+
+    /* === Day panel === */
+    .day-panel-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 200; display: none; align-items: stretch; justify-content: flex-end; }
+    .day-panel-overlay.active { display: flex; }
+    .day-panel { background: var(--white); width: 420px; max-width: 100%; height: 100%; overflow-y: auto; box-shadow: -8px 0 30px rgba(0,0,0,0.12); }
+    .day-panel-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--white); z-index: 2; }
+    .day-panel-header h2 { font-size: 16px; font-weight: 700; }
+    .day-panel-close { width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--bg); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+    .day-panel-body { padding: 20px 24px; }
+
+    .evt-card { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; }
+    .evt-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .evt-type-badge { display: inline-block; padding: 2px 9px; border-radius: 100px; font-size: 10px; font-weight: 700; }
+    .evt-type-badge.type-visit { background: var(--cal-visit-bg); color: var(--cal-visit-fg); }
+    .evt-type-badge.type-boarding { background: var(--cal-boarding-bg); color: var(--cal-boarding-fg); }
+    .evt-type-badge.type-block { background: var(--cal-block-bg); color: var(--cal-block-fg); }
+    .evt-type-badge.type-note { background: var(--cal-note-bg); color: var(--cal-note-fg); }
+    .evt-status-badge { display: inline-block; padding: 2px 9px; border-radius: 100px; font-size: 10px; font-weight: 700; margin-left: 6px; }
+    .evt-status-pending { background: #FEFCBF; color: #744210; }
+    .evt-status-confirmed { background: #C6F6D5; color: #22543D; }
+    .evt-status-done { background: #E2E8F0; color: #4A5568; }
+    .evt-status-cancelled { background: #FED7E2; color: #702459; }
+    .evt-title { font-size: 13px; font-weight: 700; margin-top: 6px; }
+    .evt-title.is-cancelled { text-decoration: line-through; opacity: .6; }
+    .evt-meta { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+    .evt-notes { font-size: 12px; color: var(--text-body); margin-top: 6px; white-space: pre-wrap; }
+    .evt-actions { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+    .evt-actions .action-btn { padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--white); font-family: inherit; font-size: 11px; cursor: pointer; }
+    .evt-actions .action-btn:hover { background: var(--bg); }
+    .evt-actions .action-btn.delete { color: var(--danger-dark); border-color: var(--danger-dark); }
+    .empty-hint { font-size: 12px; color: var(--text-light); text-align: center; padding: 16px 0; font-style: italic; }
+
+    /* === Form === */
+    .form-group { margin-bottom: 14px; }
+    .form-label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; }
+    .form-input, .form-select, .form-textarea { width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; outline: none; background: var(--white); color: var(--text); }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--mint); }
+    .form-textarea { min-height: 64px; resize: vertical; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .form-hint { font-size: 10px; color: var(--text-light); margin-top: 3px; }
+    .form-section-title { font-size: 13px; font-weight: 700; margin: 18px 0 10px; padding-top: 14px; border-top: 1px dashed var(--border); }
+    .btn-save { width: 100%; padding: 11px; border-radius: 8px; border: none; background: linear-gradient(135deg, var(--mint), var(--mint-dark)); color: white; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; margin-top: 4px; }
+    .btn-save:hover { transform: translateY(-1px); }
+
+    /* === iCal section === */
+    .ical-card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 24px; }
+    .ical-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+    .ical-url-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 12px 0; }
+    .ical-url-input { flex: 1; min-width: 220px; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 12px; font-family: monospace; background: var(--bg); color: var(--text-body); }
+    .ical-help { font-size: 12px; color: var(--text-light); line-height: 1.8; }
+
+    /* === Toast === */
+    .toast { position: fixed; bottom: 24px; right: 24px; padding: 14px 24px; background: var(--text); color: white; border-radius: 10px; font-size: 14px; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,0.15); z-index: 300; transform: translateY(100px); opacity: 0; transition: all .3s; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { background: #38A169; }
+    .toast.error { background: #E53E3E; }
+
+    @media (max-width: 640px) {
+      .content { padding: 12px; }
+      .cal-cell { min-height: 56px; padding: 4px; }
+      .cal-chips { display: none; }
+      .cal-dots { display: flex; }
+      .cal-more { display: none; }
+      .day-panel { width: 100%; }
+      .form-row { grid-template-columns: 1fr; }
+      .legend { margin-left: 0; }
+      .filter-bar { padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <div class="login-logo">📅</div>
+      <h1 class="login-title" data-adm-ja="カレンダー" data-adm-zh="日历">カレンダー</h1>
+      <p class="login-sub" data-adm-ja="パスワードを入力してログインしてください" data-adm-zh="请输入密码登录">パスワードを入力してログインしてください</p>
+      <input type="password" id="loginPassword" class="login-input" placeholder="パスワード" autocomplete="current-password">
+      <button id="loginBtn" class="login-btn" data-adm-ja="ログイン" data-adm-zh="登录">ログイン</button>
+      <p id="loginError" class="login-error" data-adm-ja="パスワードが正しくありません" data-adm-zh="密码不正确">パスワードが正しくありません</p>
+    </div>
+  </div>
+
+  <div id="editorLayout" class="editor-layout">
+
+    <div class="top-bar">
+      <div class="page-brand">
+        <a href="index.html" title="管理画面トップ">🐾</a>
+        <span data-adm-ja="カレンダー" data-adm-zh="日历">カレンダー</span>
+      </div>
+      <div class="top-bar-actions">
+        <a href="bookings.html" class="btn btn-ghost"><span data-adm-ja="予約一覧へ" data-adm-zh="去预约一览">予約一覧へ</span></a>
+        <button id="btnReload" class="btn btn-primary"><span data-adm-ja="再読込" data-adm-zh="刷新">再読込</span></button>
+        <button id="btnLangToggle" class="btn btn-ghost">🌐 中文</button>
+        <button id="btnLogout" class="btn btn-ghost"><span data-adm-ja="ログアウト" data-adm-zh="退出">ログアウト</span></button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- Filters -->
+      <div class="filter-bar">
+        <div class="filter-group" id="typeFilterGroup">
+          <label class="filter-check"><input type="checkbox" data-type="visit" checked> <span data-adm-ja="見学" data-adm-zh="参观">見学</span></label>
+          <label class="filter-check"><input type="checkbox" data-type="boarding" checked> <span data-adm-ja="お預かり" data-adm-zh="寄养">お預かり</span></label>
+          <label class="filter-check"><input type="checkbox" data-type="block" checked> <span data-adm-ja="休業・満室" data-adm-zh="休业·满房">休業・満室</span></label>
+          <label class="filter-check"><input type="checkbox" data-type="note" checked> <span data-adm-ja="メモ" data-adm-zh="备注">メモ</span></label>
+        </div>
+        <select id="statusFilter" class="filter-select">
+          <option value="all" data-adm-ja="すべて" data-adm-zh="全部">すべて</option>
+          <option value="pending" data-adm-ja="未確定" data-adm-zh="未确定">未確定</option>
+          <option value="confirmed" data-adm-ja="確定" data-adm-zh="已确定">確定</option>
+          <option value="done" data-adm-ja="完了" data-adm-zh="已完成">完了</option>
+          <option value="cancelled" data-adm-ja="キャンセル" data-adm-zh="已取消">キャンセル</option>
+        </select>
+        <div class="legend">
+          <span class="legend-item"><span class="legend-dot" style="background:var(--cal-visit)"></span><span data-adm-ja="見学" data-adm-zh="参观">見学</span></span>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--cal-boarding)"></span><span data-adm-ja="お預かり" data-adm-zh="寄养">お預かり</span></span>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--cal-block)"></span><span data-adm-ja="休業・満室" data-adm-zh="休业·满房">休業・満室</span></span>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--cal-note)"></span><span data-adm-ja="メモ" data-adm-zh="备注">メモ</span></span>
+        </div>
+      </div>
+
+      <!-- Calendar -->
+      <div class="cal-card">
+        <div class="cal-toolbar">
+          <div class="cal-nav">
+            <button id="btnPrevMonth" class="cal-nav-btn" aria-label="前月">‹</button>
+            <div class="cal-title" id="calTitle">—</div>
+            <button id="btnNextMonth" class="cal-nav-btn" aria-label="次月">›</button>
+          </div>
+          <button id="btnToday" class="cal-today-btn" data-adm-ja="今日" data-adm-zh="今天">今日</button>
+        </div>
+        <div class="cal-weekdays">
+          <div class="cal-weekday sun">日</div>
+          <div class="cal-weekday">月</div>
+          <div class="cal-weekday">火</div>
+          <div class="cal-weekday">水</div>
+          <div class="cal-weekday">木</div>
+          <div class="cal-weekday">金</div>
+          <div class="cal-weekday sat">土</div>
+        </div>
+        <div class="cal-grid" id="calGrid">
+          <!-- cells rendered by JS -->
+        </div>
+      </div>
+
+      <!-- iCal subscription -->
+      <div class="ical-card">
+        <h3 data-adm-ja="📱 iCalカレンダー同期" data-adm-zh="📱 iCal日历同步">📱 iCalカレンダー同期</h3>
+        <p class="ical-help" data-adm-ja="GoogleカレンダーやiPhoneの「照会カレンダー」にこのURLを追加すると、予定が自動で同期されます。" data-adm-zh="在Google日历或iPhone的「订阅日历」中添加此URL，日程会自动同步。">GoogleカレンダーやiPhoneの「照会カレンダー」にこのURLを追加すると、予定が自動で同期されます。</p>
+        <div id="icalNoKey">
+          <button id="btnGenKey" class="btn btn-primary" data-adm-ja="購読URLを生成" data-adm-zh="生成订阅链接">購読URLを生成</button>
+        </div>
+        <div id="icalHasKey" style="display:none;">
+          <div class="ical-url-row">
+            <input id="icalUrlInput" class="ical-url-input" type="text" readonly>
+            <button id="btnCopyUrl" class="btn btn-secondary" data-adm-ja="コピー" data-adm-zh="复制">コピー</button>
+            <button id="btnRegenKey" class="btn btn-ghost" data-adm-ja="再生成" data-adm-zh="重新生成">再生成</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Day panel -->
+  <div id="dayPanelOverlay" class="day-panel-overlay">
+    <div class="day-panel">
+      <div class="day-panel-header">
+        <h2 id="dayPanelTitle">—</h2>
+        <button id="dayPanelClose" class="day-panel-close">✕</button>
+      </div>
+      <div class="day-panel-body">
+        <div id="dayEventsList"></div>
+
+        <div class="form-section-title" data-adm-ja="＋ 新規追加" data-adm-zh="＋ 新增">＋ 新規追加</div>
+        <form id="eventForm">
+          <input type="hidden" id="evtId" value="">
+          <div class="form-group">
+            <label class="form-label" data-adm-ja="種類" data-adm-zh="类型">種類</label>
+            <select id="evtType" class="form-select">
+              <option value="visit" data-adm-ja="見学" data-adm-zh="参观">見学</option>
+              <option value="boarding" data-adm-ja="お預かり" data-adm-zh="寄养">お預かり</option>
+              <option value="block" data-adm-ja="休業・満室" data-adm-zh="休业·满房">休業・満室</option>
+              <option value="note" data-adm-ja="メモ" data-adm-zh="备注">メモ</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-adm-ja="タイトル" data-adm-zh="标题">タイトル</label>
+            <input type="text" id="evtTitle" class="form-input" maxlength="120" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" data-adm-ja="開始日" data-adm-zh="开始日期">開始日</label>
+              <input type="date" id="evtStart" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" data-adm-ja="終了日" data-adm-zh="结束日期">終了日</label>
+              <input type="date" id="evtEnd" class="form-input" required>
+              <div class="form-hint" data-adm-ja="未入力は開始日と同じ" data-adm-zh="留空则与开始日相同">未入力は開始日と同じ</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" data-adm-ja="時刻（任意）" data-adm-zh="时间（可选）">時刻（任意）</label>
+              <input type="time" id="evtTime" class="form-input">
+            </div>
+            <div class="form-group" id="evtPetTypeGroup" style="display:none;">
+              <label class="form-label" data-adm-ja="ペット種別" data-adm-zh="宠物类型">ペット種別</label>
+              <select id="evtPetType" class="form-select">
+                <option value="cat" data-adm-ja="猫" data-adm-zh="猫">猫</option>
+                <option value="small_dog" data-adm-ja="小型犬" data-adm-zh="小型犬">小型犬</option>
+                <option value="medium_dog" data-adm-ja="中型犬" data-adm-zh="中型犬">中型犬</option>
+                <option value="large_dog" data-adm-ja="大型犬" data-adm-zh="大型犬">大型犬</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-adm-ja="ステータス" data-adm-zh="状态">ステータス</label>
+            <select id="evtStatus" class="form-select">
+              <option value="pending" data-adm-ja="未確定" data-adm-zh="未确定">未確定</option>
+              <option value="confirmed" data-adm-ja="確定" data-adm-zh="已确定">確定</option>
+              <option value="done" data-adm-ja="完了" data-adm-zh="已完成">完了</option>
+              <option value="cancelled" data-adm-ja="キャンセル" data-adm-zh="已取消">キャンセル</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-adm-ja="メモ" data-adm-zh="备注">メモ</label>
+            <textarea id="evtNotes" class="form-textarea" maxlength="2000"></textarea>
+          </div>
+          <button type="submit" id="btnSaveEvent" class="btn-save" data-adm-ja="追加する" data-adm-zh="添加">追加する</button>
+          <button type="button" id="btnCancelEdit" class="btn-save" style="display:none;background:var(--bg);color:var(--text);border:1px solid var(--border);margin-top:6px;" data-adm-ja="編集をキャンセル" data-adm-zh="取消编辑">編集をキャンセル</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="js/api-client.js"></script>
+  <script src="js/admin-calendar.js"></script>
+</body>
+</html>
