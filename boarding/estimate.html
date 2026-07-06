@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- noindex は保管登録番号の記入まで維持（index.html と同時に解除） -->
+  <meta name="robots" content="noindex, nofollow">
+  <title>料金シミュレーター（概算）｜ペットのお預かり｜福楽キャッテリー</title>
+  <meta name="description" content="猫・わんちゃんのお預かり料金の概算シミュレーター。日程とご希望を選ぶだけで、おおよその料金がわかります。">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
+
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    /* ── estimator（DESIGN_SPEC ②：九档间距 4/8/12/16/24/32/48/64/96・零新色） ── */
+    /* style.css に --cream は無い：実トークン --mango-milk(#FFFCF0) への別名（無地フォールバック付き） */
+    :root { --cream: var(--mango-milk, #FFFCF0); }
+    .es-topbar { border-bottom: 1px solid var(--line); background: #fff; }
+    .es-topbar-inner { max-width: 640px; margin: 0 auto; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .es-logo { display: inline-flex; align-items: center; gap: 8px; font-family: 'Noto Sans JP', sans-serif; font-weight: 700; color: var(--ink); text-decoration: none; font-size: 16px; }
+    .es-logo .dot { width: 22px; height: 22px; border-radius: 50%; background: var(--mint); display: inline-block; }
+    .es-back { font-size: 13px; color: var(--mint-deep); text-decoration: none; font-weight: 600; }
+    .es-back:hover { text-decoration: underline; }
+
+    .es-main { max-width: 640px; margin: 0 auto; padding: 32px 20px 140px; }
+    .es-h1 { font-size: 24px; color: var(--ink); font-weight: 700; margin: 0 0 8px; }
+    .es-intro { font-size: 14px; color: var(--ink-soft); line-height: 1.8; margin: 0 0 32px; }
+    .es-intro .pill { display: inline-block; background: var(--cream); border: 1px solid var(--line); border-radius: 999px; font-size: 12px; color: var(--ink-soft); padding: 2px 10px; margin-right: 6px; }
+
+    .es-card { background: #fff; border: 1px solid var(--line); border-radius: 28px; padding: 24px; box-shadow: 0 1px 3px rgba(38,51,47,.05); margin: 0 0 24px; }
+    .es-q { font-size: 16px; font-weight: 600; color: var(--ink); margin: 0 0 4px; font-family: 'Noto Sans JP', sans-serif; }
+    .es-qhint { font-size: 13px; color: var(--ink-soft); line-height: 1.7; margin: 0 0 16px; }
+
+    /* A 宠物类型 分段卡 */
+    .es-types { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .es-type { position: relative; }
+    .es-type input { position: absolute; opacity: 0; width: 0; height: 0; }
+    .es-type label { display: block; border: 2px solid var(--line); border-radius: 16px; padding: 14px; cursor: pointer; transition: border-color .12s, background .12s; }
+    .es-type label .tn { font-size: 15px; font-weight: 700; color: var(--ink); display: block; }
+    .es-type label .tp { font-size: 13px; color: var(--ink-soft); display: block; margin-top: 2px; }
+    .es-type input:checked + label { border-color: var(--mint-deep); background: rgba(125,211,192,.12); }
+    .es-type input:focus-visible + label { outline: 2px solid var(--mint-deep); outline-offset: 2px; }
+    .es-typenote { font-size: 13px; color: var(--ink-soft); margin: 12px 0 0; }
+
+    /* B 日期 */
+    .es-dates { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    .es-field label { display: block; font-size: 13px; font-weight: 600; color: var(--ink); margin: 0 0 8px; }
+    .es-field input[type=date] { width: 100%; font-family: inherit; font-size: 16px; color: var(--ink); padding: 12px 16px; border: 1px solid var(--line); border-radius: 12px; background: #fff; -webkit-appearance: none; }
+    .es-field input[type=date]:focus-visible { outline: 2px solid var(--mint-deep); outline-offset: 1px; border-color: var(--mint-deep); }
+    .es-nights { font-size: 14px; color: var(--ink); font-weight: 600; margin: 16px 0 0; }
+    .es-nights span { color: var(--mint-deep); }
+    .es-surhint { font-size: 12.5px; color: var(--ink-soft); line-height: 1.7; margin: 12px 0 0; padding: 12px; background: var(--cream); border-radius: 12px; display: none; }
+    .es-surhint.show { display: block; }
+
+    /* C 割引 checkbox */
+    .es-checks { display: grid; gap: 12px; }
+    .es-check { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; }
+    .es-check input { width: 20px; height: 20px; margin-top: 1px; accent-color: var(--mint-deep); flex-shrink: 0; }
+    .es-check span { font-size: 14px; color: var(--ink); line-height: 1.5; }
+    .es-checknote { font-size: 12.5px; color: var(--ink-soft); line-height: 1.7; margin: 16px 0 0; }
+
+    /* D 詳細オプション accordion */
+    .es-acc { background: #fff; border: 1px solid var(--line); border-radius: 28px; margin: 0 0 24px; overflow: hidden; }
+    .es-acc > summary { padding: 20px 24px; font-size: 16px; font-weight: 600; color: var(--ink); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+    .es-acc > summary::-webkit-details-marker { display: none; }
+    .es-acc > summary::after { content: '詳細を開く +'; color: var(--mint-deep); font-size: 13px; font-weight: 600; }
+    .es-acc[open] > summary::after { content: '閉じる −'; }
+    .es-acc-body { padding: 0 24px 24px; display: grid; gap: 20px; }
+    .es-opt label.h { display: block; font-size: 14px; font-weight: 600; color: var(--ink); margin: 0 0 8px; }
+    .es-opt select { width: 100%; font-family: inherit; font-size: 15px; color: var(--ink); padding: 12px 16px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+    .es-opt select:focus-visible { outline: 2px solid var(--mint-deep); outline-offset: 1px; }
+    .es-opt .n { font-size: 12.5px; color: var(--ink-soft); line-height: 1.7; margin: 8px 0 0; }
+    .es-opt .rt { display: flex; align-items: center; gap: 8px; margin: 10px 0 0; font-size: 13.5px; color: var(--ink); cursor: pointer; }
+    .es-opt .rt input { width: 18px; height: 18px; accent-color: var(--mint-deep); }
+
+    /* 料金のしくみ（明示・簡潔） */
+    .es-rules { background: var(--cream); border: 1px solid var(--line); border-radius: 28px; padding: 24px; margin: 0 0 24px; }
+    .es-rules .rh { font-size: 14px; font-weight: 700; color: var(--ink); margin: 0 0 12px; }
+    .es-rules ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+    .es-rules li { font-size: 13px; color: var(--ink-soft); line-height: 1.75; padding-left: 14px; position: relative; }
+    .es-rules li::before { content: ''; position: absolute; left: 0; top: .7em; width: 5px; height: 5px; border-radius: 50%; background: var(--mint); }
+    .es-rules li strong { color: var(--ink); font-weight: 600; }
+    .es-rules .rl { display: inline-block; margin-top: 12px; font-size: 13px; font-weight: 600; color: var(--mint-deep); text-decoration: none; }
+    .es-rules .rl:hover { text-decoration: underline; }
+
+    /* E 结果卡 */
+    .es-result { background: #fff; border: 1px solid var(--line); border-radius: 28px; padding: 24px; box-shadow: 0 1px 3px rgba(38,51,47,.05); }
+    .es-result-head { display: flex; align-items: center; gap: 8px; margin: 0 0 16px; }
+    .es-result-head h2 { font-size: 17px; font-weight: 700; color: var(--ink); margin: 0; }
+    .es-badge { display: inline-block; background: var(--cream); border: 1px solid var(--line); border-radius: 999px; font-size: 12px; color: var(--ink-soft); padding: 2px 10px; }
+    .es-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+    .es-lines li { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; font-size: 14px; color: var(--ink); }
+    .es-lines li .lbl { color: var(--ink); }
+    .es-lines li .lbl small { display: block; font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+    .es-lines li .val { font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink); font-weight: 500; }
+    .es-lines li.disc .val { color: var(--ink); }
+    .es-total { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin: 24px 0 0; padding: 24px 0 0; border-top: 1px solid var(--line); }
+    .es-total .lbl { font-size: 15px; font-weight: 700; color: var(--ink); }
+    .es-total .val { font-size: 28px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+    .es-total .val small { font-size: 14px; font-weight: 500; color: var(--ink-soft); }
+    .es-disc-line { font-size: 12px; color: var(--ink-soft); line-height: 1.7; margin: 16px 0 0; }
+    .es-empty { font-size: 14px; color: var(--ink-soft); line-height: 1.8; text-align: center; padding: 16px 0; }
+    .es-review { font-size: 13px; color: var(--ink); background: var(--cream); border-radius: 12px; padding: 12px; margin: 16px 0 0; line-height: 1.7; }
+
+    /* F CTA */
+    .es-cta { margin: 24px 0 0; text-align: center; }
+    .es-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; background: var(--mint-deep); color: #fff; font-weight: 700; font-size: 16px; font-family: inherit; text-decoration: none; padding: 16px 24px; border-radius: 999px; border: none; cursor: pointer; }
+    .es-btn:hover { filter: brightness(1.05); }
+    .es-btn:disabled { opacity: .45; cursor: not-allowed; filter: none; }
+    .es-btn-sub { display: inline-block; margin-top: 16px; font-size: 13px; color: var(--mint-deep); font-weight: 600; background: none; border: none; cursor: pointer; font-family: inherit; text-decoration: none; }
+    .es-btn-sub:hover { text-decoration: underline; }
+    .es-copied { font-size: 13px; color: var(--mint-deep); font-weight: 600; margin: 12px 0 0; min-height: 16px; }
+
+    .es-foot { font-size: 12px; color: var(--ink-soft); line-height: 1.8; margin: 32px 0 0; max-inline-size: 36em; }
+
+    /* 移动吸附结果条 56px */
+    .es-sticky { position: fixed; left: 0; right: 0; bottom: 0; height: 56px; background: #fff; border-top: 1px solid var(--line); display: none; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 40; box-shadow: 0 -2px 12px rgba(38,51,47,.06); cursor: pointer; }
+    .es-sticky .l { font-size: 13px; color: var(--ink-soft); }
+    .es-sticky .r { font-size: 20px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+    .es-sticky .r small { font-size: 12px; font-weight: 500; color: var(--ink-soft); }
+
+    @media (max-width: 640px) {
+      .es-main { padding: 24px 16px 96px; }
+      .es-card, .es-acc-body { padding-left: 16px; padding-right: 16px; }
+      .es-card { padding-top: 16px; padding-bottom: 16px; }
+      .es-result { padding: 16px; }
+      .es-sticky.show { display: flex; }
+    }
+    @media (min-width: 641px) {
+      .es-types { grid-template-columns: repeat(4, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="es-topbar">
+    <div class="es-topbar-inner">
+      <a href="../index.html" class="es-logo"><span class="dot" aria-hidden="true"></span>福楽キャッテリー</a>
+      <a href="index.html" class="es-back">← 料金・案内に戻る</a>
+    </div>
+  </div>
+
+  <main class="es-main">
+    <h1 class="es-h1">料金シミュレーター</h1>
+    <p class="es-intro"><span class="pill">概算</span>日程とご希望を選ぶだけで、おおよその料金がすぐにわかります。表示はすべて税込・概算です。</p>
+
+    <!-- Q1 宠物类型 -->
+    <div class="es-card">
+      <p class="es-q">① どの子をお預かりしますか？</p>
+      <p class="es-qhint">お預かりする子の種類を選んでください。</p>
+      <div class="es-types" role="radiogroup" aria-label="ペットの種類">
+        <div class="es-type">
+          <input type="radio" name="petType" id="t-cat" value="cat">
+          <label for="t-cat"><span class="tn">猫</span><span class="tp">¥6,200 / 泊</span></label>
+        </div>
+        <div class="es-type">
+          <input type="radio" name="petType" id="t-small" value="small_dog">
+          <label for="t-small"><span class="tn">小型犬</span><span class="tp">¥9,600 / 泊</span></label>
+        </div>
+        <div class="es-type">
+          <input type="radio" name="petType" id="t-medium" value="medium_dog">
+          <label for="t-medium"><span class="tn">中型犬</span><span class="tp">¥10,700 / 泊</span></label>
+        </div>
+        <div class="es-type">
+          <input type="radio" name="petType" id="t-large" value="large_dog">
+          <label for="t-large"><span class="tn">大型犬</span><span class="tp">¥11,700 / 泊</span></label>
+        </div>
+      </div>
+      <p class="es-typenote">表示価格はすべて税込です。</p>
+    </div>
+
+    <!-- Q2 日期 -->
+    <div class="es-card">
+      <p class="es-q">② いつからいつまで？</p>
+      <p class="es-qhint">チェックイン・チェックアウトの日付を選んでください。</p>
+      <div class="es-dates">
+        <div class="es-field">
+          <label for="checkIn">チェックイン</label>
+          <input type="date" id="checkIn" autocomplete="off">
+        </div>
+        <div class="es-field">
+          <label for="checkOut">チェックアウト</label>
+          <input type="date" id="checkOut" autocomplete="off">
+        </div>
+      </div>
+      <p class="es-nights" id="nightsLabel" hidden>ご利用：<span id="nightsVal">0</span>泊</p>
+      <p class="es-surhint" id="surHint">土日祝・繁忙期は日付加算があります（土日祝 +¥550〜、繁忙期 +¥2,200〜）。合計に自動で反映されます。</p>
+    </div>
+
+    <!-- Q3 割引自申告 -->
+    <div class="es-card">
+      <p class="es-q">③ 割引の対象ですか？</p>
+      <p class="es-qhint">当てはまるものにチェックしてください（任意）。</p>
+      <div class="es-checks">
+        <label class="es-check"><input type="checkbox" id="isMember"><span>会員です（10%OFF）</span></label>
+        <label class="es-check" id="gradWrap"><input type="checkbox" id="isGraduatedCat"><span>卒業猫の飼い主です（15%OFF・猫のみ）</span></label>
+      </div>
+      <p class="es-checknote">割引は併用できません。最もお得な割引を自動で適用します。7泊以上のご予約には長期割引が適用されます。</p>
+    </div>
+
+    <!-- D 詳細オプション -->
+    <details class="es-acc">
+      <summary>詳細オプション（送迎・ケアなど）</summary>
+      <div class="es-acc-body">
+        <div class="es-opt" id="optCatGrooming" hidden>
+          <label class="h" for="catGrooming">猫シャンプー</label>
+          <select id="catGrooming">
+            <option value="">追加しない</option>
+            <option value="short_standard">短毛・標準洗護 ¥8,000</option>
+            <option value="short_comfort">短毛・安心洗護 ¥9,000</option>
+            <option value="long_standard">長毛・標準洗護 ¥10,000</option>
+            <option value="long_comfort">長毛・安心洗護 ¥11,000</option>
+          </select>
+          <p class="n">会員・卒業猫割引、お預かり後の割引が適用される場合があります。毛玉の状態・健康状態によりお断り／中止となる場合があります。</p>
+        </div>
+
+        <div class="es-opt" id="optDogCare" hidden>
+          <label class="h" for="dogCare">わんちゃんの簡易ケア（足洗い・体拭き）</label>
+          <select id="dogCare">
+            <option value="">追加しない</option>
+            <option value="local_cleaning">局部清掃（足・おしり・お腹など）</option>
+            <option value="body_wipe">簡易体拭き</option>
+            <option value="footwash_plus_local">足洗い＋局部清掃</option>
+            <option value="simple_wash">簡易ケア（温順・短毛・完全乾燥可の子）</option>
+          </select>
+          <p class="n">お預かり中の衛生保持のための簡易ケアのみです。美容を目的としたサービスは承っておりません。長毛・ダブルコート・大型犬は事前確認が必要です。</p>
+        </div>
+
+        <div class="es-opt">
+          <label class="h" for="transport">送迎（片道の距離で選択）</label>
+          <select id="transport">
+            <option value="">利用しない</option>
+            <option value="30">片道 30分以内 ¥3,300</option>
+            <option value="60">片道 60分以内 ¥5,500</option>
+            <option value="90">片道 90分以内 ¥8,800</option>
+            <option value="120">片道 120分以内 ¥11,000</option>
+            <option value="custom">エリア外（別途お見積り）</option>
+          </select>
+          <label class="rt"><input type="checkbox" id="transportRound">往復で利用する（片道×2の10%OFF）</label>
+          <p class="n">高速・駐車料金が発生する場合は実費を申し受けます。お迎え時の待機は30分まで無料、以降30分ごとに¥1,000です。</p>
+        </div>
+      </div>
+    </details>
+
+    <!-- 料金のしくみ（明示・簡潔） -->
+    <div class="es-rules">
+      <p class="rh">料金のしくみ</p>
+      <ul>
+        <li>表示はすべて<strong>税込</strong>。合計は「割引後の基本料金 × 泊数 ＋ 日付加算」です。</li>
+        <li>割引（会員10%・卒業猫15%・7泊以上の長期割引）は併用できません。<strong>最もお得な1つを自動で適用</strong>します。</li>
+        <li>日付加算（1泊ごと・割引対象外）：土日祝 +¥550〜／学校休暇 +¥1,100〜／GW・お盆・年末年始 +¥2,200〜。</li>
+        <li>30泊以上は事前確認制です。</li>
+        <li>投薬・老齢ケア・多頭同室など、<strong>特別なご要望はLINEでご相談ください</strong>。できる限り対応いたします。</li>
+      </ul>
+      <a class="rl" href="index.html">くわしい料金・ご利用条件はこちら →</a>
+    </div>
+
+    <!-- E 结果 -->
+    <div class="es-result" id="result">
+      <div class="es-result-head">
+        <h2>お見積もり</h2>
+        <span class="es-badge">概算</span>
+      </div>
+      <p class="es-empty" id="resultEmpty">上の①②を選ぶと、概算がここに表示されます。</p>
+      <div id="resultBody" hidden>
+        <ul class="es-lines" id="resultLines"></ul>
+        <div class="es-total">
+          <span class="lbl">概算合計（税込）</span>
+          <span class="val" id="totalVal">¥0</span>
+        </div>
+        <p class="es-disc-line">※こちらは概算です。正式な料金はご相談後にご案内いたします。日付加算・送迎費・追加ケア料金は割引の対象外です。</p>
+        <div class="es-review" id="reviewNote" hidden>30泊以上の長期利用は事前確認制です。お部屋状況・健康状態・性格・ケア内容により正式料金が変わる場合があります。</div>
+      </div>
+
+      <!-- F CTA -->
+      <div class="es-cta">
+        <button class="es-btn" id="ctaLine" disabled>この見積もりでLINE相談する</button>
+        <p class="es-copied" id="copiedMsg" role="status" aria-live="polite"></p>
+        <button class="es-btn-sub" id="ctaCopy" hidden>見積もり内容だけコピーする</button>
+      </div>
+    </div>
+
+    <p class="es-foot">※表示価格はすべて税込・概算です。正式な料金はご相談後にLINEでご案内いたします。以下の場合などに追加費用が発生することがあります：投薬、毛玉処理、強い不安・応激のケア、老齢のお世話、隔離管理、送迎の待機、高速・駐車料金。具体的な費用はご予約確認時にご説明いたします。</p>
+  </main>
+
+  <!-- 移动吸附结果条 -->
+  <div class="es-sticky" id="sticky" role="button" tabindex="0" aria-label="お見積もりを見る">
+    <span class="l">概算合計（税込）</span>
+    <span class="r" id="stickyVal">¥0</span>
+  </div>
+
+  <script src="../boarding-config.js"></script>
+  <script src="../boarding-calc.js"></script>
+  <script src="boarding-estimate.js"></script>
+</body>
+</html>

@@ -91,6 +91,8 @@
         { href: '/about.html', key: 'nav.about', icon: 'house', match: ['/about.html'] },
         { href: '/about.html#awards', key: 'nav.aboutPage', icon: 'trophy', match: ['/about.html#awards'] },
         { href: '/reviews.html', key: 'nav.reviews', icon: 'star', match: ['/reviews.html'] },
+        // お預かり：v1 は日本語のみ提供（D4）——jaOnly で en/zh のナビには出さない
+        { href: '/boarding/', key: 'nav.boarding', icon: 'bed', jaOnly: true, match: ['/boarding/'] },
         { href: '/blog.html', key: 'nav.blog', icon: 'library', match: ['/blog.html', '/blog/'] },
         { href: 'https://catnamegive.mouxue56.workers.dev', key: 'nav.naming', icon: 'square-pen', external: true }
       ]
@@ -169,8 +171,16 @@
   }
 
   function groupIsActive(group, route) {
-    return group.items.some(function (item) {
+    return visibleItems(group).some(function (item) {
       return itemInGroup(item, route);
+    });
+  }
+
+  // jaOnly 項目は日本語表示時のみナビに出す（対応できる言語でだけ告知する）
+  function visibleItems(group) {
+    var lang = currentLang();
+    return group.items.filter(function (item) {
+      return !item.jaOnly || lang === 'ja';
     });
   }
 
@@ -195,7 +205,7 @@
   function renderDesktopNav(route) {
     var groups = NAV_GROUPS.map(function (group) {
       var active = groupIsActive(group, route);
-      var items = group.items.map(function (item) {
+      var items = visibleItems(group).map(function (item) {
         var current = itemIsCurrent(item, route);
         return (
           '<a class="nav-dropdown-link' + (item.featured ? ' is-featured' : '') + (current ? ' is-current' : '') + '"' +
@@ -240,7 +250,7 @@
   function renderMobileNav(route) {
     var sections = NAV_GROUPS.map(function (group) {
       var active = groupIsActive(group, route);
-      var items = group.items.map(function (item) {
+      var items = visibleItems(group).map(function (item) {
         var current = itemIsCurrent(item, route);
         return (
           '<a class="mobile-nav-link nav-mobile-link' + (item.featured ? ' is-featured' : '') + (current ? ' is-current' : '') + '"' +
