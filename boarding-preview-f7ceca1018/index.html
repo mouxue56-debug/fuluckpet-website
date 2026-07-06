@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- 暗启动：owner が保管登録番号を入力し公開判断するまで非公開。検索・内部リンク・sitemap すべて対象外。 -->
+  <meta name="robots" content="noindex, nofollow">
+  <title>ペットのお預かり（料金・案内）｜福楽キャッテリー</title>
+  <meta name="description" content="シベリアン専門ブリーダーによる、猫・わんちゃんのお預かり。料金・割引・オプションのご案内です。">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
+
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    /* ── boarding 页专用（沿用 style.css tokens，零新色） ── */
+    .bd-wrap { max-width: 720px; margin: 0 auto; padding: 0 20px; }
+    .bd-topbar { border-bottom: 1px solid var(--line); background: #fff; }
+    .bd-topbar-inner { max-width: 720px; margin: 0 auto; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .bd-logo { display: inline-flex; align-items: center; gap: 8px; font-family: 'Noto Sans JP', sans-serif; font-weight: 700; color: var(--ink); text-decoration: none; font-size: 16px; }
+    .bd-logo .dot { width: 22px; height: 22px; border-radius: 50%; background: var(--mint); display: inline-block; }
+    .bd-back { font-size: 13px; color: var(--mint-deep); text-decoration: none; font-weight: 600; }
+    .bd-back:hover { text-decoration: underline; }
+
+    .bd-hero { background: var(--cream); padding: 48px 0 32px; }
+    .bd-eyebrow { font-size: 13px; letter-spacing: .08em; color: var(--mint-deep); font-weight: 700; margin: 0 0 12px; }
+    .bd-hero h1 { font-size: 28px; line-height: 1.45; color: var(--ink); margin: 0 0 16px; font-weight: 700; }
+    .bd-lede { font-size: 16px; line-height: 1.9; color: var(--ink); max-inline-size: 34em; margin: 0 0 20px; }
+    .bd-cred { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+    .bd-cred li { font-size: 12.5px; color: var(--ink-soft); background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; }
+
+    .bd-sec { padding: 48px 0; border-top: 1px solid var(--line); }
+    .bd-sec h2 { font-size: 22px; color: var(--ink); margin: 0 0 8px; font-weight: 700; }
+    .bd-sec .bd-sub { font-size: 14px; color: var(--ink-soft); line-height: 1.8; margin: 0 0 24px; max-inline-size: 34em; }
+
+    /* 料金カード */
+    .bd-price-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .bd-price-card { background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 20px; box-shadow: 0 1px 2px rgba(38,51,47,.04); display: flex; flex-direction: column; }
+    .bd-price-card .name { font-size: 15px; font-weight: 700; color: var(--ink); margin: 0 0 4px; }
+    .bd-price-card .amt { font-size: 24px; font-weight: 700; color: var(--ink); letter-spacing: -.01em; }
+    .bd-price-card .amt small { font-size: 13px; font-weight: 500; color: var(--ink-soft); }
+    .bd-price-card .sim { margin-top: 14px; font-size: 13px; font-weight: 600; color: var(--mint-deep); text-decoration: none; align-self: flex-start; }
+    .bd-price-card .sim:hover { text-decoration: underline; }
+    .bd-taxnote { font-size: 13px; color: var(--ink-soft); margin: 16px 0 0; }
+
+    /* テーブル */
+    .bd-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table.bd-table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 460px; }
+    table.bd-table caption { text-align: left; font-size: 14px; font-weight: 700; color: var(--ink); padding: 0 0 10px; }
+    table.bd-table th, table.bd-table td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: right; color: var(--ink); }
+    table.bd-table th:first-child, table.bd-table td:first-child { text-align: left; color: var(--ink); }
+    table.bd-table thead th { color: var(--ink-soft); font-weight: 600; font-size: 13px; border-bottom: 2px solid var(--line); }
+    table.bd-table tbody tr:last-child td { border-bottom: none; }
+
+    /* 割引・オプション リスト */
+    .bd-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+    .bd-list li { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; }
+    .bd-list .t { font-weight: 700; color: var(--ink); font-size: 15px; margin: 0 0 4px; }
+    .bd-list .d { font-size: 13.5px; color: var(--ink-soft); line-height: 1.75; margin: 0; }
+
+    /* わんちゃん（低密度・纯文字） */
+    .bd-dog { background: var(--cream); border-radius: 20px; padding: 24px; }
+    .bd-dog h3 { font-size: 17px; color: var(--ink); margin: 0 0 10px; font-weight: 700; }
+    .bd-dog p { font-size: 14px; color: var(--ink); line-height: 1.85; margin: 0 0 10px; max-inline-size: 34em; }
+    .bd-dog .note { font-size: 13px; color: var(--ink-soft); }
+
+    /* 3ステップ */
+    .bd-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 8px 0 0; }
+    .bd-step { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 16px; text-align: center; }
+    .bd-step .n { width: 26px; height: 26px; border-radius: 50%; background: var(--mint); color: var(--ink); font-weight: 700; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; margin: 0 0 8px; }
+    .bd-step .l { font-size: 13.5px; font-weight: 700; color: var(--ink); margin: 0 0 2px; }
+    .bd-step .s { font-size: 12px; color: var(--ink-soft); margin: 0; line-height: 1.6; }
+
+    /* FAQ */
+    .bd-faq details { background: #fff; border: 1px solid var(--line); border-radius: 16px; margin: 0 0 10px; overflow: hidden; }
+    .bd-faq summary { padding: 16px 18px; font-weight: 700; color: var(--ink); font-size: 15px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .bd-faq summary::-webkit-details-marker { display: none; }
+    .bd-faq summary::after { content: '+'; color: var(--mint-deep); font-size: 20px; font-weight: 400; flex-shrink: 0; }
+    .bd-faq details[open] summary::after { content: '−'; }
+    .bd-faq .a { padding: 0 18px 18px; font-size: 14px; color: var(--ink); line-height: 1.85; }
+    .bd-faq .a table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 6px 0 0; }
+    .bd-faq .a td { padding: 7px 4px; border-bottom: 1px solid var(--line); }
+    .bd-faq .a td:last-child { text-align: right; color: var(--ink-soft); white-space: nowrap; }
+
+    /* CTA */
+    .bd-cta { background: var(--cream); border-radius: 24px; padding: 32px 24px; text-align: center; }
+    .bd-cta h2 { font-size: 20px; margin: 0 0 8px; }
+    .bd-cta p { font-size: 14px; color: var(--ink-soft); margin: 0 0 20px; }
+    .bd-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--mint-deep); color: #fff; font-weight: 700; font-size: 16px; text-decoration: none; padding: 15px 28px; border-radius: 999px; border: none; }
+    .bd-btn:hover { filter: brightness(1.05); }
+    .bd-btn-sub { display: inline-block; margin-top: 14px; font-size: 13px; color: var(--mint-deep); font-weight: 600; text-decoration: none; }
+    .bd-btn-sub:hover { text-decoration: underline; }
+
+    .bd-disc { font-size: 13px; color: var(--ink-soft); line-height: 1.8; max-inline-size: 36em; }
+    .bd-footer { border-top: 1px solid var(--line); padding: 32px 0; margin-top: 24px; }
+    .bd-footer .bd-wrap { display: flex; flex-direction: column; gap: 12px; }
+    .bd-reg { font-size: 12px; color: var(--ink-soft); }
+    .bd-reg strong { color: var(--ink); font-weight: 600; }
+
+    @media (max-width: 560px) {
+      .bd-hero { padding: 32px 0 24px; }
+      .bd-hero h1 { font-size: 23px; }
+      .bd-sec { padding: 32px 0; }
+      .bd-price-grid { grid-template-columns: 1fr; }
+      .bd-steps { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bd-topbar">
+    <div class="bd-topbar-inner">
+      <a href="../index.html" class="bd-logo"><span class="dot" aria-hidden="true"></span>福楽キャッテリー</a>
+      <a href="../index.html" class="bd-back">← ホームに戻る</a>
+    </div>
+  </div>
+
+  <header class="bd-hero">
+    <div class="bd-wrap">
+      <p class="bd-eyebrow">お預かり / ペットホテル</p>
+      <h1>ご旅行やご出張のあいだ、<br>大切な家族をお預かりします。</h1>
+      <p class="bd-lede">シベリアン専門ブリーダーが、猫と暮らすプロとして、一頭一頭の性格に合わせたお世話を、完全予約制で承ります。わんちゃんのお預かりも対応しております。</p>
+      <ul class="bd-cred">
+        <li>みんなの子猫ブリーダー 2025年上半期 全国1位</li>
+        <li>親猫は全頭・遺伝子検査済み</li>
+        <li>完全予約制</li>
+      </ul>
+    </div>
+  </header>
+
+  <main>
+    <!-- ① 料金 -->
+    <section class="bd-sec" id="price">
+      <div class="bd-wrap">
+        <h2>猫のお預かり 料金</h2>
+        <p class="bd-sub">1泊あたりの基本料金です。ご予約の泊数・時期により、長期割引や日付加算が適用されます。各カードの「料金シミュレーター」から概算をすぐに確認できます。</p>
+        <div class="bd-price-grid">
+          <div class="bd-price-card">
+            <p class="name">猫</p>
+            <p class="amt">¥6,200<small> / 泊</small></p>
+            <a class="sim" href="estimate.html?type=cat">▶ 料金シミュレーター</a>
+          </div>
+          <div class="bd-price-card">
+            <p class="name">小型犬</p>
+            <p class="amt">¥9,600<small> / 泊</small></p>
+            <a class="sim" href="estimate.html?type=small_dog">▶ 料金シミュレーター</a>
+          </div>
+          <div class="bd-price-card">
+            <p class="name">中型犬</p>
+            <p class="amt">¥10,700<small> / 泊</small></p>
+            <a class="sim" href="estimate.html?type=medium_dog">▶ 料金シミュレーター</a>
+          </div>
+          <div class="bd-price-card">
+            <p class="name">大型犬</p>
+            <p class="amt">¥11,700<small> / 泊</small></p>
+            <a class="sim" href="estimate.html?type=large_dog">▶ 料金シミュレーター</a>
+          </div>
+        </div>
+        <p class="bd-taxnote">表示価格はすべて税込です。</p>
+      </div>
+    </section>
+
+    <!-- ② 割引 -->
+    <section class="bd-sec" id="discount">
+      <div class="bd-wrap">
+        <h2>割引について</h2>
+        <p class="bd-sub">割引は併用できません。最もお得な割引を自動で適用します。日付加算・送迎費・追加ケア料金は割引の対象外です。</p>
+        <ul class="bd-list">
+          <li>
+            <p class="t">会員割引 &mdash; 10%OFF</p>
+            <p class="d">会員のお客様は基本料金が10%OFFになります。</p>
+          </li>
+          <li>
+            <p class="t">卒業猫割引 &mdash; 15%OFF</p>
+            <p class="d">当キャッテリーからお迎えいただいた猫ちゃん（卒業猫）は基本料金が15%OFFになります。</p>
+          </li>
+          <li>
+            <p class="t">長期割引 &mdash; 7泊以上</p>
+            <p class="d">7泊以上のご予約には、泊数に応じた長期割引が自動で適用されます（下表）。</p>
+          </li>
+        </ul>
+        <div class="bd-table-scroll" style="margin-top:16px;">
+          <table class="bd-table">
+            <caption>長期割引率（基本料金に対して）</caption>
+            <thead>
+              <tr><th>泊数</th><th>猫</th><th>小型犬</th><th>中型犬・大型犬</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>7〜13泊</td><td>20%OFF</td><td>20%OFF</td><td>20%OFF</td></tr>
+              <tr><td>14〜29泊</td><td>25%OFF</td><td>25%OFF</td><td>25%OFF</td></tr>
+              <tr><td>30泊以上</td><td>月お預かり価（40%OFF）</td><td>35%OFF</td><td>30%OFF</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="bd-taxnote">長期割引は実際のご利用泊数に基づきます。予定より早くお迎えの場合、実際の泊数に応じて料金を再計算いたします。30泊以上の長期利用は事前確認制です。</p>
+      </div>
+    </section>
+
+    <!-- ③ 日付加算 -->
+    <section class="bd-sec" id="surcharge">
+      <div class="bd-wrap">
+        <h2>日付加算（繁忙期）</h2>
+        <p class="bd-sub">土日祝・学校休暇・繁忙期は、1泊あたり下記の加算があります。加算は割引の対象外で、割引後の基本料金に加算されます。シミュレーターでは日付を選ぶだけで自動計算されます。</p>
+        <div class="bd-table-scroll">
+          <table class="bd-table">
+            <caption>1泊あたりの日付加算（税込）</caption>
+            <thead>
+              <tr><th>区分</th><th>猫・小型犬</th><th>中型犬</th><th>大型犬</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>平日（通常）</td><td>¥0</td><td>¥0</td><td>¥0</td></tr>
+              <tr><td>土日祝</td><td>+¥550</td><td>+¥1,100</td><td>+¥1,100</td></tr>
+              <tr><td>学校休暇（夏休み等）</td><td>+¥1,100</td><td>+¥1,650</td><td>+¥2,200</td></tr>
+              <tr><td>繁忙期（GW・お盆・年末年始）</td><td>+¥2,200</td><td>+¥3,300</td><td>+¥3,300</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ④ オプション -->
+    <section class="bd-sec" id="options">
+      <div class="bd-wrap">
+        <h2>オプション</h2>
+        <p class="bd-sub">お預かりに追加できるサービスです。ご希望に応じて承ります。</p>
+        <ul class="bd-list">
+          <li>
+            <p class="t">猫シャンプー &mdash; ¥8,000〜</p>
+            <p class="d">短毛・標準洗護 ¥8,000／長毛・安心洗護 ¥11,000。会員・卒業猫割引、お預かり後の割引が適用される場合があります。毛玉の状態・健康状態により、お断りまたは中止となる場合があります。</p>
+          </li>
+          <li>
+            <p class="t">送迎 &mdash; 片道 ¥3,300〜</p>
+            <p class="d">車での送迎を承ります（片道の距離により料金が変わります）。往復は片道×2の10%OFF。エリア外は別途お見積りいたします。高速・駐車料金が発生する場合は実費を申し受けます。</p>
+          </li>
+          <li>
+            <p class="t">お迎え時の待機</p>
+            <p class="d">ご予約時間から30分以内の待機は無料です。30分を超える場合、以降30分ごとに¥1,000の待機料を申し受けます（30分未満の端数は30分として計算）。</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ⑤ わんちゃん（低密度・纯文字・合规） -->
+    <section class="bd-sec" id="dog">
+      <div class="bd-wrap">
+        <div class="bd-dog">
+          <h3>わんちゃんのお預かりについて</h3>
+          <p>わんちゃんのお預かりも承っております。小型犬 ¥9,600／中型犬 ¥10,700／大型犬 ¥11,700（1泊・税込）。長期割引・日付加算は猫と同じ考え方で適用されます。</p>
+          <p><strong>わんちゃんの簡易ケア</strong> &mdash; お預かり中の衛生保持のため、足洗い・体拭き・部分的な清拭を行います（局部清掃 ¥1,100〜）。</p>
+          <p class="note">※お手入れは衛生保持のための簡易ケアのみです。美容を目的としたサービスは承っておりません。長毛・ダブルコート・大型犬、また不安の強い子は事前確認が必要です。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ⑥ 概算→相談→正式 3ステップ -->
+    <section class="bd-sec" id="flow">
+      <div class="bd-wrap">
+        <h2>ご予約までの流れ</h2>
+        <p class="bd-sub">まずは料金シミュレーターで概算をご確認いただき、LINEでご相談ください。正式な料金は、お部屋状況・お預かり内容を確認のうえご案内いたします。</p>
+        <div class="bd-steps">
+          <div class="bd-step"><span class="n">1</span><p class="l">概算を確認</p><p class="s">シミュレーターで<br>おおよその料金を確認</p></div>
+          <div class="bd-step"><span class="n">2</span><p class="l">LINEで相談</p><p class="s">日程・ご希望を<br>お気軽にご相談</p></div>
+          <div class="bd-step"><span class="n">3</span><p class="l">正式なご案内</p><p class="s">確認のうえ<br>正式料金をご案内</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ⑦ FAQ（只用文档已明确内容：取消/内金/长期/追加费） -->
+    <section class="bd-sec" id="faq">
+      <div class="bd-wrap">
+        <h2>よくあるご質問</h2>
+        <div class="bd-faq">
+          <details>
+            <summary>キャンセル料はかかりますか？</summary>
+            <div class="a">
+              <p>通常日程のキャンセル料は下記のとおりです。</p>
+              <table>
+                <tr><td>4日前まで</td><td>無料</td></tr>
+                <tr><td>3日前</td><td>30%</td></tr>
+                <tr><td>前日</td><td>50%</td></tr>
+                <tr><td>当日・ご連絡なし</td><td>100%</td></tr>
+              </table>
+              <p style="margin-top:12px;">繁忙期（GW・お盆・年末年始・9月連休・夏休み／冬休みの繁忙予約・30泊以上）は下記が適用されます。</p>
+              <table>
+                <tr><td>14日前まで</td><td>無料</td></tr>
+                <tr><td>13〜7日前</td><td>30%</td></tr>
+                <tr><td>6〜3日前</td><td>50%</td></tr>
+                <tr><td>2日前〜当日・ご連絡なし</td><td>100%</td></tr>
+              </table>
+              <p style="margin-top:12px;">キャンセル料は「お預かり基本料金＋日付加算」を基準といたします。すでに発生した送迎・特別用品などの実費は別途申し受ける場合があります。</p>
+            </div>
+          </details>
+          <details>
+            <summary>内金（前金）は必要ですか？</summary>
+            <div class="a"><p>通常の短期ご予約は原則不要です。繁忙期および長期利用は、予約確定時に内金をお願いする場合があります。</p></div>
+          </details>
+          <details>
+            <summary>長期予約で、予定より早くお迎えする場合は？</summary>
+            <div class="a"><p>長期割引は実際のご利用泊数に基づきます。予定より早くお迎えの場合、実際の泊数に応じて料金を再計算いたします。30泊以上の長期利用は事前確認制です。表示金額は概算です。お部屋状況・健康状態・性格・ケア内容により正式料金が変わる場合があります。</p></div>
+          </details>
+          <details>
+            <summary>追加費用が発生するのはどんな場合ですか？</summary>
+            <div class="a"><p>以下の場合に追加費用が発生することがあります：投薬、毛玉処理、強い不安・応激のケア、老齢のお世話、隔離管理、送迎の待機、高速・駐車料金など。具体的な費用は、ご予約確認時にご説明いたします。</p></div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ⑧ CTA -->
+    <section class="bd-sec">
+      <div class="bd-wrap">
+        <div class="bd-cta">
+          <h2>まずは概算を確認してみませんか？</h2>
+          <p>日程とご希望を選ぶだけで、おおよその料金がすぐにわかります。</p>
+          <a class="bd-btn" href="estimate.html">料金シミュレーターを開く</a>
+          <br><a class="bd-btn-sub" href="https://page.line.me/915hnnlk" target="_blank" rel="noopener">先にLINEで相談する →</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bd-footer">
+    <div class="bd-wrap">
+      <p class="bd-disc">※表示価格はすべて税込・概算です。正式な料金はご相談後にご案内いたします。日付加算・送迎費・追加ケア料金は割引の対象外です。掲載の割引・料金は予告なく変更する場合があります。</p>
+      <!-- owner が保管登録番号を記入後に公開判断。空欄のあいだは公開しない。 -->
+      <p class="bd-reg"><strong>動物取扱業登録（保管）</strong>：登録番号 ______________／登録年月日 __________／自治体 __________</p>
+      <p class="bd-reg">福楽キャッテリー &mdash; 完全予約制</p>
+    </div>
+  </footer>
+</body>
+</html>
