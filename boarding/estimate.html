@@ -190,11 +190,13 @@
       <div class="es-dates">
         <div class="es-field">
           <label for="checkIn">チェックイン</label>
-          <input type="date" id="checkIn" autocomplete="off">
+<!-- max=料金カレンダー整備済み範囲の末端（boarding-config.js の日付データが 2026 年度分のため。
+     以降の日程は加算が算定できず過少見積りになるので、シミュレーターでは受け付けない） -->
+          <input type="date" id="checkIn" autocomplete="off" max="2027-01-07">
         </div>
         <div class="es-field">
           <label for="checkOut">チェックアウト</label>
-          <input type="date" id="checkOut" autocomplete="off">
+          <input type="date" id="checkOut" autocomplete="off" max="2027-01-08">
         </div>
       </div>
       <p class="es-nights" id="nightsLabel" hidden>ご利用：<span id="nightsVal">0</span>泊</p>

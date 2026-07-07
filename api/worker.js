@@ -482,6 +482,7 @@ const KB_STATIC_KEYS = [
   'kb:health',
   'kb:aftercare',
   'kb:legal',
+  'kb:boarding', // ペットホテル／お預かり（2026-07 追加：料金・割引・条件・シミュレーターURL）
 ];
 
 function escapeRegExp(s) {

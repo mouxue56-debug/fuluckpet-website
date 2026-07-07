@@ -81,6 +81,12 @@
     // 空态 / 无效态
     if (!type || !checkIn || !checkOut) { showEmpty('上の①②を選ぶと、概算がここに表示されます。'); return; }
     if (nights < 1) { showEmpty('チェックアウトはチェックイン翌日以降の日付を選んでください。'); return; }
+    // 料金カレンダー整備済み範囲（boarding-config.js は 2026 年度分）を超える日程は
+    // 加算が算定できず過少見積りになるため、計算せず LINE へ誘導する。
+    if (checkIn > '2027-01-07' || checkOut > '2027-01-08') {
+      showEmpty('2027年1月8日以降の日程は、恐れ入りますがLINEで直接お見積りいたします。');
+      return;
+    }
 
     var isMember = els.isMember.checked, isGrad = isCat && els.isGraduatedCat.checked;
     var b = Calc.calculateBoarding({ animalType: type, checkInDate: checkIn, checkOutDate: checkOut, isMember: isMember, isGraduatedCat: isGrad });

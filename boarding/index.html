@@ -25,6 +25,63 @@
   <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
 
   <link rel="stylesheet" href="../style.css">
+
+  <!-- 構造化データ：noindex 中は無害、公開切替と同時に有効化される -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": "ペットのお預かり / ペットホテル",
+    "serviceType": "Pet boarding",
+    "provider": {
+      "@type": "LocalBusiness",
+      "name": "福楽キャッテリー",
+      "url": "https://fuluckpet.com/"
+    },
+    "areaServed": "大阪府",
+    "url": "https://fuluckpet.com/boarding/",
+    "description": "シベリアン専門ブリーダーによる猫・犬のお預かり。完全予約制。",
+    "offers": [
+      { "@type": "Offer", "name": "猫のお預かり（1泊）", "price": "6200", "priceCurrency": "JPY" },
+      { "@type": "Offer", "name": "小型犬のお預かり（1泊）", "price": "9600", "priceCurrency": "JPY" },
+      { "@type": "Offer", "name": "中型犬のお預かり（1泊）", "price": "10700", "priceCurrency": "JPY" },
+      { "@type": "Offer", "name": "大型犬のお預かり（1泊）", "price": "11700", "priceCurrency": "JPY" }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "キャンセル料はかかりますか？",
+        "acceptedAnswer": { "@type": "Answer", "text": "通常日程は4日前まで無料、3日前30%、前日50%、当日・ご連絡なしは100%です。繁忙期（GW・お盆・年末年始・9月連休・夏休み／冬休みの繁忙予約・30泊以上）は14日前まで無料、13〜7日前30%、6〜3日前50%、2日前〜当日100%が適用されます。キャンセル料はお預かり基本料金＋日付加算を基準といたします。" }
+      },
+      {
+        "@type": "Question",
+        "name": "内金（前金）は必要ですか？",
+        "acceptedAnswer": { "@type": "Answer", "text": "通常の短期ご予約は原則不要です。繁忙期および長期利用は、予約確定時に内金をお願いする場合があります。" }
+      },
+      {
+        "@type": "Question",
+        "name": "長期予約で予定より早くお迎えする場合は？",
+        "acceptedAnswer": { "@type": "Answer", "text": "長期割引は実際のご利用泊数に基づきます。予定より早くお迎えの場合、実際の泊数に応じて料金を再計算いたします。30泊以上の長期利用は事前確認制です。" }
+      },
+      {
+        "@type": "Question",
+        "name": "お支払い方法を教えてください",
+        "acceptedAnswer": { "@type": "Answer", "text": "銀行振込にてお願いしております（クレジットカードには対応しておりません）。料金はご利用開始までにお支払いください。繁忙期および長期利用は予約確定時に内金をお願いする場合があります。" }
+      },
+      {
+        "@type": "Question",
+        "name": "特別なお願いも相談できますか？",
+        "acceptedAnswer": { "@type": "Answer", "text": "はい。投薬、老齢のお世話、食事の温め・調理、多頭での同室、写真・動画でのご報告など、特別なご要望はLINEでお気軽にご相談ください。できる限り対応いたします。" }
+      }
+    ]
+  }
+  </script>
   <style>
     /* ── boarding 页专用（沿用 style.css tokens，零新色） ── */
     /* style.css に --cream は無い：実トークン --mango-milk(#FFFCF0) への別名（無地フォールバック付き） */
