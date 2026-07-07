@@ -124,6 +124,7 @@
     /* テーブル */
     .bd-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     table.bd-table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 460px; }
+    table.bd-table.narrow { min-width: 0; } /* 2列の小動物表は375pxでも横スクロール不要 */
     table.bd-table caption { text-align: left; font-size: 14px; font-weight: 700; color: var(--ink); padding: 0 0 12px; }
     table.bd-table th, table.bd-table td { padding: 12px; border-bottom: 1px solid var(--line); text-align: right; color: var(--ink); }
     table.bd-table th:first-child, table.bd-table td:first-child { text-align: left; color: var(--ink); }
@@ -353,7 +354,7 @@
           <h3>小動物のお預かりについて</h3>
           <p>うさぎ・チンチラ・フェレット、ハムスターなどの小動物もお預かりしております。料金は泊数別の1泊料金のみ（下表・税込）。<strong>日付加算・会員割引は小動物には適用されません（表の料金のみ）。</strong></p>
           <div class="bd-table-scroll" style="margin:16px 0 0;">
-            <table class="bd-table">
+            <table class="bd-table narrow">
               <caption>うさぎ・小動物（60cmケージ：うさぎ・チンチラ・フェレット等）</caption>
               <thead>
                 <tr><th>泊数</th><th>1泊あたり（税込）</th></tr>
@@ -368,7 +369,7 @@
             </table>
           </div>
           <div class="bd-table-scroll" style="margin:16px 0 0;">
-            <table class="bd-table">
+            <table class="bd-table narrow">
               <caption>ハムスター等（小動物ケージ）</caption>
               <thead>
                 <tr><th>泊数</th><th>1泊あたり（税込）</th></tr>
