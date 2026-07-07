@@ -127,11 +127,39 @@
     return units * CONFIG.waitingFee.feePerUnit;
   }
 
+  // ── 小動物お預かり（ポスター準拠・泊数階梯のみ；日付加算・会員/卒業割引なし）──
+  // 小動物タイプ判定（CONFIG.smallPetBoarding のキー）
+  function isSmallPetType(animalType) {
+    var m = CONFIG.smallPetBoarding;
+    return !!(m && Object.prototype.hasOwnProperty.call(m, animalType));
+  }
+  // 1泊単価（tiers を上から走査＝minNights 降順、nights>=minNights の最初のティア）。未知タイプは null。
+  function getSmallPetPerNight(animalType, nights) {
+    var cfg = CONFIG.smallPetBoarding && CONFIG.smallPetBoarding[animalType];
+    if (!cfg) return null;
+    var tiers = cfg.tiers || [];
+    for (var i = 0; i < tiers.length; i++) if (nights >= tiers[i].minNights) return tiers[i].perNight;
+    return null;
+  }
+  // 小動物寄宿総計算。boardingTotal = perNight × nights（¥100 丸めなし＝ポスター単価そのまま）。
+  // day_use ガードは calculateBoarding と同一（nights<1）。
+  function calculateSmallPetBoarding(input) {
+    var nights = getNights(input.checkInDate, input.checkOutDate);
+    if (!(nights >= 1)) return { nights: nights, error: 'day_use', boardingTotal: 0, perNight: null, tierMinNights: null };
+    var cfg = CONFIG.smallPetBoarding && CONFIG.smallPetBoarding[input.animalType];
+    var perNight = getSmallPetPerNight(input.animalType, nights);
+    if (perNight === null) return { nights: nights, error: 'unknown_type', boardingTotal: 0, perNight: null, tierMinNights: null };
+    var tierMinNights = null, tiers = cfg.tiers || [];
+    for (var i = 0; i < tiers.length; i++) if (nights >= tiers[i].minNights) { tierMinNights = tiers[i].minNights; break; }
+    return { nights: nights, perNight: perNight, boardingTotal: perNight * nights, tierMinNights: tierMinNights };
+  }
+
   var api = {
     roundYen100: roundYen100, getNights: getNights, getStayDates: getStayDates, getDateCategory: getDateCategory,
     getLongStayRate: getLongStayRate, getBoardingDiscountRate: getBoardingDiscountRate, calculateBoarding: calculateBoarding,
     getCatGroomingRate: getCatGroomingRate, calculateCatGrooming: calculateCatGrooming, calculateDogCleaning: calculateDogCleaning,
     getTransportOneWayFee: getTransportOneWayFee, calculateTransportFee: calculateTransportFee, calculateWaitingFee: calculateWaitingFee,
+    isSmallPetType: isSmallPetType, getSmallPetPerNight: getSmallPetPerNight, calculateSmallPetBoarding: calculateSmallPetBoarding,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (typeof window !== 'undefined') window.BoardingCalc = api;

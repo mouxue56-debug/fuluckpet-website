@@ -12,7 +12,30 @@
     roundUnit: 100,
 
     // §3.1 寄宿基础价 / 1晚（税込）
-    boardingBasePrice: { cat: 6200, small_dog: 9600, medium_dog: 10700, large_dog: 11700 },
+    // v2 2026-07-07 owner 指示：整体寄养价 ×0.85（roundYen100 取整；原价 6200/9600/10700/11700）。
+    // 市场核对：大阪猫 1 泊行情 ~¥5,500、兔 ¥3,300+、仓鼠 ¥2,750（动物医院系）——本表全部贴线或低于行情。
+    boardingBasePrice: { cat: 5300, small_dog: 8200, medium_dog: 9100, large_dog: 9900 },
+
+    // 小動物お預かり（2026-07-07 owner ポスター準拠・数値そのまま）：
+    // 1泊単価の泊数階梯（≈5/10/15/20%OFF at 7/14/21/30泊）。日付加算・会員/卒業猫割引は適用しない。
+    // rabbit_cage=60cmケージ（うさぎ・チンチラ・フェレット等）／hamster_cage=小動物ケージ（ハムスター等）。
+    // 鳥・爬虫類（ヘビ等）は要相談（お見積り）。
+    smallPetBoarding: {
+      rabbit_cage: {
+        tiers: [
+          { minNights: 30, perNight: 1200 }, { minNights: 21, perNight: 1275 },
+          { minNights: 14, perNight: 1350 }, { minNights: 7, perNight: 1425 },
+          { minNights: 1, perNight: 1500 },
+        ],
+      },
+      hamster_cage: {
+        tiers: [
+          { minNights: 30, perNight: 400 }, { minNights: 21, perNight: 428 },
+          { minNights: 14, perNight: 451 }, { minNights: 7, perNight: 475 },
+          { minNights: 1, perNight: 500 },
+        ],
+      },
+    },
 
     // §5 顾客身份折扣（不叠加，取最优）
     customerDiscount: { member: 0.9, graduatedCat: 0.85 },

@@ -8,7 +8,7 @@
   if (!Calc || !CFG.boardingBasePrice) { return; }
 
   var LINE_URL = 'https://page.line.me/915hnnlk';
-  var TYPE_LABEL = { cat: '猫', small_dog: '小型犬', medium_dog: '中型犬', large_dog: '大型犬' };
+  var TYPE_LABEL = { cat: '猫', small_dog: '小型犬', medium_dog: '中型犬', large_dog: '大型犬', rabbit_cage: 'うさぎ・小動物', hamster_cage: 'ハムスター等' };
   var CAT_GROOMING_LABEL = { short_standard: '短毛・標準洗護', short_comfort: '短毛・安心洗護', long_standard: '長毛・標準洗護', long_comfort: '長毛・安心洗護' };
   var DOG_CARE_LABEL = { local_cleaning: '局部清掃', body_wipe: '簡易体拭き', footwash_plus_local: '足洗い＋局部清掃', simple_wash: '簡易ケア' };
   var SUR_LABEL = { weekend_or_holiday: '土日祝加算', school_vacation: '学校休暇加算', high_season_core: '繁忙期加算' };
@@ -21,6 +21,7 @@
     types: document.querySelectorAll('input[name="petType"]'),
     checkIn: $('checkIn'), checkOut: $('checkOut'),
     nightsLabel: $('nightsLabel'), nightsVal: $('nightsVal'), surHint: $('surHint'),
+    discountCard: $('discountCard'),
     isMember: $('isMember'), isGraduatedCat: $('isGraduatedCat'), gradWrap: $('gradWrap'),
     optCat: $('optCatGrooming'), catGrooming: $('catGrooming'),
     optDog: $('optDogCare'), dogCare: $('dogCare'),
@@ -62,16 +63,43 @@
     return li;
   }
 
+  // 送迎行を lines に追加（猫/犬/小動物 共通）。戻り値 {total, hasNote}
+  function addTransportLine(lines) {
+    if (els.transport.value === 'custom') {
+      lines.push({ lbl: '送迎（エリア外）', sub: '別途お見積り', val: '要相談' });
+      return { total: 0, hasNote: true };
+    }
+    if (els.transport.value) {
+      var mins = parseInt(els.transport.value, 10);
+      var tf = Calc.calculateTransportFee(els.transportRound.checked ? { pickupMinutes: mins, dropoffMinutes: mins } : { pickupMinutes: mins });
+      if (typeof tf === 'number') {
+        lines.push({ lbl: '送迎', sub: els.transportRound.checked ? '往復（片道×2の10%OFF）' : '片道', val: '+' + fmtYen(tf) });
+        return { total: tf, hasNote: false };
+      }
+    }
+    return { total: 0, hasNote: false };
+  }
+
   function compute() {
     var type = selectedType();
     var checkIn = els.checkIn.value, checkOut = els.checkOut.value;
 
+    // 小動物：泊数別1泊料金のみ（日付加算・会員/長期割引・猫シャンプー/わんちゃんケアなし。送迎は共通で利用可）
+    var isSmall = Calc.isSmallPetType && Calc.isSmallPetType(type);
+
     // 选项显隐随类型
     var isCat = type === 'cat';
-    els.optCat.hidden = !isCat;
-    els.optDog.hidden = !(type && !isCat);
-    if (!isCat) { els.catGrooming.value = ''; els.isGraduatedCat.checked = false; els.isGraduatedCat.disabled = true; els.gradWrap.style.opacity = '.5'; }
-    else { els.isGraduatedCat.disabled = false; els.gradWrap.style.opacity = ''; }
+    els.optCat.hidden = isSmall || !isCat;
+    els.optDog.hidden = isSmall || !(type && !isCat);
+    els.discountCard.hidden = isSmall;
+    if (isSmall) {
+      els.catGrooming.value = ''; els.dogCare.value = '';
+      els.isMember.checked = false; els.isGraduatedCat.checked = false;
+    } else if (!isCat) {
+      els.catGrooming.value = ''; els.isGraduatedCat.checked = false; els.isGraduatedCat.disabled = true; els.gradWrap.style.opacity = '.5';
+    } else {
+      els.isGraduatedCat.disabled = false; els.gradWrap.style.opacity = '';
+    }
     if (isCat) els.dogCare.value = '';
 
     var nights = (checkIn && checkOut) ? Calc.getNights(checkIn, checkOut) : 0;
@@ -85,6 +113,21 @@
     // 加算が算定できず過少見積りになるため、計算せず LINE へ誘導する。
     if (checkIn > '2027-01-07' || checkOut > '2027-01-08') {
       showEmpty('2027年1月8日以降の日程は、恐れ入りますがLINEで直接お見積りいたします。');
+      return;
+    }
+
+    // 小動物：泊数別の1泊料金のみ（日付加算・割引なし・¥100丸めなし）＋送迎（任意）
+    if (isSmall) {
+      var sp = Calc.calculateSmallPetBoarding({ animalType: type, checkInDate: checkIn, checkOutDate: checkOut });
+      if (!sp || sp.error) { showEmpty('チェックアウトはチェックイン翌日以降の日付を選んでください。'); return; }
+      var spLines = [];
+      spLines.push({ lbl: '基本料金', sub: TYPE_LABEL[type] + ' ' + fmtYen(sp.perNight) + ' × ' + nights + '泊', val: fmtYen(sp.boardingTotal) });
+      var spTotal = sp.boardingTotal;
+      var spQuoteNote = addTransportLine(spLines);
+      if (spQuoteNote.total) spTotal += spQuoteNote.total;
+      render(spLines, spTotal, false);
+      lastQuoteText = buildQuoteText(type, checkIn, checkOut, nights, spLines, spTotal, spQuoteNote.hasNote);
+      els.ctaLine.disabled = false; els.ctaCopy.hidden = false;
       return;
     }
 
@@ -124,13 +167,9 @@
       if (dc) { lines.push({ lbl: 'わんちゃんの簡易ケア', sub: DOG_CARE_LABEL[els.dogCare.value] + '（足洗い・体拭き）', val: '+' + fmtYen(dc.subtotal) }); total += dc.subtotal; }
     }
     // 选项：送迎
-    if (els.transport.value === 'custom') {
-      lines.push({ lbl: '送迎（エリア外）', sub: '別途お見積り', val: '要相談' }); hasQuoteNote = true;
-    } else if (els.transport.value) {
-      var mins = parseInt(els.transport.value, 10);
-      var tf = Calc.calculateTransportFee(els.transportRound.checked ? { pickupMinutes: mins, dropoffMinutes: mins } : { pickupMinutes: mins });
-      if (typeof tf === 'number') { lines.push({ lbl: '送迎', sub: els.transportRound.checked ? '往復（片道×2の10%OFF）' : '片道', val: '+' + fmtYen(tf) }); total += tf; }
-    }
+    var tResult = addTransportLine(lines);
+    if (tResult.total) total += tResult.total;
+    if (tResult.hasNote) hasQuoteNote = true;
 
     render(lines, total, b.needsReview);
     lastQuoteText = buildQuoteText(type, checkIn, checkOut, nights, lines, total, hasQuoteNote);
@@ -200,9 +239,14 @@
   ['checkIn', 'checkOut', 'isMember', 'isGraduatedCat', 'catGrooming', 'dogCare', 'transport', 'transportRound'].forEach(function (k) {
     if (els[k]) els[k].addEventListener('change', compute);
   });
-  // 加算提示随日期显示
-  function toggleSurHint() { els.surHint.classList.toggle('show', !!(els.checkIn.value && els.checkOut.value)); }
+  // 加算提示随日期显示（小動物は日付加算なしのため非表示）
+  function toggleSurHint() {
+    var smallSel = Calc.isSmallPetType && Calc.isSmallPetType(selectedType());
+    els.surHint.classList.toggle('show', !smallSel && !!(els.checkIn.value && els.checkOut.value));
+  }
   els.checkIn.addEventListener('change', toggleSurHint); els.checkOut.addEventListener('change', toggleSurHint);
+  els.types.forEach && els.types.forEach(function (r) { r.addEventListener('change', toggleSurHint); });
+  if (!els.types.forEach) for (var j = 0; j < els.types.length; j++) els.types[j].addEventListener('change', toggleSurHint);
 
   els.ctaLine.addEventListener('click', function () { onCta(true); });
   els.ctaCopy.addEventListener('click', function () { onCta(false); });
@@ -214,7 +258,7 @@
   // ?type= 预选（料金页价格卡导入）
   try {
     var qp = new URLSearchParams(window.location.search).get('type');
-    if (qp && TYPE_LABEL[qp]) { var r = document.getElementById('t-' + ({ cat: 'cat', small_dog: 'small', medium_dog: 'medium', large_dog: 'large' })[qp]); if (r) r.checked = true; }
+    if (qp && TYPE_LABEL[qp]) { var r = document.getElementById('t-' + ({ cat: 'cat', small_dog: 'small', medium_dog: 'medium', large_dog: 'large', rabbit_cage: 'rabbit', hamster_cage: 'hamster' })[qp]); if (r) r.checked = true; }
   } catch (e) {}
 
   // min date = 今日（防倒填）——用 input 的 min 属性，避免脚本内取当前时间做计算

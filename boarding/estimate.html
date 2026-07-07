@@ -6,9 +6,9 @@
   <!-- noindex は保管登録番号の記入まで維持（index.html と同時に解除） -->
   <meta name="robots" content="noindex, nofollow">
   <title>料金シミュレーター（概算）｜ペットのお預かり｜福楽キャッテリー</title>
-  <meta name="description" content="猫・わんちゃんのお預かり料金の概算シミュレーター。日程とご希望を選ぶだけで、おおよその料金がわかります。">
+  <meta name="description" content="猫・わんちゃん・小動物（うさぎ・ハムスター等）のお預かり料金の概算シミュレーター。日程とご希望を選ぶだけで、おおよその料金がわかります。">
   <meta property="og:title" content="お預かり料金シミュレーター（概算）｜福楽キャッテリー">
-  <meta property="og:description" content="日程とご希望を選ぶだけで、猫・わんちゃんのお預かり料金の概算がすぐにわかります。税込・完全予約制。">
+  <meta property="og:description" content="日程とご希望を選ぶだけで、猫・わんちゃん・小動物（うさぎ・ハムスター等）のお預かり料金の概算がすぐにわかります。税込・完全予約制。">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://fuluckpet.com/boarding/estimate.html">
   <meta property="og:site_name" content="サイベリアン｜大阪・福楽キャッテリー">
@@ -165,19 +165,27 @@
       <div class="es-types" role="radiogroup" aria-label="ペットの種類">
         <div class="es-type">
           <input type="radio" name="petType" id="t-cat" value="cat">
-          <label for="t-cat"><span class="tn">猫</span><span class="tp">¥6,200 / 泊</span></label>
+          <label for="t-cat"><span class="tn">猫</span><span class="tp">¥5,300 / 泊</span></label>
         </div>
         <div class="es-type">
           <input type="radio" name="petType" id="t-small" value="small_dog">
-          <label for="t-small"><span class="tn">小型犬</span><span class="tp">¥9,600 / 泊</span></label>
+          <label for="t-small"><span class="tn">小型犬</span><span class="tp">¥8,200 / 泊</span></label>
         </div>
         <div class="es-type">
           <input type="radio" name="petType" id="t-medium" value="medium_dog">
-          <label for="t-medium"><span class="tn">中型犬</span><span class="tp">¥10,700 / 泊</span></label>
+          <label for="t-medium"><span class="tn">中型犬</span><span class="tp">¥9,100 / 泊</span></label>
         </div>
         <div class="es-type">
           <input type="radio" name="petType" id="t-large" value="large_dog">
-          <label for="t-large"><span class="tn">大型犬</span><span class="tp">¥11,700 / 泊</span></label>
+          <label for="t-large"><span class="tn">大型犬</span><span class="tp">¥9,900 / 泊</span></label>
+        </div>
+        <div class="es-type">
+          <input type="radio" name="petType" id="t-rabbit" value="rabbit_cage">
+          <label for="t-rabbit"><span class="tn">うさぎ・小動物</span><span class="tp">¥1,500 / 泊〜</span></label>
+        </div>
+        <div class="es-type">
+          <input type="radio" name="petType" id="t-hamster" value="hamster_cage">
+          <label for="t-hamster"><span class="tn">ハムスター等</span><span class="tp">¥500 / 泊〜</span></label>
         </div>
       </div>
       <p class="es-typenote">表示価格はすべて税込です。</p>
@@ -204,7 +212,7 @@
     </div>
 
     <!-- Q3 割引自申告 -->
-    <div class="es-card">
+    <div class="es-card" id="discountCard">
       <p class="es-q">③ 割引の対象ですか？</p>
       <p class="es-qhint">当てはまるものにチェックしてください（任意）。</p>
       <div class="es-checks">
@@ -265,6 +273,7 @@
         <li>表示はすべて<strong>税込</strong>。合計は「割引後の基本料金 × 泊数 ＋ 日付加算」です。</li>
         <li>割引（会員10%・卒業猫15%・7泊以上の長期割引）は併用できません。<strong>最もお得な1つを自動で適用</strong>します。</li>
         <li>日付加算（1泊ごと・割引対象外）：土日祝 +¥550〜／学校休暇 +¥1,100〜／GW・お盆・年末年始 +¥2,200〜。</li>
+        <li>小動物は泊数別の1泊料金のみ（日付加算・割引なし）。</li>
         <li>30泊以上は事前確認制です。</li>
         <li>投薬・老齢ケア・多頭同室など、<strong>特別なご要望はLINEでご相談ください</strong>。できる限り対応いたします。</li>
       </ul>
