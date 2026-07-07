@@ -1424,10 +1424,46 @@ async function mutateCalendar(env, fn) {
   return { result, rev: doc.rev };
 }
 
+// Map a booking status → the calendar-event status it should drive, or null for
+// "no sync". Pure. 'contacted' → 'confirmed' (the visit is on), 'archived' → 'done'
+// (visit happened / closed out); every other booking status (including 'new') is a
+// no-op so we never clobber an event an admin is still editing. Exported for tests.
+function bookingStatusToEventStatus(bookingStatus) {
+  switch (bookingStatus) {
+    case 'contacted': return 'confirmed';
+    case 'archived': return 'done';
+    default: return null;
+  }
+}
+
+// Pure core of the booking→calendar status sync: given an events array, stamp the
+// new status onto every event that (a) was spawned from this booking (.bookingId ===
+// bookingId) and (b) isn't already cancelled — a cancelled event stays cancelled and
+// is never revived by a booking status change. Mutates matched events in place and
+// returns how many were touched (0 = no-op). `nowIso` overridable for tests.
+function applyBookingCalendarSync(events, bookingId, eventStatus, nowIso) {
+  if (!Array.isArray(events) || !bookingId) return 0;
+  const stamp = nowIso || new Date().toISOString();
+  let touched = 0;
+  for (const ev of events) {
+    if (!ev || typeof ev !== 'object') continue;
+    if (ev.bookingId !== bookingId) continue;
+    if (ev.status === 'cancelled') continue;
+    ev.status = eventStatus;
+    ev.updatedAt = stamp;
+    ev.updatedBy = 'booking-sync';
+    touched++;
+  }
+  return touched;
+}
+
 // /api/booking hook: append a pending visit event built from a booking submission.
 // Skips silently unless preferred_date is a valid YYYY-MM-DD. Never throws into the
 // booking path (belt & braces: internal try/catch, plus the caller wraps in .catch()).
-async function appendVisitEventFromBooking(env, data) {
+// `bookingId` is stamped onto the event so later booking status changes can find and
+// sync it (see syncCalendarFromBooking); the PUT calendar merge only writes validated
+// fields, so bookingId survives event edits.
+async function appendVisitEventFromBooking(env, data, bookingId) {
   try {
     if (!data || !DATE_RE.test(String(data.preferred_date || ''))) return;
 
@@ -1455,6 +1491,7 @@ async function appendVisitEventFromBooking(env, data) {
       status: 'pending',
       notes,
       source: 'booking-form',
+      bookingId: bookingId || '',
       createdAt: nowIso,
       updatedAt: nowIso,
       updatedBy: 'booking-form',
@@ -1466,6 +1503,22 @@ async function appendVisitEventFromBooking(env, data) {
     });
   } catch (e) {
     console.error('[calendar-hook]', e && e.stack ? e.stack : e);
+  }
+}
+
+// Booking→calendar status sync: when a booking's status changes (contacted/archived)
+// or it's deleted, drive the linked visit event(s) to the mapped event status. Thin
+// KV wrapper around applyBookingCalendarSync — no-op when no linked event is found.
+// NEVER throws (internal try/catch): a sync failure must never break the admin action
+// that triggered it. Caller schedules this via ctx.waitUntil.
+async function syncCalendarFromBooking(env, bookingId, eventStatus) {
+  try {
+    if (!bookingId || !eventStatus) return;
+    await mutateCalendar(env, (doc) => {
+      applyBookingCalendarSync(doc.events, bookingId, eventStatus);
+    });
+  } catch (e) {
+    console.error('[calendar-sync]', e && e.stack ? e.stack : e);
   }
 }
 
@@ -2293,7 +2346,7 @@ export default {
           // Calendar hook: mirror this booking as a pending visit event on the shared
           // calendar. Best-effort & fully isolated — appendVisitEventFromBooking swallows
           // its own errors, and this .catch is a second net so it can never break booking.
-          ctx.waitUntil(appendVisitEventFromBooking(env, data).catch(e => console.error('[calendar-hook]', e)));
+          ctx.waitUntil(appendVisitEventFromBooking(env, data, id).catch(e => console.error('[calendar-hook]', e)));
 
           // Email via Resend (no-op until RESEND_API_KEY is set). Telegram always fires and
           // the booking is already in KV, so a missing/failed email never loses the lead.
@@ -2913,6 +2966,9 @@ export default {
         const target = list.keys.find(k => k.name.endsWith(':' + id) || k.name === 'booking:' + id);
         if (!target) return addCors(notFound());
         await env.DATA.delete(target.name);
+        // Cancel any linked calendar visit event(s). Best-effort & isolated —
+        // syncCalendarFromBooking swallows its own errors and never throws.
+        ctx.waitUntil(syncCalendarFromBooking(env, id, 'cancelled'));
         return addCors(json({ success: true }));
       }
 
@@ -2926,6 +2982,13 @@ export default {
         const existing = (await env.DATA.get(target.name, 'json')) || {};
         const merged = { ...existing, ...body, id: existing.id || id, updatedAt: new Date().toISOString() };
         await env.DATA.put(target.name, JSON.stringify(merged));
+        // After the booking status is persisted, drive the linked calendar visit
+        // event(s) to the mapped status (contacted→confirmed, archived→done). Non-null
+        // mapping only; best-effort & isolated — syncCalendarFromBooking never throws.
+        const syncStatus = bookingStatusToEventStatus(merged.status);
+        if (syncStatus) {
+          ctx.waitUntil(syncCalendarFromBooking(env, merged.id, syncStatus));
+        }
         return addCors(json(merged));
       }
 
@@ -3115,4 +3178,4 @@ export default {
 // Named exports for unit testing (ignored by the Workers runtime, which only reads
 // the default export). tests/validate-breederid.test.js keeps a synced copy because
 // this project has no package.json / module toolchain to import ESM from plain Node.
-export { validateBreederIdUniqueness, dupCounts, validateCalendarEvent, rangeOverlap, icsEscape, buildIcs };
+export { validateBreederIdUniqueness, dupCounts, validateCalendarEvent, rangeOverlap, icsEscape, buildIcs, bookingStatusToEventStatus, applyBookingCalendarSync };

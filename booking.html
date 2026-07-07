@@ -212,6 +212,15 @@
  .booking-textarea::placeholder {
  color: #8EA4A1;
  }
+ .field-error {
+ display: block;
+ color: #B3261E;
+ font-size: 0.82rem;
+ font-weight: 600;
+ line-height: 1.6;
+ margin-top: 7px;
+ }
+ .field-error[hidden] { display: none; }
  .booking-select {
  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%2390A8A8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
  background-repeat: no-repeat;
@@ -270,15 +279,24 @@
  cursor: not-allowed;
  transform: none;
  }
+ .booking-submit .btn-sending {
+ display: inline-flex;
+ align-items: center;
+ justify-content: center;
+ gap: 10px;
+ }
+ .booking-submit .btn-sending[hidden] { display: none; }
  .booking-submit .spinner {
- display: none;
  width: 20px;
  height: 20px;
  border: 3px solid rgba(255,255,255,0.3);
  border-top-color: white;
  border-radius: 50%;
  animation: spin 0.8s linear infinite;
- margin: 0 auto;
+ flex-shrink: 0;
+ }
+ @media (prefers-reduced-motion: reduce) {
+ .booking-submit .spinner { animation-duration: 1.6s; }
  }
  @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -627,19 +645,22 @@
               <!-- Name -->
               <div class="form-group">
                 <label for="bk-name"><span data-i18n="booking.name">お名前</span><span class="required" aria-hidden="true">*</span></label>
-                <input type="text" id="bk-name" class="booking-input" required data-placeholder-ja="例：田中 太郎" data-placeholder-en="e.g. Taro Tanaka" data-placeholder-zh="例：田中 太郎" placeholder="例：田中 太郎">
+                <input type="text" id="bk-name" class="booking-input" required autocomplete="name" autocapitalize="words" enterkeyhint="next" aria-describedby="bk-name-err" data-placeholder-ja="例：田中 太郎" data-placeholder-en="e.g. Taro Tanaka" data-placeholder-zh="例：田中 太郎" placeholder="例：田中 太郎">
+                <span class="field-error" id="bk-name-err" role="alert" hidden></span>
               </div>
 
               <!-- Email -->
               <div class="form-group">
                 <label for="bk-email"><span data-i18n="booking.email">メールアドレス</span><span class="required" aria-hidden="true">*</span></label>
-                <input type="email" id="bk-email" class="booking-input" required placeholder="example@email.com">
+                <input type="email" id="bk-email" class="booking-input" required autocomplete="email" inputmode="email" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next" aria-describedby="bk-email-err" placeholder="example@email.com">
+                <span class="field-error" id="bk-email-err" role="alert" hidden></span>
               </div>
 
               <!-- Phone -->
               <div class="form-group">
                 <label for="bk-phone"><span data-i18n="booking.phone">電話番号</span></label>
-                <input type="tel" id="bk-phone" class="booking-input" data-placeholder-ja="例：090-1234-5678" data-placeholder-en="e.g. 090-1234-5678" data-placeholder-zh="例：090-1234-5678" placeholder="例：090-1234-5678">
+                <input type="tel" id="bk-phone" class="booking-input" autocomplete="tel" inputmode="tel" enterkeyhint="next" aria-describedby="bk-phone-err" data-placeholder-ja="例：090-1234-5678" data-placeholder-en="e.g. 090-1234-5678" data-placeholder-zh="例：090-1234-5678" placeholder="例：090-1234-5678">
+                <span class="field-error" id="bk-phone-err" role="alert" hidden></span>
               </div>
             </fieldset>
 
@@ -650,7 +671,8 @@
               <div class="form-row">
                 <div class="form-group">
                   <label for="bk-date"><span data-i18n="booking.date">第一希望日</span><span class="required" aria-hidden="true">*</span></label>
-                  <input type="date" id="bk-date" class="booking-input" required>
+                  <input type="date" id="bk-date" class="booking-input" required autocomplete="off" aria-describedby="bk-date-err">
+                  <span class="field-error" id="bk-date-err" role="alert" hidden></span>
                 </div>
                 <div class="form-group">
                   <label for="bk-time"><span data-i18n="booking.time">ご希望の時間帯</span></label>
@@ -667,18 +689,20 @@
               <div class="form-group">
                 <label for="bk-date2"><span data-i18n="booking.date2">第二希望日</span></label>
                 <span class="hint" id="bk-date2-hint" data-i18n="booking.date2Hint">日程調整のため、第二希望もご記入いただけると助かります。</span>
-                <input type="date" id="bk-date2" class="booking-input" aria-describedby="bk-date2-hint">
+                <input type="date" id="bk-date2" class="booking-input" autocomplete="off" aria-describedby="bk-date2-hint bk-date2-err">
+                <span class="field-error" id="bk-date2-err" role="alert" hidden></span>
               </div>
 
               <!-- Visit Type -->
               <div class="form-group">
                 <label for="bk-method"><span data-i18n="booking.method">見学方法</span><span class="required" aria-hidden="true">*</span></label>
-                <select id="bk-method" class="booking-select" required>
+                <select id="bk-method" class="booking-select" required aria-describedby="bk-method-err">
                   <option value="" data-i18n="booking.methodPlaceholder">選択してください</option>
                   <option value="対面見学（来場）" data-i18n="booking.methodInPerson">対面見学（来場）</option>
                   <option value="LINEビデオ通話" data-i18n="booking.methodVideo">LINEビデオ通話</option>
                   <option value="どちらでも可" data-i18n="booking.methodEither">どちらでも可</option>
                 </select>
+                <span class="field-error" id="bk-method-err" role="alert" hidden></span>
               </div>
             </fieldset>
 
@@ -689,13 +713,14 @@
               <div class="form-group">
                 <label for="bk-kitten"><span data-i18n="booking.kitten">気になる子猫</span></label>
                 <span class="hint" id="bk-kitten-hint" data-i18n="booking.kittenHint">子猫の名前や掲載番号をお書きください（複数可）。</span>
-                <input type="text" id="bk-kitten" class="booking-input" aria-describedby="bk-kitten-hint" data-placeholder-ja="例：ムーン、c995680-8" data-placeholder-en="e.g. Moon, c995680-8" data-placeholder-zh="例：Moon、c995680-8" placeholder="例：ムーン、c995680-8">
+                <input type="text" id="bk-kitten" class="booking-input" autocomplete="off" enterkeyhint="next" aria-describedby="bk-kitten-hint" data-placeholder-ja="例：ムーン、c995680-8" data-placeholder-en="e.g. Moon, c995680-8" data-placeholder-zh="例：Moon、c995680-8" placeholder="例：ムーン、c995680-8">
               </div>
 
               <!-- Message -->
               <div class="form-group">
                 <label for="bk-message"><span data-i18n="booking.message">ご質問・ご要望</span></label>
-                <textarea id="bk-message" class="booking-textarea" rows="4" data-placeholder-ja="ご質問やご要望があればお気軽にどうぞ" data-placeholder-en="Any questions or requests" data-placeholder-zh="如有任何问题或要求请随意填写" placeholder="ご質問やご要望があればお気軽にどうぞ"></textarea>
+                <textarea id="bk-message" class="booking-textarea" rows="4" aria-describedby="bk-message-err" data-placeholder-ja="ご質問やご要望があればお気軽にどうぞ" data-placeholder-en="Any questions or requests" data-placeholder-zh="如有任何问题或要求请随意填写" placeholder="ご質問やご要望があればお気軽にどうぞ"></textarea>
+                <span class="field-error" id="bk-message-err" role="alert" hidden></span>
               </div>
             </fieldset>
 
@@ -703,7 +728,7 @@
             <div class="form-action">
               <button type="submit" class="booking-submit" id="bookingSubmit">
                 <span class="btn-text" data-i18n="booking.submit"><i class="ico ico-mail" aria-hidden="true"></i> 予約を送信する</span>
-                <span class="spinner"></span>
+                <span class="btn-sending" hidden><span class="spinner" aria-hidden="true"></span><span data-i18n="booking.sending">送信中…</span></span>
               </button>
               <p class="form-intro" style="text-align:center;font-size:0.82rem;margin:12px 0 0"><i class="ico ico-lock" aria-hidden="true"></i> <span data-i18n="booking.privacyNote">ご記入の情報はご予約のご連絡のみに使用し、第三者には提供しません。すぐのご相談はLINEからもどうぞ。</span></p>
             </div>
@@ -723,7 +748,11 @@
           <!-- Error -->
           <div id="bookingError" class="booking-result" role="alert" aria-live="assertive">
             <h3 data-i18n="booking.errorTitle">送信に失敗しました</h3>
-            <p data-i18n="booking.errorDesc">申し訳ございません。LINEまたはお電話でご連絡ください。</p>
+            <p data-i18n="booking.errorDesc">申し訳ございません。お手数ですが、下記のLINEから直接ご連絡ください。すぐに対応いたします。</p>
+            <div class="result-actions">
+              <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="result-link result-link-line" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596a.626.626 0 0 1-.199.031c-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.271.173-.508.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg> <span data-i18n="booking.errorLine">LINEで予約・相談する</span></a>
+              <button type="button" id="bookingRetry" class="result-link result-link-secondary"><i class="ico ico-refresh-cw" aria-hidden="true"></i> <span data-i18n="booking.errorRetry">もう一度送信する</span></button>
+            </div>
           </div>
         </div>
 
@@ -882,14 +911,70 @@
     if (!form) return;
 
     // ----- Inline validation: red border on invalid blur, clear on input -----
+    // NB: these regexes MUST stay in lockstep with the Worker's validateBooking()
+    // (EMAIL_RE / PHONE_DIGITS_RE / DATE_RE) so the client never blocks a payload
+    // the server would accept, or vice-versa.
     var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     var PHONE_RE = /^[0-9+\-()\s]{9,20}$/;
 
+    // Localized inline field-error copy. Keyed by lang to match updatePlaceholders()
+    // / the i18n.js convention (localStorage 'fuluckpet-lang'). No new promises — these
+    // only describe what's wrong with the input.
+    var FIELD_MSGS = {
+      ja: {
+        name:   'お名前をご入力ください。',
+        email:  'メールアドレスの形式をご確認ください。',
+        phone:  '電話番号の形式をご確認ください（数字・ハイフンなど）。',
+        date:   '第一希望日をお選びください。',
+        method: '見学方法をお選びください。',
+        message:'ご要望は2000文字以内でご入力ください。'
+      },
+      en: {
+        name:   'Please enter your name.',
+        email:  'Please check your email address.',
+        phone:  'Please check the phone number format.',
+        date:   'Please choose a preferred date.',
+        method: 'Please choose a visit method.',
+        message:'Please keep your message under 2000 characters.'
+      },
+      zh: {
+        name:   '请输入您的姓名。',
+        email:  '请检查邮箱地址格式。',
+        phone:  '请检查电话号码格式。',
+        date:   '请选择第一希望日期。',
+        method: '请选择参观方式。',
+        message:'留言请控制在2000字以内。'
+      }
+    };
+    function currentLang() {
+      try { return localStorage.getItem('fuluckpet-lang') || 'ja'; } catch (e) { return 'ja'; }
+    }
+    // Map field id -> its error <span> and message key.
+    var ERR_MAP = {
+      'bk-name':   { span: 'bk-name-err',   key: 'name' },
+      'bk-email':  { span: 'bk-email-err',  key: 'email' },
+      'bk-phone':  { span: 'bk-phone-err',  key: 'phone' },
+      'bk-date':   { span: 'bk-date-err',   key: 'date' },
+      'bk-method': { span: 'bk-method-err', key: 'method' },
+      'bk-message':{ span: 'bk-message-err',key: 'message' }
+    };
+
     function setInvalid(el) {
       el.setAttribute('aria-invalid', 'true');
+      var meta = ERR_MAP[el.id];
+      if (!meta) return;
+      var span = document.getElementById(meta.span);
+      if (!span) return;
+      var msgs = FIELD_MSGS[currentLang()] || FIELD_MSGS.ja;
+      span.textContent = msgs[meta.key] || '';
+      span.hidden = false;
     }
     function clearInvalid(el) {
       el.removeAttribute('aria-invalid');
+      var meta = ERR_MAP[el.id];
+      if (!meta) return;
+      var span = document.getElementById(meta.span);
+      if (span) { span.hidden = true; span.textContent = ''; }
     }
 
     function validateField(el) {
@@ -911,11 +996,32 @@
         if (!validateField(el)) setInvalid(el); else clearInvalid(el);
       });
       el.addEventListener('input', function() { clearInvalid(el); });
+      el.addEventListener('change', function() {
+        if (!validateField(el)) setInvalid(el); else clearInvalid(el);
+      });
     });
+
+    // ----- Submit button state helpers -----
+    var btnText = submitBtn ? submitBtn.querySelector('.btn-text') : null;
+    var btnSending = submitBtn ? submitBtn.querySelector('.btn-sending') : null;
+    // Hard re-entrancy guard: even if a double-click races the `disabled` paint,
+    // or the browser fires submit twice, only ONE in-flight request can exist.
+    var isSubmitting = false;
+
+    function setSending(on) {
+      if (!submitBtn) return;
+      submitBtn.disabled = on;
+      submitBtn.setAttribute('aria-busy', on ? 'true' : 'false');
+      if (btnText) btnText.hidden = on;
+      if (btnSending) btnSending.hidden = !on;
+    }
 
     // ----- Submit handler -----
     form.addEventListener('submit', function(e) {
       e.preventDefault();
+
+      // Guard 1: refuse to start a second request while one is in flight.
+      if (isSubmitting) return;
 
       var nameEl = document.getElementById('bk-name');
       var emailEl = document.getElementById('bk-email');
@@ -959,22 +1065,37 @@
         message: msgEl ? msgEl.value : ''
       };
 
-      // Loading state
-      submitBtn.disabled = true;
-      submitBtn.querySelector('.btn-text').style.display = 'none';
-      submitBtn.querySelector('.spinner').style.display = 'block';
+      // Loading state — flip the guard BEFORE the async work starts.
+      isSubmitting = true;
+      setSending(true);
       errorEl.className = 'booking-result';
       successEl.className = 'booking-result';
+
+      // 20s timeout: a hung connection must NOT leave the button stuck on 送信中
+      // forever — abort routes into the error card, whose LINE link is the
+      // designed recovery path (the lead is not lost).
+      var abortCtl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var abortTimer = abortCtl ? setTimeout(function() { abortCtl.abort(); }, 20000) : null;
 
       fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        signal: abortCtl ? abortCtl.signal : undefined
       }).then(function(res) {
-        return res.json().then(function(body) { return { status: res.status, body: body }; });
+        if (abortTimer) clearTimeout(abortTimer);
+        return res.json().then(
+          function(body) { return { status: res.status, body: body }; },
+          // Non-JSON response (e.g. 502 HTML from an edge outage): still surface status.
+          function() { return { status: res.status, body: null }; }
+        );
       }).then(function(r) {
+        // Success = HTTP 200 + ok:true. A body.warning ('saved_but_email_failed')
+        // still means the booking was SAVED, so we treat it as success too.
         if (r.status === 200 && r.body && r.body.ok) {
-          // Success: hide form, show card, scroll
+          // Success: hide form, show card, scroll. Booking is safely on the server —
+          // release the guard is unnecessary (form is gone) but keep state coherent.
+          isSubmitting = false;
           form.style.display = 'none';
           successEl.className = 'booking-result success';
           successEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -993,17 +1114,41 @@
           throw new Error('booking failed: ' + r.status + ' ' + JSON.stringify(r.body));
         }
       }).catch(function(err) {
-        // Show inline red error banner above form with retry button
-        submitBtn.disabled = false;
-        submitBtn.querySelector('.btn-text').style.display = '';
-        submitBtn.querySelector('.spinner').style.display = 'none';
+        // Lead-loss safety net: request failed (network / timeout-abort / 4xx /
+        // 5xx / non-JSON). Re-enable the button, release the guard, and show the
+        // error card — which carries a PROMINENT LINE link so the lead is never
+        // silently lost.
+        if (abortTimer) clearTimeout(abortTimer);
+        isSubmitting = false;
+        setSending(false);
         errorEl.className = 'booking-result error';
-        var p = errorEl.querySelector('p');
-        if (p) p.textContent = '送信に失敗しました。お手数ですが再度お試しいただくか、LINE / お電話でご連絡ください。';
         errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Do NOT overwrite the i18n'd <p> copy — it already directs the user to LINE
+        // and is translated for EN/ZH. Move focus to the error heading so screen-reader
+        // and keyboard users land on the recovery options.
+        var heading = errorEl.querySelector('h3');
+        if (heading) {
+          heading.setAttribute('tabindex', '-1');
+          try { heading.focus({ preventScroll: true }); } catch (_e) { heading.focus(); }
+        }
         try { console.error('booking error:', err); } catch(_e) {}
       });
     });
+
+    // ----- Retry from the error card: hide the error, restore the button, re-focus form -----
+    var retryBtn = document.getElementById('bookingRetry');
+    if (retryBtn) {
+      retryBtn.addEventListener('click', function() {
+        errorEl.className = 'booking-result';
+        setSending(false);
+        isSubmitting = false;
+        var firstField = document.getElementById('bk-name');
+        if (firstField) {
+          firstField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          try { firstField.focus({ preventScroll: true }); } catch (_e) { firstField.focus(); }
+        }
+      });
+    }
   })();
   </script>
   <!-- ========== FLOATING MOBILE NAV BUTTON (always-visible nav, mobile only) ========== -->
