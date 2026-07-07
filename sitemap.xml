@@ -5,7 +5,7 @@
   <!-- メインページ -->
   <url>
     <loc>https://fuluckpet.com/</loc>
-    <lastmod>2026-07-06</lastmod>
+    <lastmod>2026-07-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -19,7 +19,7 @@
   <!-- サイベリアンの魅力 -->
   <url>
     <loc>https://fuluckpet.com/siberian.html</loc>
-    <lastmod>2026-07-06</lastmod>
+    <lastmod>2026-07-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -348,14 +348,14 @@
   <!-- よくある質問 -->
   <url>
     <loc>https://fuluckpet.com/faq.html</loc>
-    <lastmod>2026-07-06</lastmod>
+    <lastmod>2026-07-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <!-- 見学予約 -->
   <url>
     <loc>https://fuluckpet.com/booking.html</loc>
-    <lastmod>2026-07-06</lastmod>
+    <lastmod>2026-07-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -713,13 +713,13 @@
   <!-- 子猫一覧ページ (en/zh) -->
   <url>
     <loc>https://fuluckpet.com/en/kittens.html</loc>
-    <lastmod>2026-07-06</lastmod>
+    <lastmod>2026-07-07</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/kittens.html</loc>
-    <lastmod>2026-07-06</lastmod>
+    <lastmod>2026-07-07</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
