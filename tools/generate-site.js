@@ -477,6 +477,41 @@ function listToAbsoluteLinks(html) {
     .replace(/src="(?!\/|https?:|data:)([^"]+)"/g, 'src="/$1"');
 }
 
+// Localize the final "気になる子がいたら…" contact CTA block that lives in the ja
+// tail (heading + lead paragraph + the two button labels). The ja tail is otherwise
+// reused verbatim for en/zh, so without this the block ships as raw Japanese.
+// Translations mirror exactly what the ja says — no new claims. ja tail is never passed here.
+const KITTENS_CTA_I18N = {
+  en: {
+    '気になる子がいたらお気軽にお問い合わせ': 'Found a kitten you like? Feel free to get in touch',
+    'LINEまたは見学予約から、お気軽にご連絡ください。': 'Reach out anytime — on LINE or by booking a visit.',
+    'LINEで問い合わせ': 'Ask on LINE',
+    '見学を予約する': 'Book a Visit',
+  },
+  zh: {
+    '気になる子がいたらお気軽にお問い合わせ': '如果有心仪的猫咪，欢迎随时咨询',
+    'LINEまたは見学予約から、お気軽にご連絡ください。': '欢迎通过LINE或参观预约随时与我们联系。',
+    'LINEで問い合わせ': 'LINE咨询',
+    '見学を予約する': '预约参观',
+  },
+};
+function localizeKittensCta(html, lang) {
+  const map = KITTENS_CTA_I18N[lang];
+  if (!map) return html;
+  // Only rewrite inside the contact CTA <section> (bounded by its comment marker and
+  // the next wave divider / footer), so the shared mobile-CTA-bar aria-labels below —
+  // site-wide chrome that stays verbatim on every en/zh page — are left untouched.
+  const start = html.indexOf('<!-- ========== CTA ========== -->');
+  if (start === -1) return html;
+  const afterOpen = html.indexOf('</section>', start);
+  const end = afterOpen === -1 ? html.length : afterOpen + '</section>'.length;
+  let block = html.slice(start, end);
+  for (const [ja, tr] of Object.entries(map)) {
+    block = block.split(ja).join(tr);
+  }
+  return html.slice(0, start) + block + html.slice(end);
+}
+
 // Build the en/zh list-page header from the ja header:
 //  - rebuild <html lang>, <head> (title/meta/OG/twitter/canonical/hreflang/breadcrumb JSON-LD)
 //    from a per-lang template,
@@ -794,6 +829,8 @@ ${shapesHtml}
   // For en/zh, absolutize the ja tail's chrome links (footer/CTA/scripts) so they resolve
   // from the one-level-deep /en//zh path, mirroring the detail-page precedent. ja untouched.
   if (lang !== 'ja') cleanedTail = listToAbsoluteLinks(cleanedTail);
+  // Localize the final contact CTA block (heading/lead/buttons) for en/zh. ja untouched.
+  if (lang !== 'ja') cleanedTail = localizeKittensCta(cleanedTail, lang);
   const tailWithSchema = cleanedTail.replace('</body>', `${productJsonLd}</body>`);
 
   const output = header + '\n' + sections + '\n\n' + tailWithSchema;
