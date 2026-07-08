@@ -244,6 +244,9 @@ const translations = {
     'footer.pagesTitle': '詳しく見る',
     'footer.tagline': 'サイベリアン｜大阪・福楽キャッテリー',
     'footer.lawNotice': '動物愛護管理法に基づき、販売時には事前に対面による現物確認・説明が義務付けられています。ご購入前に必ず見学（対面またはビデオ通話）をお願いしております。',
+    'footer.lawTitle': '動物愛護管理法に基づく対面販売',
+    'footer.lawTitleShort': '対面販売について',
+    'footer.lawNoticeShort': '法律の規定により、ご購入前に対面での説明と現物確認が必要です。',
 
     // Secondary Pages
     'siberian.pageTitle': 'サイベリアンの魅力',
@@ -777,6 +780,9 @@ const translations = {
     'footer.pagesTitle': 'Learn More',
     'footer.tagline': 'Siberian Cat | Fuluck Cattery, Osaka',
     'footer.lawNotice': 'Under the Animal Protection Law, an in-person meeting for verification and explanation is required before purchase. Please arrange a visit (in-person or video call) before purchasing.',
+    'footer.lawTitle': 'In-Person Sales under the Animal Protection Law',
+    'footer.lawTitleShort': 'About In-Person Sales',
+    'footer.lawNoticeShort': 'By law, an in-person explanation and viewing of the actual animal are required before purchase.',
 
     // Secondary Pages
     'siberian.pageTitle': 'The Appeal of Siberian Cats',
@@ -1310,6 +1316,9 @@ const translations = {
     'footer.pagesTitle': '了解更多',
     'footer.tagline': '西伯利亚猫｜大阪·福楽猫舍',
     'footer.lawNotice': '根据动物爱护管理法，销售前必须进行面对面的实物确认和说明。购买前请务必安排参观（面对面或视频通话）。',
+    'footer.lawTitle': '依据《动物爱护管理法》的面对面销售',
+    'footer.lawTitleShort': '关于面对面销售',
+    'footer.lawNoticeShort': '根据法律规定，购买前须进行面对面说明并现场确认实物。',
 
     // Secondary Pages
     'siberian.pageTitle': '西伯利亚猫的魅力',

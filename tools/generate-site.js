@@ -655,6 +655,9 @@ function generateKittens(kittens, lang = 'ja') {
   // Build sections
   let sections = '';
   let sectionIdx = 0;
+  // LCP: only the very first card image on the page gets eager/high-priority.
+  // Every later card stays lazy so we don't make all images eager.
+  let lcpImgEmitted = false;
   for (const cfg of BREED_CONFIG) {
     const group = breedGroups.get(cfg.key);
     if (!group || group.length === 0) continue;
@@ -672,6 +675,11 @@ function generateKittens(kittens, lang = 'ja') {
     let cardsHtml = '';
     for (const k of group) {
       const photo = getCoverPhoto(k);
+      // First card on the page = LCP candidate: eager + high priority. Rest stay lazy.
+      const imgLoadAttrs = lcpImgEmitted
+        ? 'loading="lazy"'
+        : 'loading="eager" fetchpriority="high"';
+      lcpImgEmitted = true;
       const st = statusText(k.status);
       const gt = genderText(k.gender);
       const bd = formatBirthday(k.birthday);
@@ -705,7 +713,7 @@ function generateKittens(kittens, lang = 'ja') {
       cardsHtml += `
         <div class="kitten-card" data-status="${escapeHtml(k.status)}" data-price="${k.price || ''}" data-birthday="${escapeHtml(k.birthday)}" data-images="${escapeHtml(photo)}" data-video="" data-papa="${escapeHtml(k.papa)}" data-mama="${escapeHtml(k.mama)}" data-new="${k.isNew ? 'true' : 'false'}" data-name="" data-breeder-id="${escapeHtml(k.breederId)}">
           <div class="kitten-img">
-            <img src="${escapeHtml(photo)}" alt="${escapeHtml(cardAlt)}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
+            <img src="${escapeHtml(photo)}" alt="${escapeHtml(cardAlt)}" ${imgLoadAttrs} width="360" height="360" style="width:100%;height:100%;object-fit:cover;aspect-ratio:1/1;">
             <span class="kit-status st-${escapeHtml(k.status)}"${statusI18nKey(k.status) ? ` data-i18n="${statusI18nKey(k.status)}"` : ''}>${escapeHtml(stL)}</span>${isNewBadge}
           </div>
           <div class="kitten-body">
@@ -877,6 +885,9 @@ function generateParents(parents) {
   // Build sections
   let sections = '';
   let sectionIdx = 0;
+  // LCP: only the very first card image on the page gets eager/high-priority.
+  // Every later card stays lazy so we don't make all images eager.
+  let lcpImgEmitted = false;
   for (const cfg of BREED_CONFIG) {
     const group = breedGroups.get(cfg.key);
     if (!group || group.length === 0) continue;
@@ -893,6 +904,11 @@ function generateParents(parents) {
     let cardsHtml = '';
     for (const p of group) {
       const photo = getCoverPhoto(p);
+      // First card on the page = LCP candidate: eager + high priority. Rest stay lazy.
+      const imgLoadAttrs = lcpImgEmitted
+        ? 'loading="lazy"'
+        : 'loading="eager" fetchpriority="high"';
+      lcpImgEmitted = true;
       const roleClass = p.role === 'パパ猫' ? 'role-papa' : 'role-mama';
       const testedTag = p.tested
         ? '\n          <span class="health-tag tag-good" style="position:absolute;top:8px;right:8px;font-size:11px;padding:2px 8px;">&#10003; 遺伝子検査済</span>'
@@ -900,7 +916,7 @@ function generateParents(parents) {
 
       cardsHtml += `
         <div class="parent-card" onclick="openParentModal(this)" data-name="${escapeHtml(p.name)}" data-breed="${escapeHtml(p.breed)}" data-gender="${escapeHtml(p.gender)}" data-role="${escapeHtml(p.role)}" data-age="${escapeHtml(p.age)}" data-color="${escapeHtml(p.color)}" data-tested="${p.tested ? 'true' : 'false'}" style="position:relative;">${testedTag}
-          <img src="${escapeHtml(photo)}" alt="${escapeHtml(`${p.name} - ${p.breed} ${p.color || ''} ${p.role || ''}`.trim())}" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-lg) var(--radius-lg) 0 0;">
+          <img src="${escapeHtml(photo)}" alt="${escapeHtml(`${p.name} - ${p.breed} ${p.color || ''} ${p.role || ''}`.trim())}" ${imgLoadAttrs} width="360" height="360" style="width:100%;height:100%;object-fit:cover;aspect-ratio:1/1;border-radius:var(--radius-lg) var(--radius-lg) 0 0;">
           <div class="parent-body">
             <h3>${escapeHtml(p.name)}</h3>
             <p>${escapeHtml(p.breed)} ・ ${escapeHtml(p.gender)} ・ ${escapeHtml(p.color)}</p>
@@ -1453,7 +1469,7 @@ ${headerHtml}
     <div class="container">
       <div class="kitten-detail-gallery">
         <div class="kitten-detail-main-img">
-          <img id="mainPhoto" src="${escapeHtml(coverPhoto)}" alt="${escapeHtml(breedL || '')} ${escapeHtml(colorL || '')}">
+          <img id="mainPhoto" src="${escapeHtml(coverPhoto)}" alt="${escapeHtml(breedL || '')} ${escapeHtml(colorL || '')}" loading="eager" fetchpriority="high" width="800" height="600">
         </div>
         ${thumbsHtml}
       </div>

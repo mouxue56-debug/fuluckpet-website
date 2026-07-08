@@ -90,9 +90,12 @@ function injectTranslation(htmlPath, enTitle, enContent, zhTitle, zhContent) {
   let html = fs.readFileSync(htmlPath, 'utf8');
 
   if (hasTranslation(html)) {
-    // Replace existing translation
+    // Replace existing translation.
+    // The lookahead must allow the cache-busting ?v= query string that baked
+    // pages carry on the blog-i18n.js tag (mirrors the insert regex below);
+    // without it this replace never matched and re-injection duplicated the block.
     html = html.replace(
-      /<script>\s*window\._blogArticleI18n\s*=[\s\S]*?<\/script>\s*(?=<script src="\/blog\/blog-i18n\.js")/,
+      /<script>\s*window\._blogArticleI18n\s*=[\s\S]*?<\/script>\s*(?=<script src="\/blog\/blog-i18n\.js(?:\?v=[^"]*)?")/,
       ''
     );
   }
