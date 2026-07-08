@@ -740,6 +740,16 @@
       <image:caption>サイベリアンの子猫 ブルーパッチドタビー&amp;ホワイト 男の子・個体番号2607-00585</image:caption>
     </image:image>
   </url>
+  <url>
+    <loc>https://fuluckpet.com/kittens/2607-00576.html</loc>
+    <lastmod>2026-07-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_77213d6869f9.jpg.webp</image:loc>
+      <image:caption>サイベリアンの子猫 レッドリンクスポイント（トリプルコート） 男の子・個体番号2607-00576</image:caption>
+    </image:image>
+  </url>
   <!-- 子猫一覧ページ (en/zh) -->
   <url>
     <loc>https://fuluckpet.com/en/kittens.html</loc>
@@ -1134,6 +1144,16 @@
       <image:caption>Siberian kitten ブルーパッチドタビー&amp;ホワイト Male · ID 2607-00585</image:caption>
     </image:image>
   </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2607-00576.html</loc>
+    <lastmod>2026-07-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_77213d6869f9.jpg.webp</image:loc>
+      <image:caption>Siberian kitten レッドリンクスポイント（トリプルコート） Male · ID 2607-00576</image:caption>
+    </image:image>
+  </url>
   子猫詳細ページ (zh)
   <url>
     <loc>https://fuluckpet.com/zh/kittens/2602-00625.html</loc>
@@ -1513,6 +1533,16 @@
     <image:image>
       <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_2a62da47ce07.jpg.webp</image:loc>
       <image:caption>西伯利亚猫幼猫 ブルーパッチドタビー&amp;ホワイト 男孩・个体编号2607-00585</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2607-00576.html</loc>
+    <lastmod>2026-07-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_77213d6869f9.jpg.webp</image:loc>
+      <image:caption>西伯利亚猫幼猫 レッドリンクスポイント（トリプルコート） 男孩・个体编号2607-00576</image:caption>
     </image:image>
   </url>
   <!-- ブログ記事 -->
