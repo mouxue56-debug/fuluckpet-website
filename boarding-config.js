@@ -57,19 +57,16 @@
       high_season_core:   { cat: 2200, small_dog: 2200, medium_dog: 3300, large_dog: 3300 },
     },
 
-    // §13 猫洗护基础价（v3 2026-07-08 owner：洗护价 ×0.85 · roundYen100；原 8000/9000/10000/11000）
-    catGroomingBasePrice: { short_standard: 6800, short_comfort: 7700, long_standard: 8500, long_comfort: 9400 },
+    // §13 猫の洗護セット（v4 2026-07-08 owner：短毛¥4,000／長毛¥6,000。シャンプー＋爪切り＋肛門腺絞り＋耳掃除込み。
+    //   猫は一人で洗えず手間がかかるため設定。会員・卒業猫割引は継続適用。）
+    catGroomingBasePrice: { short: 4000, long: 6000 },
     // §13.2 猫洗护折扣（不叠加取最优；寄宿后洗护按住宿晚数）
     catGroomingDiscount: { member: 0.85, graduatedCat: 0.70, afterBoarding3Nights: 0.90, afterBoarding7Nights: 0.85, afterBoarding14Nights: 0.80 },
 
-    // §14.2 狗狗简易清洁（禁称「トリミング/専門美容」——见文案红线）
-    // v3 2026-07-08 owner：洗护/清洁价 ×0.85 · roundYen100（原 1100/1650/2200 … 3300/4400/6600）
-    dogCleaningPrice: {
-      local_cleaning:      { small_dog: 900,  medium_dog: 1400, large_dog: 1900 },
-      body_wipe:           { small_dog: 1900, medium_dog: 2800, large_dog: 3700 },
-      footwash_plus_local: { small_dog: 2300, medium_dog: 3300, large_dog: 4700 },
-      simple_wash:         { small_dog: 2800, medium_dog: 3700, large_dog: 5600 },
-    },
+    // §14 わんちゃんの基本ケアセット（v4 2026-07-08 owner：小型¥4,500／中型¥7,500／大型¥9,000。
+    //   爪切り＋耳掃除＋肛門腺絞り込み。§14.1 禁止語（トリミング/カット/シャンプーコース/剪毛/専門美容）は不使用——
+    //   爪切り・耳掃除・肛門腺は「基本ケア」であり禁止語に該当しない。固定価・割引なし。）
+    dogCarePrice: { small_dog: 4500, medium_dog: 7500, large_dog: 9000 },
 
     // §16 接送（按单程车程；往返 9 折；>120 分 custom）
     // v3 2026-07-08 owner 指示：30分以内 ¥2,000／60分 ¥3,000（+¥1,000/30分 延伸 90分¥4,000・120分¥5,000）

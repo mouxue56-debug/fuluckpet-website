@@ -98,11 +98,11 @@
     return { menu: menu, basePrice: base, appliedDiscountRate: rate, subtotal: roundYen100(base * rate) };
   }
 
-  // §14 狗简易清洁（无折扣，固定价）
-  function calculateDogCleaning(menu, animalType) {
-    var table = CONFIG.dogCleaningPrice[menu];
-    if (!table || table[animalType] == null) return null;
-    return { menu: menu, subtotal: table[animalType] };
+  // §14 わんちゃんの基本ケア（无折扣，固定价；按体型）
+  function calculateDogCare(animalType) {
+    var price = CONFIG.dogCarePrice[animalType];
+    if (price == null) return null;
+    return { animalType: animalType, subtotal: price };
   }
 
   // §16 接送（单程档位；往返 9 折；>120 分 custom）
@@ -157,7 +157,7 @@
   var api = {
     roundYen100: roundYen100, getNights: getNights, getStayDates: getStayDates, getDateCategory: getDateCategory,
     getLongStayRate: getLongStayRate, getBoardingDiscountRate: getBoardingDiscountRate, calculateBoarding: calculateBoarding,
-    getCatGroomingRate: getCatGroomingRate, calculateCatGrooming: calculateCatGrooming, calculateDogCleaning: calculateDogCleaning,
+    getCatGroomingRate: getCatGroomingRate, calculateCatGrooming: calculateCatGrooming, calculateDogCare: calculateDogCare,
     getTransportOneWayFee: getTransportOneWayFee, calculateTransportFee: calculateTransportFee, calculateWaitingFee: calculateWaitingFee,
     isSmallPetType: isSmallPetType, getSmallPetPerNight: getSmallPetPerNight, calculateSmallPetBoarding: calculateSmallPetBoarding,
   };

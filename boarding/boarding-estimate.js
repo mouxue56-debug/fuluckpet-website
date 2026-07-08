@@ -9,8 +9,8 @@
 
   var LINE_URL = 'https://page.line.me/915hnnlk';
   var TYPE_LABEL = { cat: '猫', small_dog: '小型犬', medium_dog: '中型犬', large_dog: '大型犬', rabbit_cage: 'うさぎ・小動物', hamster_cage: 'ハムスター等' };
-  var CAT_GROOMING_LABEL = { short_standard: '短毛・標準洗護', short_comfort: '短毛・安心洗護', long_standard: '長毛・標準洗護', long_comfort: '長毛・安心洗護' };
-  var DOG_CARE_LABEL = { local_cleaning: '局部清掃', body_wipe: '簡易体拭き', footwash_plus_local: '足洗い＋局部清掃', simple_wash: '簡易ケア' };
+  var CAT_GROOMING_LABEL = { short: '短毛 洗護セット', long: '長毛 洗護セット' };
+  var DOG_CARE_LABEL = { care: '基本ケアセット（爪切り・耳掃除・肛門腺絞り）' };
   var SUR_LABEL = { weekend_or_holiday: '土日祝加算', school_vacation: '学校休暇加算', high_season_core: '繁忙期加算' };
 
   var $ = function (id) { return document.getElementById(id); };
@@ -161,10 +161,10 @@
       var g = Calc.calculateCatGrooming(els.catGrooming.value, { isMember: isMember, isGraduatedCat: isGrad, boardingNights: nights });
       if (g) { lines.push({ lbl: '猫シャンプー', sub: CAT_GROOMING_LABEL[els.catGrooming.value], val: '+' + fmtYen(g.subtotal) }); total += g.subtotal; }
     }
-    // 选项：わんちゃん簡易ケア
-    if (!isCat && type && els.dogCare.value) {
-      var dc = Calc.calculateDogCleaning(els.dogCare.value, type);
-      if (dc) { lines.push({ lbl: 'わんちゃんの簡易ケア', sub: DOG_CARE_LABEL[els.dogCare.value] + '（足洗い・体拭き）', val: '+' + fmtYen(dc.subtotal) }); total += dc.subtotal; }
+    // 选项：わんちゃん基本ケア
+    if (!isCat && type && els.dogCare.value === 'care') {
+      var dc = Calc.calculateDogCare(type);
+      if (dc) { lines.push({ lbl: 'わんちゃんの基本ケア', sub: DOG_CARE_LABEL['care'], val: '+' + fmtYen(dc.subtotal) }); total += dc.subtotal; }
     }
     // 选项：送迎
     var tResult = addTransportLine(lines);

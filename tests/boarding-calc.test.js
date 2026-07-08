@@ -2,6 +2,8 @@
  * 运行：node --test tests/boarding-calc.test.js
  * 数值基准 = boarding-config.js v3（2026-07-08: base ×0.9 on v2, 洗护×0.85, transport 2000/3000/4000/5000）。
  *   新增 smallPetBoarding（兔笼/仓鼠笼 泊数单价阶梯，无日期加算·无会员/卒业割引）。
+ * v4（2026-07-08）洗護リストラ：猫洗護セット 短毛¥4,000/長毛¥6,000（2 tier）＋わんちゃん基本ケア
+ *   小型¥4,500/中型¥7,500/大型¥9,000（体型別・固定価・割引なし）。旧 4-key 洗护/dogCleaning 廃止。
  * 保留 §23 用例结构标签，但期望数值已按 v3 config rebase（不再照 v0.4 文档 §23 字面总额）。 */
 'use strict';
 const { test } = require('node:test');
@@ -111,19 +113,22 @@ test('§23.6 waiting 75 min = 2000', () => {
   assert.equal(C.calculateWaitingFee(91), 3000);
 });
 
-// ── §13.3 猫洗護折後価 ──
-test('cat grooming rates (§13.3)', () => {
-  assert.equal(C.calculateCatGrooming('short_standard', {}).subtotal, 6800);
-  assert.equal(C.calculateCatGrooming('short_standard', { isMember: true }).subtotal, 5800);  // roundYen100(6800×0.85)=roundYen100(5780)
-  assert.equal(C.calculateCatGrooming('short_standard', { isGraduatedCat: true }).subtotal, 4800); // roundYen100(6800×0.70)=roundYen100(4760)
-  assert.equal(C.calculateCatGrooming('long_comfort', {}).subtotal, 9400);
-  assert.equal(C.calculateCatGrooming('long_comfort', { isGraduatedCat: true }).subtotal, 6600); // roundYen100(9400×0.70)=roundYen100(6580)
+// ── §13.3 猫洗護セット折後価（v4: 短毛¥4,000/長毛¥6,000・2 tier）──
+test('cat grooming rates (§13.3 v4)', () => {
+  assert.equal(C.calculateCatGrooming('short', {}).subtotal, 4000);
+  assert.equal(C.calculateCatGrooming('short', { isMember: true }).subtotal, 3400);      // roundYen100(4000×0.85)=roundYen100(3400)
+  assert.equal(C.calculateCatGrooming('short', { isGraduatedCat: true }).subtotal, 2800); // roundYen100(4000×0.70)=roundYen100(2800)
+  assert.equal(C.calculateCatGrooming('long', {}).subtotal, 6000);
+  assert.equal(C.calculateCatGrooming('long', { isGraduatedCat: true }).subtotal, 4200);  // roundYen100(6000×0.70)=roundYen100(4200)
 });
 
-// ── §14 狗简易清洁固定価 ──
-test('dog cleaning fixed prices (§14.2)', () => {
-  assert.equal(C.calculateDogCleaning('local_cleaning', 'small_dog').subtotal, 900);
-  assert.equal(C.calculateDogCleaning('simple_wash', 'large_dog').subtotal, 5600);
+// ── §14 わんちゃん基本ケア 体型別固定価（v4: 割引なし・端数なし）──
+test('dog care fixed prices (§14.2 v4)', () => {
+  assert.equal(C.calculateDogCare('small_dog').subtotal, 4500);
+  assert.equal(C.calculateDogCare('medium_dog').subtotal, 7500);
+  assert.equal(C.calculateDogCare('large_dog').subtotal, 9000);
+  assert.equal(C.calculateDogCare('cat'), null);      // dogCarePrice に無いタイプ → null
+  assert.equal(C.calculateDogCare('bird'), null);     // 未知タイプ → null
 });
 
 // ── §8 日帰りガード ──
