@@ -1,8 +1,8 @@
 /* tests/boarding-calc.test.js — 宠物寄养计价 TDD。dev-only（不进部署产物）。
  * 运行：node --test tests/boarding-calc.test.js
- * 数值基准 = boarding-config.js v2（2026-07-07 owner 重定价）：寄养基础价 ×0.85，
+ * 数值基准 = boarding-config.js v3（2026-07-08: base ×0.9 on v2, 洗护×0.85, transport 2000/3000/4000/5000）。
  *   新增 smallPetBoarding（兔笼/仓鼠笼 泊数单价阶梯，无日期加算·无会员/卒业割引）。
- * 保留 §23 用例结构标签，但期望数值已按 v2 config rebase（不再照 v0.4 文档 §23 字面总额）。 */
+ * 保留 §23 用例结构标签，但期望数值已按 v3 config rebase（不再照 v0.4 文档 §23 字面总额）。 */
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
@@ -52,52 +52,52 @@ test('getBoardingDiscountRate — 会員+卒業猫 8泊 取80%（§23.2）', () 
   assert.equal(C.getBoardingDiscountRate({ animalType: 'cat', nights: 3, isMember: false, isGraduatedCat: true }), 0.85);
 });
 
-// ── §23.1 猫・会員・3泊・普通日（v2: 折後¥4,800/泊 = ¥14,400）──
-test('§23.1 cat member 3 nights normal = 14400', () => {
+// ── §23.1 猫・会員・3泊・普通日（v3: 折後¥4,300/泊 = ¥12,900）──
+test('§23.1 cat member 3 nights normal = 12900', () => {
   const q = C.calculateBoarding({ animalType: 'cat', checkInDate: '2026-06-01', checkOutDate: '2026-06-04', isMember: true, isGraduatedCat: false });
   assert.equal(q.nights, 3);
   assert.equal(q.rate, 0.90);
-  assert.equal(q.discountedBasePerNight, 4800); // roundYen100(5300×0.9)=roundYen100(4770)
+  assert.equal(q.discountedBasePerNight, 4300); // roundYen100(4800×0.9)=roundYen100(4320)
   q.nightlyBreakdown.forEach(n => assert.equal(n.dateCategory, 'normal')); // 前提：3泊とも普通日
-  assert.equal(q.boardingTotal, 14400);
+  assert.equal(q.boardingTotal, 12900);
 });
 
-// ── §23.2 猫・卒業猫・8泊 核心不変量（v2: rate 80%・折後¥4,200/泊・夏休み加算¥1,100）──
+// ── §23.2 猫・卒業猫・8泊 核心不変量（v3: rate 80%・折後¥3,800/泊・夏休み加算¥1,100）──
 test('§23.2 cat graduated 8 nights — rate/base/surcharge invariants', () => {
   const q = C.calculateBoarding({ animalType: 'cat', checkInDate: '2026-07-22', checkOutDate: '2026-07-30', isMember: false, isGraduatedCat: true });
   assert.equal(q.nights, 8);
   assert.equal(q.rate, 0.80);              // min(卒業猫0.85, 7-13泊0.80)
-  assert.equal(q.discountedBasePerNight, 4200); // roundYen100(5300×0.8)=roundYen100(4240)
+  assert.equal(q.discountedBasePerNight, 3800); // roundYen100(4800×0.8)=roundYen100(3840)
   const summerNight = q.nightlyBreakdown.find(n => n.dateCategory === 'school_vacation');
-  assert.equal(summerNight.dateSurcharge, 1100); // 折後基価+加算=¥5,300
-  assert.equal(summerNight.totalForNight, 5300);
+  assert.equal(summerNight.dateSurcharge, 1100); // 折後基価+加算=¥4,900
+  assert.equal(summerNight.totalForNight, 4900);
 });
 
-// ── §23.3 猫・30泊 = 月寄宿価60%・折後¥3,200/泊・要審査（v2）──
-test('§23.3 cat 30 nights = rate 0.60 / base 3200 / needsReview', () => {
+// ── §23.3 猫・30泊 = 月寄宿価60%・折後¥2,900/泊・要審査（v3）──
+test('§23.3 cat 30 nights = rate 0.60 / base 2900 / needsReview', () => {
   const q = C.calculateBoarding({ animalType: 'cat', checkInDate: '2026-06-01', checkOutDate: '2026-07-01', isMember: false, isGraduatedCat: false });
   assert.equal(q.nights, 30);
   assert.equal(q.rate, 0.60);
-  assert.equal(q.discountedBasePerNight, 3200); // roundYen100(5300×0.6)=roundYen100(3180)
+  assert.equal(q.discountedBasePerNight, 2900); // roundYen100(4800×0.6)=roundYen100(2880)
   assert.equal(q.needsReview, true);
 });
 
-// ── §23.4 小型犬・10泊 核心不変量（v2: rate 80%・折後¥6,600/泊・お盆加算¥2,200）──
+// ── §23.4 小型犬・10泊 核心不変量（v3: rate 80%・折後¥5,900/泊・お盆加算¥2,200）──
 test('§23.4 small_dog 10 nights — rate/base/obon-surcharge', () => {
   const q = C.calculateBoarding({ animalType: 'small_dog', checkInDate: '2026-08-06', checkOutDate: '2026-08-16', isMember: false, isGraduatedCat: false });
   assert.equal(q.nights, 10);
   assert.equal(q.rate, 0.80);
-  assert.equal(q.discountedBasePerNight, 6600); // roundYen100(8200×0.8)=roundYen100(6560)
+  assert.equal(q.discountedBasePerNight, 5900); // roundYen100(7400×0.8)=roundYen100(5920)
   const obon = q.nightlyBreakdown.find(n => n.dateCategory === 'high_season_core');
   assert.equal(obon.dateSurcharge, 2200); // 高季核心加算は据え置き
 });
 
-// ── §23.5 送迎 25分接+45分送 = ¥7,900 ──
-test('§23.5 transport 25+45 roundtrip = 7900', () => {
-  assert.equal(C.getTransportOneWayFee(25), 3300);
-  assert.equal(C.getTransportOneWayFee(45), 5500);
-  assert.equal(C.calculateTransportFee({ pickupMinutes: 25, dropoffMinutes: 45 }), 7900);
-  assert.equal(C.calculateTransportFee({ pickupMinutes: 25 }), 3300); // 片道は割引なし
+// ── §23.5 送迎 25分接+45分送 = ¥4,500 ──
+test('§23.5 transport 25+45 roundtrip = 4500', () => {
+  assert.equal(C.getTransportOneWayFee(25), 2000);
+  assert.equal(C.getTransportOneWayFee(45), 3000);
+  assert.equal(C.calculateTransportFee({ pickupMinutes: 25, dropoffMinutes: 45 }), 4500); // roundYen100((2000+3000)*0.9)
+  assert.equal(C.calculateTransportFee({ pickupMinutes: 25 }), 2000); // 片道は割引なし
   assert.equal(C.getTransportOneWayFee(130), 'custom');
   assert.equal(C.calculateTransportFee({ pickupMinutes: 130 }), 'custom');
 });
@@ -113,17 +113,17 @@ test('§23.6 waiting 75 min = 2000', () => {
 
 // ── §13.3 猫洗護折後価 ──
 test('cat grooming rates (§13.3)', () => {
-  assert.equal(C.calculateCatGrooming('short_standard', {}).subtotal, 8000);
-  assert.equal(C.calculateCatGrooming('short_standard', { isMember: true }).subtotal, 6800);
-  assert.equal(C.calculateCatGrooming('short_standard', { isGraduatedCat: true }).subtotal, 5600);
-  assert.equal(C.calculateCatGrooming('long_comfort', {}).subtotal, 11000);
-  assert.equal(C.calculateCatGrooming('long_comfort', { isGraduatedCat: true }).subtotal, 7700);
+  assert.equal(C.calculateCatGrooming('short_standard', {}).subtotal, 6800);
+  assert.equal(C.calculateCatGrooming('short_standard', { isMember: true }).subtotal, 5800);  // roundYen100(6800×0.85)=roundYen100(5780)
+  assert.equal(C.calculateCatGrooming('short_standard', { isGraduatedCat: true }).subtotal, 4800); // roundYen100(6800×0.70)=roundYen100(4760)
+  assert.equal(C.calculateCatGrooming('long_comfort', {}).subtotal, 9400);
+  assert.equal(C.calculateCatGrooming('long_comfort', { isGraduatedCat: true }).subtotal, 6600); // roundYen100(9400×0.70)=roundYen100(6580)
 });
 
 // ── §14 狗简易清洁固定価 ──
 test('dog cleaning fixed prices (§14.2)', () => {
-  assert.equal(C.calculateDogCleaning('local_cleaning', 'small_dog').subtotal, 1100);
-  assert.equal(C.calculateDogCleaning('simple_wash', 'large_dog').subtotal, 6600);
+  assert.equal(C.calculateDogCleaning('local_cleaning', 'small_dog').subtotal, 900);
+  assert.equal(C.calculateDogCleaning('simple_wash', 'large_dog').subtotal, 5600);
 });
 
 // ── §8 日帰りガード ──

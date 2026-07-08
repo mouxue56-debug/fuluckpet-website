@@ -12,9 +12,10 @@
     roundUnit: 100,
 
     // §3.1 寄宿基础价 / 1晚（税込）
-    // v2 2026-07-07 owner 指示：整体寄养价 ×0.85（roundYen100 取整；原价 6200/9600/10700/11700）。
-    // 市场核对：大阪猫 1 泊行情 ~¥5,500、兔 ¥3,300+、仓鼠 ¥2,750（动物医院系）——本表全部贴线或低于行情。
-    boardingBasePrice: { cat: 5300, small_dog: 8200, medium_dog: 9100, large_dog: 9900 },
+    // v3 2026-07-08 owner 指示：在 v2（×0.85）基础上「再打9折做基准」→ v2 价 ×0.9（roundYen100）。
+    //   原价 6200/9600/10700/11700 → v2 5300/8200/9100/9900 → v3 4800/7400/8200/8900（累计 ≈76.5%）。
+    // 市场核对：大阪猫 1 泊行情 ~¥5,500 → v3 ¥4,800 明确低于行情，获客定位强。
+    boardingBasePrice: { cat: 4800, small_dog: 7400, medium_dog: 8200, large_dog: 8900 },
 
     // 小動物お預かり（2026-07-07 owner ポスター準拠・数値そのまま）：
     // 1泊単価の泊数階梯（≈5/10/15/20%OFF at 7/14/21/30泊）。日付加算・会員/卒業猫割引は適用しない。
@@ -56,21 +57,23 @@
       high_season_core:   { cat: 2200, small_dog: 2200, medium_dog: 3300, large_dog: 3300 },
     },
 
-    // §13 猫洗护基础价
-    catGroomingBasePrice: { short_standard: 8000, short_comfort: 9000, long_standard: 10000, long_comfort: 11000 },
+    // §13 猫洗护基础价（v3 2026-07-08 owner：洗护价 ×0.85 · roundYen100；原 8000/9000/10000/11000）
+    catGroomingBasePrice: { short_standard: 6800, short_comfort: 7700, long_standard: 8500, long_comfort: 9400 },
     // §13.2 猫洗护折扣（不叠加取最优；寄宿后洗护按住宿晚数）
     catGroomingDiscount: { member: 0.85, graduatedCat: 0.70, afterBoarding3Nights: 0.90, afterBoarding7Nights: 0.85, afterBoarding14Nights: 0.80 },
 
     // §14.2 狗狗简易清洁（禁称「トリミング/専門美容」——见文案红线）
+    // v3 2026-07-08 owner：洗护/清洁价 ×0.85 · roundYen100（原 1100/1650/2200 … 3300/4400/6600）
     dogCleaningPrice: {
-      local_cleaning:      { small_dog: 1100, medium_dog: 1650, large_dog: 2200 },
-      body_wipe:           { small_dog: 2200, medium_dog: 3300, large_dog: 4400 },
-      footwash_plus_local: { small_dog: 2750, medium_dog: 3850, large_dog: 5500 },
-      simple_wash:         { small_dog: 3300, medium_dog: 4400, large_dog: 6600 },
+      local_cleaning:      { small_dog: 900,  medium_dog: 1400, large_dog: 1900 },
+      body_wipe:           { small_dog: 1900, medium_dog: 2800, large_dog: 3700 },
+      footwash_plus_local: { small_dog: 2300, medium_dog: 3300, large_dog: 4700 },
+      simple_wash:         { small_dog: 2800, medium_dog: 3700, large_dog: 5600 },
     },
 
     // §16 接送（按单程车程；往返 9 折；>120 分 custom）
-    transportOneWayFee: [{ maxMinutes: 30, fee: 3300 }, { maxMinutes: 60, fee: 5500 }, { maxMinutes: 90, fee: 8800 }, { maxMinutes: 120, fee: 11000 }],
+    // v3 2026-07-08 owner 指示：30分以内 ¥2,000／60分 ¥3,000（+¥1,000/30分 延伸 90分¥4,000・120分¥5,000）
+    transportOneWayFee: [{ maxMinutes: 30, fee: 2000 }, { maxMinutes: 60, fee: 3000 }, { maxMinutes: 90, fee: 4000 }, { maxMinutes: 120, fee: 5000 }],
     transportRoundTripDiscountRate: 0.90,
 
     // §17 等待费（30 分免费，之后每 30 分 ¥1,000，端数进位）
