@@ -361,26 +361,6 @@
   </url>
   <!-- 子猫詳細ページ -->
   <url>
-    <loc>https://fuluckpet.com/kittens/2602-00625.html</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1WgbZ2SZ1c8Q43wBdqu8vu9w3a3Idxj-A</image:loc>
-      <image:caption>サイベリアンの子猫 ブルーリンクスポイント ネヴァマスカレード 男の子・個体番号2602-00625</image:caption>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/kittens/2601-01855.html</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/11A__yaCqHdX2DQWdoJJt09SL96fommeS</image:loc>
-      <image:caption>サイベリアンの子猫 シルバータビー トリプルコート 男の子・個体番号2601-01855</image:caption>
-    </image:image>
-  </url>
-  <url>
     <loc>https://fuluckpet.com/kittens/2601-00909.html</loc>
     <lastmod>2026-07-06</lastmod>
     <changefreq>weekly</changefreq>
@@ -401,46 +381,6 @@
     </image:image>
   </url>
   <url>
-    <loc>https://fuluckpet.com/kittens/2511-02287.html</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1FnPV_ZpT2-SzUfjADTv-XlIwJ39xKXmN</image:loc>
-      <image:caption>サイベリアンの子猫 ブラウンタビー トリプルコート 男の子・個体番号2511-02287</image:caption>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/kittens/2509-02086.html</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1KJLJEc--MYuybNtF_y--ljq03m4u3E2P</image:loc>
-      <image:caption>サイベリアンの子猫 シルバータビー 女の子・個体番号2509-02086</image:caption>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/kittens/2511-01887.html</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1pK5C5fzKUgxjyfabO3QeVeBShcbBkX-J</image:loc>
-      <image:caption>サイベリアンの子猫 ホワイト トリプルコート 男の子・個体番号2511-01887</image:caption>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/kittens/2601-00912.html</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1dIAA6WFEi36_6X_RlGU2_V40QZOh6c2B</image:loc>
-      <image:caption>サイベリアンの子猫 ブルーリンクスポイント ネヴァマスカレード 女の子・個体番号2601-00912</image:caption>
-    </image:image>
-  </url>
-  <url>
     <loc>https://fuluckpet.com/kittens/2508-00310.html</loc>
     <lastmod>2026-07-06</lastmod>
     <changefreq>weekly</changefreq>
@@ -448,36 +388,6 @@
     <image:image>
       <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1GoruWUhUw-I5vCGTDA9FaXcCsU6I5V-c</image:loc>
       <image:caption>サイベリアンの子猫 シルバーシェーデッド 男の子・個体番号2508-00310</image:caption>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/kittens/2512-01681.html</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/162HOfrOJzdas1RIsQ0oiiVomld5AZ256</image:loc>
-      <image:caption>サイベリアンの子猫 ブルーパッチドタビー＆ホワイト 男の子・個体番号2512-01681</image:caption>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/kittens/2510-01286.html</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1FB4TEXbPgDe2YZqFbnTMB0LAXKuc4eu6</image:loc>
-      <image:caption>サイベリアンの子猫 ブラウンタビー トリプルコート 女の子・個体番号2510-01286</image:caption>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/kittens/2511-00142.html</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1pk1MOHABDWqrbyz6HC7xVcwgYsTQ5aUw</image:loc>
-      <image:caption>サイベリアンの子猫 ホワイト 男の子・個体番号2511-00142</image:caption>
     </image:image>
   </url>
   <url>
@@ -625,26 +535,6 @@
   </url>
   子猫詳細ページ (en)
   <url>
-    <loc>https://fuluckpet.com/en/kittens/2602-00625.html</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1WgbZ2SZ1c8Q43wBdqu8vu9w3a3Idxj-A</image:loc>
-      <image:caption>Siberian kitten Blue Lynx Point Neva Masquerade Male · ID 2602-00625</image:caption>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/en/kittens/2601-01855.html</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/11A__yaCqHdX2DQWdoJJt09SL96fommeS</image:loc>
-      <image:caption>Siberian kitten Silver Tabby, Triple Coat Male · ID 2601-01855</image:caption>
-    </image:image>
-  </url>
-  <url>
     <loc>https://fuluckpet.com/en/kittens/2601-00909.html</loc>
     <lastmod>2026-07-06</lastmod>
     <changefreq>weekly</changefreq>
@@ -665,46 +555,6 @@
     </image:image>
   </url>
   <url>
-    <loc>https://fuluckpet.com/en/kittens/2511-02287.html</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1FnPV_ZpT2-SzUfjADTv-XlIwJ39xKXmN</image:loc>
-      <image:caption>Siberian kitten Brown Tabby, Triple Coat Male · ID 2511-02287</image:caption>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/en/kittens/2509-02086.html</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1KJLJEc--MYuybNtF_y--ljq03m4u3E2P</image:loc>
-      <image:caption>Siberian kitten Silver Tabby Female · ID 2509-02086</image:caption>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/en/kittens/2511-01887.html</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1pK5C5fzKUgxjyfabO3QeVeBShcbBkX-J</image:loc>
-      <image:caption>Siberian kitten White, Triple Coat Male · ID 2511-01887</image:caption>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/en/kittens/2601-00912.html</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1dIAA6WFEi36_6X_RlGU2_V40QZOh6c2B</image:loc>
-      <image:caption>Siberian kitten Blue Lynx Point Neva Masquerade Female · ID 2601-00912</image:caption>
-    </image:image>
-  </url>
-  <url>
     <loc>https://fuluckpet.com/en/kittens/2508-00310.html</loc>
     <lastmod>2026-07-06</lastmod>
     <changefreq>weekly</changefreq>
@@ -712,36 +562,6 @@
     <image:image>
       <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1GoruWUhUw-I5vCGTDA9FaXcCsU6I5V-c</image:loc>
       <image:caption>Siberian kitten Silver Shaded Male · ID 2508-00310</image:caption>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/en/kittens/2512-01681.html</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/162HOfrOJzdas1RIsQ0oiiVomld5AZ256</image:loc>
-      <image:caption>Siberian kitten Blue Patched Tabby &amp; White Male · ID 2512-01681</image:caption>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/en/kittens/2510-01286.html</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1FB4TEXbPgDe2YZqFbnTMB0LAXKuc4eu6</image:loc>
-      <image:caption>Siberian kitten Brown Tabby, Triple Coat Female · ID 2510-01286</image:caption>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/en/kittens/2511-00142.html</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1pk1MOHABDWqrbyz6HC7xVcwgYsTQ5aUw</image:loc>
-      <image:caption>Siberian kitten White Male · ID 2511-00142</image:caption>
     </image:image>
   </url>
   <url>
@@ -876,26 +696,6 @@
   </url>
   子猫詳細ページ (zh)
   <url>
-    <loc>https://fuluckpet.com/zh/kittens/2602-00625.html</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1WgbZ2SZ1c8Q43wBdqu8vu9w3a3Idxj-A</image:loc>
-      <image:caption>西伯利亚猫幼猫 蓝色山猫重点色 涅瓦假面 男孩・个体编号2602-00625</image:caption>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/zh/kittens/2601-01855.html</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/11A__yaCqHdX2DQWdoJJt09SL96fommeS</image:loc>
-      <image:caption>西伯利亚猫幼猫 银虎斑 三层被毛 男孩・个体编号2601-01855</image:caption>
-    </image:image>
-  </url>
-  <url>
     <loc>https://fuluckpet.com/zh/kittens/2601-00909.html</loc>
     <lastmod>2026-07-06</lastmod>
     <changefreq>weekly</changefreq>
@@ -916,46 +716,6 @@
     </image:image>
   </url>
   <url>
-    <loc>https://fuluckpet.com/zh/kittens/2511-02287.html</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1FnPV_ZpT2-SzUfjADTv-XlIwJ39xKXmN</image:loc>
-      <image:caption>西伯利亚猫幼猫 棕虎斑 三层被毛 男孩・个体编号2511-02287</image:caption>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/zh/kittens/2509-02086.html</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1KJLJEc--MYuybNtF_y--ljq03m4u3E2P</image:loc>
-      <image:caption>西伯利亚猫幼猫 银虎斑 女孩・个体编号2509-02086</image:caption>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/zh/kittens/2511-01887.html</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1pK5C5fzKUgxjyfabO3QeVeBShcbBkX-J</image:loc>
-      <image:caption>西伯利亚猫幼猫 白色 三层被毛 男孩・个体编号2511-01887</image:caption>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/zh/kittens/2601-00912.html</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1dIAA6WFEi36_6X_RlGU2_V40QZOh6c2B</image:loc>
-      <image:caption>西伯利亚猫幼猫 蓝色山猫重点色 涅瓦假面 女孩・个体编号2601-00912</image:caption>
-    </image:image>
-  </url>
-  <url>
     <loc>https://fuluckpet.com/zh/kittens/2508-00310.html</loc>
     <lastmod>2026-07-06</lastmod>
     <changefreq>weekly</changefreq>
@@ -963,36 +723,6 @@
     <image:image>
       <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1GoruWUhUw-I5vCGTDA9FaXcCsU6I5V-c</image:loc>
       <image:caption>西伯利亚猫幼猫 银色阴影 男孩・个体编号2508-00310</image:caption>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/zh/kittens/2512-01681.html</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/162HOfrOJzdas1RIsQ0oiiVomld5AZ256</image:loc>
-      <image:caption>西伯利亚猫幼猫 蓝玳瑁虎斑加白 男孩・个体编号2512-01681</image:caption>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/zh/kittens/2510-01286.html</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1FB4TEXbPgDe2YZqFbnTMB0LAXKuc4eu6</image:loc>
-      <image:caption>西伯利亚猫幼猫 棕虎斑 三层被毛 女孩・个体编号2510-01286</image:caption>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://fuluckpet.com/zh/kittens/2511-00142.html</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://fuluck-api.mouxue56.workers.dev/api/drive/img/1pk1MOHABDWqrbyz6HC7xVcwgYsTQ5aUw</image:loc>
-      <image:caption>西伯利亚猫幼猫 白色 男孩・个体编号2511-00142</image:caption>
     </image:image>
   </url>
   <url>
