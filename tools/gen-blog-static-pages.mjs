@@ -110,7 +110,7 @@ function buildPage(art, lang = 'ja') {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css?v=20260624v2">
+  <link rel="stylesheet" href="/style.css?v=20260708a">
   <link rel="stylesheet" href="/guide/guide.css?v=20260706a">
   <link rel="stylesheet" href="/blog.css?v=20260706a">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
@@ -260,7 +260,7 @@ ${body}
 
   <script src="/i18n.js?v=20260707a"></script>
   <script src="/blog/blog-i18n.js?v=20260624v2"></script>
-  <script src="/script.js?v=20260623b"></script>
+  <script src="/script.js?v=20260708a"></script>
 
 </body>
 </html>

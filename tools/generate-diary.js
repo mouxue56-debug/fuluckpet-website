@@ -407,7 +407,7 @@ function buildHead({ title, description, pageUrl, image, jsonLd, ogType = 'artic
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
-  <link rel="stylesheet" href="/style.css?v=${ver('style.css', '20260628g')}">
+  <link rel="stylesheet" href="/style.css?v=${ver('style.css', '20260708a')}">
   <link rel="stylesheet" href="/nav.css?v=${ver('nav.css', '20260628a')}">
   <link rel="stylesheet" href="/guide/guide.css?v=${ver('guide/guide.css', '20260706a')}">
   <link rel="stylesheet" href="/blog.css?v=${ver('blog.css', '20260706a')}">
@@ -669,7 +669,7 @@ ${chrome.footerHtml}
   <script src="/i18n.js?v=${ver('i18n.js', '20260707a')}"></script>
   <script>window._diaryArticleI18n = ${safeJsonForScript(i18n)}; window._blogArticleI18n = window._diaryArticleI18n;</script>
   <script src="/blog/blog-i18n.js?v=${ver('blog/blog-i18n.js', '20260624v2')}"></script>
-  <script src="/script.js?v=${ver('script.js', '20260705a')}"></script>
+  <script src="/script.js?v=${ver('script.js', '20260708a')}"></script>
 
   <div class="mobile-cta-bar" role="navigation" aria-label="クイック連絡">
     <div class="mobile-cta-bar-inner">
@@ -835,7 +835,7 @@ ${chrome.headerHtml}
 ${chrome.footerHtml}
 
   <script src="/i18n.js?v=${ver('i18n.js', '20260707a')}"></script>
-  <script src="/script.js?v=${ver('script.js', '20260705a')}"></script>
+  <script src="/script.js?v=${ver('script.js', '20260708a')}"></script>
 
   <div class="mobile-cta-bar" role="navigation" aria-label="クイック連絡">
     <div class="mobile-cta-bar-inner">

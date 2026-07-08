@@ -370,7 +370,7 @@ button { font-family: inherit; cursor: pointer; }
   margin-right: 6px;
   border-radius: 999px;
   background: var(--mint-milk, #e6f7f2);
-  color: var(--mint-dark, #2a8d76);
+  color: var(--mint-deep); /* AA: 4.82:1 on --mint-milk (was --mint-dark #5BC4A8 = 2.06:1) */
   font-size: 13px;
   font-weight: 600;
   text-decoration: none;
@@ -769,9 +769,9 @@ button { font-family: inherit; cursor: pointer; }
   margin-bottom: 14px;
   letter-spacing: 0.02em;
 }
-.ftag-peach { background: var(--peach-milk); color: #B07050; }
-.ftag-mint { background: var(--mint-milk); color: #4BA890; }
-.ftag-mango { background: var(--mango-milk); color: #9A8020; }
+.ftag-peach { background: var(--peach-milk); color: #955030; } /* AA: 5.71:1 (was #B07050 = 3.75:1) */
+.ftag-mint { background: var(--mint-milk); color: #2F7361; } /* AA: 5.44:1 (was #4BA890 = 2.79:1) */
+.ftag-mango { background: var(--mango-milk); color: #8A6A00; } /* AA: 4.93:1 (was #9A8020 = 3.73:1) */
 .feature-card h3 {
   font-family: 'Noto Sans JP', sans-serif;
   font-size: 20px;
@@ -3184,6 +3184,10 @@ body.cta-hidden .mobile-nav-fab {
 }
 .mobile-cta-bar.has-tel .mobile-cta-bar-inner {
   grid-template-columns: 1fr 1fr 1fr;
+}
+/* Single CTA (e.g. booking page keeps LINE only) → full-width, no empty column */
+.mobile-cta-bar-inner:has(> a:only-child) {
+  grid-template-columns: 1fr;
 }
 .mobile-cta-bar a {
   display: flex;

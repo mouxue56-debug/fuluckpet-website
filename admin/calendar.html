@@ -198,7 +198,7 @@
       <div class="login-logo">📅</div>
       <h1 class="login-title" data-adm-ja="カレンダー" data-adm-zh="日历">カレンダー</h1>
       <p class="login-sub" data-adm-ja="パスワードを入力してログインしてください" data-adm-zh="请输入密码登录">パスワードを入力してログインしてください</p>
-      <input type="password" id="loginPassword" class="login-input" placeholder="パスワード" autocomplete="current-password">
+      <input type="password" id="loginPassword" class="login-input" placeholder="パスワード" aria-label="パスワード" autocomplete="current-password">
       <button id="loginBtn" class="login-btn" data-adm-ja="ログイン" data-adm-zh="登录">ログイン</button>
       <p id="loginError" class="login-error" data-adm-ja="パスワードが正しくありません" data-adm-zh="密码不正确">パスワードが正しくありません</p>
     </div>
@@ -302,7 +302,7 @@
         <form id="eventForm">
           <input type="hidden" id="evtId" value="">
           <div class="form-group">
-            <label class="form-label" data-adm-ja="種類" data-adm-zh="类型">種類</label>
+            <label class="form-label" for="evtType" data-adm-ja="種類" data-adm-zh="类型">種類</label>
             <select id="evtType" class="form-select">
               <option value="visit" data-adm-ja="見学" data-adm-zh="参观">見学</option>
               <option value="boarding" data-adm-ja="お預かり" data-adm-zh="寄养">お預かり</option>
@@ -311,27 +311,27 @@
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label" data-adm-ja="タイトル" data-adm-zh="标题">タイトル</label>
+            <label class="form-label" for="evtTitle" data-adm-ja="タイトル" data-adm-zh="标题">タイトル</label>
             <input type="text" id="evtTitle" class="form-input" maxlength="120" required>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label" data-adm-ja="開始日" data-adm-zh="开始日期">開始日</label>
+              <label class="form-label" for="evtStart" data-adm-ja="開始日" data-adm-zh="开始日期">開始日</label>
               <input type="date" id="evtStart" class="form-input" required>
             </div>
             <div class="form-group">
-              <label class="form-label" data-adm-ja="終了日" data-adm-zh="结束日期">終了日</label>
+              <label class="form-label" for="evtEnd" data-adm-ja="終了日" data-adm-zh="结束日期">終了日</label>
               <input type="date" id="evtEnd" class="form-input" required>
               <div class="form-hint" data-adm-ja="未入力は開始日と同じ" data-adm-zh="留空则与开始日相同">未入力は開始日と同じ</div>
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label" data-adm-ja="時刻（任意）" data-adm-zh="时间（可选）">時刻（任意）</label>
+              <label class="form-label" for="evtTime" data-adm-ja="時刻（任意）" data-adm-zh="时间（可选）">時刻（任意）</label>
               <input type="time" id="evtTime" class="form-input">
             </div>
             <div class="form-group" id="evtPetTypeGroup" style="display:none;">
-              <label class="form-label" data-adm-ja="ペット種別" data-adm-zh="宠物类型">ペット種別</label>
+              <label class="form-label" for="evtPetType" data-adm-ja="ペット種別" data-adm-zh="宠物类型">ペット種別</label>
               <select id="evtPetType" class="form-select">
                 <option value="cat" data-adm-ja="猫" data-adm-zh="猫">猫</option>
                 <option value="small_dog" data-adm-ja="小型犬" data-adm-zh="小型犬">小型犬</option>
@@ -341,7 +341,7 @@
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label" data-adm-ja="ステータス" data-adm-zh="状态">ステータス</label>
+            <label class="form-label" for="evtStatus" data-adm-ja="ステータス" data-adm-zh="状态">ステータス</label>
             <select id="evtStatus" class="form-select">
               <option value="pending" data-adm-ja="未確定" data-adm-zh="未确定">未確定</option>
               <option value="confirmed" data-adm-ja="確定" data-adm-zh="已确定">確定</option>
@@ -350,7 +350,7 @@
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label" data-adm-ja="メモ" data-adm-zh="备注">メモ</label>
+            <label class="form-label" for="evtNotes" data-adm-ja="メモ" data-adm-zh="备注">メモ</label>
             <textarea id="evtNotes" class="form-textarea" maxlength="2000"></textarea>
           </div>
           <button type="submit" id="btnSaveEvent" class="btn-save" data-adm-ja="追加する" data-adm-zh="添加">追加する</button>

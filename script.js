@@ -192,6 +192,89 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ===== Modal a11y helpers (dialog semantics + focus trap) =====
+  // Shared open/close for #kittenModal / #parentModal so keyboard users get
+  // proper dialog semantics, a focus trap, and focus restoration on close.
+  let modalLastFocused = null;
+  let modalTrapHandler = null;
+
+  function getModalFocusables(modal) {
+    return Array.from(modal.querySelectorAll(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )).filter(el => el.offsetParent !== null || el === document.activeElement);
+  }
+
+  function openModalA11y(modal) {
+    if (!modal) return;
+    modalLastFocused = document.activeElement;
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    // Accessible name: prefer the modal's visible title element
+    const titleEl = modal.querySelector('.modal-name');
+    if (titleEl) {
+      if (!titleEl.id) titleEl.id = modal.id + '-title';
+      modal.setAttribute('aria-labelledby', titleEl.id);
+      modal.removeAttribute('aria-label');
+    } else {
+      modal.setAttribute('aria-label', '詳細');
+    }
+
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    // Move focus into the modal (close button is a reliable first target).
+    // Deferred because .active reveals the modal via a CSS visibility transition —
+    // focusing while still visibility:hidden is a no-op. rAF handles the common
+    // case; a short timeout fallback re-focuses if the transition hadn't applied yet.
+    const focusFirst = () => {
+      if (!modal.classList.contains('active')) return; // closed again before focus ran
+      if (modal.contains(document.activeElement) && document.activeElement !== modal) return; // already inside
+      const focusables = getModalFocusables(modal);
+      const firstTarget = modal.querySelector('.modal-close') || focusables[0] || modal;
+      if (firstTarget === modal && !modal.hasAttribute('tabindex')) modal.setAttribute('tabindex', '-1');
+      firstTarget.focus();
+    };
+    requestAnimationFrame(() => requestAnimationFrame(focusFirst));
+    setTimeout(focusFirst, 80);
+
+    // Trap Tab / Shift+Tab within the modal
+    modalTrapHandler = function (e) {
+      if (e.key !== 'Tab') return;
+      const items = getModalFocusables(modal);
+      if (!items.length) { e.preventDefault(); return; }
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first || !modal.contains(document.activeElement)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last || !modal.contains(document.activeElement)) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    modal.addEventListener('keydown', modalTrapHandler);
+  }
+
+  function closeModalA11y(modal) {
+    if (!modal) return;
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+    if (modalTrapHandler) {
+      modal.removeEventListener('keydown', modalTrapHandler);
+      modalTrapHandler = null;
+    }
+    // Restore focus to the element that opened the modal
+    if (modalLastFocused && typeof modalLastFocused.focus === 'function') {
+      modalLastFocused.focus();
+    }
+    modalLastFocused = null;
+  }
+  window.__closeModalA11y = closeModalA11y;
+
   // ===== Dynamic Kitten Detail Modal =====
   const kittenModal = document.getElementById('kittenModal');
   const modalClose = document.getElementById('modalClose');
@@ -379,7 +462,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <p style="text-align:center;font-size:12px;color:var(--text-note);margin-top:6px;">※ 購入前のちょっとした質問だけでもOKです</p>
 
       <div class="modal-actions" style="margin-top:12px">
-        <a href="/booking.html" class="btn btn-secondary modal-visit-btn" onclick="document.getElementById('kittenModal').classList.remove('active');document.body.style.overflow=''">見学を予約</a>
+        <a href="/booking.html" class="btn btn-secondary modal-visit-btn" onclick="(window.__closeModalA11y||function(){})(document.getElementById('kittenModal'))">見学を予約</a>
       </div>
     `;
 
@@ -394,12 +477,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const parentCard = document.querySelector(`.parent-card[data-name="${parentName}"]`);
         if (parentCard && typeof window.openParentModal === 'function') {
           // Close kitten modal, open parent modal
-          kittenModal.classList.remove('active');
+          closeModalA11y(kittenModal);
           window.openParentModal(parentCard);
         } else {
           // Not on this page — navigate to parents.html with hash
-          kittenModal.classList.remove('active');
-          document.body.style.overflow = '';
+          closeModalA11y(kittenModal);
           window.location.href = `parents.html#parent-${encodeURIComponent(parentName)}`;
         }
       });
@@ -479,8 +561,7 @@ document.addEventListener('DOMContentLoaded', () => {
       currentKittenIndex = idx;
       buildCarousel(card);
       populateModalInfo(card);
-      kittenModal.classList.add('active');
-      document.body.style.overflow = 'hidden';
+      openModalA11y(kittenModal);
       updateKittenNavButtons();
     });
   });
@@ -502,15 +583,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // Close modal
   if (modalClose) {
     modalClose.addEventListener('click', () => {
-      kittenModal.classList.remove('active');
-      document.body.style.overflow = '';
+      closeModalA11y(kittenModal);
     });
   }
   if (kittenModal) {
     kittenModal.addEventListener('click', e => {
       if (e.target === kittenModal) {
-        kittenModal.classList.remove('active');
-        document.body.style.overflow = '';
+        closeModalA11y(kittenModal);
       }
     });
   }
@@ -607,21 +686,18 @@ document.addEventListener('DOMContentLoaded', () => {
       childrenContainer.innerHTML = chipsHTML || '<span style="color:var(--text-note);font-size:13px">現在表示中の子猫はいません</span>';
     }
 
-    parentModal.classList.add('active');
-    document.body.style.overflow = 'hidden';
+    openModalA11y(parentModal);
   };
 
   if (parentModalClose) {
     parentModalClose.addEventListener('click', () => {
-      parentModal.classList.remove('active');
-      document.body.style.overflow = '';
+      closeModalA11y(parentModal);
     });
   }
   if (parentModal) {
     parentModal.addEventListener('click', e => {
       if (e.target === parentModal) {
-        parentModal.classList.remove('active');
-        document.body.style.overflow = '';
+        closeModalA11y(parentModal);
       }
     });
   }
@@ -630,8 +706,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       document.querySelectorAll('.modal-overlay.active').forEach(m => {
-        m.classList.remove('active');
-        document.body.style.overflow = '';
+        closeModalA11y(m);
       });
     }
   });
@@ -647,13 +722,28 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ===== FAQ Accordion =====
-  document.querySelectorAll('.faq-item').forEach(item => {
+  document.querySelectorAll('.faq-item').forEach((item, idx) => {
     const q = item.querySelector('.faq-q');
     if (q) {
+      // a11y: expose expand state and link Q → A (mirrors faq-page-loader.js)
+      const panel = item.querySelector('.faq-a');
+      if (panel) {
+        if (!panel.id) panel.id = 'faq-a-static-' + idx;
+        panel.setAttribute('role', 'region');
+        q.setAttribute('aria-controls', panel.id);
+      }
+      q.setAttribute('aria-expanded', item.classList.contains('active') ? 'true' : 'false');
       q.addEventListener('click', () => {
         const isActive = item.classList.contains('active');
-        document.querySelectorAll('.faq-item').forEach(fi => fi.classList.remove('active'));
-        if (!isActive) item.classList.add('active');
+        document.querySelectorAll('.faq-item').forEach(fi => {
+          fi.classList.remove('active');
+          const fq = fi.querySelector('.faq-q');
+          if (fq) fq.setAttribute('aria-expanded', 'false');
+        });
+        if (!isActive) {
+          item.classList.add('active');
+          q.setAttribute('aria-expanded', 'true');
+        }
       });
     }
   });
@@ -846,8 +936,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentKittenIndex = idx;
         buildCarousel(card);
         populateModalInfo(card);
-        kittenModal.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        openModalA11y(kittenModal);
         updateKittenNavButtons();
       });
     });

@@ -24,7 +24,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
 
-  <link rel="stylesheet" href="../style.css">
+  <link rel="canonical" href="https://fuluckpet.com/boarding/estimate.html">
+  <link rel="stylesheet" href="../style.css?v=20260708a">
   <style>
     /* ── estimator（DESIGN_SPEC ②：九档间距 4/8/12/16/24/32/48/64/96・零新色） ── */
     /* style.css に --cream は無い：実トークン --mango-milk(#FFFCF0) への別名（無地フォールバック付き） */
@@ -121,7 +122,7 @@
     .es-cta { margin: 24px 0 0; text-align: center; }
     .es-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; background: var(--mint-deep); color: #fff; font-weight: 700; font-size: 16px; font-family: inherit; text-decoration: none; padding: 16px 24px; border-radius: 999px; border: none; cursor: pointer; }
     .es-btn:hover { filter: brightness(1.05); }
-    .es-btn:disabled { opacity: .45; cursor: not-allowed; filter: none; }
+    .es-btn:disabled, .es-btn[aria-disabled="true"] { opacity: .45; cursor: not-allowed; filter: none; pointer-events: none; }
     .es-btn-sub { display: inline-block; margin-top: 16px; font-size: 13px; color: var(--mint-deep); font-weight: 600; background: none; border: none; cursor: pointer; font-family: inherit; text-decoration: none; }
     .es-btn-sub:hover { text-decoration: underline; }
     .es-copied { font-size: 13px; color: var(--mint-deep); font-weight: 600; margin: 12px 0 0; min-height: 16px; }
@@ -294,7 +295,8 @@
 
       <!-- F CTA -->
       <div class="es-cta">
-        <button class="es-btn" id="ctaLine" disabled>この見積もりでLINE相談する</button>
+        <!-- 本物の<a>：クリックのジェスチャー内で同期ナビ（iOSのポップアップブロック回避）。コピーはベストエフォート・非同期でナビを妨げない。 -->
+        <a class="es-btn" id="ctaLine" href="https://page.line.me/915hnnlk" target="_blank" rel="noopener" role="button" aria-disabled="true">この見積もりでLINE相談する</a>
         <p class="es-copied" id="copiedMsg" role="status" aria-live="polite"></p>
         <button class="es-btn-sub" id="ctaCopy" hidden>見積もり内容だけコピーする</button>
       </div>
@@ -313,6 +315,6 @@
        否则回头访客的浏览器永远用旧价文件计算（价格改动史：v2/v3 因缺戳未送达，2026-07-08 修复）。 -->
   <script src="../boarding-config.js?v=v4-20260708"></script>
   <script src="../boarding-calc.js?v=v4-20260708"></script>
-  <script src="boarding-estimate.js?v=v4-20260708"></script>
+  <script src="boarding-estimate.js?v=v5-20260708"></script>
 </body>
 </html>

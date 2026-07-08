@@ -527,7 +527,7 @@ function buildListHeader(jaHeader, lang) {
   // Chrome = HEADER marker through just before PAGE HERO (nav + mobile nav), absolutized.
   const chrome = listToAbsoluteLinks(jaHeader.substring(headerIdx, heroIdx).replace(/\s*$/, ''));
 
-  const styleV = verAsset('style.css', '20260628k');
+  const styleV = verAsset('style.css', '20260708a');
   const navCssV = verAsset('nav.css', '20260628a');
   const navJsV = verAsset('nav.js', '20260705b');
   const relPath = 'kittens.html';
@@ -1220,7 +1220,7 @@ ${hreflangBlock(`kittens/${fileId}.html`)}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260628k')}">
+  <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260708a')}">
   <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20260628a')}">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
   <script defer src="/nav.js?v=${verAsset('nav.js', '20260705b')}"></script>
@@ -1526,7 +1526,7 @@ ${footerHtml}
   <script src="/catalog-i18n.js?v=${verAsset('catalog-i18n.js', '20260705a')}"></script>
   <script src="/kitten-carousel.js?v=${verAsset('kitten-carousel.js', '20260705a')}"></script>
   <script src="/cta-widget.js?v=${verAsset('cta-widget.js', '20260623b')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20260705a')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20260708a')}"></script>
 </body>
 </html>`;
 }

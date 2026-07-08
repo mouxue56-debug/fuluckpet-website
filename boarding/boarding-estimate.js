@@ -127,7 +127,7 @@
       if (spQuoteNote.total) spTotal += spQuoteNote.total;
       render(spLines, spTotal, false);
       lastQuoteText = buildQuoteText(type, checkIn, checkOut, nights, spLines, spTotal, spQuoteNote.hasNote);
-      els.ctaLine.disabled = false; els.ctaCopy.hidden = false;
+      els.ctaLine.setAttribute('aria-disabled','false'); els.ctaCopy.hidden = false;
       return;
     }
 
@@ -173,13 +173,13 @@
 
     render(lines, total, b.needsReview);
     lastQuoteText = buildQuoteText(type, checkIn, checkOut, nights, lines, total, hasQuoteNote);
-    els.ctaLine.disabled = false; els.ctaCopy.hidden = false;
+    els.ctaLine.setAttribute('aria-disabled','false'); els.ctaCopy.hidden = false;
   }
 
   function showEmpty(msg) {
     els.resultEmpty.hidden = false; els.resultEmpty.textContent = msg;
     els.resultBody.hidden = true;
-    els.ctaLine.disabled = true; els.ctaCopy.hidden = true;
+    els.ctaLine.setAttribute('aria-disabled','true'); els.ctaCopy.hidden = true;
     els.sticky.classList.remove('show'); lastQuoteText = '';
     els.copiedMsg.textContent = '';
   }
@@ -248,7 +248,12 @@
   els.types.forEach && els.types.forEach(function (r) { r.addEventListener('change', toggleSurHint); });
   if (!els.types.forEach) for (var j = 0; j < els.types.length; j++) els.types[j].addEventListener('change', toggleSurHint);
 
-  els.ctaLine.addEventListener('click', function () { onCta(true); });
+  // ctaLine is a real <a>: let it navigate natively (in-gesture, iOS-safe). Copy is best-effort, NOT awaited.
+  els.ctaLine.addEventListener('click', function (e) {
+    if (els.ctaLine.getAttribute('aria-disabled') === 'true' || !lastQuoteText) { e.preventDefault(); return; }
+    try { copyText(lastQuoteText); } catch (err) {}
+    els.copiedMsg.textContent = '見積もり内容をコピーしました。LINEに貼り付けてお送りください。';
+  });
   els.ctaCopy.addEventListener('click', function () { onCta(false); });
 
   function scrollToResult() { $('result').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
