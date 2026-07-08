@@ -16,11 +16,19 @@ const assert = require('node:assert/strict');
 // ---- copy of api/worker.js pure logic (keep in sync) ----
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
+// SYNC NOTE: byte-for-byte copy of isRealDate in ../api/worker.js — change both together.
+function isRealDate(s) {
+  if (!DATE_RE.test(s)) return false;
+  const p = s.split('-'), y = +p[0], m = +p[1], d = +p[2];
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  return dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d;
+}
+
 const CAL_EVENT_TYPES = ['visit', 'boarding', 'block', 'note'];
 const CAL_STATUSES = ['pending', 'confirmed', 'done', 'cancelled'];
 const CAL_PET_TYPES = ['cat', 'small_dog', 'medium_dog', 'large_dog'];
 const CAL_SOURCES = ['booking-form', 'admin', 'ai'];
-const CAL_TIME_RE = /^\d{2}:\d{2}$/;
+const CAL_TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 function validateCalendarEvent(body, { partial = false } = {}) {
   const errors = [];
@@ -51,18 +59,18 @@ function validateCalendarEvent(body, { partial = false } = {}) {
   // still enforce end≥start against whichever we have (caller merges the other).
   if (has('start') || !partial) {
     const start = typeof body.start === 'string' ? body.start.trim() : '';
-    if (!DATE_RE.test(start)) errors.push('start (YYYY-MM-DD) required');
+    if (!isRealDate(start)) errors.push('start (YYYY-MM-DD) required');
     data.start = start;
   }
   if (has('end') || !partial) {
     const end = typeof body.end === 'string' ? body.end.trim() : '';
-    if (!DATE_RE.test(end)) errors.push('end (YYYY-MM-DD) required');
+    if (!isRealDate(end)) errors.push('end (YYYY-MM-DD) required');
     data.end = end;
   }
   // end≥start check when both are valid dates in this payload.
   if (
-    typeof data.start === 'string' && DATE_RE.test(data.start) &&
-    typeof data.end === 'string' && DATE_RE.test(data.end) &&
+    typeof data.start === 'string' && isRealDate(data.start) &&
+    typeof data.end === 'string' && isRealDate(data.end) &&
     data.end < data.start
   ) {
     errors.push('end must be >= start');
@@ -296,6 +304,35 @@ test('rejects invalid start/end date format', () => {
   const { errors } = validateCalendarEvent({ type: 'visit', title: 'x', start: '2026/01/01', end: 'nope' });
   assert.ok(errors.some((e) => e.startsWith('start')));
   assert.ok(errors.some((e) => e.startsWith('end')));
+});
+
+// ── isRealDate: format passes but the day/month is impossible ──
+test('isRealDate — rejects impossible dates, accepts real ones', () => {
+  assert.equal(isRealDate('2026-02-30'), false); // Feb 30 → rolls to March
+  assert.equal(isRealDate('2026-13-01'), false); // month 13
+  assert.equal(isRealDate('2026-00-15'), false); // month 0
+  assert.equal(isRealDate('2026-02-28'), true);
+  assert.equal(isRealDate('2026-12-31'), true);
+});
+
+test('validateCalendarEvent — rejects impossible start/end dates', () => {
+  const bad = validateCalendarEvent({ type: 'visit', title: 'x', start: '2026-02-30', end: '2026-13-01' });
+  assert.ok(bad.errors.some((e) => e.startsWith('start')));
+  assert.ok(bad.errors.some((e) => e.startsWith('end')));
+  const good = validateCalendarEvent({ type: 'visit', title: 'x', start: '2026-02-28', end: '2026-12-31' });
+  assert.deepEqual(good.errors, []);
+});
+
+// ── CAL_TIME_RE: real clock times only ──
+test('time — rejects out-of-range clock values, accepts valid HH:MM', () => {
+  for (const t of ['29:99', '24:00', '12:60']) {
+    const { errors } = validateCalendarEvent({ type: 'visit', title: 'x', start: '2026-01-01', end: '2026-01-01', time: t });
+    assert.ok(errors.some((e) => e === 'time must be HH:MM'), `expected reject for ${t}`);
+  }
+  for (const t of ['00:00', '23:59', '09:30']) {
+    const { errors } = validateCalendarEvent({ type: 'visit', title: 'x', start: '2026-01-01', end: '2026-01-01', time: t });
+    assert.deepEqual(errors, [], `expected accept for ${t}`);
+  }
 });
 
 test('rejects missing/too-long title', () => {

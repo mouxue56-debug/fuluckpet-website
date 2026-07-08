@@ -1102,13 +1102,43 @@ async function verifyAndMaybeMigrate(env, candidate) {
   return { ok: true, migrated: true };
 }
 
+// Shared per-IP brute-force guard for password attempts (used by BOTH POST /api/auth
+// and checkAuth). Max 10 failed attempts per IP per rolling hour. Key/cap are identical
+// across both call paths so an attacker can't sidestep the /api/auth cap by hammering
+// /api/admin/* Bearer auth instead.
+//   isTooMany(env, ip)              -> true if the IP is already over cap (no increment)
+//   recordAuthFailure(env, ip)      -> increment the counter (call ONLY on a real mismatch)
+const AUTHFAIL_CAP = 10;
+function authFailKey(ip) {
+  return `authfail:${ip}:${Math.floor(Date.now() / 3600000)}`;
+}
+async function isTooManyAuthFailures(env, ip) {
+  const fails = parseInt((await env.DATA.get(authFailKey(ip))) || '0', 10);
+  return fails >= AUTHFAIL_CAP;
+}
+async function recordAuthFailure(env, ip) {
+  const key = authFailKey(ip);
+  const fails = parseInt((await env.DATA.get(key)) || '0', 10);
+  await env.DATA.put(key, String(fails + 1), { expirationTtl: 3600 });
+}
+
 // Bearer-token auth for admin endpoints (Authorization: Bearer <password>).
 // Falls through to legacy migration on first login.
+// Returns { ok, tooMany }: `tooMany` is true when the IP is already over the per-IP
+// authfail cap (caller should reply 429 instead of 401). A CORRECT Bearer token never
+// increments the counter and is never throttled.
 async function checkAuth(request, env) {
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  if (await isTooManyAuthFailures(env, ip)) {
+    return { ok: false, tooMany: true };
+  }
   const auth = request.headers.get('Authorization') || '';
   const token = auth.replace('Bearer ', '');
   const { ok } = await verifyAndMaybeMigrate(env, token);
-  return ok;
+  if (!ok) {
+    await recordAuthFailure(env, ip);
+  }
+  return { ok, tooMany: false };
 }
 
 // ===== Booking validation =====
@@ -1117,6 +1147,18 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // Japanese phone: digits, hyphens, parens, plus, spaces; 9-15 chars after stripping.
 const PHONE_DIGITS_RE = /^[0-9+\-()\s]{9,20}$/;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+// True only for a real calendar date in YYYY-MM-DD form. The regex alone accepts
+// impossible dates like 2026-02-30 / 2026-13-01 / 2026-00-15, which would then be
+// silently normalized to the wrong day by Date/buildIcs. Round-trip through UTC to
+// reject any date whose components don't survive normalization.
+// SYNC NOTE: byte-for-byte copy in tests/calendar-lib.test.js — change both together.
+function isRealDate(s) {
+  if (!DATE_RE.test(s)) return false;
+  const p = s.split('-'), y = +p[0], m = +p[1], d = +p[2];
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  return dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d;
+}
 
 function validateBooking(body) {
   const errors = [];
@@ -1141,7 +1183,7 @@ function validateBooking(body) {
 
   // preferred_date (required, YYYY-MM-DD)
   const preferred_date = typeof body.preferred_date === 'string' ? body.preferred_date.trim() : '';
-  if (!DATE_RE.test(preferred_date)) errors.push('preferred_date (YYYY-MM-DD) required');
+  if (!isRealDate(preferred_date)) errors.push('preferred_date (YYYY-MM-DD) required');
   data.preferred_date = preferred_date;
 
   // preferred_time (optional, free text, ≤ 50)
@@ -1158,7 +1200,7 @@ function validateBooking(body) {
 
   // preferred_date2 (optional, YYYY-MM-DD)
   const preferred_date2 = typeof body.preferred_date2 === 'string' ? body.preferred_date2.trim() : '';
-  if (preferred_date2 && !DATE_RE.test(preferred_date2)) errors.push('preferred_date2 (YYYY-MM-DD) invalid');
+  if (preferred_date2 && !isRealDate(preferred_date2)) errors.push('preferred_date2 (YYYY-MM-DD) invalid');
   data.preferred_date2 = preferred_date2;
 
   // message (optional, ≤ 2000)
@@ -1181,7 +1223,8 @@ const CAL_EVENT_TYPES = ['visit', 'boarding', 'block', 'note'];
 const CAL_STATUSES = ['pending', 'confirmed', 'done', 'cancelled'];
 const CAL_PET_TYPES = ['cat', 'small_dog', 'medium_dog', 'large_dog'];
 const CAL_SOURCES = ['booking-form', 'admin', 'ai'];
-const CAL_TIME_RE = /^\d{2}:\d{2}$/;
+// HH:MM, 00:00–23:59 only. The old /^\d{2}:\d{2}$/ accepted junk like 29:99 / 24:00.
+const CAL_TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 // Validate a calendar event body. Returns { errors: [...], data: {...} } like
 // validateBooking. Unknown fields are stripped (only modelled fields survive).
@@ -1216,18 +1259,18 @@ function validateCalendarEvent(body, { partial = false } = {}) {
   // still enforce end≥start against whichever we have (caller merges the other).
   if (has('start') || !partial) {
     const start = typeof body.start === 'string' ? body.start.trim() : '';
-    if (!DATE_RE.test(start)) errors.push('start (YYYY-MM-DD) required');
+    if (!isRealDate(start)) errors.push('start (YYYY-MM-DD) required');
     data.start = start;
   }
   if (has('end') || !partial) {
     const end = typeof body.end === 'string' ? body.end.trim() : '';
-    if (!DATE_RE.test(end)) errors.push('end (YYYY-MM-DD) required');
+    if (!isRealDate(end)) errors.push('end (YYYY-MM-DD) required');
     data.end = end;
   }
   // end≥start check when both are valid dates in this payload.
   if (
-    typeof data.start === 'string' && DATE_RE.test(data.start) &&
-    typeof data.end === 'string' && DATE_RE.test(data.end) &&
+    typeof data.start === 'string' && isRealDate(data.start) &&
+    typeof data.end === 'string' && isRealDate(data.end) &&
     data.end < data.start
   ) {
     errors.push('end must be >= start');
@@ -1866,7 +1909,9 @@ export default {
         const all = (await env.DATA.get('articles', 'json')) || [];
         const isPreview = url.searchParams.get('preview') === '1';
         if (isPreview) {
-          if (!(await checkAuth(request, env))) return addCors(unauthorized());
+          const authRes = await checkAuth(request, env);
+          if (authRes.tooMany) return addCors(json({ success: false, error: 'too_many_attempts' }, 429));
+          if (!authRes.ok) return addCors(unauthorized());
           const anyArticle = all.find(a => a.slug === slug);
           if (!anyArticle) return addCors(notFound());
           return addCors(json(anyArticle, 200, 'no-store'));
@@ -2286,17 +2331,36 @@ export default {
 
       // ===== R2 PUBLIC IMAGE SERVING =====
 
-      // GET /r2/* — serve images from R2 bucket
+      // GET /r2/* — serve images from R2 bucket, edge-cached.
+      // Mirrors the drive-img caching pattern: edge cache (caches.default) keyed on the
+      // stripped URL (no query, so ?cachebust spam can't mint distinct entries), immutable
+      // 1-year Cache-Control, ETag = R2 key, and a non-blocking cache.put on a 200. Error
+      // responses (404) are NEVER cached.
       if (path.startsWith('/r2/') && method === 'GET') {
         const key = path.slice(4); // remove '/r2/'
+        const cache = caches.default;
+        const cacheKey = new Request(url.origin + url.pathname, { method: 'GET' });
+
+        const edgeHit = await cache.match(cacheKey);
+        if (edgeHit) {
+          const h = new Headers(edgeHit.headers);
+          h.set('X-Img-Cache', 'EDGE');
+          return addCors(new Response(edgeHit.body, { status: edgeHit.status, headers: h }));
+        }
+
         const obj = await env.BUCKET.get(key);
         if (!obj) return addCors(notFound());
-        return addCors(new Response(obj.body, {
+        const response = new Response(obj.body, {
+          status: 200,
           headers: {
             'Content-Type': obj.httpMetadata?.contentType || 'image/jpeg',
-            'Cache-Control': 'public, max-age=2592000', // 30 days
+            'Cache-Control': 'public, max-age=31536000, immutable',
+            'ETag': `"${key}"`,
+            'X-Img-Cache': 'R2',
           },
-        }));
+        });
+        ctx.waitUntil(cache.put(cacheKey, response.clone()));
+        return addCors(response);
       }
 
       // ===== BOOKING (PUBLIC WRITE; CORS LOCKED) =====
@@ -2383,7 +2447,7 @@ export default {
       if (path === '/api/calendar.ics' && method === 'GET') {
         const key = url.searchParams.get('key') || '';
         const stored = await env.DATA.get('cal_feed_key');
-        if (!stored || !key || key !== stored) {
+        if (!stored || !key || !constantTimeEquals(key, stored)) {
           return addCors(json({ error: 'Forbidden — invalid feed key' }, 403));
         }
         const doc = (await env.DATA.get('calendar_events', 'json')) || { rev: 0, events: [] };
@@ -2402,16 +2466,16 @@ export default {
       if (path === '/api/auth' && method === 'POST') {
         try {
           // Brute-force guard: max 10 failed attempts per IP per hour.
+          // Shared helper (isTooManyAuthFailures/recordAuthFailure) — identical key + cap
+          // as checkAuth so /api/admin/* Bearer auth can't sidestep this throttle.
           const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-          const rlKey = `authfail:${ip}:${Math.floor(Date.now() / 3600000)}`;
-          const fails = parseInt((await env.DATA.get(rlKey)) || '0', 10);
-          if (fails >= 10) {
+          if (await isTooManyAuthFailures(env, ip)) {
             return addCors(json({ success: false, error: 'too_many_attempts' }, 429));
           }
           const body = await request.json();
           const { ok, migrated } = await verifyAndMaybeMigrate(env, body && body.password);
           if (!ok) {
-            await env.DATA.put(rlKey, String(fails + 1), { expirationTtl: 3600 });
+            await recordAuthFailure(env, ip);
           }
           return addCors(json({ success: ok, migrated: migrated || undefined }));
         } catch (err) {
@@ -2421,7 +2485,11 @@ export default {
       }
 
       // All routes below require auth
-      if (!(await checkAuth(request, env))) {
+      const adminAuth = await checkAuth(request, env);
+      if (adminAuth.tooMany) {
+        return addCors(json({ success: false, error: 'too_many_attempts' }, 429));
+      }
+      if (!adminAuth.ok) {
         return addCors(unauthorized());
       }
 
@@ -2792,6 +2860,11 @@ export default {
       if (path === '/api/admin/upload' && method === 'DELETE') {
         const body = await request.json();
         if (!body.key) return addCors(json({ error: 'No key provided' }, 400));
+        // Only admin-uploaded objects (uploads/…) may be deleted. Reject any other key so
+        // this endpoint can't be used to delete arbitrary R2 objects (e.g. drive-img/… cache).
+        if (typeof body.key !== 'string' || !body.key.startsWith('uploads/')) {
+          return addCors(json({ error: 'Invalid key' }, 400));
+        }
         await env.BUCKET.delete(body.key);
         return addCors(json({ success: true }));
       }
