@@ -732,8 +732,8 @@
     "lastmod": "2026-07-05"
   },
   "https://fuluckpet.com/en/kittens.html": {
-    "hash": "440590d84a09298da4885d9515b2042b27673bc8",
-    "lastmod": "2026-07-07"
+    "hash": "c8c35401dc98f6889202f5613cab19f85b7b5ea5",
+    "lastmod": "2026-07-08"
   },
   "https://fuluckpet.com/en/kittens/2408-03054.html": {
     "hash": "58139d6823153d0e3d808bc77bc6d91df7528240",
@@ -875,6 +875,10 @@
     "hash": "21b3d01bf869c46db07120c6078bb1deefa1073b",
     "lastmod": "2026-07-06"
   },
+  "https://fuluckpet.com/en/kittens/2606-00637.html": {
+    "hash": "4f733e696da962fe1058c664eca5e1381f1a8fd6",
+    "lastmod": "2026-07-08"
+  },
   "https://fuluckpet.com/faq.html": {
     "hash": "ac3971b0df5fd93e51e9810d5c2abc90c5ef6e54",
     "lastmod": "2026-07-07"
@@ -884,8 +888,8 @@
     "lastmod": "2026-07-06"
   },
   "https://fuluckpet.com/kittens.html": {
-    "hash": "4af28a341a5d7a6bd2ab1699b0fa2fb180168f42",
-    "lastmod": "2026-07-06"
+    "hash": "a726abd35c6718d68a5aafe5703e6030a6f333d7",
+    "lastmod": "2026-07-08"
   },
   "https://fuluckpet.com/kittens/2408-03054.html": {
     "hash": "03e3d34971195360f246cfdba39f248560765ad5",
@@ -1027,6 +1031,10 @@
     "hash": "263d78ad813d919f0601ee8aad68cfeceb72615c",
     "lastmod": "2026-07-06"
   },
+  "https://fuluckpet.com/kittens/2606-00637.html": {
+    "hash": "789776257b7a6710bf82cc5831de724ed92f6921",
+    "lastmod": "2026-07-08"
+  },
   "https://fuluckpet.com/parents.html": {
     "hash": "375503e798d1de3783e35ff55d2d1135c8fd6425",
     "lastmod": "2026-07-06"
@@ -1044,8 +1052,8 @@
     "lastmod": "2026-07-03"
   },
   "https://fuluckpet.com/zh/kittens.html": {
-    "hash": "71643d8260d10db50cabef596da85828f5de8134",
-    "lastmod": "2026-07-07"
+    "hash": "8d986629e494cfe9f3a5c3f4118fc47cf0f4d72f",
+    "lastmod": "2026-07-08"
   },
   "https://fuluckpet.com/zh/kittens/2408-03054.html": {
     "hash": "506d2cfde7a0f3be247da26092a053c51edaed6f",
@@ -1186,5 +1194,9 @@
   "https://fuluckpet.com/zh/kittens/2604-02934.html": {
     "hash": "7d022827f99d416cd884e58ef0f001c53cc804f3",
     "lastmod": "2026-07-06"
+  },
+  "https://fuluckpet.com/zh/kittens/2606-00637.html": {
+    "hash": "706ea69daa28c32038175e69bc34868627eabf64",
+    "lastmod": "2026-07-08"
   }
 }

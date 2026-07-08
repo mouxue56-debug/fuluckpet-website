@@ -167,7 +167,7 @@
   <!-- 子猫一覧 -->
   <url>
     <loc>https://fuluckpet.com/kittens.html</loc>
-    <lastmod>2026-07-06</lastmod>
+    <lastmod>2026-07-08</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
     <image:image>
@@ -710,16 +710,26 @@
       <image:caption>サイベリアンの子猫 ブラウンタビー&amp;ホワイト（トリプルコート） 男の子・個体番号2603-00563</image:caption>
     </image:image>
   </url>
+  <url>
+    <loc>https://fuluckpet.com/kittens/2606-00637.html</loc>
+    <lastmod>2026-07-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_3dd00d4438b6.jpg.webp</image:loc>
+      <image:caption>サイベリアンの子猫 ブラウンタビー&amp;ホワイト（トリプルコート） 男の子・個体番号2606-00637</image:caption>
+    </image:image>
+  </url>
   <!-- 子猫一覧ページ (en/zh) -->
   <url>
     <loc>https://fuluckpet.com/en/kittens.html</loc>
-    <lastmod>2026-07-07</lastmod>
+    <lastmod>2026-07-08</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/kittens.html</loc>
-    <lastmod>2026-07-07</lastmod>
+    <lastmod>2026-07-08</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
@@ -1074,6 +1084,16 @@
       <image:caption>Siberian kitten Brown Tabby &amp; White (Triple Coat) Male · ID 2603-00563</image:caption>
     </image:image>
   </url>
+  <url>
+    <loc>https://fuluckpet.com/en/kittens/2606-00637.html</loc>
+    <lastmod>2026-07-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_3dd00d4438b6.jpg.webp</image:loc>
+      <image:caption>Siberian kitten Brown Tabby &amp; White (Triple Coat) Male · ID 2606-00637</image:caption>
+    </image:image>
+  </url>
   子猫詳細ページ (zh)
   <url>
     <loc>https://fuluckpet.com/zh/kittens/2602-00625.html</loc>
@@ -1423,6 +1443,16 @@
     <image:image>
       <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_f1e88c051771.jpg.webp</image:loc>
       <image:caption>西伯利亚猫幼猫 棕虎斑&amp;白色（三层被毛） 男孩・个体编号2603-00563</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/kittens/2606-00637.html</loc>
+    <lastmod>2026-07-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_3dd00d4438b6.jpg.webp</image:loc>
+      <image:caption>西伯利亚猫幼猫 棕虎斑&amp;白色（三层被毛） 男孩・个体编号2606-00637</image:caption>
     </image:image>
   </url>
   <!-- ブログ記事 -->
