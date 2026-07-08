@@ -51,8 +51,8 @@ cd api && wrangler deploy
 ## 3. Codex backend specs (hand to Codex via `/goal` — heavier, need design + testing)
 
 ### 3.1 Real session-token auth for admin (security — highest remaining)
-The raw admin password is the Bearer token on every API call and the literal default `fuluck5632` is baked into 4 shipped JS files (`api-client.js`, `admin-core.js`, `admin-bookings.js`, `admin-blog-editor.js`), visible in GitHub Pages view-source. The worker treats the Bearer **as** the password, so it can't be rotated independently of the wire credential.
-**Spec:** `/api/auth` mints a short-lived opaque token in KV (`sess:<token>` with exp) and returns it; `checkAuth` validates the token against KV instead of `verifyAndMaybeMigrate(password)`. Update the admin JS to store/send the returned token as Bearer. Immediate partial mitigation independent of the token work: delete the hardcoded `fuluck5632` fallback literals from the 4 files. Coordinate with the password-change fix already shipped in `1d299d6`.
+The raw admin password is the Bearer token on every API call and the literal default `<REDACTED — rotate; creds in ~/.secrets/yuki/fuluck-admin.env>` is baked into 4 shipped JS files (`api-client.js`, `admin-core.js`, `admin-bookings.js`, `admin-blog-editor.js`), visible in GitHub Pages view-source. The worker treats the Bearer **as** the password, so it can't be rotated independently of the wire credential.
+**Spec:** `/api/auth` mints a short-lived opaque token in KV (`sess:<token>` with exp) and returns it; `checkAuth` validates the token against KV instead of `verifyAndMaybeMigrate(password)`. Update the admin JS to store/send the returned token as Bearer. Immediate partial mitigation independent of the token work: delete the hardcoded `<REDACTED — rotate; creds in ~/.secrets/yuki/fuluck-admin.env>` fallback literals from the 4 files. Coordinate with the password-change fix already shipped in `1d299d6`.
 
 ### 3.2 Brute-force protection on `/api/auth`
 No rate limit / lockout on the login endpoint. Add a per-IP counter in KV (e.g. `authfail:<ip>:<hourbucket>`), lock after N failures for a cooldown, return 429. Pair with 3.1.

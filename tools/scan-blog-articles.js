@@ -14,7 +14,7 @@ const path = require('path');
 const SITE_DIR = path.join(__dirname, '..');
 const BLOG_DIR = path.join(SITE_DIR, 'blog');
 const API_BASE = 'https://fuluck-api.mouxue56.workers.dev';
-const ADMIN_PASS = 'fuluck5632';
+const ADMIN_PASS = process.env.FULUCK_ADMIN_PASS || '';  // from ~/.secrets/yuki/fuluck-admin.env (never hardcode)
 
 // blog.html 中分类 ID → API category 映射
 const CATEGORY_MAP = {

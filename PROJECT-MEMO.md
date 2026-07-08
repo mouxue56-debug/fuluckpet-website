@@ -27,7 +27,7 @@
 
 | 凭证 | 位置 |
 |---|---|
-| Admin 密码 | KV `pw:salt` + `pw:hash`（明文：`fuluck5632`，SHA-256+salt 哈希存储）|
+| Admin 密码 | KV `pw:salt` + `pw:hash`（明文：`<REDACTED — rotate; creds in ~/.secrets/yuki/fuluck-admin.env>`，SHA-256+salt 哈希存储）|
 | Kimi API key | `~/projects/fuluckpet-website/.env` + Cloudflare secret `KIMI_API_KEY` |
 | MiniMax API key | Cloudflare secret `MINIMAX_API_KEY`（来源：`~/.openclaw/openclaw.json` minimax-coding）|
 | Infi API key | Cloudflare secret `INFI_API_KEY`（来源：openclaw.json infini-ai）|

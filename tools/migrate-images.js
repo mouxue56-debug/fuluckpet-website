@@ -20,7 +20,7 @@ const ROOT = resolve(import.meta.dirname, '..');
 const TMP_DIR = join(import.meta.dirname, 'tmp');
 const MAP_FILE = join(import.meta.dirname, 'url-map.json');
 const WORKER_URL = 'https://fuluck-api.mouxue56.workers.dev';
-const ADMIN_PASS = 'fuluck5632';
+const ADMIN_PASS = process.env.FULUCK_ADMIN_PASS || '';  // from ~/.secrets/yuki/fuluck-admin.env (never hardcode)
 
 const HTML_FILES = [
   'index.html', 'kittens.html', 'parents.html', 'gallery.html',

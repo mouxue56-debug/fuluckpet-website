@@ -122,7 +122,7 @@ fuluckpet-website/
 | 项目 | 内容 |
 |------|------|
 | **地址** | https://fuluckpet.com/admin/ |
-| **密码** | `fuluck5632` |
+| **密码** | `<REDACTED — rotate; creds in ~/.secrets/yuki/fuluck-admin.env>` |
 | **实现** | HTML/CSS 单文件（~1160行）+ 12个外部 JS 模块，全站中日双语（Session 15 模块化） |
 | **存储** | Worker KV（主存储）+ `localStorage`（离线 fallback）— Session 14 已接入 |
 | **认证** | Worker API 优先验证 + localStorage 兜底；`sessionStorage` 存会话密码 |
@@ -131,7 +131,7 @@ fuluckpet-website/
 | Key | 用途 |
 |-----|------|
 | `fuluck-admin-data` | 子猫/种猫/评价数据 |
-| `fuluck-admin-pass` | 密码（默认 fuluck5632） |
+| `fuluck-admin-pass` | 密码（默认 <REDACTED — rotate; creds in ~/.secrets/yuki/fuluck-admin.env>） |
 | `fuluck-admin-log` | 操作日志 |
 | `fuluck-admin-images` | 画像管理配置（URL/路径） |
 | `fuluck-admin-lang` | 全站管理后台语言（ja/zh）—— Session 10 升级为全局 |
@@ -581,7 +581,7 @@ git push origin main          # 1-2 分钟自动部署
 7. **Admin 全站双语** — 用 `data-adm-ja/zh` 属性 + `t(ja,zh)` 函数；画像管理保留 `data-img-ja/zh` 兼容
 8. **YouTube 嵌入** — 子猫 `video` 字段支持 iframe embed/youtu.be/youtube.com URL，modal 自动播放
 9. **照片方案** — 三种来源并存：手动 URL / 直接上传到 R2 / Drive 同步。照片管理弹窗内可预览 Drive 照片（Session 13）
-10. **别改密码** — `fuluck5632`，改前问业主
+10. **别改密码** — `<REDACTED — rotate; creds in ~/.secrets/yuki/fuluck-admin.env>`，改前问业主
 11. ~~外链图片危险~~ — ✅ 已迁移到R2（Session 14），0处外链残留。图片通过 `/r2/uploads/...` 访问
 12. **公开仓库** — 别提交敏感信息
 13. **纯静态** — 改文件 push 就行，没有构建步骤
@@ -640,7 +640,7 @@ git push origin main          # 1-2 分钟自动部署
 66. **Drive图片加载时序修复（Session 20c）** — card-loader.js在所有页面渲染完成后dispatch `cardsLoaded`事件；drive-loader.js监听该事件后重新扫描卡片并替换Drive图片，解决card-loader替换HTML后drive-loader图片丢失的竞态问题
 67. **动态卡片多语言完善（Session 20c）** — card-loader.js的`langChanged`事件处理扩展到kittens.html和parents.html页面（之前只支持index.html），语言切换时自动重新获取API数据并以新语言渲染卡片
 68. **Sitemap补全（Session 21）** — 发现104篇博客HTML只有16篇在API/sitemap中。tools/scan-blog-articles.js扫描脚本从blog HTML提取元数据，102篇导入API（共118篇）。generate-site.js的updateSitemap()新增磁盘扫描：即使文章不在API也会被sitemap收录（防漏机制）。sitemap从64→166个URL
-69. **后台管理系统修复（Session 21）** — YouTube地址消失根因：saveData() API错误被`.catch(function(){})` 静默吞掉。修复：(1)saveData显示☁️同步状态指示器（同步中/已同步/失败）+toast警告 (2)handlePublish改为先强制bulkImport再触发发布 (3)DEFAULT_PASS修正为fuluck5632 (4)saveKitten新建时初始化video字段 (5)syncFromAPI显示加载状态
+69. **后台管理系统修复（Session 21）** — YouTube地址消失根因：saveData() API错误被`.catch(function(){})` 静默吞掉。修复：(1)saveData显示☁️同步状态指示器（同步中/已同步/失败）+toast警告 (2)handlePublish改为先强制bulkImport再触发发布 (3)DEFAULT_PASS修正为<REDACTED — rotate; creds in ~/.secrets/yuki/fuluck-admin.env> (4)saveKitten新建时初始化video字段 (5)syncFromAPI显示加载状态
 70. **图片预览修复（Session 21）** — admin-images.js的updateAllPreviews()为所有19个图片字段自动创建行内缩略图预览（之前只有hero-main有）。handleImgUpload上传后立即刷新预览。base64图片显示⚠警告提示
 71. **奖项徽章动态化（Session 21）** — saveImageConfig()同步图片配置到`/api/admin/settings`（PUT，存到KV key:settings）。about.html末尾添加脚本从`/api/settings`动态加载award图片URL替换硬编码src。流程：后台改图→保存→settings API更新→网页自动加载
 72. **知识库文章API数据（Session 21）** — API现有118篇文章（16篇原始三语+102篇从HTML扫描导入仅日语title/excerpt）。scan-blog-articles.js可重复运行检测差异。10个分类：breed/health/nutrition/grooming/behavior/kitten/breeder/allergy/lifestyle/senior

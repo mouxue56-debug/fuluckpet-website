@@ -207,7 +207,7 @@ This handover is **self-contained**. Every claim has a verify command. Run them 
 | `TELEGRAM_CHAT_ID` | `wrangler secret` (worker) | `6744771747` |
 | `GOOGLE_SA_KEY` | `wrangler secret` (worker) | Drive image proxy |
 | `GOOGLE_DRIVE_ROOT_FOLDER_ID` | `wrangler secret` (worker) | Drive root folder |
-| `ADMIN_PASSWORD` | LEGACY: `wrangler secret`. **Active:** KV `pw:salt` + `pw:hash` (SHA-256). Plain: `fuluck5632` | admin login |
+| `ADMIN_PASSWORD` | LEGACY: `wrangler secret`. **Active:** KV `pw:salt` + `pw:hash` (SHA-256). Plain: `<REDACTED — rotate; creds in ~/.secrets/yuki/fuluck-admin.env>` | admin login |
 | GitHub PAT | `gh auth` (logged in as `mouxue56-debug`) | wrangler deploy + git push |
 
 **Verify all secrets present**:
@@ -309,7 +309,7 @@ curl -sX POST https://fuluck-api.mouxue56.workers.dev/api/booking \
 ```bash
 curl -sX POST https://fuluck-api.mouxue56.workers.dev/api/auth \
   -H 'Content-Type: application/json' -H 'Origin: https://fuluckpet.com' \
-  -d '{"password":"fuluck5632"}' -w '\n%{http_code}\n'
+  -d '{"password":"<REDACTED — rotate; creds in ~/.secrets/yuki/fuluck-admin.env>"}' -w '\n%{http_code}\n'
 # expect: {"success":true} HTTP 200
 ```
 
@@ -483,7 +483,7 @@ curl -sX POST https://fuluck-api.mouxue56.workers.dev/api/booking \
 # 6. Admin auth
 curl -sX POST https://fuluck-api.mouxue56.workers.dev/api/auth \
   -H 'Content-Type: application/json' -H 'Origin: https://fuluckpet.com' \
-  -d '{"password":"fuluck5632"}' | jq
+  -d '{"password":"<REDACTED — rotate; creds in ~/.secrets/yuki/fuluck-admin.env>"}' | jq
 # expect: success=true, token=<bearer>
 
 # 7. SEO sanity
