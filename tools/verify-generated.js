@@ -91,14 +91,50 @@ if (!ref) {
   }
 }
 
-// --- Check 3: duplicate <loc> in sitemap ---
+// --- Check 3: sitemap structure + coverage ---
 const sitemap = read('sitemap.xml');
 if (sitemap) {
   const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1]);
+  const locSet = new Set(locs);
   const seen = new Set();
   const dups = new Set();
   for (const l of locs) { if (seen.has(l)) dups.add(l); else seen.add(l); }
   for (const d of dups) errors.push(`[sitemap] duplicate <loc>: ${d}`);
+
+  // These markers are ownership boundaries between the two generators. Their
+  // disappearance previously let the diary pass erase every kitten/blog URL while
+  // this integrity gate still reported clean.
+  const requiredMarkers = [
+    '<!-- 成長日記 -->',
+    '<!-- /成長日記 -->',
+    '<!-- 子猫詳細ページ -->',
+    '<!-- ブログ記事 -->',
+  ];
+  for (const marker of requiredMarkers) {
+    if (!sitemap.includes(marker)) errors.push(`[sitemap] missing required marker: ${marker}`);
+  }
+
+  // Every public generated page on disk must have a sitemap entry. Deliberately
+  // exclude owner-gated noindex surfaces such as boarding and future dark launches.
+  const indexableGeneratedPages = [
+    ...listHtml('blog'),
+    ...listHtml('kittens'),
+    ...listHtml('en/kittens'),
+    ...listHtml('zh/kittens'),
+    ...listHtml('diary'),
+  ];
+  for (const p of ['en/kittens.html', 'zh/kittens.html', 'diary/index.html']) {
+    if (read(p) != null) indexableGeneratedPages.push(p);
+  }
+  for (const p of indexableGeneratedPages) {
+    const route = p.endsWith('/index.html')
+      ? `/${p.slice(0, -'index.html'.length)}`
+      : `/${p}`;
+    const loc = `https://fuluckpet.com${route}`;
+    if (!locSet.has(loc)) errors.push(`[sitemap] missing <loc>: ${loc}`);
+  }
+} else {
+  errors.push('[sitemap] sitemap.xml missing');
 }
 
 // --- Report ---

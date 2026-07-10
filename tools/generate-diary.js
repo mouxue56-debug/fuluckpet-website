@@ -862,15 +862,9 @@ function updateSitemap(entries) {
   if (!fs.existsSync(filepath)) return;
 
   const marker = '<!-- 成長日記 -->';
+  const endMarker = '<!-- /成長日記 -->';
   const today = todayISO();
   let xml = fs.readFileSync(filepath, 'utf-8');
-  const markerIdx = xml.indexOf(marker);
-  if (markerIdx !== -1) {
-    const closeIdx = xml.indexOf('</urlset>', markerIdx);
-    if (closeIdx !== -1) {
-      xml = xml.substring(0, markerIdx).trimEnd() + '\n' + xml.substring(closeIdx);
-    }
-  }
 
   // Honest lastmod: reuse the stored date when the diary page's content is unchanged
   // (asset-version bumps stripped before hashing). Shares tools/sitemap-lastmod.json
@@ -893,9 +887,38 @@ ${sortEntriesDesc(entries).map((entry) => {
     <priority>0.6</priority>
   </url>`;
   }).join('\n')}
+  ${endMarker}
 `;
 
-  xml = xml.replace(/\s*<\/urlset>\s*$/, `\n${diaryEntries}</urlset>\n`);
+  const markerIdx = xml.indexOf(marker);
+  if (markerIdx !== -1) {
+    // Replace only the diary-owned block. The diary marker lives before the kitten
+    // and blog sections in the shared sitemap; the old implementation removed from
+    // this marker all the way to </urlset>, silently deleting every later section.
+    const blockStart = xml.lastIndexOf('\n', markerIdx) + 1;
+    const explicitEndIdx = xml.indexOf(endMarker, markerIdx + marker.length);
+    let blockEnd;
+
+    if (explicitEndIdx !== -1) {
+      const newlineAfterEnd = xml.indexOf('\n', explicitEndIdx + endMarker.length);
+      blockEnd = newlineAfterEnd === -1 ? xml.length : newlineAfterEnd + 1;
+    } else {
+      // One-time migration for sitemaps emitted before the closing marker existed:
+      // stop at the first section owned by generate-site.js, never at </urlset> when
+      // a later owned section is present.
+      const nextSectionIdx = [
+        xml.indexOf('<!-- 子猫詳細ページ -->', markerIdx + marker.length),
+        xml.indexOf('<!-- ブログ記事 -->', markerIdx + marker.length),
+      ].filter((idx) => idx !== -1).sort((a, b) => a - b)[0];
+      const closeIdx = xml.indexOf('</urlset>', markerIdx + marker.length);
+      const boundaryIdx = nextSectionIdx === undefined ? closeIdx : nextSectionIdx;
+      blockEnd = boundaryIdx === -1 ? xml.length : xml.lastIndexOf('\n', boundaryIdx) + 1;
+    }
+
+    xml = xml.substring(0, blockStart) + diaryEntries + xml.substring(blockEnd);
+  } else {
+    xml = xml.replace(/\s*<\/urlset>\s*$/, `\n${diaryEntries}</urlset>\n`);
+  }
   fs.writeFileSync(filepath, xml, 'utf-8');
   store.save();
   console.log(`  sitemap.xml -> diary index + ${entries.length} diary pages updated`);
