@@ -1,8 +1,8 @@
-// blog-loader.js — Loads articles from API and renders blog page
+// blog-loader.js — Loads articles from API and renders the legacy dynamic blog list.
+// Static HTML remains the SEO/offline fallback and is replaced only by a validated response.
 (function() {
   var API = 'https://fuluck-api.mouxue56.workers.dev';
   var listContainer = document.getElementById('blogList');
-  var detailContainer = document.getElementById('blogDetail');
   var filterContainer = document.getElementById('blogFilters');
   if (!listContainer) return;
 
@@ -24,158 +24,217 @@
     try { return localStorage.getItem('fuluckpet-lang') || 'ja'; } catch(e) { return 'ja'; }
   }
 
+  function isRecord(value) {
+    return value !== null && typeof value === 'object' && !Array.isArray(value);
+  }
+
+  function safeString(value, maxLength) {
+    if (typeof value !== 'string') return '';
+    var limit = maxLength || 10000;
+    return value.length <= limit ? value : value.slice(0, limit);
+  }
+
+  function safeSlug(value) {
+    value = safeString(value, 128);
+    return /^[A-Za-z0-9][A-Za-z0-9-]*$/.test(value) ? value : '';
+  }
+
+  function safeMediaUrl(value) {
+    value = safeString(value, 2048);
+    if (!value || /[\u0000-\u0020"'<>`\\]/.test(value)) return '';
+    try {
+      if (value.charAt(0) === '/' && value.slice(0, 2) !== '//') {
+        var local = new URL(value, 'https://fuluckpet.com');
+        return local.pathname + local.search;
+      }
+      var parsed = new URL(value);
+      return parsed.protocol === 'https:' ? parsed.href : '';
+    } catch (e) {
+      return '';
+    }
+  }
+
   function txt(obj) {
-    if (!obj) return '';
+    if (!isRecord(obj)) return '';
     var lang = getLang();
-    return obj[lang] || obj.ja || obj.en || '';
+    return safeString(obj[lang]) || safeString(obj.ja) || safeString(obj.en) || '';
   }
 
   function catLabel(key) {
-    var c = CATEGORIES[key];
+    key = safeString(key, 80);
+    var c = Object.prototype.hasOwnProperty.call(CATEGORIES, key) ? CATEGORIES[key] : null;
     return c ? txt(c) : key;
   }
 
-  function formatDate(iso) {
-    if (!iso) return '';
-    var d = new Date(iso);
-    return d.getFullYear() + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0');
+  function validateArticles(data) {
+    if (!Array.isArray(data) || !data.every(isRecord)) {
+      throw new Error('blog-loader: API payload must be an array of objects');
+    }
+    if (!data.every(function(article) { return !!safeSlug(article.slug); })) {
+      throw new Error('blog-loader: every article requires a safe slug');
+    }
+    return data;
   }
 
-  // Check URL for slug parameter — redirect to static page if found
   function getSlugFromUrl() {
     var params = new URLSearchParams(window.location.search);
     return params.get('slug');
   }
 
-  // Redirect old ?slug= URLs to static /blog/{slug}.html pages
+  // Legacy query links are redirected only when the value is one safe filename segment.
   var slugParam = getSlugFromUrl();
   if (slugParam) {
-    window.location.replace('/blog/' + encodeURIComponent(slugParam) + '.html');
+    var redirectSlug = safeSlug(slugParam);
+    if (redirectSlug) window.location.replace('/blog/' + redirectSlug + '.html');
     return;
+  }
+
+  function createElement(tag, className, text) {
+    var element = document.createElement(tag);
+    if (className) element.className = className;
+    if (text !== undefined) element.textContent = text;
+    return element;
+  }
+
+  function buildFilterButtons() {
+    var cats = Object.create(null);
+    allArticles.forEach(function(article) {
+      var category = safeString(article.category, 80);
+      if (category) cats[category] = true;
+    });
+    var lang = getLang();
+    var allLabel = lang === 'zh' ? '全部' : lang === 'en' ? 'All' : 'すべて';
+    var categories = ['all'].concat(Object.keys(cats));
+    return categories.map(function(category) {
+      var button = createElement('button', 'blog-filter-btn' + (category === currentFilter ? ' active' : ''), category === 'all' ? allLabel : catLabel(category));
+      button.type = 'button';
+      button.dataset.cat = category;
+      button.addEventListener('click', function() {
+        currentFilter = this.dataset.cat;
+        renderFilters();
+        renderList();
+      });
+      return button;
+    });
+  }
+
+  function buildArticleCard(article) {
+    var slug = safeSlug(article.slug);
+    var title = txt(article.title);
+    var excerpt = txt(article.excerpt);
+    var cover = safeMediaUrl(article.coverImage);
+    var link = createElement('a', 'blog-card');
+    link.href = '/blog/' + slug + '.html';
+
+    var imageBox = createElement('div', 'blog-card-img' + (cover ? '' : ' blog-card-noimg'));
+    if (cover) {
+      var image = createElement('img');
+      image.src = cover;
+      image.alt = title;
+      image.loading = 'lazy';
+      imageBox.appendChild(image);
+    } else {
+      var icon = createElement('i', 'ico ico-square-pen');
+      icon.setAttribute('aria-hidden', 'true');
+      imageBox.appendChild(icon);
+    }
+    link.appendChild(imageBox);
+
+    var body = createElement('div', 'blog-card-body');
+    body.appendChild(createElement('span', 'blog-card-cat', catLabel(article.category)));
+    body.appendChild(createElement('h3', 'blog-card-title', title));
+    if (excerpt) body.appendChild(createElement('p', 'blog-card-excerpt', excerpt));
+    link.appendChild(body);
+    return link;
+  }
+
+  function buildListNodes() {
+    var items = currentFilter === 'all' ? allArticles : allArticles.filter(function(article) {
+      return safeString(article.category, 80) === currentFilter;
+    });
+    if (items.length === 0) {
+      var lang = getLang();
+      var message = lang === 'zh' ? '暂无文章' : lang === 'en' ? 'No articles yet' : 'まだ記事がありません';
+      return [createElement('div', 'blog-empty', message)];
+    }
+    return items.map(buildArticleCard);
   }
 
   function renderFilters() {
     if (!filterContainer) return;
-    var cats = {};
-    allArticles.forEach(function(a) { if (a.category) cats[a.category] = true; });
-    var lang = getLang();
-    var allLabel = lang === 'zh' ? '全部' : lang === 'en' ? 'All' : 'すべて';
-    var html = '<button class="blog-filter-btn active" data-cat="all">' + allLabel + '</button>';
-    Object.keys(cats).forEach(function(c) {
-      html += '<button class="blog-filter-btn" data-cat="' + c + '">' + catLabel(c) + '</button>';
-    });
-    filterContainer.innerHTML = html;
-    filterContainer.querySelectorAll('.blog-filter-btn').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        currentFilter = this.dataset.cat;
-        filterContainer.querySelectorAll('.blog-filter-btn').forEach(function(b) { b.classList.remove('active'); });
-        this.classList.add('active');
-        renderList();
-      });
-    });
+    filterContainer.replaceChildren.apply(filterContainer, buildFilterButtons());
   }
 
   function renderList() {
-    var items = currentFilter === 'all' ? allArticles : allArticles.filter(function(a) { return a.category === currentFilter; });
-    if (items.length === 0) {
-      var lang = getLang();
-      listContainer.innerHTML = '<div class="blog-empty">' + (lang === 'zh' ? '暂无文章' : lang === 'en' ? 'No articles yet' : 'まだ記事がありません') + '</div>';
-      return;
-    }
-    listContainer.innerHTML = items.map(function(a) {
-      var title = txt(a.title);
-      var excerpt = txt(a.excerpt);
-      var cover = a.coverImage || '';
-      return '<a href="/blog/' + encodeURIComponent(a.slug) + '.html" class="blog-card">' +
-        (cover ? '<div class="blog-card-img"><img src="' + cover + '" alt="' + title + '" loading="lazy"></div>' : '<div class="blog-card-img blog-card-noimg"><i class="ico ico-square-pen" aria-hidden="true"></i></div>') +
-        '<div class="blog-card-body">' +
-          '<span class="blog-card-cat">' + catLabel(a.category) + '</span>' +
-          '<h3 class="blog-card-title">' + title + '</h3>' +
-          (excerpt ? '<p class="blog-card-excerpt">' + excerpt + '</p>' : '') +
-        '</div>' +
-      '</a>';
-    }).join('');
+    listContainer.replaceChildren.apply(listContainer, buildListNodes());
   }
 
-  function renderDetail(article) {
-    if (!detailContainer) return;
-    var title = txt(article.title);
-    var content = txt(article.content);
-    var cover = article.coverImage || '';
-    listContainer.style.display = 'none';
-    if (filterContainer) filterContainer.style.display = 'none';
-    detailContainer.style.display = 'block';
-    var brandName = getLang() === 'zh' ? '福楽猫舍' : getLang() === 'en' ? 'Fuluck Cattery' : '福楽キャッテリー';
-    document.title = title + ' | ' + brandName;
+  // Article bodies live only in generated /blog/{slug}.html files. The former dynamic
+  // detail renderer was never called and was removed so rich API HTML has no client sink.
 
-    detailContainer.innerHTML =
-      '<a href="blog.html" class="blog-back">&larr; ' + (getLang() === 'zh' ? '返回列表' : getLang() === 'en' ? 'Back to list' : '一覧に戻る') + '</a>' +
-      (cover ? '<img src="' + cover + '" alt="' + title + '" class="blog-detail-cover">' : '') +
-      '<div class="blog-detail-meta">' +
-        '<span class="blog-card-cat">' + catLabel(article.category) + '</span>' +
-      '</div>' +
-      '<h1 class="blog-detail-title">' + title + '</h1>' +
-      '<div class="blog-detail-content">' + content + '</div>';
-  }
-
-  // Inject one BlogPosting JSON-LD per article so AI/search crawlers see structured
-  // metadata even though the listing is a JS-rendered SPA. Idempotent: replaces a
-  // previously-injected block on each call.
+  // Inject one BlogPosting JSON-LD per validated article. textContent avoids HTML parsing.
   function injectArticleSchema(articles) {
     var head = document.head || document.getElementsByTagName('head')[0];
-    if (!head) return;
-    // Remove any prior injected schemas
-    var prior = head.querySelectorAll('script[data-schema="blog-articles"]');
-    prior.forEach(function(s) { s.remove(); });
-    if (!articles || articles.length === 0) return;
-    var graph = articles.map(function(a) {
-      var slug = a.slug || a.id || '';
-      var title = txt(a.title) || a.slug || '';
-      var excerpt = txt(a.excerpt) || '';
-      var pub = a.publishedAt || a.published_at || a.createdAt || a.created_at || null;
-      var mod = a.updatedAt || a.updated_at || pub;
+    if (!head || articles.length === 0) return;
+    var graph = articles.map(function(article) {
+      var slug = safeSlug(article.slug);
+      var title = txt(article.title) || slug;
+      var excerpt = txt(article.excerpt);
+      var pub = safeString(article.publishedAt || article.published_at || article.createdAt || article.created_at, 64) || null;
+      var mod = safeString(article.updatedAt || article.updated_at, 64) || pub;
+      var pageUrl = 'https://fuluckpet.com/blog/' + slug + '.html';
+      var tags = Array.isArray(article.tags) ? article.tags.map(function(tag) { return safeString(tag, 100); }).filter(Boolean) : [];
       return {
-        "@type": "BlogPosting",
-        "@id": "https://fuluckpet.com/blog/" + encodeURIComponent(slug) + ".html",
-        "headline": title,
-        "description": excerpt,
-        "datePublished": pub,
-        "dateModified": mod,
-        "author": { "@type": "Person", "name": "羅方遠", "url": "https://fuluckpet.com/about.html" },
-        "publisher": {
-          "@type": "Organization",
-          "name": "福楽キャッテリー",
-          "url": "https://fuluckpet.com/",
-          "logo": { "@type": "ImageObject", "url": "https://fuluckpet.com/images/ogp.jpg" }
+        '@type': 'BlogPosting',
+        '@id': pageUrl,
+        'headline': title,
+        'description': excerpt,
+        'datePublished': pub,
+        'dateModified': mod,
+        'author': { '@type': 'Person', 'name': '羅方遠', 'url': 'https://fuluckpet.com/about.html' },
+        'publisher': {
+          '@type': 'Organization',
+          'name': '福楽キャッテリー',
+          'url': 'https://fuluckpet.com/',
+          'logo': { '@type': 'ImageObject', 'url': 'https://fuluckpet.com/images/ogp.jpg' }
         },
-        "image": a.coverImage || "https://fuluckpet.com/images/ogp.jpg",
-        "mainEntityOfPage": "https://fuluckpet.com/blog/" + encodeURIComponent(slug) + ".html",
-        "url": "https://fuluckpet.com/blog/" + encodeURIComponent(slug) + ".html",
-        "keywords": (a.tags && a.tags.length ? a.tags.join(", ") : (a.category || ""))
+        'image': safeMediaUrl(article.coverImage) || 'https://fuluckpet.com/images/ogp.jpg',
+        'mainEntityOfPage': pageUrl,
+        'url': pageUrl,
+        'keywords': tags.length ? tags.join(', ') : safeString(article.category, 80)
       };
     });
-    var payload = { "@context": "https://schema.org", "@graph": graph };
-    var s = document.createElement('script');
-    s.type = 'application/ld+json';
-    s.setAttribute('data-schema', 'blog-articles');
-    s.textContent = JSON.stringify(payload);
-    head.appendChild(s);
+    var payload = { '@context': 'https://schema.org', '@graph': graph };
+    var schema = document.createElement('script');
+    schema.type = 'application/ld+json';
+    schema.setAttribute('data-schema', 'blog-articles');
+    schema.textContent = JSON.stringify(payload);
+
+    var prior = head.querySelectorAll('script[data-schema="blog-articles"]');
+    prior.forEach(function(item) { item.remove(); });
+    head.appendChild(schema);
   }
 
-  // Init — fetch articles for filter/language features (static HTML provides SEO fallback)
   fetch(API + '/api/articles')
-    .then(function(r) { return r.json(); })
+    .then(function(response) {
+      if (!response || response.ok !== true) throw new Error('blog-loader: API returned a non-success response');
+      return response.json();
+    })
+    .then(validateArticles)
     .then(function(data) {
-      allArticles = data || [];
+      if (data.length === 0) return;
+      allArticles = data;
       renderFilters();
       renderList();
-      try { injectArticleSchema(allArticles); } catch(e) { /* non-fatal */ }
+      try { injectArticleSchema(allArticles); } catch(e) { /* non-fatal structured data */ }
     })
     .catch(function() {
-      // Static cards remain visible as fallback — only show error if no static cards
+      // Static cards remain visible as fallback. A DOM-built error is used only when
+      // the page shipped without any fallback cards.
       if (!listContainer.querySelector('.blog-card')) {
-        var errMsg = getLang() === 'zh' ? '文章加载失败' : getLang() === 'en' ? 'Failed to load articles' : '記事の読み込みに失敗しました';
-        listContainer.innerHTML = '<div class="blog-empty">' + errMsg + '</div>';
+        var lang = getLang();
+        var errMsg = lang === 'zh' ? '文章加载失败' : lang === 'en' ? 'Failed to load articles' : '記事の読み込みに失敗しました';
+        listContainer.replaceChildren(createElement('div', 'blog-empty', errMsg));
       }
     });
 

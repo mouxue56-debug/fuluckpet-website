@@ -18,36 +18,42 @@
   }
 
   function renderFaq(items) {
-    if (!items || items.length === 0) return;
-    container.innerHTML = items.map(function(item, i) {
+    if (!Array.isArray(items) || items.length === 0) return;
+    var fragment = document.createDocumentFragment();
+    items.forEach(function(item, i) {
+      item = item && typeof item === 'object' ? item : {};
       var q = txt(item.question);
       var a = txt(item.answer);
-      return '<div class="faq-item">' +
-        '<button class="faq-q" data-i18n="faq.dyn_q' + i + '">' + q + '</button>' +
-        '<div class="faq-a"><p data-i18n="faq.dyn_a' + i + '">' + a + '</p></div>' +
-        '</div>';
-    }).join('\n');
-
-    // Re-attach accordion click handlers (+ a11y: expand state and Q→A linkage)
-    container.querySelectorAll('.faq-q').forEach(function(btn, idx) {
-      var panel = btn.nextElementSibling; // .faq-a
-      if (panel) {
-        if (!panel.id) panel.id = 'home-faq-a-' + idx;
-        panel.setAttribute('role', 'region');
-        btn.setAttribute('aria-controls', panel.id);
-      }
-      btn.setAttribute('aria-expanded', 'false');
-      btn.addEventListener('click', function() {
+      var faqItem = document.createElement('div');
+      faqItem.className = 'faq-item';
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'faq-q';
+      button.setAttribute('data-i18n', 'faq.dyn_q' + i);
+      button.textContent = q;
+      var panel = document.createElement('div');
+      panel.className = 'faq-a';
+      panel.id = 'home-faq-a-' + i;
+      panel.setAttribute('role', 'region');
+      var answer = document.createElement('p');
+      answer.setAttribute('data-i18n', 'faq.dyn_a' + i);
+      answer.textContent = a;
+      panel.appendChild(answer);
+      button.setAttribute('aria-controls', panel.id);
+      button.setAttribute('aria-expanded', 'false');
+      button.addEventListener('click', function() {
         var item = this.parentElement;
-        var isOpen = item.classList.contains('open');
-        container.querySelectorAll('.faq-item').forEach(function(fi) { fi.classList.remove('open'); });
+        var isOpen = item.classList.contains('active');
+        container.querySelectorAll('.faq-item').forEach(function(fi) { fi.classList.remove('active'); });
         container.querySelectorAll('.faq-q').forEach(function(b) { b.setAttribute('aria-expanded', 'false'); });
-        if (!isOpen) { item.classList.add('open'); this.setAttribute('aria-expanded', 'true'); }
+        if (!isOpen) { item.classList.add('active'); this.setAttribute('aria-expanded', 'true'); }
       });
+      faqItem.appendChild(button);
+      faqItem.appendChild(panel);
+      fragment.appendChild(faqItem);
     });
-
-    // Register dynamic translations for language switching
-    if (typeof window.faqDynamicData !== 'undefined') return;
+    container.textContent = '';
+    container.appendChild(fragment);
     window.faqDynamicData = items;
   }
 
@@ -64,6 +70,6 @@
 
   // Re-render on language change
   window.addEventListener('langChanged', function() {
-    if (window.faqDynamicData) renderFaq(window.faqDynamicData);
+    if (Array.isArray(window.faqDynamicData)) renderFaq(window.faqDynamicData);
   });
 })();

@@ -20,6 +20,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { safeJsonForHtmlScript } = require('./safe-json-for-html');
 
 const BLOG_DIR = path.join(__dirname, '..', 'blog');
 const MANIFEST_FILE = path.join(__dirname, 'blog-translations-manifest.json');
@@ -100,31 +101,19 @@ function injectTranslation(htmlPath, enTitle, enContent, zhTitle, zhContent) {
     );
   }
 
-  // Escape for JS string embedding
-  const escapeJS = (s) => s
-    .replace(/\\/g, '\\\\')
-    .replace(/'/g, "\\'")
-    .replace(/\n/g, '\\n')
-    .replace(/\r/g, '');
-
+  const translations = {
+    en: { title: enTitle, content: enContent },
+    zh: { title: zhTitle, content: zhContent },
+  };
   const i18nScript = `<script>
-window._blogArticleI18n = {
-  en: {
-    title: '${escapeJS(enTitle)}',
-    content: '${escapeJS(enContent)}'
-  },
-  zh: {
-    title: '${escapeJS(zhTitle)}',
-    content: '${escapeJS(zhContent)}'
-  }
-};
+window._blogArticleI18n = ${safeJsonForHtmlScript(translations, 2)};
 </script>
 `;
 
   // Insert before blog-i18n.js
   html = html.replace(
     /<script src="\/blog\/blog-i18n\.js(?:\?v=[^"]*)?"><\/script>/,
-    i18nScript + '  <script src="/blog/blog-i18n.js?v=20260624v2"></script>'
+    i18nScript + '  <script src="/blog/blog-i18n.js?v=20260710a"></script>'
   );
 
   fs.writeFileSync(htmlPath, html, 'utf8');

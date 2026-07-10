@@ -16,6 +16,11 @@ const assert = require('assert');
 
 // ---- copy of api/worker.js pure logic (keep in sync) ----
 const KITTEN_STATUS_ENUM = ['available', 'reserved', 'sold'];
+const PUBLIC_CATALOG_ID_RE = /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/;
+
+function isSafePublicCatalogId(value) {
+  return typeof value === 'string' && PUBLIC_CATALOG_ID_RE.test(value);
+}
 
 function validateKittenShapes(items) {
   const errors = [];
@@ -26,6 +31,12 @@ function validateKittenShapes(items) {
     if (!k || typeof k !== 'object' || Array.isArray(k)) {
       errors.push({ breederId: bid, field: '(item)', reason: 'not an object' });
       continue;
+    }
+    for (const field of ['breederId', 'id']) {
+      if (k[field] === undefined || k[field] === null || k[field] === '') continue;
+      if (!isSafePublicCatalogId(k[field])) {
+        errors.push({ breederId: bid, field, reason: 'not a safe public URL segment' });
+      }
     }
     if (k.price !== undefined && k.price !== null && String(k.price).trim() !== '') {
       if (!Number.isFinite(Number(k.price))) {
@@ -150,6 +161,28 @@ test('multiple offenders reported together', () => {
 // 11. Empty array passes.
 test('empty array passes', () => {
   assert.deepStrictEqual(validateKittenShapes([]), { ok: true });
+});
+
+test('unsafe filename and route identities are rejected', () => {
+  for (const item of [
+    { breederId: '../index', status: 'available' },
+    { breederId: '../../outside', status: 'available' },
+    { breederId: 'has/slash', status: 'available' },
+    { breederId: ' leading-space', status: 'available' },
+    { breederId: 'safe-id', id: '../admin', status: 'available' },
+    { breederId: 12345, status: 'available' },
+  ]) {
+    const result = validateKittenShapes([item]);
+    assert.strictEqual(result.ok, false, JSON.stringify(item));
+    assert.ok(result.errors.some((error) => error.field === 'breederId' || error.field === 'id'));
+  }
+});
+
+test('production-style ids and an empty draft breederId remain valid', () => {
+  assert.deepStrictEqual(validateKittenShapes([
+    { breederId: '2607-00594', id: '54c902a8-1419-4d17-bb9d-03a08bada302', status: 'available' },
+    { breederId: '', id: 'draft_01', status: 'reserved' },
+  ]), { ok: true });
 });
 
 console.log('\n' + passed + ' passed, ' + failed + ' failed');

@@ -32,6 +32,8 @@
   //    blog post has no sibling and must keep the in-place fallback, so this is an explicit
   //    allow-set, not a blanket /blog/ rule.
   var KITTEN_DETAIL_RE = /^\/kittens\/[^\/]+\.html$/;
+  var SMALL_ANIMAL_DETAIL_RE = null;
+  var smallAnimalListPath = '';
   var BLOG_SIBLING_SLUGS = {
     '/blog/breeder-visit-flow-osaka.html': true,
     '/blog/choose-healthy-kitten-checklist.html': true,
@@ -46,6 +48,7 @@
     return !!(
       STATIC_SIBLINGS[rootPath] ||
       KITTEN_DETAIL_RE.test(rootPath) ||
+      (SMALL_ANIMAL_DETAIL_RE && SMALL_ANIMAL_DETAIL_RE.test(rootPath)) ||
       BLOG_SIBLING_SLUGS[rootPath]
     );
   }
@@ -98,6 +101,53 @@
       ]
     }
   ];
+
+  function resetSmallAnimalLaunchForTest() {
+    NAV_GROUPS[0].items = NAV_GROUPS[0].items.filter(function (item) {
+      return item.key !== 'nav.smallAnimals';
+    });
+    if (smallAnimalListPath) delete STATIC_SIBLINGS[smallAnimalListPath];
+    smallAnimalListPath = '';
+    SMALL_ANIMAL_DETAIL_RE = null;
+  }
+
+  function applySmallAnimalLaunch(config) {
+    resetSmallAnimalLaunchForTest();
+    if (!config || config.public !== true) return;
+    var slug = typeof config.slugPublic === 'string' ? config.slugPublic.trim() : '';
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return;
+
+    smallAnimalListPath = '/' + slug + '.html';
+    STATIC_SIBLINGS[smallAnimalListPath] = true;
+    SMALL_ANIMAL_DETAIL_RE = new RegExp('^/' + slug + '/[^/]+\\.html$');
+    NAV_GROUPS[0].items.push({
+      href: smallAnimalListPath,
+      key: 'nav.smallAnimals',
+      icon: 'paw-print',
+      localized: true,
+      match: [smallAnimalListPath, '/' + slug + '/']
+    });
+  }
+
+  function smallAnimalLaunchConfigUrl(now) {
+    var timestamp = typeof now === 'number' ? now : Date.now();
+    return '/small-animals-launch.json?v=' + Math.floor(timestamp / 60000);
+  }
+
+  function loadSmallAnimalLaunch() {
+    if (typeof fetch !== 'function') return Promise.resolve(null);
+    // Minute-bucketed query keeps the owner flip fresh even when the CDN applies its
+    // one-year static-asset rule, without creating one cache key per visitor.
+    return fetch(smallAnimalLaunchConfigUrl(), { credentials: 'same-origin', cache: 'no-store' }).then(function (res) {
+      if (!res || !res.ok) throw new Error('launch config unavailable');
+      return res.json();
+    });
+  }
+
+  function localizedItemHref(item, lang) {
+    if (!item || !item.localized || item.external || lang === 'ja') return item.href;
+    return '/' + lang + item.href;
+  }
 
   function ready(fn) {
     if (document.readyState === 'loading') {
@@ -209,7 +259,7 @@
         var current = itemIsCurrent(item, route);
         return (
           '<a class="nav-dropdown-link' + (item.featured ? ' is-featured' : '') + (current ? ' is-current' : '') + '"' +
-            ' href="' + item.href + '"' +
+            ' href="' + localizedItemHref(item, currentLang()) + '"' +
             (item.external ? ' target="_blank" rel="noopener"' : '') +
             (current ? ' aria-current="page"' : '') + '>' +
             icon(item.icon) +
@@ -254,7 +304,7 @@
         var current = itemIsCurrent(item, route);
         return (
           '<a class="mobile-nav-link nav-mobile-link' + (item.featured ? ' is-featured' : '') + (current ? ' is-current' : '') + '"' +
-            ' href="' + item.href + '"' +
+            ' href="' + localizedItemHref(item, currentLang()) + '"' +
             (item.external ? ' target="_blank" rel="noopener"' : '') +
             (current ? ' aria-current="page"' : '') + '>' +
             icon(item.icon) +
@@ -488,7 +538,7 @@
     syncMobileOpenState(mobileNav);
   }
 
-  function initNav() {
+  function enhanceNav() {
     var nav = document.querySelector('.nav');
     var mobileNav = document.querySelector('.mobile-nav');
     if (!nav || !mobileNav || !document.body) return;
@@ -526,11 +576,32 @@
     }
   }
 
-  try {
-    ready(initNav);
-  } catch (err) {
-    if (window.console && typeof window.console.warn === 'function') {
-      window.console.warn('[fuluck-nav] static fallback kept', err);
+  function initNav() {
+    loadSmallAnimalLaunch().then(function (config) {
+      applySmallAnimalLaunch(config);
+    }, function () {
+      applySmallAnimalLaunch(null);
+    }).then(enhanceNav);
+  }
+
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+      applySmallAnimalLaunch: applySmallAnimalLaunch,
+      resetSmallAnimalLaunchForTest: resetSmallAnimalLaunchForTest,
+      hasStaticSibling: hasStaticSibling,
+      localizedItemHref: localizedItemHref,
+      smallAnimalLaunchConfigUrl: smallAnimalLaunchConfigUrl,
+      navGroups: function () { return NAV_GROUPS; }
+    };
+  }
+
+  if (typeof document !== 'undefined') {
+    try {
+      ready(initNav);
+    } catch (err) {
+      if (window.console && typeof window.console.warn === 'function') {
+        window.console.warn('[fuluck-nav] static fallback kept', err);
+      }
     }
   }
 })();

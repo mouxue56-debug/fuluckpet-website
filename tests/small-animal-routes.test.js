@@ -8,9 +8,10 @@ const PASSWORD = 'test-only-small-animal-password';
 const SALT = '00112233445566778899aabbccddeeff';
 
 let worker;
+let visibleSmallAnimals;
 
 test.before(async () => {
-  ({ default: worker } = await import('../api/worker.js'));
+  ({ default: worker, visibleSmallAnimals } = await import('../api/worker.js'));
 });
 
 function bytesToHex(buffer) {
@@ -97,17 +98,25 @@ function assertNoCatCollectionAccess(DATA) {
   assert.equal(allKeys.includes('parents'), false, 'must not access parents');
 }
 
-test('public missing-key GET returns [] with no-store/public CORS and only reads small_animals', async () => {
-  const { env, DATA } = await makeEnv();
+test('dark public GET returns [] without reading the private collection', async () => {
+  const { env, DATA } = await makeEnv([
+    { breederId: 'PRIVATE-RB', species: 'rabbit', status: 'available' },
+  ]);
   const response = await fetchWorker(env, request('/api/small-animals'));
 
   assert.equal(response.status, 200);
   assert.deepEqual(await response.json(), []);
   assert.equal(response.headers.get('Cache-Control'), 'no-store');
   assert.equal(response.headers.get('Access-Control-Allow-Origin'), '*');
-  assert.deepEqual(DATA.reads, ['small_animals']);
+  assert.deepEqual(DATA.reads, []);
   assert.deepEqual(DATA.puts, []);
   assertNoCatCollectionAccess(DATA);
+});
+
+test('the shared launch gate reveals rows only after the owner public flip', () => {
+  const rows = [{ breederId: 'PUBLIC-RB', species: 'rabbit' }];
+  assert.deepEqual(visibleSmallAnimals(rows, false), []);
+  assert.deepEqual(visibleSmallAnimals(rows, true), rows);
 });
 
 test('admin gates reject missing Origin before auth and missing Bearer after valid Origin', async () => {
@@ -222,6 +231,7 @@ test('bulk rejects non-array, bad shapes, and duplicates without writing', async
       { breederId: 'RB-DUP', species: 'rabbit' },
       { breederId: 'RB-DUP', species: 'rabbit' },
     ],
+    [{ breederId: 'bulk', species: 'rabbit' }],
   ];
 
   for (const body of badBodies) {

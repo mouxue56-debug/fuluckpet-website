@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
     lines.forEach(line => {
       const text = line.textContent;
       const isAccent = line.classList.contains('hero-accent');
-      line.innerHTML = '';
+      line.replaceChildren();
       [...text].forEach(ch => {
         const span = document.createElement('span');
         span.className = 'char';
@@ -279,79 +279,167 @@ document.addEventListener('DOMContentLoaded', () => {
   const kittenModal = document.getElementById('kittenModal');
   const modalClose = document.getElementById('modalClose');
 
+  function createModalNode(tagName, className, text) {
+    const node = document.createElement(tagName);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = String(text);
+    return node;
+  }
+
+  function appendModalIcon(parent, iconClass) {
+    const icon = createModalNode('i', 'ico ' + iconClass);
+    icon.setAttribute('aria-hidden', 'true');
+    parent.appendChild(icon);
+    return icon;
+  }
+
+  function safeModalMediaUrl(value) {
+    if (typeof value !== 'string' || !value || value.length > 2048 || /[\u0000-\u0020"'<>`\\]/.test(value)) return '';
+    try {
+      if (value.charAt(0) === '/' && value.slice(0, 2) !== '//') {
+        const local = new URL(value, 'https://fuluckpet.com');
+        return local.pathname + local.search;
+      }
+      const parsed = new URL(value);
+      return parsed.protocol === 'https:' ? parsed.href : '';
+    } catch (error) {
+      return '';
+    }
+  }
+
+  function safeModalMediaList(value) {
+    if (typeof value !== 'string') return [];
+    return value.split(',').map((item) => safeModalMediaUrl(item.trim())).filter(Boolean);
+  }
+
+  function safeYouTubeEmbedUrl(value) {
+    if (typeof value !== 'string' || value.length > 4096) return '';
+    value = value.trim();
+    const iframeSrc = value.match(/src=["']([^"']+)["']/i);
+    if (iframeSrc) value = iframeSrc[1];
+    if (!value || /[\u0000-\u0020"'<>`\\]/.test(value)) return '';
+    try {
+      const parsed = new URL(value);
+      const host = parsed.hostname.toLowerCase();
+      let id = '';
+      if (host === 'youtu.be') {
+        id = parsed.pathname.slice(1).split('/')[0];
+      } else if (host === 'youtube.com' || host === 'www.youtube.com' || host === 'm.youtube.com' || host === 'youtube-nocookie.com' || host === 'www.youtube-nocookie.com') {
+        if (parsed.pathname.indexOf('/embed/') === 0) id = parsed.pathname.split('/')[2] || '';
+        else if (parsed.pathname === '/watch') id = parsed.searchParams.get('v') || '';
+      }
+      return /^[A-Za-z0-9_-]{6,64}$/.test(id) ? 'https://www.youtube.com/embed/' + id : '';
+    } catch (error) {
+      return '';
+    }
+  }
+
+  function appendMediaPlaceholder(parent, className, message) {
+    const placeholder = createModalNode('div', 'img-placeholder ' + className);
+    const iconWrap = createModalNode('span');
+    appendModalIcon(iconWrap, 'ico-cat');
+    placeholder.appendChild(iconWrap);
+    placeholder.appendChild(createModalNode('p', '', message));
+    parent.appendChild(placeholder);
+  }
+
+  function buildMediaCarousel(gallery, images, videoEmbedUrl, altPrefix, options = {}) {
+    const carousel = createModalNode('div', 'carousel');
+    const main = createModalNode('div', 'carousel-main');
+    const dots = createModalNode('div', 'carousel-dots');
+    const thumbs = createModalNode('div', 'carousel-thumbs');
+    let itemCount = 0;
+
+    images.forEach((url, index) => {
+      const active = itemCount === 0;
+      const slide = createModalNode('div', 'carousel-slide' + (active ? ' active' : ''));
+      const image = createModalNode('img');
+      image.setAttribute('src', url);
+      image.setAttribute('alt', altPrefix + ' ' + (index + 1));
+      image.setAttribute('loading', 'lazy');
+      slide.appendChild(image);
+      main.appendChild(slide);
+      dots.appendChild(createModalNode('span', 'dot' + (active ? ' active' : '')));
+
+      const thumb = createModalNode('div', 'thumb' + (active ? ' active' : ''));
+      const thumbImage = createModalNode('img');
+      thumbImage.setAttribute('src', url);
+      thumbImage.setAttribute('alt', 'サムネイル ' + (index + 1));
+      thumb.appendChild(thumbImage);
+      thumbs.appendChild(thumb);
+      itemCount += 1;
+    });
+
+    if (videoEmbedUrl) {
+      const active = itemCount === 0;
+      const slide = createModalNode('div', 'carousel-slide' + (active ? ' active' : ''));
+      const wrapper = createModalNode('div', 'video-wrapper');
+      const frame = createModalNode('iframe');
+      frame.setAttribute('src', videoEmbedUrl);
+      frame.setAttribute('allowfullscreen', '');
+      frame.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+      frame.setAttribute('loading', 'lazy');
+      wrapper.appendChild(frame);
+      slide.appendChild(wrapper);
+      main.appendChild(slide);
+      dots.appendChild(createModalNode('span', 'dot video-dot' + (active ? ' active' : ''), '▶'));
+
+      const thumb = createModalNode('div', 'thumb video-thumb' + (active ? ' active' : ''));
+      const placeholder = createModalNode('div', 'img-placeholder thumb-ph', '▶');
+      thumb.appendChild(placeholder);
+      thumbs.appendChild(thumb);
+      itemCount += 1;
+    }
+
+    if (itemCount === 0) {
+      const slide = createModalNode('div', 'carousel-slide active');
+      appendMediaPlaceholder(slide, options.placeholderClass || 'kit-modal-ph', options.emptyMessage || '写真準備中');
+      main.appendChild(slide);
+      dots.appendChild(createModalNode('span', 'dot active'));
+      itemCount = 1;
+    }
+
+    carousel.appendChild(main);
+    const previous = createModalNode('button', 'carousel-btn carousel-prev', '‹');
+    previous.setAttribute('type', 'button');
+    const next = createModalNode('button', 'carousel-btn carousel-next', '›');
+    next.setAttribute('type', 'button');
+    carousel.appendChild(previous);
+    carousel.appendChild(next);
+    carousel.appendChild(dots);
+
+    const content = [carousel];
+    if (thumbs.children.length > 0 && (options.alwaysShowThumbs || thumbs.children.length > 1)) content.push(thumbs);
+    gallery.replaceChildren(...content);
+    initCarousel(gallery);
+  }
+
   async function buildCarousel(card) {
     if (!kittenModal) return;
-    let images = card.dataset.images ? card.dataset.images.split(',') : [];
-    const videoRaw = card.dataset.video || '';
+    let images = safeModalMediaList(card.dataset.images || '');
+    const videoEmbedUrl = safeYouTubeEmbedUrl(card.dataset.video || '');
     const gallery = kittenModal.querySelector('.modal-gallery');
     if (!gallery) return;
 
     // If no hardcoded images but has Drive folder, load from Drive
-    if (images.length === 0 && card.dataset.driveFolder && window.DriveLoader) {
-      gallery.innerHTML = '<div class="carousel-slide active"><div class="img-placeholder kit-modal-ph"><span>⏳</span><p>読み込み中...</p></div></div>';
+    if (images.length === 0 && /^[A-Za-z0-9_-]+$/.test(card.dataset.driveFolder || '') && window.DriveLoader) {
+      const loadingSlide = createModalNode('div', 'carousel-slide active');
+      const loading = createModalNode('div', 'img-placeholder kit-modal-ph');
+      loading.appendChild(createModalNode('span', '', '⏳'));
+      loading.appendChild(createModalNode('p', '', '読み込み中...'));
+      loadingSlide.appendChild(loading);
+      gallery.replaceChildren(loadingSlide);
       const driveUrls = await window.DriveLoader.loadCardImages(card);
       if (driveUrls) {
-        images = driveUrls.split(',');
+        images = safeModalMediaList(driveUrls);
       }
     }
 
-    // Parse YouTube embed: accept iframe embed code, youtu.be/xxx, or youtube.com/watch?v=xxx
-    let videoEmbedUrl = '';
-    if (videoRaw) {
-      const iframeSrcMatch = videoRaw.match(/src=["']([^"']+)["']/);
-      if (iframeSrcMatch) {
-        videoEmbedUrl = iframeSrcMatch[1];
-      } else if (videoRaw.match(/youtu\.be\/([a-zA-Z0-9_-]+)/)) {
-        videoEmbedUrl = 'https://www.youtube.com/embed/' + videoRaw.match(/youtu\.be\/([a-zA-Z0-9_-]+)/)[1];
-      } else if (videoRaw.match(/[?&]v=([a-zA-Z0-9_-]+)/)) {
-        videoEmbedUrl = 'https://www.youtube.com/embed/' + videoRaw.match(/[?&]v=([a-zA-Z0-9_-]+)/)[1];
-      } else if (videoRaw.match(/youtube\.com\/embed\//)) {
-        videoEmbedUrl = videoRaw.trim();
-      }
-    }
-
-    // Build slides
-    let slidesHTML = '';
-    let dotsHTML = '';
-    let thumbsHTML = '';
-
-    if (images.length === 0 && !videoEmbedUrl) {
-      // Fallback placeholder
-      slidesHTML = '<div class="carousel-slide active"><div class="img-placeholder kit-modal-ph" style="background:linear-gradient(135deg,#f0faf7,#fef6f0);"><span style="font-size:3rem;opacity:0.4;"><i class="ico ico-cat" aria-hidden="true"></i></span><p style="opacity:0.5;">写真を読み込み中...</p></div></div>';
-      dotsHTML = '<span class="dot active"></span>';
-      thumbsHTML = '<div class="thumb active"><div class="img-placeholder thumb-ph"><span><i class="ico ico-cat" aria-hidden="true"></i></span></div></div>';
-    } else if (images.length === 0 && videoEmbedUrl) {
-      // Video only — make it the first active slide
-      slidesHTML = `<div class="carousel-slide active"><div class="video-wrapper"><iframe src="${videoEmbedUrl}" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" loading="lazy"></iframe></div></div>`;
-      dotsHTML = '<span class="dot video-dot active">▶</span>';
-      thumbsHTML = '<div class="thumb video-thumb active"><div class="img-placeholder thumb-ph" style="background:linear-gradient(135deg,#c4302b,#ff6b6b);color:white;"><span>▶</span></div></div>';
-    } else {
-      images.forEach((img, i) => {
-        const activeClass = i === 0 ? ' active' : '';
-        slidesHTML += `<div class="carousel-slide${activeClass}"><img src="${img.trim()}" alt="子猫の写真 ${i + 1}" loading="lazy"></div>`;
-        dotsHTML += `<span class="dot${activeClass}"></span>`;
-        thumbsHTML += `<div class="thumb${activeClass}"><img src="${img.trim()}" alt="サムネイル ${i + 1}"></div>`;
-      });
-      // Append video as last slide
-      if (videoEmbedUrl) {
-        slidesHTML += `<div class="carousel-slide"><div class="video-wrapper"><iframe src="${videoEmbedUrl}" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" loading="lazy"></iframe></div></div>`;
-        dotsHTML += '<span class="dot video-dot">▶</span>';
-        thumbsHTML += '<div class="thumb video-thumb"><div class="img-placeholder thumb-ph" style="background:linear-gradient(135deg,#c4302b,#ff6b6b);color:white;"><span>▶</span></div></div>';
-      }
-    }
-
-    gallery.innerHTML = `
-      <div class="carousel">
-        <div class="carousel-main">${slidesHTML}</div>
-        <button class="carousel-btn carousel-prev">‹</button>
-        <button class="carousel-btn carousel-next">›</button>
-        <div class="carousel-dots">${dotsHTML}</div>
-      </div>
-      <div class="carousel-thumbs">${thumbsHTML}</div>
-    `;
-
-    // Init carousel controls
-    initCarousel(gallery);
+    buildMediaCarousel(gallery, images, videoEmbedUrl, '子猫の写真', {
+      alwaysShowThumbs: true,
+      placeholderClass: 'kit-modal-ph',
+      emptyMessage: '写真を読み込み中...'
+    });
   }
 
   function initCarousel(container) {
@@ -391,6 +479,49 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function appendModalDetail(container, label, value, options = {}) {
+    const row = createModalNode('div', 'detail-row');
+    row.appendChild(createModalNode('span', 'detail-label', label));
+    const valueNode = createModalNode('span', 'detail-value');
+    if (options.icon) appendModalIcon(valueNode, options.icon);
+    if (options.icon && value) valueNode.appendChild(document.createTextNode(' '));
+    valueNode.appendChild(document.createTextNode(value || ''));
+    if (options.accent) {
+      valueNode.style.color = 'var(--mint)';
+      valueNode.style.fontWeight = '600';
+    }
+    row.appendChild(valueNode);
+    container.appendChild(row);
+    return row;
+  }
+
+  function findCardByDataset(selector, field, value) {
+    return Array.from(document.querySelectorAll(selector)).find((candidate) => candidate.dataset[field] === value) || null;
+  }
+
+  function createParentChip(name, relation, iconClass) {
+    const chip = createModalNode('div', 'modal-parent-chip clickable');
+    chip.dataset.parentName = name;
+    const iconWrap = createModalNode('span', 'parent-chip-icon');
+    appendModalIcon(iconWrap, iconClass);
+    chip.appendChild(iconWrap);
+    chip.appendChild(createModalNode('span', '', relation + ': ' + name));
+    chip.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const parentName = chip.dataset.parentName;
+      if (!parentName) return;
+      const parentCard = findCardByDataset('.parent-card', 'name', parentName);
+      if (parentCard && typeof window.openParentModal === 'function') {
+        closeModalA11y(kittenModal);
+        window.openParentModal(parentCard);
+      } else {
+        closeModalA11y(kittenModal);
+        window.location.href = 'parents.html#parent-' + encodeURIComponent(parentName);
+      }
+    });
+    return chip;
+  }
+
   function populateModalInfo(card) {
     if (!kittenModal) return;
     const info = kittenModal.querySelector('.modal-info');
@@ -403,7 +534,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const gender = meta[0]?.textContent || '';
     const birthday = meta[1]?.textContent || '';
     const price = card.querySelector('.kit-price')?.textContent || '';
-    const status = card.dataset.status || 'available';
+    const status = ['available', 'reserved', 'sold'].includes(card.dataset.status) ? card.dataset.status : 'sold';
     const isNew = card.dataset.new === 'true';
     const papa = card.dataset.papa || '';
     const mama = card.dataset.mama || '';
@@ -413,84 +544,130 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusLabels = { available: '販売中', reserved: 'ご予約済', sold: 'ご家族決定' };
     const statusClasses = { available: 'st-available', reserved: 'st-reserved', sold: 'st-sold' };
 
-    info.innerHTML = `
-      <div class="modal-status-row">
-        <span class="kit-status ${statusClasses[status]}">${statusLabels[status]}</span>
-        ${isNew ? '<span class="kit-badge-new">NEW</span>' : ''}
-      </div>
-      <h2 class="modal-name">${displayName}</h2>
-      ${!isSold ? `<div class="modal-price-row"><span class="modal-price">${price.replace(/（税込）/, '')}</span><span class="tax">（税込）</span></div>` : '<p class="sold-text" style="margin-bottom:20px">ご家族が決まりました</p>'}
+    const content = [];
+    const statusRow = createModalNode('div', 'modal-status-row');
+    statusRow.appendChild(createModalNode('span', 'kit-status ' + statusClasses[status], statusLabels[status]));
+    if (isNew) statusRow.appendChild(createModalNode('span', 'kit-badge-new', 'NEW'));
+    content.push(statusRow, createModalNode('h2', 'modal-name', displayName));
 
-      <div class="modal-details">
-        <div class="detail-row"><span class="detail-label">猫種</span><span class="detail-value">${breed}</span></div>
-        <div class="detail-row"><span class="detail-label">性別</span><span class="detail-value">${gender.split('・')[0]?.trim() || ''}</span></div>
-        <div class="detail-row"><span class="detail-label">カラー</span><span class="detail-value">${gender.split('・')[1]?.trim() || ''}</span></div>
-        <div class="detail-row"><span class="detail-label">誕生日</span><span class="detail-value">${birthday}</span></div>
-        <div class="detail-row"><span class="detail-label">ワクチン</span><span class="detail-value">1回接種済み</span></div>
-        <div class="detail-row"><span class="detail-label">遺伝子検査</span><span class="detail-value">PKD(-) HCM(-)</span></div>
-        ${breederId ? `<div class="detail-row"><span class="detail-label">掲載ID</span><span class="detail-value" style="color:var(--mint);font-weight:600">${breederId}</span></div>` : ''}
-      </div>
+    if (!isSold) {
+      const priceRow = createModalNode('div', 'modal-price-row');
+      priceRow.appendChild(createModalNode('span', 'modal-price', price.replace(/（税込）/, '')));
+      priceRow.appendChild(createModalNode('span', 'tax', '（税込）'));
+      content.push(priceRow);
+    } else {
+      const sold = createModalNode('p', 'sold-text', 'ご家族が決まりました');
+      sold.style.marginBottom = '20px';
+      content.push(sold);
+    }
 
-      ${papa || mama ? `
-      <div class="modal-parents">
-        <h4>両親</h4>
-        <div class="modal-parent-row">
-          ${papa ? `<div class="modal-parent-chip clickable" data-parent-name="${papa}"><span class="parent-chip-icon"><i class="ico ico-mars" aria-hidden="true"></i></span><span>パパ: ${papa}</span></div>` : ''}
-          ${mama ? `<div class="modal-parent-chip clickable" data-parent-name="${mama}"><span class="parent-chip-icon"><i class="ico ico-venus" aria-hidden="true"></i></span><span>ママ: ${mama}</span></div>` : ''}
-        </div>
-      </div>` : ''}
+    const details = createModalNode('div', 'modal-details');
+    const genderParts = gender.split('・');
+    appendModalDetail(details, '猫種', breed);
+    appendModalDetail(details, '性別', (genderParts[0] || '').trim());
+    appendModalDetail(details, 'カラー', (genderParts[1] || '').trim());
+    appendModalDetail(details, '誕生日', birthday);
+    appendModalDetail(details, 'ワクチン', '1回接種済み');
+    appendModalDetail(details, '遺伝子検査', 'PKD(-) HCM(-)');
+    if (breederId) appendModalDetail(details, '掲載ID', breederId, { accent: true });
+    content.push(details);
 
-      <div class="modal-health">
-        <h4>健康情報</h4>
-        <div class="health-tags">
-          <span class="health-tag tag-good"><i class="ico ico-check" aria-hidden="true"></i> ワクチン接種済</span>
-          <span class="health-tag tag-good"><i class="ico ico-check" aria-hidden="true"></i> 遺伝子検査済</span>
-          <span class="health-tag tag-good"><i class="ico ico-check" aria-hidden="true"></i> 健康診断済</span>
-          <span class="health-tag tag-good"><i class="ico ico-check" aria-hidden="true"></i> 駆虫済み</span>
-        </div>
-      </div>
+    if (papa || mama) {
+      const parents = createModalNode('div', 'modal-parents');
+      parents.appendChild(createModalNode('h4', '', '両親'));
+      const row = createModalNode('div', 'modal-parent-row');
+      if (papa) row.appendChild(createParentChip(papa, 'パパ', 'ico-mars'));
+      if (mama) row.appendChild(createParentChip(mama, 'ママ', 'ico-venus'));
+      parents.appendChild(row);
+      content.push(parents);
+    }
 
-      <div class="law-notice-compact">
-        <div class="law-notice-title"><i class="ico ico-clipboard-list" aria-hidden="true"></i> 動物愛護管理法に基づく対面販売</div>
-        <p>法律の規定により、ご購入前に必ずキャッテリーにお越しいただき、子猫と対面していただく必要がございます。</p>
-      </div>
-
-      <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="btn btn-line modal-line-btn" target="_blank" rel="noopener" style="background:#06C755;border-radius:12px;color:#fff;font-size:16px;font-weight:700;letter-spacing:0.02em;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596a.626.626 0 0 1-.199.031c-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.271.173-.508.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
-        <i class="ico ico-paw-print" aria-hidden="true"></i> この子についてLINEで相談
-      </a>
-      <p style="text-align:center;font-size:12px;color:var(--text-note);margin-top:6px;">※ 購入前のちょっとした質問だけでもOKです</p>
-
-      <div class="modal-actions" style="margin-top:12px">
-        <a href="/booking.html" class="btn btn-secondary modal-visit-btn" onclick="(window.__closeModalA11y||function(){})(document.getElementById('kittenModal'))">見学を予約</a>
-      </div>
-    `;
-
-    // Make parent chips clickable — find matching parent card and open modal
-    info.querySelectorAll('.modal-parent-chip.clickable').forEach(chip => {
-      chip.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const parentName = chip.dataset.parentName;
-        if (!parentName) return;
-
-        // Try to find the parent card on this page
-        const parentCard = document.querySelector(`.parent-card[data-name="${parentName}"]`);
-        if (parentCard && typeof window.openParentModal === 'function') {
-          // Close kitten modal, open parent modal
-          closeModalA11y(kittenModal);
-          window.openParentModal(parentCard);
-        } else {
-          // Not on this page — navigate to parents.html with hash
-          closeModalA11y(kittenModal);
-          window.location.href = `parents.html#parent-${encodeURIComponent(parentName)}`;
-        }
-      });
+    const health = createModalNode('div', 'modal-health');
+    health.appendChild(createModalNode('h4', '', '健康情報'));
+    const healthTags = createModalNode('div', 'health-tags');
+    ['ワクチン接種済', '遺伝子検査済', '健康診断済', '駆虫済み'].forEach((label) => {
+      const tag = createModalNode('span', 'health-tag tag-good');
+      appendModalIcon(tag, 'ico-check');
+      tag.appendChild(document.createTextNode(' ' + label));
+      healthTags.appendChild(tag);
     });
+    health.appendChild(healthTags);
+    content.push(health);
+
+    const law = createModalNode('div', 'law-notice-compact');
+    const lawTitle = createModalNode('div', 'law-notice-title');
+    appendModalIcon(lawTitle, 'ico-clipboard-list');
+    lawTitle.appendChild(document.createTextNode(' 動物愛護管理法に基づく対面販売'));
+    law.appendChild(lawTitle);
+    law.appendChild(createModalNode('p', '', '法律の規定により、ご購入前に必ずキャッテリーにお越しいただき、子猫と対面していただく必要がございます。'));
+    content.push(law);
+
+    const line = createModalNode('a', 'btn btn-line modal-line-btn');
+    line.setAttribute('href', 'https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true');
+    line.setAttribute('target', '_blank');
+    line.setAttribute('rel', 'noopener');
+    line.style.background = '#06C755';
+    line.style.borderRadius = '12px';
+    line.style.color = '#fff';
+    line.style.fontSize = '16px';
+    line.style.fontWeight = '700';
+    line.style.letterSpacing = '0.02em';
+    appendModalIcon(line, 'ico-paw-print');
+    line.appendChild(document.createTextNode(' この子についてLINEで相談'));
+    content.push(line);
+
+    const note = createModalNode('p', '', '※ 購入前のちょっとした質問だけでもOKです');
+    note.style.textAlign = 'center';
+    note.style.fontSize = '12px';
+    note.style.color = 'var(--text-note)';
+    note.style.marginTop = '6px';
+    content.push(note);
+
+    const actions = createModalNode('div', 'modal-actions');
+    actions.style.marginTop = '12px';
+    const booking = createModalNode('a', 'btn btn-secondary modal-visit-btn', '見学を予約');
+    booking.setAttribute('href', '/booking.html');
+    booking.addEventListener('click', () => closeModalA11y(kittenModal));
+    actions.appendChild(booking);
+    content.push(actions);
+
+    info.replaceChildren(...content);
   }
 
   // ===== Kitten Modal Navigation (prev/next kitten) =====
   let allKittenCards = Array.from(document.querySelectorAll('.kitten-card'));
   let currentKittenIndex = -1;
+  const isKittensPage = Boolean(document.querySelector('.page-hero')) && window.location.pathname.indexOf('kittens') >= 0;
+
+  function bindCardActivation(card, role, activate) {
+    card.setAttribute('role', role);
+    card.setAttribute('tabindex', '0');
+    if (role === 'button') card.setAttribute('aria-haspopup', 'dialog');
+    else card.removeAttribute('aria-haspopup');
+
+    if (card.dataset.cardActivationBound === '1') return;
+    card.dataset.cardActivationBound = '1';
+    card.addEventListener('click', activate);
+    card.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      activate();
+    });
+  }
+
+  function activateKittenCard(card) {
+    const detailUrl = card.dataset.detailUrl || card.getAttribute('data-detail-url') || '';
+    if (isKittensPage && detailUrl) {
+      window.location.href = detailUrl;
+      return;
+    }
+    if (!kittenModal) return;
+    currentKittenIndex = allKittenCards.indexOf(card);
+    buildCarousel(card);
+    populateModalInfo(card);
+    openModalA11y(kittenModal);
+    updateKittenNavButtons();
+  }
 
   function openKittenByIndex(idx) {
     if (idx < 0 || idx >= allKittenCards.length) return;
@@ -530,7 +707,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (kittenModal) {
     const prevBtn = document.createElement('button');
     prevBtn.className = 'modal-kitten-nav modal-kitten-prev';
-    prevBtn.innerHTML = '‹ 前';
+    prevBtn.textContent = '‹ 前';
     prevBtn.title = '前の子猫';
     prevBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -541,7 +718,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const nextBtn = document.createElement('button');
     nextBtn.className = 'modal-kitten-nav modal-kitten-next';
-    nextBtn.innerHTML = '次 ›';
+    nextBtn.textContent = '次 ›';
     nextBtn.title = '次の子猫';
     nextBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -553,18 +730,6 @@ document.addEventListener('DOMContentLoaded', () => {
     kittenModal.appendChild(prevBtn);
     kittenModal.appendChild(nextBtn);
   }
-
-  // Open kitten modal
-  allKittenCards.forEach((card, idx) => {
-    card.addEventListener('click', () => {
-      if (!kittenModal) return;
-      currentKittenIndex = idx;
-      buildCarousel(card);
-      populateModalInfo(card);
-      openModalA11y(kittenModal);
-      updateKittenNavButtons();
-    });
-  });
 
   // Keyboard nav: left/right arrow keys for prev/next kitten
   document.addEventListener('keydown', e => {
@@ -620,53 +785,35 @@ document.addEventListener('DOMContentLoaded', () => {
     // Build photo carousel for parent modal
     const gallery = parentModal.querySelector('.modal-gallery');
     if (gallery) {
-      let images = card.dataset.images ? card.dataset.images.split(',').filter(u => u.trim()) : [];
+      let images = safeModalMediaList(card.dataset.images || '');
 
       // If no images yet but has Drive folder, load from Drive
-      if (images.length === 0 && card.dataset.driveFolder && window.DriveLoader) {
-        gallery.innerHTML = '<div class="carousel"><div class="carousel-main"><div class="carousel-slide active"><div class="img-placeholder parent-modal-ph"><span>⏳</span><p>読み込み中...</p></div></div></div></div>';
+      if (images.length === 0 && /^[A-Za-z0-9_-]+$/.test(card.dataset.driveFolder || '') && window.DriveLoader) {
+        buildMediaCarousel(gallery, [], '', name || '親猫', {
+          placeholderClass: 'parent-modal-ph',
+          emptyMessage: '読み込み中...'
+        });
         const driveUrls = await window.DriveLoader.loadCardImages(card);
         if (driveUrls) {
-          images = driveUrls.split(',').filter(u => u.trim());
+          images = safeModalMediaList(driveUrls);
         }
       }
 
-      if (images.length > 0) {
-        let slidesHTML = '';
-        let dotsHTML = '';
-        let thumbsHTML = '';
-        images.forEach((img, i) => {
-          const activeClass = i === 0 ? ' active' : '';
-          slidesHTML += `<div class="carousel-slide${activeClass}"><img src="${img.trim()}" alt="${name} ${i + 1}" loading="lazy"></div>`;
-          dotsHTML += `<span class="dot${activeClass}"></span>`;
-          thumbsHTML += `<div class="thumb${activeClass}"><img src="${img.trim()}" alt="サムネイル ${i + 1}"></div>`;
-        });
-        gallery.innerHTML = `
-          <div class="carousel">
-            <div class="carousel-main">${slidesHTML}</div>
-            <button class="carousel-btn carousel-prev">‹</button>
-            <button class="carousel-btn carousel-next">›</button>
-            <div class="carousel-dots">${dotsHTML}</div>
-          </div>
-          ${images.length > 1 ? `<div class="carousel-thumbs">${thumbsHTML}</div>` : ''}
-        `;
-        initCarousel(gallery);
-      } else {
-        // No photos available — show placeholder
-        gallery.innerHTML = '<div class="carousel"><div class="carousel-main"><div class="carousel-slide active"><div class="img-placeholder parent-modal-ph" style="background:linear-gradient(135deg,#f0faf7,#fef6f0);"><span style="font-size:3rem;opacity:0.4;"><i class="ico ico-cat" aria-hidden="true"></i></span><p style="opacity:0.5;">写真準備中</p></div></div></div></div>';
-      }
+      buildMediaCarousel(gallery, images, '', name || '親猫', {
+        placeholderClass: 'parent-modal-ph',
+        emptyMessage: '写真準備中'
+      });
     }
 
     // Update details
     const details = parentModal.querySelector('.modal-details');
     if (details) {
-      details.innerHTML = `
-        <div class="detail-row"><span class="detail-label">猫種</span><span class="detail-value">${breed}</span></div>
-        <div class="detail-row"><span class="detail-label">性別</span><span class="detail-value">${gender} ${gender === '♂' ? '男の子' : '女の子'}</span></div>
-        ${color ? `<div class="detail-row"><span class="detail-label">カラー</span><span class="detail-value">${color}</span></div>` : ''}
-        ${age ? `<div class="detail-row"><span class="detail-label">年齢</span><span class="detail-value">${age}</span></div>` : ''}
-        <div class="detail-row"><span class="detail-label">遺伝子検査</span><span class="detail-value">${tested ? '<i class="ico ico-circle-check" aria-hidden="true"></i> PKD(-) HCM(-) 検査済み' : '検査予定'}</span></div>
-      `;
+      details.replaceChildren();
+      appendModalDetail(details, '猫種', breed);
+      appendModalDetail(details, '性別', gender === '♂' ? '♂ 男の子' : gender === '♀' ? '♀ 女の子' : '');
+      if (color) appendModalDetail(details, 'カラー', color);
+      if (age) appendModalDetail(details, '年齢', age);
+      appendModalDetail(details, '遺伝子検査', tested ? 'PKD(-) HCM(-) 検査済み' : '検査予定', tested ? { icon: 'ico-circle-check' } : {});
     }
 
     // Find children kittens
@@ -674,20 +821,35 @@ document.addEventListener('DOMContentLoaded', () => {
     if (childrenContainer) {
       const parentName = name;
       const field = gender === '♂' ? 'papa' : 'mama';
-      const children = document.querySelectorAll(`.kitten-card[data-${field}="${parentName}"]`);
-      let chipsHTML = '';
+      const children = Array.from(document.querySelectorAll('.kitten-card')).filter((child) => child.dataset[field] === parentName);
+      childrenContainer.replaceChildren();
       children.forEach(child => {
         const childName = child.querySelector('h3')?.textContent || '';
         const childMeta = child.querySelector('.kit-meta')?.textContent || '';
         const childStatus = child.dataset.status || '';
         const statusLabel = { available: '販売中', reserved: 'ご予約済', sold: 'ご家族決定' }[childStatus] || '';
-        chipsHTML += `<span class="child-chip">${childName} ${childMeta} (${statusLabel})</span>`;
+        childrenContainer.appendChild(createModalNode('span', 'child-chip', childName + ' ' + childMeta + (statusLabel ? ' (' + statusLabel + ')' : '')));
       });
-      childrenContainer.innerHTML = chipsHTML || '<span style="color:var(--text-note);font-size:13px">現在表示中の子猫はいません</span>';
+      if (children.length === 0) {
+        const empty = createModalNode('span', '', '現在表示中の子猫はいません');
+        empty.style.color = 'var(--text-note)';
+        empty.style.fontSize = '13px';
+        childrenContainer.appendChild(empty);
+      }
     }
 
     openModalA11y(parentModal);
   };
+
+  function parentCardFromLocationHash() {
+    if (!window.location.hash.startsWith('#parent-')) return null;
+    try {
+      const parentName = decodeURIComponent(window.location.hash.slice('#parent-'.length));
+      return findCardByDataset('.parent-card', 'name', parentName);
+    } catch (error) {
+      return null;
+    }
+  }
 
   if (parentModalClose) {
     parentModalClose.addEventListener('click', () => {
@@ -713,12 +875,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ===== Auto-open parent modal from URL hash =====
   // e.g. parents.html#parent-しろくん → opens しろくん's modal
-  if (window.location.hash.startsWith('#parent-')) {
-    const parentName = decodeURIComponent(window.location.hash.replace('#parent-', ''));
-    const targetCard = document.querySelector(`.parent-card[data-name="${parentName}"]`);
-    if (targetCard && typeof window.openParentModal === 'function') {
-      setTimeout(() => window.openParentModal(targetCard), 500);
-    }
+  const hashParentCard = parentCardFromLocationHash();
+  if (hashParentCard && typeof window.openParentModal === 'function') {
+    setTimeout(() => window.openParentModal(hashParentCard), 500);
   }
 
   // ===== FAQ Accordion =====
@@ -920,42 +1079,36 @@ document.addEventListener('DOMContentLoaded', () => {
   // Re-bind kitten card click events after dynamic rendering
   // On kittens.html (has .page-hero): navigate to detail page if available
   // On index.html: open modal as before
-  var isKittensPage = !!document.querySelector('.page-hero');
   window.bindKittenCards = function() {
     allKittenCards = Array.from(document.querySelectorAll('.kitten-card'));
-    allKittenCards.forEach((card, idx) => {
-      card.addEventListener('click', () => {
-        var detailUrl = card.getAttribute('data-detail-url');
-        if (isKittensPage && detailUrl) {
-          // Navigate to individual kitten detail page
-          window.location.href = detailUrl;
-          return;
-        }
-        // Fallback: open modal (index.html or no detail URL)
-        if (!kittenModal) return;
-        currentKittenIndex = idx;
-        buildCarousel(card);
-        populateModalInfo(card);
-        openModalA11y(kittenModal);
-        updateKittenNavButtons();
-      });
+    allKittenCards.forEach((card) => {
+      const detailUrl = card.dataset.detailUrl || card.getAttribute('data-detail-url') || '';
+      // Small-animal cards share the visual class but own native links and no cat modal.
+      if (!kittenModal && !detailUrl) return;
+      const role = isKittensPage && detailUrl ? 'link' : 'button';
+      bindCardActivation(card, role, () => activateKittenCard(card));
     });
     updateKittenCount();
   };
 
   // Re-bind parent card click events after dynamic rendering
   window.bindParentCards = function() {
+    if (!parentModal) return;
     document.querySelectorAll('.parent-card').forEach(card => {
       // Remove inline onclick to avoid double-fire, then bind via JS
       card.removeAttribute('onclick');
       card.style.cursor = 'pointer';
-      card.addEventListener('click', () => {
+      bindCardActivation(card, 'button', () => {
         if (typeof window.openParentModal === 'function') {
           window.openParentModal(card);
         }
       });
     });
   };
+
+  // Bind the static SEO fallback too. API-rendered replacements call rebindCards().
+  window.bindKittenCards();
+  window.bindParentCards();
 
   // Re-bind scroll animations for dynamically loaded cards
   window.bindAnimations = function() {
@@ -994,12 +1147,9 @@ document.addEventListener('DOMContentLoaded', () => {
     window.bindParentCards();
     window.bindAnimations();
     // Re-check hash for parent modal auto-open
-    if (window.location.hash.startsWith('#parent-')) {
-      const parentName = decodeURIComponent(window.location.hash.replace('#parent-', ''));
-      const targetCard = document.querySelector(`.parent-card[data-name="${parentName}"]`);
-      if (targetCard && typeof window.openParentModal === 'function') {
-        setTimeout(() => window.openParentModal(targetCard), 300);
-      }
+    const targetCard = parentCardFromLocationHash();
+    if (targetCard && typeof window.openParentModal === 'function') {
+      setTimeout(() => window.openParentModal(targetCard), 300);
     }
   };
 

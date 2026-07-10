@@ -54,7 +54,13 @@
   }
 
   function ctBreed(breed) {
-    var t = CARD_I18N[getLang()];
+    breed = safeString(breed);
+    var lang = getLang();
+    if (lang === 'ja') return breed;
+    var cat = window.FULUCK_CATALOG_I18N;
+    var generated = cat && cat.breeds && cat.breeds[lang] && cat.breeds[lang][breed];
+    if (typeof generated === 'string' && generated) return generated;
+    var t = CARD_I18N[lang];
     return (t && t.breeds && t.breeds[breed]) || breed;
   }
 
@@ -68,7 +74,8 @@
   // en/zh → lookup, fallback to raw ja if unmapped (never invent). Degrades safely when
   // the catalog artifact is missing (returns the raw value, no exception).
   function ctCatalog(kind, value) {
-    if (!value) return value || '';
+    value = safeString(value);
+    if (!value) return '';
     var lang = getLang();
     if (lang === 'ja') return value;
     var cat = window.FULUCK_CATALOG_I18N;
@@ -99,7 +106,7 @@
   // generator's partial-match fallback (breed.includes(key) || key.includes(breed)).
   // Unknown/empty breed → 0 (Siberian): never drop inventory (FIX 7 — was dropping 14).
   function breedSectionIndex(breed) {
-    breed = breed || '';
+    breed = safeString(breed);
     var exact = BREED_ORDER.indexOf(breed);
     if (exact !== -1) return exact;
     for (var i = 0; i < BREED_ORDER.length; i++) {
@@ -112,8 +119,7 @@
 
   // Localized breed name for a section header (uses the same breeds table as ctBreed).
   function sectionBreedName(breedJa) {
-    var t = CARD_I18N[getLang()];
-    return (t && t.breeds && t.breeds[breedJa]) || breedJa;
+    return ctBreed(breedJa);
   }
 
   // Count suffix — mirrors tools/generate-site.js countLabel() exactly per language:
@@ -132,10 +138,10 @@
   // we are NOT choosing which record is "true" (owner decision, flagged separately).
   function dedupeByFileId(kittens) {
     var order = [];
-    var byId = {};
-    kittens.forEach(function(k) {
-      var id = k.breederId || k.id;
-      if (byId[id] === undefined) order.push(id);
+    var byId = Object.create(null);
+    kittens.forEach(function(k, index) {
+      var id = safeString(k.breederId) || safeString(k.id) || '__row_' + index;
+      if (!Object.prototype.hasOwnProperty.call(byId, id)) order.push(id);
       byId[id] = k; // last write wins
     });
     return order.map(function(id) { return byId[id]; });
@@ -143,13 +149,147 @@
 
   // ===== Utility Functions =====
 
+  function isRecord(value) {
+    return value !== null && typeof value === 'object' && !Array.isArray(value);
+  }
+
+  function safeString(value, maxLength) {
+    if (typeof value !== 'string') return '';
+    var limit = maxLength || 10000;
+    return value.length <= limit ? value : value.slice(0, limit);
+  }
+
+  // Some card values are read back from textContent/dataset and interpolated by the
+  // legacy modal. Replace syntax characters with readable lookalikes so the second
+  // HTML/CSS parsing layer cannot reactivate otherwise-escaped API text.
+  function safeEmbeddedText(value, maxLength) {
+    return safeString(value, maxLength)
+      .replace(/</g, '‹')
+      .replace(/>/g, '›')
+      .replace(/"/g, '＂')
+      .replace(/'/g, '’')
+      .replace(/`/g, '｀')
+      .replace(/\\/g, '＼')
+      .replace(/[\u0000-\u001f\u007f]/g, ' ');
+  }
+
+  function safeBoolean(value) {
+    return value === true;
+  }
+
+  function safePrice(value) {
+    if (typeof value === 'string' && !/^\d+$/.test(value)) return null;
+    if (typeof value !== 'number' && typeof value !== 'string') return null;
+    var number = Number(value);
+    if (!Number.isFinite(number) || number < 0 || !Number.isInteger(number)) return null;
+    return number;
+  }
+
+  function safeBirthday(value) {
+    value = safeString(value, 10);
+    var match = /^(\d{4})-(0[1-9]|1[0-2])(?:-(0[1-9]|[12]\d|3[01]))?$/.exec(value);
+    return match ? value : '';
+  }
+
+  function safeStatus(value) {
+    return value === 'available' || value === 'reserved' || value === 'sold' ? value : 'sold';
+  }
+
+  function safeGender(value) {
+    return value === '♂' || value === '♀' ? value : '';
+  }
+
+  function safePathSegment(value) {
+    value = safeString(value, 128);
+    return /^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(value) ? value : '';
+  }
+
+  function safeMediaUrl(value) {
+    value = safeString(value, 2048);
+    if (!value || /[\u0000-\u0020"'<>`\\]/.test(value)) return '';
+    try {
+      if (value.charAt(0) === '/' && value.slice(0, 2) !== '//') {
+        var local = new URL(value, 'https://fuluckpet.com');
+        return local.pathname + local.search;
+      }
+      var parsed = new URL(value);
+      return parsed.protocol === 'https:' ? parsed.href : '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function safeVideoUrl(value) {
+    value = safeString(value, 4096).trim();
+    var iframeSrc = value.match(/src=["']([^"']+)["']/i);
+    if (iframeSrc) value = iframeSrc[1];
+    if (!value || /[\u0000-\u0020"'<>`\\]/.test(value)) return '';
+    try {
+      var parsed = new URL(value);
+      var host = parsed.hostname.toLowerCase();
+      var id = '';
+      if (host === 'youtu.be') {
+        id = parsed.pathname.slice(1).split('/')[0];
+      } else if (host === 'youtube.com' || host === 'www.youtube.com' || host === 'm.youtube.com' || host === 'youtube-nocookie.com' || host === 'www.youtube-nocookie.com') {
+        if (parsed.pathname.indexOf('/embed/') === 0) id = parsed.pathname.split('/')[2] || '';
+        else if (parsed.pathname === '/watch') id = parsed.searchParams.get('v') || '';
+      }
+      return /^[A-Za-z0-9_-]{6,64}$/.test(id) ? 'https://www.youtube.com/embed/' + id : '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function getSharedKittens() {
+    var store = window.FuluckPublicData || (window.FuluckPublicData = {});
+    var requests = store.kittenRequests || (store.kittenRequests = Object.create(null));
+    var url = API + '/api/kittens';
+    if (!requests[url]) {
+      var request = fetch(url)
+        .then(function(response) {
+          if (!response || response.ok !== true) {
+            throw new Error('card-loader: API returned a non-success response');
+          }
+          return response.json();
+        })
+        .then(function(data) {
+          if (!Array.isArray(data)) throw new Error('card-loader: kittens payload must be an array');
+          return data;
+        });
+      requests[url] = request;
+      request.catch(function() {
+        if (requests[url] === request) delete requests[url];
+      });
+    }
+    return requests[url];
+  }
+
+  function fetchArray(endpoint) {
+    var responseData = endpoint === '/api/kittens'
+      ? getSharedKittens()
+      : fetch(API + endpoint).then(function(response) {
+          if (!response || response.ok !== true) {
+            throw new Error('card-loader: API returned a non-success response');
+          }
+          return response.json();
+        });
+    return responseData
+      .then(function(data) {
+        if (!Array.isArray(data) || !data.every(isRecord)) {
+          throw new Error('card-loader: API payload must be an array of objects');
+        }
+        return data;
+      });
+  }
+
   function getCoverPhoto(item) {
-    if (!item.photos || item.photos.length === 0) return '';
-    var idx = item.coverIndex || 0;
-    return item.photos[Math.min(idx, item.photos.length - 1)] || '';
+    if (!Array.isArray(item.photos) || item.photos.length === 0) return '';
+    var idx = Number.isInteger(item.coverIndex) && item.coverIndex >= 0 ? item.coverIndex : 0;
+    return safeMediaUrl(item.photos[Math.min(idx, item.photos.length - 1)]);
   }
 
   function fmtBday(bday) {
+    bday = safeBirthday(bday);
     if (!bday) return '';
     var parts = bday.split('-');
     if (parts.length < 2) return '';
@@ -162,6 +302,7 @@
 
   function fmtBdayAttr(bday) {
     // "2025-12" → "2025-12-01" for data-birthday attribute
+    bday = safeBirthday(bday);
     if (!bday) return '';
     if (bday.length === 7) return bday + '-01';
     return bday;
@@ -169,13 +310,16 @@
 
   function fmtPrice(price) {
     // 200000 → "¥200,000"
-    if (!price && price !== 0) return '';
-    return '¥' + Number(price).toLocaleString('ja-JP');
+    price = safePrice(price);
+    if (price === null) return '';
+    return '¥' + price.toLocaleString('ja-JP');
   }
 
   function escAttr(str) {
+    if (typeof str === 'number' && Number.isFinite(str)) str = String(str);
+    else str = safeString(str);
     if (!str) return '';
-    return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
   // ===== Card HTML Generators =====
@@ -185,35 +329,50 @@
   //                  if false, leave data-images="" (for index.html, Drive loader fills later)
   function kittenCardHTML(k, opts) {
     var cover = getCoverPhoto(k);
-    var statusClass = k.status === 'available' ? 'st-available' : k.status === 'reserved' ? 'st-reserved' : 'st-sold';
-    var statusText = k.status === 'available' ? ct('available') : k.status === 'reserved' ? ct('reserved') : ct('sold');
-    var genderFull = k.gender === '♂' ? ct('male') : ct('female');
+    var breed = safeEmbeddedText(k.breed);
+    var color = safeEmbeddedText(k.color);
+    var status = safeStatus(k.status);
+    var statusClass = status === 'available' ? 'st-available' : status === 'reserved' ? 'st-reserved' : 'st-sold';
+    var statusText = status === 'available' ? ct('available') : status === 'reserved' ? ct('reserved') : ct('sold');
+    var gender = safeGender(k.gender);
+    var genderFull = gender === '♂' ? ct('male') : gender === '♀' ? ct('female') : '';
     var dataImages = opts && opts.showImages && cover ? escAttr(cover) : '';
     var bdayText = fmtBday(k.birthday);
-    var priceText = fmtPrice(k.price);
+    var price = safePrice(k.price);
+    var priceText = fmtPrice(price);
+    var isNew = safeBoolean(k.isNew);
+    var breederId = safePathSegment(k.breederId);
+    var detailId = breederId || safePathSegment(k.id);
+    var video = safeVideoUrl(k.video);
 
     // Above-the-fold cards (opts.priority) load eagerly with high fetchpriority so the
     // worker-proxied LCP image on the kittens money-page isn't deferred behind lazy-load.
     var imgLoad = opts && opts.priority ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"';
 
-    var detailUrl = '/kittens/' + (k.breederId || k.id) + '.html';
+    // The static generator intentionally removes sold detail pages. Keep sold cards
+    // interactive through the existing modal without sending visitors to a known 404.
+    var detailUrl = detailId && (status === 'available' || status === 'reserved')
+      ? '/kittens/' + detailId + '.html'
+      : '';
+    var cardRole = opts && opts.showImages && detailUrl ? 'link' : 'button';
+    var modalSemantics = cardRole === 'button' ? ' aria-haspopup="dialog"' : '';
     // Hypoallergenic chip: ONLY on pure Siberian (breed exactly 'サイベリアン').
     // NOT on the mix 'サイベリアン×ブリティッシュ' — that would overclaim on a mixed breed.
     var hypoChip = k.breed === 'サイベリアン'
       ? '<span class="usp-chip usp-chip--card" data-i18n="chip.hypoallergenic">' + ct('hypoallergenic') + '</span>'
       : '';
-    return '<div class="kitten-card" data-status="' + escAttr(k.status) + '" data-price="' + k.price + '" data-birthday="' + escAttr(fmtBdayAttr(k.birthday)) + '" data-images="' + dataImages + '" data-video="' + escAttr(k.video || '') + '" data-papa="' + escAttr(k.papa || '') + '" data-mama="' + escAttr(k.mama || '') + '" data-new="' + k.isNew + '" data-name="" data-breeder-id="' + escAttr(k.breederId || '') + '" data-detail-url="' + escAttr(detailUrl) + '">' +
+    return '<div class="kitten-card" role="' + cardRole + '" tabindex="0"' + modalSemantics + ' data-status="' + status + '" data-price="' + (price === null ? '' : price) + '" data-birthday="' + escAttr(fmtBdayAttr(k.birthday)) + '" data-images="' + dataImages + '" data-video="' + escAttr(video) + '" data-papa="' + escAttr(safeEmbeddedText(k.papa)) + '" data-mama="' + escAttr(safeEmbeddedText(k.mama)) + '" data-new="' + isNew + '" data-name="" data-breeder-id="' + escAttr(breederId) + '" data-detail-url="' + escAttr(detailUrl) + '">' +
       '<div class="kitten-img">' +
-        (cover ? '<img src="' + cover + '" alt="' + ct('photoAlt') + '" ' + imgLoad + ' style="width:100%;height:100%;object-fit:cover;">' : '<div class="img-placeholder"><span><i class="ico ico-cat" aria-hidden="true"></i></span></div>') +
+        (cover ? '<img src="' + escAttr(cover) + '" alt="' + escAttr(ct('photoAlt')) + '" ' + imgLoad + ' style="width:100%;height:100%;object-fit:cover;">' : '<div class="img-placeholder"><span><i class="ico ico-cat" aria-hidden="true"></i></span></div>') +
         '<span class="kit-status ' + statusClass + '">' + statusText + '</span>' +
-        (k.isNew ? '<span class="kit-badge-new">NEW</span>' : '') +
+        (isNew ? '<span class="kit-badge-new">NEW</span>' : '') +
       '</div>' +
       '<div class="kitten-body">' +
-        '<h3>' + escAttr(ctBreed(k.breed)) + '</h3>' +
+        '<h3>' + escAttr(ctBreed(breed)) + '</h3>' +
         hypoChip +
-        '<p class="kit-meta">' + genderFull + ' ・ ' + escAttr(ctColor(k.color)) + '</p>' +
+        '<p class="kit-meta">' + genderFull + ' ・ ' + escAttr(ctColor(color)) + '</p>' +
         '<p class="kit-meta">' + bdayText + '</p>' +
-        (k.note ? '<p class="kit-meta" style="font-size:11px;color:var(--text-note);">' + escAttr(k.note) + '</p>' : '') +
+        (k.note ? '<p class="kit-meta" style="font-size:11px;color:var(--text-note);">' + escAttr(safeEmbeddedText(k.note)) + '</p>' : '') +
         '<p class="kit-price">' + priceText + ' <span class="tax">' + ct('taxIncl') + '</span></p>' +
       '</div>' +
     '</div>';
@@ -222,17 +381,23 @@
   // Generate parent card HTML matching existing structure
   function parentCardHTML(p) {
     var cover = getCoverPhoto(p);
-    var roleClass = p.role === 'パパ猫' ? 'role-papa' : 'role-mama';
+    var name = safeEmbeddedText(p.name);
+    var breed = safeEmbeddedText(p.breed);
+    var role = safeEmbeddedText(p.role);
+    var age = safeEmbeddedText(p.age);
+    var color = safeEmbeddedText(p.color);
+    var roleClass = role === 'パパ猫' ? 'role-papa' : 'role-mama';
     var dataImages = cover ? escAttr(cover) : '';
+    var tested = safeBoolean(p.tested);
 
-    return '<div class="parent-card" data-name="' + escAttr(p.name) + '" data-breed="' + escAttr(p.breed) + '" data-gender="' + escAttr(p.gender) + '" data-role="' + escAttr(p.role) + '" data-age="' + escAttr(p.age) + '" data-color="' + escAttr(p.color) + '" data-tested="' + p.tested + '" data-images="' + dataImages + '" style="position:relative;cursor:pointer;">' +
+    return '<div class="parent-card" role="button" tabindex="0" aria-haspopup="dialog" data-name="' + escAttr(name) + '" data-breed="' + escAttr(breed) + '" data-gender="' + escAttr(safeGender(p.gender)) + '" data-role="' + escAttr(role) + '" data-age="' + escAttr(age) + '" data-color="' + escAttr(color) + '" data-tested="' + tested + '" data-images="' + dataImages + '" style="position:relative;cursor:pointer;">' +
       '<span class="health-tag tag-good" style="position:absolute;top:8px;right:8px;font-size:11px;padding:2px 8px;">' + ct('dnaTested') + '</span>' +
-      (cover ? '<img src="' + cover + '" alt="' + escAttr(p.name) + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-lg) var(--radius-lg) 0 0;">' : '') +
+      (cover ? '<img src="' + escAttr(cover) + '" alt="' + escAttr(name) + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-lg) var(--radius-lg) 0 0;">' : '') +
       '<div class="parent-body">' +
-        '<h3>' + escAttr(p.name) + '</h3>' +
-        '<p>' + escAttr(ctBreed(p.breed)) + ' ・ ' + escAttr(p.gender) + ' ・ ' + escAttr(ctColor(p.color)) + '</p>' +
-        '<p style="font-size:12px;color:var(--text-note);">' + escAttr(p.age) + '</p>' +
-        '<span class="parent-role ' + roleClass + '">' + escAttr(ctRole(p.role)) + '</span>' +
+        '<h3>' + escAttr(name) + '</h3>' +
+        '<p>' + escAttr(ctBreed(breed)) + ' ・ ' + escAttr(safeGender(p.gender)) + ' ・ ' + escAttr(ctColor(color)) + '</p>' +
+        '<p style="font-size:12px;color:var(--text-note);">' + escAttr(age) + '</p>' +
+        '<span class="parent-role ' + roleClass + '">' + escAttr(ctRole(role)) + '</span>' +
       '</div>' +
     '</div>';
   }
@@ -299,6 +464,40 @@
     });
   }
 
+  // Render parents by the breed tag attached to each generated section. The page may
+  // contain any subset of the four configured breeds, so platform-group buckets and
+  // positional assumptions would merge breeds and leave later static grids duplicated.
+  function renderParentsPage(parents) {
+    var sections = document.querySelectorAll('.section');
+    var slots = [];
+    for (var si = 0; si < sections.length; si++) {
+      var grid = sections[si].querySelector('.parents-grid');
+      if (!grid) continue;
+      var tagEl = sections[si].querySelector('.sec-tag');
+      var tag = tagEl ? safeString(tagEl.textContent, 100).trim() : '';
+      slots.push({ grid: grid, breedJa: TAG_TO_BREED[tag] || null });
+    }
+    if (slots.length === 0) return;
+
+    var buckets = slots.map(function() { return []; });
+    var slotByBreed = {};
+    slots.forEach(function(slot, index) {
+      if (slot.breedJa) slotByBreed[slot.breedJa] = index;
+    });
+    parents.forEach(function(parent) {
+      var breedJa = BREED_ORDER[breedSectionIndex(parent.breed)];
+      var index = slotByBreed[breedJa];
+      if (index === undefined) index = 0;
+      buckets[index].push(parent);
+    });
+
+    // A successful API response is authoritative: replace even empty buckets so a
+    // removed breed cannot survive as stale generated cards in the third/fourth grid.
+    slots.forEach(function(slot, index) {
+      slot.grid.innerHTML = buckets[index].map(parentCardHTML).join('');
+    });
+  }
+
   // ===== Page Detection =====
 
   var kittensGrid = document.getElementById('kittensGrid');   // index.html
@@ -312,9 +511,9 @@
   // ===== index.html — Load kittens + parents + reviews =====
   if (isIndex) {
     Promise.all([
-      fetch(API + '/api/kittens').then(function(r) { return r.json(); }),
-      fetch(API + '/api/parents').then(function(r) { return r.json(); }),
-      fetch(API + '/api/reviews').then(function(r) { return r.json(); })
+      fetchArray('/api/kittens'),
+      fetchArray('/api/parents'),
+      fetchArray('/api/reviews')
     ]).then(function(results) {
       var kittens = results[0] || [];
       var parents = results[1] || [];
@@ -323,7 +522,7 @@
       // Kittens: only Siberian group, not sold
       // Homepage Siberian subset: select by BREED (folds the mix into Siberian), not by
       // platform group — empty-group Siberian records were being dropped here too (FIX 7).
-      var sib = dedupeByFileId(kittens).filter(function(k) { return breedSectionIndex(k.breed) === 0 && k.status !== 'sold'; });
+      var sib = dedupeByFileId(kittens).filter(function(k) { return breedSectionIndex(k.breed) === 0 && safeStatus(k.status) !== 'sold'; });
       if (sib.length > 0 && kittensGrid) {
         kittensGrid.innerHTML = sib.map(function(k) { return kittenCardHTML(k, {showImages: false}); }).join('');
         var vc = document.getElementById('visibleCount');
@@ -357,7 +556,7 @@
 
   // ===== kittens.html — Load all kittens into two sections =====
   if (isKittensPage) {
-    fetch(API + '/api/kittens').then(function(r) { return r.json(); })
+    fetchArray('/api/kittens')
       .then(function(kittens) {
         if (!kittens || kittens.length === 0) return;
         var grids = document.querySelectorAll('.kittens-grid');
@@ -366,18 +565,23 @@
         renderKittensPage(kittens);
 
         // Inject per-kitten JSON-LD Product schema for SEO
-        var available = kittens.filter(function(k) { return k.status === 'available'; });
+        var available = kittens.filter(function(k) { return safeStatus(k.status) === 'available'; });
         if (available.length > 0) {
           var ldItems = available.map(function(k) {
-            var gender = k.gender === '♂' ? '男の子' : '女の子';
+            var genderValue = safeGender(k.gender);
+            var gender = genderValue === '♂' ? '男の子' : genderValue === '♀' ? '女の子' : '';
+            var breed = safeString(k.breed) || 'サイベリアン';
+            var color = safeString(k.color);
+            var birthday = safeBirthday(k.birthday);
+            var price = safePrice(k.price);
             return {
               '@type': 'Product',
-              'name': (k.breed || 'サイベリアン') + ' ' + gender + ' ' + (k.color || ''),
-              'description': '大阪の福楽キャッテリー（ブリーダー：羅方遠/ラホウエン）の' + (k.breed || 'サイベリアン') + '子猫。' + gender + '・' + (k.color || '') + (k.birthday ? '・' + k.birthday.replace('-', '年').replace(/-0?/, '月') + '生まれ' : '') + '。',
+              'name': breed + ' ' + gender + ' ' + color,
+              'description': '大阪の福楽キャッテリー（ブリーダー：羅方遠/ラホウエン）の' + breed + '子猫。' + gender + '・' + color + (birthday ? '・' + birthday.replace('-', '年').replace(/-0?/, '月') + '生まれ' : '') + '。',
               'brand': { '@type': 'Brand', 'name': '福楽キャッテリー' },
               'offers': {
                 '@type': 'Offer',
-                'price': String(k.price || ''),
+                'price': price === null ? '' : String(price),
                 'priceCurrency': 'JPY',
                 'availability': 'https://schema.org/InStock',
                 'seller': { '@type': 'Organization', 'name': '福楽キャッテリー', 'url': 'https://fuluckpet.com/' }
@@ -399,23 +603,12 @@
       });
   }
 
-  // ===== parents.html — Load all parents into two sections =====
+  // ===== parents.html — Load all parents into generated breed sections =====
   if (isParentsPage) {
-    fetch(API + '/api/parents').then(function(r) { return r.json(); })
+    fetchArray('/api/parents')
       .then(function(parents) {
         if (!parents || parents.length === 0) return;
-        var grids = document.querySelectorAll('.parents-grid');
-        if (grids.length < 2) return;
-
-        var sib = parents.filter(function(p) { return p.group === 'c995680'; });
-        var brit = parents.filter(function(p) { return p.group === 'd696506'; });
-
-        if (sib.length > 0) {
-          grids[0].innerHTML = sib.map(function(p) { return parentCardHTML(p); }).join('');
-        }
-        if (brit.length > 0) {
-          grids[1].innerHTML = brit.map(function(p) { return parentCardHTML(p); }).join('');
-        }
+        renderParentsPage(parents);
 
         if (typeof window.rebindCards === 'function') {
           window.rebindCards();
@@ -428,7 +621,7 @@
 
   // ===== reviews.html — Load all reviews =====
   if (isReviewsPage) {
-    fetch(API + '/api/reviews').then(function(r) { return r.json(); })
+    fetchArray('/api/reviews')
       .then(function(reviews) {
         if (!reviews || reviews.length === 0) return;
         var grid = document.querySelector('.reviews-page-grid');
@@ -448,14 +641,14 @@
   window.addEventListener('langChanged', function() {
     if (isIndex) {
       Promise.all([
-        fetch(API + '/api/kittens').then(function(r) { return r.json(); }),
-        fetch(API + '/api/parents').then(function(r) { return r.json(); }),
-        fetch(API + '/api/reviews').then(function(r) { return r.json(); })
+        fetchArray('/api/kittens'),
+        fetchArray('/api/parents'),
+        fetchArray('/api/reviews')
       ]).then(function(results) {
         var kittens = results[0] || [];
         var parents = results[1] || [];
         var reviews = results[2] || [];
-        var sib = dedupeByFileId(kittens).filter(function(k) { return breedSectionIndex(k.breed) === 0 && k.status !== 'sold'; });
+        var sib = dedupeByFileId(kittens).filter(function(k) { return breedSectionIndex(k.breed) === 0 && safeStatus(k.status) !== 'sold'; });
         if (sib.length > 0 && kittensGrid) {
           kittensGrid.innerHTML = sib.map(function(k) { return kittenCardHTML(k, {showImages: false}); }).join('');
         }
@@ -474,7 +667,7 @@
     }
 
     if (isKittensPage) {
-      fetch(API + '/api/kittens').then(function(r) { return r.json(); })
+      fetchArray('/api/kittens')
         .then(function(kittens) {
           if (!kittens || kittens.length === 0) return;
           if (document.querySelectorAll('.kittens-grid').length === 0) return;
@@ -485,22 +678,17 @@
     }
 
     if (isParentsPage) {
-      fetch(API + '/api/parents').then(function(r) { return r.json(); })
+      fetchArray('/api/parents')
         .then(function(parents) {
           if (!parents || parents.length === 0) return;
-          var grids = document.querySelectorAll('.parents-grid');
-          if (grids.length < 2) return;
-          var sib = parents.filter(function(p) { return p.group === 'c995680'; });
-          var brit = parents.filter(function(p) { return p.group === 'd696506'; });
-          if (sib.length > 0) grids[0].innerHTML = sib.map(function(p) { return parentCardHTML(p); }).join('');
-          if (brit.length > 0) grids[1].innerHTML = brit.map(function(p) { return parentCardHTML(p); }).join('');
+          renderParentsPage(parents);
           if (typeof window.rebindCards === 'function') window.rebindCards();
           window.dispatchEvent(new Event('cardsLoaded'));
         }).catch(function() {});
     }
 
     if (isReviewsPage) {
-      fetch(API + '/api/reviews').then(function(r) { return r.json(); })
+      fetchArray('/api/reviews')
         .then(function(reviews) {
           if (!reviews || reviews.length === 0) return;
           var grid = document.querySelector('.reviews-page-grid');

@@ -7,6 +7,32 @@
   var LINE_URL = 'https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true';
   var BOOKING_URL = '/booking.html';
 
+  // Share the in-flight/result promise with other public widgets (notably
+  // cta-widget.js) so one page view issues at most one kittens request. Failed
+  // requests are evicted so a later user action can retry instead of caching an
+  // offline result for the rest of the session.
+  function getSharedKittens() {
+    var store = window.FuluckPublicData || (window.FuluckPublicData = {});
+    var requests = store.kittenRequests || (store.kittenRequests = Object.create(null));
+    var url = API + '/api/kittens';
+    if (!requests[url]) {
+      var request = fetch(url)
+        .then(function(response) {
+          if (!response || response.ok !== true) throw new Error('Kittens API request failed');
+          return response.json();
+        })
+        .then(function(data) {
+          if (!Array.isArray(data)) throw new Error('Kittens API payload must be an array');
+          return data;
+        });
+      requests[url] = request;
+      request.catch(function() {
+        if (requests[url] === request) delete requests[url];
+      });
+    }
+    return requests[url];
+  }
+
   function getLang() {
     try { return localStorage.getItem('fuluckpet-lang') || 'ja'; } catch(e) { return 'ja'; }
   }
@@ -47,6 +73,25 @@
     'ブリティッシュロングヘア': { en: 'British Longhair', zh: '英国长毛猫' },
     'ラグドール': { en: 'Ragdoll', zh: '布偶猫' }
   };
+
+  // Prefer the generated catalog so newly introduced and mixed breeds stay in
+  // sync with the rest of the site. The small legacy map remains a safe
+  // compatibility fallback when an older page has not loaded catalog-i18n.js.
+  function ctBreed(breed) {
+    if (!breed) return breed || '';
+    var lang = getLang();
+    if (lang === 'ja') return breed;
+    var catalog = window.FULUCK_CATALOG_I18N;
+    var table = catalog && catalog.breeds && catalog.breeds[lang];
+    if (table && Object.prototype.hasOwnProperty.call(table, breed)) {
+      var translated = safeString(table[breed], 200);
+      if (translated) return translated;
+    }
+    if (Object.prototype.hasOwnProperty.call(BREED_MAP, breed)) {
+      return BREED_MAP[breed][lang] || breed;
+    }
+    return breed;
+  }
 
   // Translate a raw ja color data value via the generated single-source catalog
   // (window.FULUCK_CATALOG_I18N from tools/generate-site.js). ja → passthrough;
@@ -114,7 +159,9 @@
       male: '<i class="ico ico-mars" aria-hidden="true"></i> 男の子',
       female: '<i class="ico ico-venus" aria-hidden="true"></i> 女の子',
       prevAria: '前へ',
-      nextAria: '次へ'
+      nextAria: '次へ',
+      pauseAuto: '自動スクロールを停止',
+      resumeAuto: '自動スクロールを再開'
     },
     en: {
       heading: 'Meet Our Kittens',
@@ -128,7 +175,9 @@
       male: '<i class="ico ico-mars" aria-hidden="true"></i> Male',
       female: '<i class="ico ico-venus" aria-hidden="true"></i> Female',
       prevAria: 'Previous',
-      nextAria: 'Next'
+      nextAria: 'Next',
+      pauseAuto: 'Pause auto-scroll',
+      resumeAuto: 'Resume auto-scroll'
     },
     zh: {
       heading: '这些小可爱等你来',
@@ -142,7 +191,9 @@
       male: '<i class="ico ico-mars" aria-hidden="true"></i> 公猫',
       female: '<i class="ico ico-venus" aria-hidden="true"></i> 母猫',
       prevAria: '上一个',
-      nextAria: '下一个'
+      nextAria: '下一个',
+      pauseAuto: '暂停自动滚动',
+      resumeAuto: '继续自动滚动'
     }
   };
 
@@ -153,7 +204,49 @@
   }
 
   function formatPrice(p) {
-    return t('price').replace('{p}', Number(p).toLocaleString());
+    var amount = Number(p);
+    if (!Number.isFinite(amount) || amount < 0) return '';
+    return t('price').replace('{p}', amount.toLocaleString());
+  }
+
+  function safeString(value, maxLength) {
+    if (typeof value !== 'string') return '';
+    var limit = maxLength || 1000;
+    return value.length <= limit ? value : value.slice(0, limit);
+  }
+
+  function safePathSegment(value) {
+    value = safeString(value, 128);
+    return /^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(value) ? value : '';
+  }
+
+  function safeMediaUrl(value) {
+    value = safeString(value, 2048);
+    if (!value || /[\u0000-\u0020"'<>`\\]/.test(value)) return '';
+    try {
+      if (value.charAt(0) === '/' && value.slice(0, 2) !== '//') {
+        var local = new URL(value, 'https://fuluckpet.com');
+        return local.pathname + local.search;
+      }
+      var parsed = new URL(value);
+      return parsed.protocol === 'https:' ? parsed.href : '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function createNode(tagName, className, text) {
+    var node = document.createElement(tagName);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = String(text);
+    return node;
+  }
+
+  function appendIcon(parent, iconClass) {
+    var icon = createNode('i', 'ico ' + iconClass);
+    icon.setAttribute('aria-hidden', 'true');
+    parent.appendChild(icon);
+    return icon;
   }
 
   // Detect blog article category from .blog-meta-cat element
@@ -215,6 +308,8 @@
     '.kc-arrows { display:flex; gap:8px; justify-content:center; margin-top:12px; }' +
     '.kc-arrow { width:36px; height:36px; border-radius:50%; border:1.5px solid var(--mint,#7DD3C0); background:transparent; color:var(--mint,#7DD3C0); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; font-size:1.1rem; }' +
     '.kc-arrow:hover { background:var(--mint,#7DD3C0); color:#fff; }' +
+    '.kc-auto-toggle { min-height:36px; padding:0 14px; border-radius:18px; border:1.5px solid var(--mint,#7DD3C0); background:transparent; color:var(--text-heading,#2d3748); cursor:pointer; font:inherit; font-size:0.78rem; font-weight:600; }' +
+    '.kc-auto-toggle:hover,.kc-auto-toggle:focus-visible { background:var(--mint,#7DD3C0); color:#fff; outline-offset:2px; }' +
     '.kc-dots { display:flex; gap:6px; justify-content:center; margin-top:10px; }' +
     '.kc-dot { width:6px; height:6px; border-radius:50%; background:#ddd; transition:background 0.3s; }' +
     '.kc-dot.active { background:var(--mint,#7DD3C0); width:18px; border-radius:3px; }' +
@@ -226,99 +321,222 @@
     '}';
   document.head.appendChild(style);
 
+  function cleanupMountedCarousel(container) {
+    if (container && typeof container.__fuluckKittenCarouselCleanup === 'function') {
+      container.__fuluckKittenCarouselCleanup();
+    }
+  }
+
   function renderCarousel(kittens, container) {
+    cleanupMountedCarousel(container);
     var lang = getLang();
     var category = detectCategory();
     var cta = getCTA(category);
-    var available = kittens.filter(function(k) { return k.status === 'available'; });
-    var reserved = kittens.filter(function(k) { return k.status === 'reserved'; });
+    var records = Array.isArray(kittens) ? kittens.filter(function(k) {
+      return k && typeof k === 'object' && !Array.isArray(k);
+    }) : [];
+    var available = records.filter(function(k) { return k.status === 'available'; });
+    var reserved = records.filter(function(k) { return k.status === 'reserved'; });
     // Show available first, then reserved, max 12
     var display = available.concat(reserved).slice(0, 12);
-    if (display.length === 0) return;
+    if (display.length === 0) {
+      container.replaceChildren();
+      return;
+    }
 
-    var html = '<div class="kc-section">' +
-      '<div class="kc-header">' +
-        '<h2>' + cta.heading + '</h2>' +
-        '<p>' + t('sub') + '</p>' +
-      '</div>' +
-      '<div class="kc-track-wrap">' +
-        '<div class="kc-track">';
+    var section = createNode('div', 'kc-section');
+    var header = createNode('div', 'kc-header');
+    header.appendChild(createNode('h2', '', cta.heading));
+    header.appendChild(createNode('p', '', t('sub')));
+    section.appendChild(header);
+
+    var trackWrap = createNode('div', 'kc-track-wrap');
+    var track = createNode('div', 'kc-track');
+    trackWrap.appendChild(track);
+    section.appendChild(trackWrap);
+    var renderedCards = 0;
 
     display.forEach(function(k) {
       // API fields: photos[], coverIndex, breed (Japanese), gender (♂/♀), color, price, status, isNew, breederId
-      var photos = k.photos || [];
-      var coverIdx = k.coverIndex || 0;
-      var img = photos[coverIdx] || photos[0] || '';
+      var photos = Array.isArray(k.photos) ? k.photos : [];
+      var coverIdx = Number.isInteger(k.coverIndex) && k.coverIndex >= 0 ? k.coverIndex : 0;
+      var img = safeMediaUrl(photos[Math.min(coverIdx, Math.max(photos.length - 1, 0))] || photos[0]);
       // Skip kittens with no photo
       if (!img) return;
-      var breedJa = k.breed || '';
-      var lang = getLang();
-      var breedName = breedJa;
-      if (lang !== 'ja' && BREED_MAP[breedJa]) {
-        breedName = BREED_MAP[breedJa][lang] || breedJa;
-      }
-      var sex = k.gender === '♀' ? t('female') : t('male');
-      var color = ctColor(k.color);
+      var breedJa = safeString(k.breed);
+      var breedName = ctBreed(breedJa);
+      var female = k.gender === '♀';
+      var sexLabel = female ? t('female').replace(/<[^>]*>/g, '').trim() : t('male').replace(/<[^>]*>/g, '').trim();
+      var color = safeString(ctColor(safeString(k.color)));
       var statusText = k.status === 'available' ? t('available') : t('reserved');
       var statusClass = k.status === 'available' ? 'kc-badge-available' : 'kc-badge-reserved';
-      var isNew = k.isNew || false;
+      var isNew = k.isNew === true;
       // Link to individual kitten detail page; prefix with /en or /zh on those static pages
       // so the visitor stays in-language (FIX 3). ja pages emit the unprefixed path.
-      var kittenUrl = langPathPrefix() + '/kittens/' + (k.breederId || k.id) + '.html';
+      var detailId = safePathSegment(k.breederId) || safePathSegment(k.id);
+      var kittenUrl = detailId ? langPathPrefix() + '/kittens/' + detailId + '.html' : langPathPrefix() + '/kittens.html';
 
-      html += '<a href="' + kittenUrl + '" class="kc-card">' +
-        '<div class="kc-img">' +
-          '<img src="' + img + '" alt="' + breedName + '" loading="lazy">' +
-          '<span class="kc-badge ' + statusClass + '">' + statusText + '</span>' +
-          (isNew ? '<span class="kc-badge-new">NEW</span>' : '') +
-        '</div>' +
-        '<div class="kc-info">' +
-          '<p class="kc-breed">' + breedName + '</p>' +
-          '<p class="kc-meta">' + sex + (color ? ' ・ ' + color : '') + '</p>' +
-          '<p class="kc-price">' + formatPrice(k.price) + '</p>' +
-        '</div>' +
-      '</a>';
+      var card = createNode('a', 'kc-card');
+      card.setAttribute('href', kittenUrl);
+      var imageWrap = createNode('div', 'kc-img');
+      var image = createNode('img');
+      image.setAttribute('src', img);
+      image.setAttribute('alt', breedName);
+      image.setAttribute('loading', 'lazy');
+      imageWrap.appendChild(image);
+      imageWrap.appendChild(createNode('span', 'kc-badge ' + statusClass, statusText));
+      if (isNew) imageWrap.appendChild(createNode('span', 'kc-badge-new', 'NEW'));
+      card.appendChild(imageWrap);
+
+      var info = createNode('div', 'kc-info');
+      info.appendChild(createNode('p', 'kc-breed', breedName));
+      var meta = createNode('p', 'kc-meta');
+      appendIcon(meta, female ? 'ico-venus' : 'ico-mars');
+      meta.appendChild(document.createTextNode(' ' + sexLabel + (color ? ' ・ ' + color : '')));
+      info.appendChild(meta);
+      info.appendChild(createNode('p', 'kc-price', formatPrice(k.price)));
+      card.appendChild(info);
+      track.appendChild(card);
+      renderedCards += 1;
     });
 
-    html += '</div></div>' +
-      '<div class="kc-arrows">' +
-        '<button class="kc-arrow kc-prev" aria-label="' + t('prevAria') + '">‹</button>' +
-        '<button class="kc-arrow kc-next" aria-label="' + t('nextAria') + '">›</button>' +
-      '</div>' +
-      '<div class="kc-actions">' +
-        '<a href="' + withKittenContext(cta.btn1Link) + '" class="kc-btn kc-btn-primary"><i class="ico ico-paw-print" aria-hidden="true"></i> ' + cta.btn1 + '</a>' +
-        '<a href="' + withKittenContext(cta.btn2Link) + '"' + (cta.btn2Link === LINE_URL ? ' target="_blank" rel="noopener"' : '') + ' class="kc-btn ' + (cta.btn2Link === LINE_URL ? 'kc-btn-line' : 'kc-btn-book') + '">' +
-          (cta.btn2Link === LINE_URL ? LINE_SVG + ' ' : '') + cta.btn2 +
-        '</a>' +
-      '</div>' +
-    '</div>';
+    if (renderedCards === 0) {
+      container.replaceChildren();
+      return;
+    }
 
-    container.innerHTML = html;
+    var arrows = createNode('div', 'kc-arrows');
+    var prevBtn = createNode('button', 'kc-arrow kc-prev', '‹');
+    prevBtn.setAttribute('aria-label', t('prevAria'));
+    var nextBtn = createNode('button', 'kc-arrow kc-next', '›');
+    nextBtn.setAttribute('aria-label', t('nextAria'));
+    var autoToggle = createNode('button', 'kc-auto-toggle');
+    autoToggle.setAttribute('type', 'button');
+    arrows.appendChild(prevBtn);
+    arrows.appendChild(autoToggle);
+    arrows.appendChild(nextBtn);
+    section.appendChild(arrows);
+
+    var actions = createNode('div', 'kc-actions');
+    var primary = createNode('a', 'kc-btn kc-btn-primary');
+    primary.setAttribute('href', withKittenContext(cta.btn1Link));
+    appendIcon(primary, 'ico-paw-print');
+    primary.appendChild(document.createTextNode(' ' + cta.btn1));
+    actions.appendChild(primary);
+
+    var secondaryIsLine = cta.btn2Link === LINE_URL;
+    var secondary = createNode('a', 'kc-btn ' + (secondaryIsLine ? 'kc-btn-line' : 'kc-btn-book'));
+    secondary.setAttribute('href', withKittenContext(cta.btn2Link));
+    if (secondaryIsLine) {
+      secondary.setAttribute('target', '_blank');
+      secondary.setAttribute('rel', 'noopener');
+      appendIcon(secondary, 'ico-message-circle');
+    }
+    secondary.appendChild(document.createTextNode((secondaryIsLine ? ' ' : '') + cta.btn2));
+    actions.appendChild(secondary);
+    section.appendChild(actions);
+
+    container.replaceChildren(section);
 
     // Wire up scroll arrows
-    var track = container.querySelector('.kc-track');
-    var prevBtn = container.querySelector('.kc-prev');
-    var nextBtn = container.querySelector('.kc-next');
     if (track && prevBtn && nextBtn) {
       var scrollAmt = 240;
       prevBtn.addEventListener('click', function() { track.scrollBy({ left: -scrollAmt, behavior: 'smooth' }); });
       nextBtn.addEventListener('click', function() { track.scrollBy({ left: scrollAmt, behavior: 'smooth' }); });
     }
 
-    // Auto-scroll animation
-    var autoInterval = setInterval(function() {
-      if (!track) { clearInterval(autoInterval); return; }
+    // Keep exactly one auto-scroll timer per mounted carousel. Temporary
+    // interaction pauses compose, while the explicit control survives a
+    // language re-render through state stored on the mount element.
+    var reducedMotion = Boolean(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if (typeof container.__fuluckKittenCarouselUserPaused !== 'boolean') {
+      container.__fuluckKittenCarouselUserPaused = reducedMotion;
+    }
+    var pauseReasons = { hover: false, touch: false, focus: false };
+    var autoInterval = null;
+    var destroyed = false;
+
+    function clearAutoScroll() {
+      if (autoInterval !== null) {
+        clearInterval(autoInterval);
+        autoInterval = null;
+      }
+    }
+
+    function autoScrollStep() {
       var maxScroll = track.scrollWidth - track.clientWidth;
       if (track.scrollLeft >= maxScroll - 10) {
         track.scrollTo({ left: 0, behavior: 'smooth' });
       } else {
         track.scrollBy({ left: 240, behavior: 'smooth' });
       }
-    }, 4000);
+    }
 
-    // Pause auto-scroll on hover/touch
-    track.addEventListener('mouseenter', function() { clearInterval(autoInterval); });
-    track.addEventListener('touchstart', function() { clearInterval(autoInterval); }, { passive: true });
+    function hasInteractionPause() {
+      return pauseReasons.hover || pauseReasons.touch || pauseReasons.focus;
+    }
+
+    function updateAutoToggle() {
+      var paused = container.__fuluckKittenCarouselUserPaused === true;
+      autoToggle.setAttribute('aria-pressed', paused ? 'true' : 'false');
+      autoToggle.setAttribute('aria-label', paused ? t('resumeAuto') : t('pauseAuto'));
+      autoToggle.textContent = paused ? t('resumeAuto') : t('pauseAuto');
+    }
+
+    function syncAutoScroll() {
+      clearAutoScroll();
+      updateAutoToggle();
+      if (destroyed || container.__fuluckKittenCarouselUserPaused || hasInteractionPause()) return;
+      if (!(track.scrollWidth - track.clientWidth > 10)) return;
+      autoInterval = setInterval(autoScrollStep, 4000);
+    }
+
+    function setPauseReason(reason, value) {
+      pauseReasons[reason] = value;
+      syncAutoScroll();
+    }
+
+    function onMouseEnter() { setPauseReason('hover', true); }
+    function onMouseLeave() { setPauseReason('hover', false); }
+    function onTouchStart() { setPauseReason('touch', true); }
+    function onTouchEnd() { setPauseReason('touch', false); }
+    function onFocusIn() { setPauseReason('focus', true); }
+    function onFocusOut(event) {
+      if (!event.relatedTarget || !section.contains(event.relatedTarget)) {
+        setPauseReason('focus', false);
+      }
+    }
+    function onToggleAutoScroll() {
+      container.__fuluckKittenCarouselUserPaused = !container.__fuluckKittenCarouselUserPaused;
+      syncAutoScroll();
+    }
+
+    track.addEventListener('mouseenter', onMouseEnter);
+    track.addEventListener('mouseleave', onMouseLeave);
+    track.addEventListener('touchstart', onTouchStart, { passive: true });
+    track.addEventListener('touchend', onTouchEnd, { passive: true });
+    track.addEventListener('touchcancel', onTouchEnd, { passive: true });
+    section.addEventListener('focusin', onFocusIn);
+    section.addEventListener('focusout', onFocusOut);
+    autoToggle.addEventListener('click', onToggleAutoScroll);
+
+    function cleanup() {
+      destroyed = true;
+      clearAutoScroll();
+      track.removeEventListener('mouseenter', onMouseEnter);
+      track.removeEventListener('mouseleave', onMouseLeave);
+      track.removeEventListener('touchstart', onTouchStart);
+      track.removeEventListener('touchend', onTouchEnd);
+      track.removeEventListener('touchcancel', onTouchEnd);
+      section.removeEventListener('focusin', onFocusIn);
+      section.removeEventListener('focusout', onFocusOut);
+      autoToggle.removeEventListener('click', onToggleAutoScroll);
+      if (container.__fuluckKittenCarouselCleanup === cleanup) {
+        container.__fuluckKittenCarouselCleanup = null;
+      }
+    }
+    container.__fuluckKittenCarouselCleanup = cleanup;
+    syncAutoScroll();
   }
 
   // Find target: .blog-cta-box in blog articles, or .kitten-carousel-mount placeholder
@@ -341,8 +559,7 @@
   }
 
   // Fetch & render
-  fetch(API + '/api/kittens')
-    .then(function(r) { return r.json(); })
+  getSharedKittens()
     .then(function(data) {
       var kittens = data || [];
       var targets = findTargets();
@@ -358,8 +575,7 @@
   window.addEventListener('langChanged', function() {
     var carousels = document.querySelectorAll('.kc-section');
     if (carousels.length === 0) return;
-    fetch(API + '/api/kittens')
-      .then(function(r) { return r.json(); })
+    getSharedKittens()
       .then(function(data) {
         var mounts = document.querySelectorAll('.kitten-carousel-mount');
         for (var i = 0; i < mounts.length; i++) {

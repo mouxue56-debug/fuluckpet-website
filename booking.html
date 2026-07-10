@@ -512,7 +512,7 @@
  }
  }
  </style>
-  <script defer src="/nav.js?v=20260706a"></script>
+  <script defer src="/nav.js?v=20260710a"></script>
 </head>
 <body class="has-mobile-cta">
   <a class="skip-link" href="#main" data-i18n="a11y.skipToMain">メインコンテンツへスキップ</a>
@@ -866,8 +866,8 @@
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
   </button>
 
-  <script src="i18n.js?v=20260707a"></script>
-  <script src="script.js?v=20260708a"></script>
+  <script src="i18n.js?v=20260710a"></script>
+  <script src="script.js?v=20260710a"></script>
   <script>
   // ===== Booking Form Submission — POSTs to fuluck-api Worker =====
   // Worker endpoint: /api/booking (CORS locked to https://fuluckpet.com)
@@ -879,6 +879,30 @@
     var submitBtn = document.getElementById('bookingSubmit');
     var successEl = document.getElementById('bookingSuccess');
     var errorEl = document.getElementById('bookingError');
+    var pendingSubmission = null;
+
+    function createSubmissionId() {
+      var bytes = new Uint8Array(16);
+      if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
+        window.crypto.getRandomValues(bytes);
+      } else {
+        for (var i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
+      }
+      var randomHex = Array.prototype.map.call(bytes, function(value) {
+        return value.toString(16).padStart(2, '0');
+      }).join('');
+      var reverseTime = String(Number.MAX_SAFE_INTEGER - Date.now()).padStart(16, '0');
+      return reverseTime + '-' + randomHex;
+    }
+
+    function submissionIdForPayload(payload) {
+      var fingerprint = JSON.stringify(payload);
+      if (pendingSubmission && pendingSubmission.fingerprint === fingerprint) {
+        return pendingSubmission.id;
+      }
+      pendingSubmission = { id: createSubmissionId(), fingerprint: fingerprint };
+      return pendingSubmission.id;
+    }
 
     // Placeholder i18n
     function updatePlaceholders() {
@@ -1064,6 +1088,7 @@
         kitten_id: kittenEl ? kittenEl.value.trim() : '',
         message: msgEl ? msgEl.value : ''
       };
+      payload.submission_id = submissionIdForPayload(payload);
 
       // Loading state — flip the guard BEFORE the async work starts.
       isSubmitting = true;
@@ -1071,9 +1096,10 @@
       errorEl.className = 'booking-result';
       successEl.className = 'booking-result';
 
-      // 20s timeout: a hung connection must NOT leave the button stuck on 送信中
-      // forever — abort routes into the error card, whose LINE link is the
-      // designed recovery path (the lead is not lost).
+      // 20s timeout: a hung connection must NOT leave the button stuck on 送信中.
+      // An unchanged same-page retry reuses submission_id so the common sequential
+      // timeout case resolves to one deterministic record; LINE remains the recovery
+      // path when the network stays unavailable.
       var abortCtl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
       var abortTimer = abortCtl ? setTimeout(function() { abortCtl.abort(); }, 20000) : null;
 
@@ -1096,6 +1122,7 @@
           // Success: hide form, show card, scroll. Booking is safely on the server —
           // release the guard is unnecessary (form is gone) but keep state coherent.
           isSubmitting = false;
+          pendingSubmission = null;
           form.style.display = 'none';
           successEl.className = 'booking-result success';
           successEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1172,7 +1199,7 @@
   <script defer src="analytics.js?v=20260623b"></script>
   <!-- AI customer service chat widget -->
   <link rel="stylesheet" href="/assets/chat/widget.css?v=20260623b">
-  <script defer src="/assets/chat/widget.js?v=20260623b"></script>
+  <script defer src="/assets/chat/widget.js?v=20260710a"></script>
   <script>(function(){var t=new Date().toISOString().slice(0,10);["bk-date","bk-date2"].forEach(function(id){var e=document.getElementById(id);if(e)e.setAttribute("min",t);});})();</script>
 </body>
 </html>

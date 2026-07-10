@@ -35,23 +35,35 @@
   }
 
   // List subfolders of a Drive folder (cached)
-  async function getSubfolders(parentFolderId) {
+  function getSubfolders(parentFolderId) {
     const key = `folders:${parentFolderId}`;
     if (cache.has(key)) return cache.get(key);
 
-    const folders = await fetchJSON(`${API_BASE}/api/drive/folders/${parentFolderId}`);
-    if (folders) cache.set(key, folders);
-    return folders || [];
+    const request = fetchJSON(`${API_BASE}/api/drive/folders/${parentFolderId}`).then(folders => {
+      if (!Array.isArray(folders)) {
+        cache.delete(key);
+        return [];
+      }
+      return folders;
+    });
+    cache.set(key, request);
+    return request;
   }
 
   // List images in a Drive folder (cached)
-  async function getImages(folderId) {
+  function getImages(folderId) {
     const key = `images:${folderId}`;
     if (cache.has(key)) return cache.get(key);
 
-    const images = await fetchJSON(`${API_BASE}/api/drive/images/${folderId}`);
-    if (images) cache.set(key, images);
-    return images || [];
+    const request = fetchJSON(`${API_BASE}/api/drive/images/${folderId}`).then(images => {
+      if (!Array.isArray(images)) {
+        cache.delete(key);
+        return [];
+      }
+      return images;
+    });
+    cache.set(key, request);
+    return request;
   }
 
   // Build full image URL from file ID
@@ -90,6 +102,10 @@
   async function autoDiscoverKittens() {
     if (!DRIVE_FOLDERS.kittens) return;
 
+    // Avoid a Drive directory request on pages that have no kitten cards.
+    const cards = document.querySelectorAll('.kitten-card[data-breeder-id]');
+    if (cards.length === 0) return;
+
     // Get all subfolder names under kittens/
     const kittenFolders = await getSubfolders(DRIVE_FOLDERS.kittens);
     if (!kittenFolders || kittenFolders.length === 0) return;
@@ -98,8 +114,6 @@
     const folderMap = new Map();
     kittenFolders.forEach(f => folderMap.set(f.name, f.id));
 
-    // Scan all kitten cards on the page
-    const cards = document.querySelectorAll('.kitten-card[data-breeder-id]');
     const updates = [];
 
     cards.forEach(card => {
@@ -123,13 +137,15 @@
   async function autoDiscoverParents() {
     if (!DRIVE_FOLDERS.parents) return;
 
+    const cards = document.querySelectorAll('.parent-card[data-name]');
+    if (cards.length === 0) return;
+
     const parentFolders = await getSubfolders(DRIVE_FOLDERS.parents);
     if (!parentFolders || parentFolders.length === 0) return;
 
     const folderMap = new Map();
     parentFolders.forEach(f => folderMap.set(f.name, f.id));
 
-    const cards = document.querySelectorAll('.parent-card[data-name]');
     const updates = [];
 
     cards.forEach(card => {
@@ -185,7 +201,6 @@
 
   // Re-run after card-loader replaces cards with API data
   window.addEventListener('cardsLoaded', function() {
-    cache.clear(); // Clear image cache so we don't skip folders
     init();
   });
 

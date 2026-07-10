@@ -4,6 +4,9 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import safeJsonModule from './safe-json-for-html.js';
+
+const { safeJsonForHtmlScript } = safeJsonModule;
 
 const ROOT = '/Users/lauralyu/projects/fuluckpet-website';
 const BLOG_DIR = path.join(ROOT, 'blog');
@@ -120,21 +123,21 @@ function buildPage(art, lang = 'ja') {
   {
     "@context":"https://schema.org",
     "@type":"BlogPosting",
-    "headline":${JSON.stringify(title)},
-    "description":${JSON.stringify(desc)},
-    "image":${JSON.stringify(`https://fuluckpet.com${cover}`)},
+    "headline":${safeJsonForHtmlScript(title)},
+    "description":${safeJsonForHtmlScript(desc)},
+    "image":${safeJsonForHtmlScript(`https://fuluckpet.com${cover}`)},
     "author":{"@type":"Organization","name":"福楽キャッテリー","url":"https://fuluckpet.com"},
     "publisher":{"@type":"Organization","name":"サイベリアン｜大阪・福楽キャッテリー","logo":{"@type":"ImageObject","url":"https://fuluckpet.com/images/ogp.jpg"}},
-    "datePublished":${JSON.stringify(art.publishedAt || art.createdAt)},
-    "dateModified":${JSON.stringify(art.updatedAt || art.publishedAt)},
-    "mainEntityOfPage":{"@type":"WebPage","@id":${JSON.stringify(url)}}
+    "datePublished":${safeJsonForHtmlScript(art.publishedAt || art.createdAt)},
+    "dateModified":${safeJsonForHtmlScript(art.updatedAt || art.publishedAt)},
+    "mainEntityOfPage":{"@type":"WebPage","@id":${safeJsonForHtmlScript(url)}}
   }
   </script>
   <script type="application/ld+json">
   { "@context":"https://schema.org", "@type":"BreadcrumbList", "itemListElement":[
     {"@type":"ListItem","position":1,"name":"ホーム","item":"https://fuluckpet.com/"},
     {"@type":"ListItem","position":2,"name":"知識ライブラリ","item":"https://fuluckpet.com/blog.html"},
-    {"@type":"ListItem","position":3,"name":${JSON.stringify(title)},"item":${JSON.stringify(url)}}
+    {"@type":"ListItem","position":3,"name":${safeJsonForHtmlScript(title)},"item":${safeJsonForHtmlScript(url)}}
   ]}
   </script>
   <style>
@@ -258,9 +261,9 @@ ${body}
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 15l-6-6-6 6"/></svg>
   </button>
 
-  <script src="/i18n.js?v=20260707a"></script>
-  <script src="/blog/blog-i18n.js?v=20260624v2"></script>
-  <script src="/script.js?v=20260708a"></script>
+  <script src="/i18n.js?v=20260710a"></script>
+  <script src="/blog/blog-i18n.js?v=20260710a"></script>
+  <script src="/script.js?v=20260710a"></script>
 
 </body>
 </html>

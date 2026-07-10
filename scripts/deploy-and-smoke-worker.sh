@@ -63,10 +63,14 @@ body="$(curl -s -w $'\n%{http_code}' "$API_BASE/api/small-animals")"
 code="$(printf '%s' "$body" | tail -n1)"
 json="$(printf '%s' "$body" | sed '$d')"
 is_array="$(printf '%s' "$json" | python3 -c 'import sys,json; print("yes" if isinstance(json.load(sys.stdin), list) else "no")' 2>/dev/null || echo no)"
-if [ "$code" = "200" ] && [ "$is_array" = "yes" ]; then
-  pass "/api/small-animals -> 200 array"
+small_count="$(printf '%s' "$json" | python3 -c 'import sys,json; v=json.load(sys.stdin); print(len(v) if isinstance(v,list) else -1)' 2>/dev/null || echo -1)"
+small_public="$(node -p "require('$REPO_ROOT/small-animals-launch.json').public === true ? 'true' : 'false'")"
+if [ "$small_public" = "false" ] && [ "$code" = "200" ] && [ "$small_count" = "0" ]; then
+  pass "/api/small-animals dark launch -> 200 empty array"
+elif [ "$small_public" = "true" ] && [ "$code" = "200" ] && [ "$is_array" = "yes" ]; then
+  pass "/api/small-animals public launch -> 200 array ($small_count records)"
 else
-  fail "/api/small-animals -> HTTP $code, array=$is_array (expected 200 / array)"
+  fail "/api/small-animals -> HTTP $code, count=$small_count, public=$small_public (expected 200 / empty while dark, array while public)"
 fi
 
 code="$(curl -s -o /dev/null -w '%{http_code}' "$API_BASE/api/admin/small-animals")"
@@ -172,25 +176,36 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 7. A1 — story endpoints CORS-locked: OPTIONS/POST from a FOREIGN origin must NOT
-#    return Access-Control-Allow-Origin: *  (expect the locked site origin, or none).
+# 7. A1 — story endpoints reject a FOREIGN origin before rate-limit/provider work.
 # ---------------------------------------------------------------------------
-echo "  -- A1 story CORS lock (foreign origin must not get ACAO:*) --"
+echo "  -- A1 story CORS lock (foreign origin rejected before paid work) --"
 SITE_ORIGIN="https://fuluckpet.com"
 FOREIGN_ORIGIN="https://evil.example.com"
 for ep in "/api/story/analyze-photo" "/api/story/generate"; do
-  # Preflight (OPTIONS) from a foreign origin.
-  acao="$(curl -s -D - -o /dev/null -X OPTIONS \
+  story_headers="$(curl -s -D - -o /dev/null -w 'CODE %{http_code}' -X OPTIONS \
       -H "Origin: $FOREIGN_ORIGIN" \
       -H 'Access-Control-Request-Method: POST' \
       -H 'Access-Control-Request-Headers: content-type' \
-      "$API_BASE$ep" | tr -d '\r' | awk -F': ' 'tolower($1)=="access-control-allow-origin"{print $2}')"
-  if [ "$acao" = "*" ]; then
-    fail "$ep OPTIONS foreign-origin returned ACAO:* (must be locked)"
-  elif [ -z "$acao" ] || [ "$acao" = "$SITE_ORIGIN" ]; then
-    pass "$ep OPTIONS foreign-origin ACAO=${acao:-<none>} (not *)"
+      "$API_BASE$ep")"
+  story_code="$(printf '%s' "$story_headers" | grep -o 'CODE [0-9]*' | awk '{print $2}')"
+  story_acao="$(printf '%s' "$story_headers" | tr -d '\r' | awk -F': ' 'tolower($1)=="access-control-allow-origin"{print $2}')"
+  if [ "$story_code" = "403" ] && [ -z "$story_acao" ]; then
+    pass "story $ep OPTIONS foreign-origin -> 403/no ACAO"
   else
-    fail "$ep OPTIONS foreign-origin ACAO=$acao (expected $SITE_ORIGIN or none, never *)"
+    fail "story $ep OPTIONS foreign-origin -> HTTP $story_code ACAO=${story_acao:-<none>} (expected 403/no ACAO)"
+  fi
+
+  story_headers="$(curl -s -D - -o /dev/null -w 'CODE %{http_code}' -X POST \
+      -H "Origin: $FOREIGN_ORIGIN" \
+      -H 'Content-Type: application/json' \
+      --data '{}' \
+      "$API_BASE$ep")"
+  story_code="$(printf '%s' "$story_headers" | grep -o 'CODE [0-9]*' | awk '{print $2}')"
+  story_acao="$(printf '%s' "$story_headers" | tr -d '\r' | awk -F': ' 'tolower($1)=="access-control-allow-origin"{print $2}')"
+  if [ "$story_code" = "403" ] && [ -z "$story_acao" ]; then
+    pass "story $ep POST foreign-origin -> 403/no ACAO before provider work"
+  else
+    fail "story $ep POST foreign-origin -> HTTP $story_code ACAO=${story_acao:-<none>} (expected 403/no ACAO)"
   fi
 done
 # And confirm a SAME-origin preflight is still allowed (ACAO echoes the site origin).
@@ -204,22 +219,95 @@ else
   fail "story OPTIONS same-origin ACAO=${acao_same:-<none>} (expected $SITE_ORIGIN)"
 fi
 
+# Invalid input proves a same-origin POST reaches bounded validation without
+# consuming quota or invoking a provider.
+story_headers="$(curl -s -D - -o /dev/null -w 'CODE %{http_code}' -X POST \
+    -H "Origin: $SITE_ORIGIN" \
+    -H 'Content-Type: application/json' \
+    --data '{}' \
+    "$API_BASE/api/story/generate")"
+story_code="$(printf '%s' "$story_headers" | grep -o 'CODE [0-9]*' | awk '{print $2}')"
+story_acao="$(printf '%s' "$story_headers" | tr -d '\r' | awk -F': ' 'tolower($1)=="access-control-allow-origin"{print $2}')"
+if [ "$story_code" = "400" ] && [ "$story_acao" = "$SITE_ORIGIN" ]; then
+  pass "story generate POST same-origin -> 400 bounded validation/$SITE_ORIGIN"
+else
+  fail "story generate POST same-origin -> HTTP $story_code ACAO=${story_acao:-<none>} (expected 400/$SITE_ORIGIN)"
+fi
+
 # ---------------------------------------------------------------------------
-# 8. A1 — story per-IP throttle: a burst of >cap requests returns 429. The body is
-#    intentionally minimal/invalid so it fails validation fast — but the throttle runs
-#    BEFORE the paid AI call and before the body read, so once the cap (20/hour) is hit
-#    we get a 429 (not a 400/500). We fire 25 to clear the cap, then assert a 429 shows.
-#    NOTE: this consumes the hour bucket for the test runner's egress IP — expected.
+# 8. A3 — chat CORS lock: every chat namespace variant rejects foreign-origin
+#    OPTIONS before work; exact POST is also rejected before chat side effects.
+# ---------------------------------------------------------------------------
+echo "  -- A3 chat CORS lock (foreign origin rejected before work) --"
+for ep in "/api/chat" "/api/chat/" "/api/chat/diagnostic" "/api/%63hat" "/api/chat%2Fdiagnostic"; do
+  chat_headers="$(curl -s -D - -o /dev/null -w 'CODE %{http_code}' -X OPTIONS \
+      -H "Origin: $FOREIGN_ORIGIN" \
+      -H 'Access-Control-Request-Method: POST' \
+      -H 'Access-Control-Request-Headers: content-type' \
+      "$API_BASE$ep")"
+  chat_code="$(printf '%s' "$chat_headers" | grep -o 'CODE [0-9]*' | awk '{print $2}')"
+  chat_acao="$(printf '%s' "$chat_headers" | tr -d '\r' | awk -F': ' 'tolower($1)=="access-control-allow-origin"{print $2}')"
+  if [ "$chat_code" = "403" ] && [ -z "$chat_acao" ]; then
+    pass "chat $ep OPTIONS foreign-origin -> 403/no ACAO"
+  else
+    fail "chat $ep OPTIONS foreign-origin -> HTTP $chat_code ACAO=${chat_acao:-<none>} (expected 403/no ACAO)"
+  fi
+done
+
+chat_headers="$(curl -s -D - -o /dev/null -w 'CODE %{http_code}' -X POST \
+    -H "Origin: $FOREIGN_ORIGIN" \
+    -H 'Content-Type: application/json' \
+    --data '{}' \
+    "$API_BASE/api/chat")"
+chat_code="$(printf '%s' "$chat_headers" | grep -o 'CODE [0-9]*' | awk '{print $2}')"
+chat_acao="$(printf '%s' "$chat_headers" | tr -d '\r' | awk -F': ' 'tolower($1)=="access-control-allow-origin"{print $2}')"
+if [ "$chat_code" = "403" ] && [ -z "$chat_acao" ]; then
+  pass "chat POST foreign-origin -> 403/no ACAO before provider work"
+else
+  fail "chat POST foreign-origin -> HTTP $chat_code ACAO=${chat_acao:-<none>} (expected 403/no ACAO)"
+fi
+
+chat_headers="$(curl -s -D - -o /dev/null -w 'CODE %{http_code}' -X OPTIONS \
+    -H "Origin: $SITE_ORIGIN" \
+    -H 'Access-Control-Request-Method: POST' \
+    -H 'Access-Control-Request-Headers: content-type' \
+    "$API_BASE/api/chat")"
+chat_code="$(printf '%s' "$chat_headers" | grep -o 'CODE [0-9]*' | awk '{print $2}')"
+chat_acao="$(printf '%s' "$chat_headers" | tr -d '\r' | awk -F': ' 'tolower($1)=="access-control-allow-origin"{print $2}')"
+if [ "$chat_code" = "200" ] && [ "$chat_acao" = "$SITE_ORIGIN" ]; then
+  pass "chat OPTIONS same-origin -> 200 ACAO=$SITE_ORIGIN"
+else
+  fail "chat OPTIONS same-origin -> HTTP $chat_code ACAO=${chat_acao:-<none>} (expected 200/$SITE_ORIGIN)"
+fi
+
+# Invalid body proves the same-origin POST reaches chat validation without invoking a provider.
+chat_headers="$(curl -s -D - -o /dev/null -w 'CODE %{http_code}' -X POST \
+    -H "Origin: $SITE_ORIGIN" \
+    -H 'Content-Type: application/json' \
+    --data '{}' \
+    "$API_BASE/api/chat")"
+chat_code="$(printf '%s' "$chat_headers" | grep -o 'CODE [0-9]*' | awk '{print $2}')"
+chat_acao="$(printf '%s' "$chat_headers" | tr -d '\r' | awk -F': ' 'tolower($1)=="access-control-allow-origin"{print $2}')"
+if [ "$chat_code" = "400" ] && [ "$chat_acao" = "$SITE_ORIGIN" ]; then
+  pass "chat POST same-origin -> validation 400 ACAO=$SITE_ORIGIN (route remains functional)"
+else
+  fail "chat POST same-origin -> HTTP $chat_code ACAO=${chat_acao:-<none>} (expected validation 400/$SITE_ORIGIN)"
+fi
+
+# ---------------------------------------------------------------------------
+# 9. A1 — story per-IP throttle: a burst of valid requests eventually returns 429.
+#    This is deliberately opt-in because valid requests may invoke paid providers until
+#    the cap is reached. Bounded validation now runs before the throttle.
 # ---------------------------------------------------------------------------
 if [ "${RUN_RATE_LIMIT_SMOKE:-0}" = "1" ]; then
-echo "  -- A1 story per-IP throttle (>cap -> 429 before paid call) --"
+echo "  -- A1 story per-IP throttle (>cap -> 429; may invoke paid providers) --"
 STORY_EP="$API_BASE/api/story/generate"
 saw_429=0
 last_code=""
 for i in $(seq 1 25); do
   last_code="$(curl -s -o /dev/null -w '%{http_code}' -X POST \
       -H 'Content-Type: application/json' \
-      --data '{}' "$STORY_EP")"
+      --data '{"name":"Smoke test"}' "$STORY_EP")"
   if [ "$last_code" = "429" ]; then saw_429=1; break; fi
 done
 if [ "$saw_429" = "1" ]; then
@@ -228,7 +316,7 @@ else
   fail "story burst never returned 429 in 25 requests (last=$last_code) — throttle not biting"
 fi
 # The 429 body should carry a Retry-After header.
-ra="$(curl -s -D - -o /dev/null -X POST -H 'Content-Type: application/json' --data '{}' "$STORY_EP" \
+ra="$(curl -s -D - -o /dev/null -X POST -H 'Content-Type: application/json' --data '{"name":"Smoke test"}' "$STORY_EP" \
       | tr -d '\r' | awk -F': ' 'tolower($1)=="retry-after"{print $2}')"
 if [ -n "$ra" ]; then
   pass "story 429 carries Retry-After ($ra s)"
@@ -241,7 +329,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 9. B4 — drive-img edge cache key normalized: the SAME fileId with a junk ?cachebust
+# 10. B4 — drive-img edge cache key normalized: the SAME fileId with a junk ?cachebust
 #    must resolve to the SAME cached entry (not a fresh ORIGIN miss each time), proving
 #    the query string is stripped from the cache key. Warm once, then hit with a random
 #    cachebust and expect EDGE or R2 (a cache hit), never a cold ORIGIN.

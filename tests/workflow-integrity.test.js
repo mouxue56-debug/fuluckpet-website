@@ -26,3 +26,22 @@ test('regeneration workflow keeps both generators and integrity verification bef
   assert.ok(siteIndex >= 0 && diaryIndex > siteIndex);
   assert.ok(verifyIndex > diaryIndex && commitIndex > verifyIndex);
 });
+
+test('IndexNow submission uses the shared noindex-aware URL filter', () => {
+  assert.match(workflow, /node tools\/indexnow-urls\.js/);
+});
+
+test('push-retry rebase reruns generators and every gate before retrying', () => {
+  const rebaseIndex = workflow.indexOf('git pull --rebase origin main');
+  assert.notEqual(rebaseIndex, -1);
+  const retryTail = workflow.slice(rebaseIndex);
+  assert.match(retryTail, /node tools\/generate-site\.js/);
+  assert.match(retryTail, /node tools\/generate-diary\.js/);
+  assert.match(retryTail, /node --test tests\/\*\.test\.js/);
+  assert.match(retryTail, /node tools\/verify-generated\.js/);
+  assert.match(retryTail, /git commit --amend --no-edit/);
+});
+
+test('manual regeneration cannot run from a non-main ref', () => {
+  assert.match(workflow, /if:\s*github\.ref\s*==\s*'refs\/heads\/main'/);
+});

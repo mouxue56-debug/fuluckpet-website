@@ -7,6 +7,7 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const { createLastmodStore } = require('./lastmod-store');
+const { safeJsonForHtmlScript } = require('./safe-json-for-html');
 
 const API_BASE = 'https://fuluck-api.mouxue56.workers.dev';
 const SITE_DIR = path.resolve(__dirname, '..');
@@ -23,6 +24,11 @@ function fetchJSON(endpoint) {
       res.setEncoding('utf8'); // decode multi-byte UTF-8 across chunk boundaries (avoid mojibake)
       res.on('data', (chunk) => { data += chunk; });
       res.on('end', () => {
+        const statusCode = Number(res.statusCode || 0);
+        if (statusCode < 200 || statusCode >= 300) {
+          reject(new Error(`HTTP ${statusCode || 'unknown'} from ${endpoint}${res.statusMessage ? `: ${res.statusMessage}` : ''}`));
+          return;
+        }
         try {
           resolve(JSON.parse(data));
         } catch (e) {
@@ -43,15 +49,6 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
 
-function safeJsonForScript(data) {
-  return JSON.stringify(data)
-    .replace(/</g, '\\u003c')
-    .replace(/>/g, '\\u003e')
-    .replace(/&/g, '\\u0026')
-    .replace(/\u2028/g, '\\u2028')
-    .replace(/\u2029/g, '\\u2029');
-}
-
 function asArray(value, keys) {
   if (Array.isArray(value)) return value;
   if (!value || typeof value !== 'object') return [];
@@ -59,6 +56,38 @@ function asArray(value, keys) {
     if (Array.isArray(value[key])) return value[key];
   }
   return [];
+}
+
+function requireArrayPayload(value, keys, endpoint) {
+  if (Array.isArray(value)) return value;
+  if (value && typeof value === 'object') {
+    if (value.success === false || value.ok === false || (typeof value.error === 'string' && value.error.trim())) {
+      throw new Error(`Error response from ${endpoint}: ${value.error || 'success=false'}`);
+    }
+    for (const key of keys || []) {
+      if (Array.isArray(value[key])) return value[key];
+    }
+  }
+  throw new Error(`Unexpected JSON shape from ${endpoint}: expected an array`);
+}
+
+function validateDiaryEntriesPayload(entries, endpoint) {
+  const seen = new Set();
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+      throw new Error(`Invalid diary item #${i} from ${endpoint}: expected an object`);
+    }
+    const slug = normalizeSlug(entry.slug);
+    if (!slug) {
+      throw new Error(`Invalid diary item #${i} from ${endpoint}: missing slug`);
+    }
+    if (seen.has(slug)) {
+      throw new Error(`Invalid diary data from ${endpoint}: duplicate slug ${slug}`);
+    }
+    seen.add(slug);
+  }
+  return entries;
 }
 
 function todayISO() {
@@ -259,8 +288,235 @@ function transformYouTubeEmbeds(html) {
   });
 }
 
+// Diary bodies are authored as rich HTML in the admin editor and arrive here from KV.
+// Treat that HTML as untrusted at the final publish boundary: keep the small editorial
+// vocabulary the editor needs, rebuild every allowed tag/attribute, and drop active
+// elements. The sanitizer intentionally has no passthrough path for unknown markup.
+const DIARY_RICH_TEXT_TAGS = new Set([
+  'p', 'h2', 'h3', 'h4',
+  'ul', 'ol', 'li', 'blockquote',
+  'strong', 'b', 'em', 'i', 'u', 's', 'sub', 'sup',
+  'br', 'hr', 'a', 'img', 'figure', 'figcaption', 'div', 'span'
+]);
+const DIARY_VOID_TAGS = new Set(['br', 'hr', 'img']);
+const DIARY_DROP_CONTENT_TAGS = new Set([
+  'script', 'style', 'template', 'iframe', 'object', 'svg', 'math',
+  'noscript', 'noembed', 'xmp', 'plaintext', 'textarea', 'title',
+  'form', 'video', 'audio', 'select'
+]);
+
+function decodeBasicHtmlEntities(value) {
+  const named = {
+    amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
+    colon: ':', tab: '\t', newline: '\n'
+  };
+  let text = String(value == null ? '' : value);
+
+  // Repeat so encodings such as &amp;#x6a;avascript: cannot hide a scheme.
+  for (let pass = 0; pass < 4; pass++) {
+    const decoded = text
+      .replace(/&#x([0-9a-f]{1,7});?/gi, (match, digits) => {
+        const codePoint = Number.parseInt(digits, 16);
+        return codePoint > 0 && codePoint <= 0x10ffff && !(codePoint >= 0xd800 && codePoint <= 0xdfff)
+          ? String.fromCodePoint(codePoint)
+          : '\ufffd';
+      })
+      .replace(/&#([0-9]{1,7});?/g, (match, digits) => {
+        const codePoint = Number.parseInt(digits, 10);
+        return codePoint > 0 && codePoint <= 0x10ffff && !(codePoint >= 0xd800 && codePoint <= 0xdfff)
+          ? String.fromCodePoint(codePoint)
+          : '\ufffd';
+      })
+      .replace(/&(amp|lt|gt|quot|apos|nbsp|colon|tab|newline);?/gi, (match, name) => named[name.toLowerCase()]);
+    if (decoded === text) break;
+    text = decoded;
+  }
+  return text;
+}
+
+function escapeRichText(value) {
+  // Preserve already-authored HTML entities in text nodes while escaping literal markup.
+  return escapeHtml(value).replace(/&amp;(#(?:x[0-9a-f]+|[0-9]+)|[a-z][a-z0-9]+);/gi, '&$1;');
+}
+
+function safeDiaryUrl(value, kind) {
+  const decoded = decodeBasicHtmlEntities(value).trim();
+  if (!decoded || decoded.startsWith('\\\\')) return '';
+
+  // HTML URL parsing ignores ASCII controls/whitespace around and inside a scheme.
+  // Remove them (plus common invisible separators) before deciding the protocol.
+  const protocolProbe = decoded.replace(/[\u0000-\u0020\u007f-\u009f\u00a0\u1680\u2000-\u200d\u2028\u2029\u202f\u205f\u2060\u3000\ufeff]/g, '');
+  const scheme = protocolProbe.match(/^([a-z][a-z0-9+.-]*):/i);
+  if (!scheme) return decoded;
+
+  const allowed = kind === 'image'
+    ? new Set(['http', 'https'])
+    : new Set(['http', 'https', 'mailto', 'tel']);
+  return allowed.has(scheme[1].toLowerCase()) ? decoded : '';
+}
+
+function parseDiaryAttributes(source) {
+  const attrs = new Map();
+  const attrRe = /([a-z_:][a-z0-9:._-]*)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'`=<>]+)))?/gi;
+  let match;
+  while ((match = attrRe.exec(source)) !== null) {
+    const name = match[1].toLowerCase();
+    if (attrs.has(name)) continue;
+    attrs.set(name, match[2] !== undefined ? match[2] : match[3] !== undefined ? match[3] : match[4] !== undefined ? match[4] : '');
+  }
+  return attrs;
+}
+
+function safeDiaryClass(value) {
+  const classes = decodeBasicHtmlEntities(value)
+    .split(/\s+/)
+    .filter((name) => /^[a-z0-9_-]{1,64}$/i.test(name))
+    .slice(0, 8);
+  return classes.join(' ');
+}
+
+function positiveDiaryDimension(value) {
+  const text = String(value || '').trim();
+  if (!/^\d{1,4}$/.test(text)) return '';
+  const number = Number(text);
+  return number >= 1 && number <= 4096 ? String(number) : '';
+}
+
+function safeDiaryTextAttribute(value, maxLength) {
+  return decodeBasicHtmlEntities(value).replace(/[\u0000-\u001f\u007f]/g, '').slice(0, maxLength);
+}
+
+function buildSafeDiaryOpeningTag(tag, attrs) {
+  const output = [];
+  const className = safeDiaryClass(attrs.get('class') || '');
+  if (className) output.push(`class="${escapeHtml(className)}"`);
+
+  if (tag === 'a') {
+    const href = safeDiaryUrl(attrs.get('href') || '', 'link');
+    if (href) output.push(`href="${escapeHtml(href)}"`);
+    const title = safeDiaryTextAttribute(attrs.get('title') || '', 300);
+    if (title) output.push(`title="${escapeHtml(title)}"`);
+    const ariaLabel = safeDiaryTextAttribute(attrs.get('aria-label') || '', 300);
+    if (ariaLabel) output.push(`aria-label="${escapeHtml(ariaLabel)}"`);
+    if (href && String(attrs.get('target') || '').toLowerCase() === '_blank') {
+      output.push('target="_blank"', 'rel="noopener noreferrer"');
+    }
+  } else if (tag === 'img') {
+    const src = safeDiaryUrl(attrs.get('src') || '', 'image');
+    if (!src) return '';
+    // Put URL/text/dimensions in a stable order and set safe loading defaults.
+    output.push(`src="${escapeHtml(src)}"`);
+    const alt = safeDiaryTextAttribute(attrs.get('alt') || '', 500);
+    output.push(`alt="${escapeHtml(alt)}"`);
+    const title = safeDiaryTextAttribute(attrs.get('title') || '', 300);
+    if (title) output.push(`title="${escapeHtml(title)}"`);
+    const width = positiveDiaryDimension(attrs.get('width'));
+    const height = positiveDiaryDimension(attrs.get('height'));
+    if (width) output.push(`width="${width}"`);
+    if (height) output.push(`height="${height}"`);
+    output.push('loading="lazy"', 'decoding="async"');
+  }
+
+  return `<${tag}${output.length ? ` ${output.join(' ')}` : ''}>`;
+}
+
+function findDiaryTagEnd(html, start) {
+  let quote = '';
+  for (let i = start + 1; i < html.length; i++) {
+    const char = html[i];
+    if (quote) {
+      if (char === quote) quote = '';
+      continue;
+    }
+    if (char === '"' || char === "'") {
+      quote = char;
+      continue;
+    }
+    if (char === '>') return i;
+  }
+  return -1;
+}
+
+function sanitizeDiaryAllowlist(html) {
+  const source = String(html || '');
+  let output = '';
+  let position = 0;
+  let suppressedTag = '';
+
+  while (position < source.length) {
+    const tagStart = source.indexOf('<', position);
+    if (tagStart === -1) {
+      if (!suppressedTag) output += escapeRichText(source.slice(position));
+      break;
+    }
+    if (!suppressedTag) output += escapeRichText(source.slice(position, tagStart));
+
+    if (source.startsWith('<!--', tagStart)) {
+      const commentEnd = source.indexOf('-->', tagStart + 4);
+      position = commentEnd === -1 ? source.length : commentEnd + 3;
+      continue;
+    }
+
+    const tagEnd = findDiaryTagEnd(source, tagStart);
+    if (tagEnd === -1) {
+      if (!suppressedTag) output += escapeRichText(source.slice(tagStart));
+      break;
+    }
+
+    const token = source.slice(tagStart, tagEnd + 1);
+    const parsed = token.match(/^<\s*(\/?)\s*([a-z][a-z0-9:-]*)\b([\s\S]*?)>$/i);
+    position = tagEnd + 1;
+    if (!parsed) {
+      if (!suppressedTag) output += escapeRichText(token);
+      continue;
+    }
+
+    const closing = parsed[1] === '/';
+    const tag = parsed[2].toLowerCase();
+    if (suppressedTag) {
+      if (closing && tag === suppressedTag) suppressedTag = '';
+      continue;
+    }
+    if (!closing && DIARY_DROP_CONTENT_TAGS.has(tag)) {
+      suppressedTag = tag;
+      continue;
+    }
+    if (!DIARY_RICH_TEXT_TAGS.has(tag)) continue;
+
+    if (closing) {
+      if (!DIARY_VOID_TAGS.has(tag)) output += `</${tag}>`;
+      continue;
+    }
+
+    const attrSource = parsed[3].replace(/\/\s*$/, '');
+    output += buildSafeDiaryOpeningTag(tag, parseDiaryAttributes(attrSource));
+  }
+
+  return output;
+}
+
+function sanitizeDiaryHtml(html) {
+  const transformed = transformYouTubeEmbeds(html);
+  let tokenPrefix = '\ue000FULUCK_DIARY_YOUTUBE_';
+  while (transformed.includes(tokenPrefix)) tokenPrefix += '_';
+
+  const facades = [];
+  const tokenized = transformed.replace(
+    /<div class="yt-video-wrap"[^>]*>\s*<div class="yt-facade"\s+data-yt="([a-zA-Z0-9_-]{11})"[\s\S]*?<\/div><\/div>/g,
+    (block, id) => {
+      const token = `${tokenPrefix}${facades.length}\ue001`;
+      facades.push({ token, html: facadeMarkup(id) });
+      return token;
+    }
+  );
+
+  let sanitized = sanitizeDiaryAllowlist(tokenized);
+  for (const facade of facades) sanitized = sanitized.split(facade.token).join(facade.html);
+  return sanitized;
+}
+
 function jsonLdScript(data) {
-  return `  <script type="application/ld+json">\n${JSON.stringify(data, null, 2)}\n  </script>`;
+  return `  <script type="application/ld+json">\n${safeJsonForHtmlScript(data, 2)}\n  </script>`;
 }
 
 // -- Template --------------------------------------------------------------
@@ -412,7 +668,7 @@ function buildHead({ title, description, pageUrl, image, jsonLd, ogType = 'artic
   <link rel="stylesheet" href="/guide/guide.css?v=${ver('guide/guide.css', '20260706a')}">
   <link rel="stylesheet" href="/blog.css?v=${ver('blog.css', '20260706a')}">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
-  <script defer src="/nav.js?v=${ver('nav.js', '20260705b')}"></script>
+  <script defer src="/nav.js?v=${ver('nav.js', '20260710a')}"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
 ${jsonLd.join('\n')}
@@ -603,10 +859,10 @@ function buildDiaryEntryHtml(entry, context) {
   const { chrome, groupedEntries, maps } = context;
   const titleJa = localizedField(entry.title, 'ja', '子猫成長日記');
   const excerptJa = localizedField(entry.excerpt, 'ja', '');
-  // Lazy-load YouTube: rewrite the editor's eager .yt-embed iframe to the site .yt-facade
-  // BEFORE the body is injected or scanned. extractYouTubeIds (used for VideoObject schema
-  // via buildEntryJsonLd below) reads data-yt= from the transformed markup, so ids survive.
-  const bodyJa = transformYouTubeEmbeds(localizedField(entry.body, 'ja', '<p>本文は準備中です。</p>'));
+  // Sanitize API-authored rich text before either HTML injection or JSON/script embedding.
+  // Recognized YouTube wrappers become the trusted lazy facade inside this boundary;
+  // extractYouTubeIds still reads its data-yt value for VideoObject schema below.
+  const bodyJa = sanitizeDiaryHtml(localizedField(entry.body, 'ja', '<p>本文は準備中です。</p>'));
   const coverImage = normalizeAssetUrl(entry.coverImage);
   const pageUrl = pageUrlForEntry(entry);
   const pageTitle = `${titleJa}｜子猫成長日記｜福楽キャッテリー`;
@@ -619,12 +875,12 @@ function buildDiaryEntryHtml(entry, context) {
     en: {
       title: localizedField(entry.title, 'en', titleJa),
       excerpt: localizedField(entry.excerpt, 'en', excerptJa),
-      content: transformYouTubeEmbeds(localizedField(entry.body, 'en', bodyJa))
+      content: sanitizeDiaryHtml(localizedField(entry.body, 'en', bodyJa))
     },
     zh: {
       title: localizedField(entry.title, 'zh', titleJa),
       excerpt: localizedField(entry.excerpt, 'zh', excerptJa),
-      content: transformYouTubeEmbeds(localizedField(entry.body, 'zh', bodyJa))
+      content: sanitizeDiaryHtml(localizedField(entry.body, 'zh', bodyJa))
     }
   };
 
@@ -666,10 +922,10 @@ ${bodyJa}
 
 ${chrome.footerHtml}
 
-  <script src="/i18n.js?v=${ver('i18n.js', '20260707a')}"></script>
-  <script>window._diaryArticleI18n = ${safeJsonForScript(i18n)}; window._blogArticleI18n = window._diaryArticleI18n;</script>
-  <script src="/blog/blog-i18n.js?v=${ver('blog/blog-i18n.js', '20260624v2')}"></script>
-  <script src="/script.js?v=${ver('script.js', '20260708a')}"></script>
+  <script src="/i18n.js?v=${ver('i18n.js', '20260710a')}"></script>
+  <script>window._diaryArticleI18n = ${safeJsonForHtmlScript(i18n)}; window._blogArticleI18n = window._diaryArticleI18n;</script>
+  <script src="/blog/blog-i18n.js?v=${ver('blog/blog-i18n.js', '20260710a')}"></script>
+  <script src="/script.js?v=${ver('script.js', '20260710a')}"></script>
 
   <div class="mobile-cta-bar" role="navigation" aria-label="クイック連絡">
     <div class="mobile-cta-bar-inner">
@@ -834,8 +1090,8 @@ ${chrome.headerHtml}
 
 ${chrome.footerHtml}
 
-  <script src="/i18n.js?v=${ver('i18n.js', '20260707a')}"></script>
-  <script src="/script.js?v=${ver('script.js', '20260708a')}"></script>
+  <script src="/i18n.js?v=${ver('i18n.js', '20260710a')}"></script>
+  <script src="/script.js?v=${ver('script.js', '20260710a')}"></script>
 
   <div class="mobile-cta-bar" role="navigation" aria-label="クイック連絡">
     <div class="mobile-cta-bar-inner">
@@ -1048,16 +1304,17 @@ async function loadData() {
     };
   }
 
-  const [diary, kittens, parents] = await Promise.all([
-    fetchJSON('/api/diary').catch(e => { console.error('  [error] diary:', e.message); return []; }),
-    fetchJSON('/api/kittens').catch(e => { console.error('  [error] kittens:', e.message); return []; }),
-    fetchJSON('/api/parents').catch(e => { console.error('  [error] parents:', e.message); return []; })
+  const [diaryResponse, kittensResponse, parentsResponse] = await Promise.all([
+    fetchJSON('/api/diary'),
+    fetchJSON('/api/kittens'),
+    fetchJSON('/api/parents')
   ]);
 
+  const diary = requireArrayPayload(diaryResponse, ['diary', 'entries', 'items'], '/api/diary');
   return {
-    diary: asArray(diary, ['diary', 'entries', 'items']),
-    kittens: asArray(kittens, ['kittens', 'items']),
-    parents: asArray(parents, ['parents', 'items'])
+    diary: validateDiaryEntriesPayload(diary, '/api/diary'),
+    kittens: requireArrayPayload(kittensResponse, ['kittens', 'items'], '/api/kittens'),
+    parents: requireArrayPayload(parentsResponse, ['parents', 'items'], '/api/parents')
   };
 }
 

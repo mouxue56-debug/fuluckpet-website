@@ -13,12 +13,39 @@ var FuluckAPI = (function() {
   }
 
   function fetchWithTimeout(url, opts) {
-    return Promise.race([
-      fetch(url, opts),
-      new Promise(function(_, reject) {
-        setTimeout(function() { reject(new Error('timeout')); }, TIMEOUT_MS);
-      })
-    ]);
+    var controller = typeof AbortController === 'function' ? new AbortController() : null;
+    var requestOpts = {};
+    Object.keys(opts || {}).forEach(function(key) {
+      requestOpts[key] = opts[key];
+    });
+    if (controller) requestOpts.signal = controller.signal;
+
+    return new Promise(function(resolve, reject) {
+      var settled = false;
+      var timerId;
+
+      function settle(callback, value) {
+        if (settled) return;
+        settled = true;
+        if (timerId !== undefined) clearTimeout(timerId);
+        callback(value);
+      }
+
+      timerId = setTimeout(function() {
+        if (settled) return;
+        if (controller) controller.abort();
+        settle(reject, new Error('timeout'));
+      }, TIMEOUT_MS);
+
+      try {
+        Promise.resolve(fetch(url, requestOpts)).then(
+          function(res) { settle(resolve, res); },
+          function(err) { settle(reject, err); }
+        );
+      } catch (err) {
+        settle(reject, err);
+      }
+    });
   }
 
   function request(method, path, body, retry) {
@@ -44,7 +71,7 @@ var FuluckAPI = (function() {
         return res.json();
       })
       .catch(function(err) {
-        if (retry < MAX_RETRIES) {
+        if (method === 'GET' && retry < MAX_RETRIES) {
           return request(method, path, body, retry + 1);
         }
         throw err;

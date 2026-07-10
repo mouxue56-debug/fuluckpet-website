@@ -866,9 +866,10 @@
       .pet-card-grid { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
-  <script defer src="/nav.js?v=20260706a"></script>
+  <script defer src="/nav.js?v=20260710a"></script>
 </head>
 <body>
+  <a class="skip-link" href="#main" data-i18n="a11y.skipToMain">メインコンテンツへスキップ</a>
 
   <!-- Scroll Progress Bar -->
   <div class="scroll-progress"></div>
@@ -957,6 +958,7 @@
     </div>
   </div>
 
+  <main id="main">
   <!-- ========== WELCOME ========== -->
   <section class="story-hero" id="screen-welcome">
     <div class="container">
@@ -1172,6 +1174,7 @@
       </div>
     </div>
   </section>
+  </main>
 
   <!-- ========== HIDDEN CARD CANVAS (1080x1440) ========== -->
   <div id="card-canvas">
@@ -1260,9 +1263,9 @@
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
   </button>
 
-  <script src="/i18n.js?v=20260707a"></script>
-  <script src="/script.js?v=20260708a"></script>
-  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <script src="/i18n.js?v=20260710a"></script>
+  <script src="/script.js?v=20260710a"></script>
+  <script src="/story/html2canvas-loader.js?v=20260710a"></script>
   <script>
   // ===== Story Card V2: Conversational Wizard =====
   (function() {
@@ -1747,12 +1750,31 @@
     });
 
     // --- Download ---
+    function restoreDownloadState(btn, canvasEl) {
+      if (canvasEl) {
+        canvasEl.style.left = '-9999px';
+        canvasEl.style.position = 'absolute';
+        canvasEl.style.zIndex = '';
+      }
+      btn.disabled = false;
+      btn.style.opacity = '';
+    }
+
     document.getElementById('downloadBtn').addEventListener('click', function() {
       var btn = this;
       btn.disabled = true;
       btn.style.opacity = '0.6';
 
-      document.fonts.ready.then(function() {
+      if (!window.FuluckStoryExport || typeof window.FuluckStoryExport.loadHtml2Canvas !== 'function') {
+        console.error('html2canvas loader is unavailable');
+        restoreDownloadState(btn, null);
+        return;
+      }
+
+      var fontsReady = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+      var canvasLibrary = window.FuluckStoryExport.loadHtml2Canvas();
+      Promise.all([fontsReady, canvasLibrary]).then(function(results) {
+        var renderCanvas = results[1];
         setTimeout(function() {
           var canvasEl = document.getElementById('card-canvas');
           canvasEl.style.left = '0';
@@ -1760,32 +1782,27 @@
           canvasEl.style.top = '0';
           canvasEl.style.zIndex = '-1';
 
-          html2canvas(canvasEl, {
+          renderCanvas(canvasEl, {
             width: 1080, height: 1440, scale: 1,
             useCORS: true, allowTaint: true,
             backgroundColor: '#FFFAF5', logging: false
           }).then(function(canvas) {
-            canvasEl.style.left = '-9999px';
-            canvasEl.style.position = 'absolute';
-            canvasEl.style.zIndex = '';
+            restoreDownloadState(btn, canvasEl);
 
             var link = document.createElement('a');
             link.download = 'fuluckpet-story-' + Date.now() + '.png';
             link.href = canvas.toDataURL('image/png');
             link.click();
 
-            btn.disabled = false;
-            btn.style.opacity = '';
             if (typeof gtag === 'function') gtag('event', 'story_download', { event_category: 'story' });
           }).catch(function(err) {
             console.error('html2canvas error:', err);
-            canvasEl.style.left = '-9999px';
-            canvasEl.style.position = 'absolute';
-            canvasEl.style.zIndex = '';
-            btn.disabled = false;
-            btn.style.opacity = '';
+            restoreDownloadState(btn, canvasEl);
           });
         }, 500);
+      }).catch(function(err) {
+        console.error('html2canvas load error:', err);
+        restoreDownloadState(btn, null);
       });
     });
 

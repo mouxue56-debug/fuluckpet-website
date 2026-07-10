@@ -266,6 +266,7 @@
           <div class="nav-section-title"><span data-adm-ja="メイン" data-adm-zh="主要">メイン</span></div>
           <div class="nav-item active" data-page="dashboard"><span class="icon">📊</span> <span data-adm-ja="ダッシュボード" data-adm-zh="仪表盘">ダッシュボード</span></div>
           <div class="nav-item" data-page="kittens"><span class="icon">🐱</span> <span data-adm-ja="子猫管理" data-adm-zh="子猫管理">子猫管理</span></div>
+          <div class="nav-item" data-page="small-animals"><span class="icon">🐇</span> <span data-adm-ja="小動物管理" data-adm-zh="小动物管理">小動物管理</span></div>
           <div class="nav-item" data-page="parents"><span class="icon">🐈</span> <span data-adm-ja="親猫管理" data-adm-zh="种猫管理">親猫管理</span></div>
         </div>
         <div class="nav-section">
@@ -303,7 +304,7 @@
           <span id="syncStatus" class="sync-status"></span>
           <button id="retrySyncBtn" onclick="retrySync()" style="display:none;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:12px;border:1px solid var(--danger-dark);background:var(--white);color:var(--danger-dark);cursor:pointer;font-family:inherit;">🔄 再試行</button>
           <button class="top-btn btn-secondary" onclick="toggleAdminLang()" id="adminLangBtn" style="font-size:12px;">🌐 中文 / 日本語</button>
-          <a href="../index.html" target="_blank" class="top-btn btn-secondary"><span data-adm-ja="サイトを表示" data-adm-zh="查看网站">サイトを表示</span></a>
+          <a href="../index.html" target="_blank" rel="noopener" class="top-btn btn-secondary"><span data-adm-ja="サイトを表示" data-adm-zh="查看网站">サイトを表示</span></a>
           <button class="top-btn btn-primary" id="addNewBtn" style="display:none">＋ <span data-adm-ja="新規追加" data-adm-zh="新增">新規追加</span></button>
           <button class="top-btn btn-primary" id="publishBtn" onclick="handlePublish()">🔄 <span data-adm-ja="サイトを再発行" data-adm-zh="重新发布网站">サイトを再発行</span></button>
         </div>
@@ -367,6 +368,37 @@
               </table>
             </div>
             <div class="pagination" id="kittenPagination"></div>
+          </div>
+        </div>
+
+        <!-- ====== SMALL ANIMALS ====== -->
+        <div class="panel-page" id="page-small-animals">
+          <div class="data-table">
+            <div class="table-header">
+              <div>
+                <h3 class="table-title"><span data-adm-ja="小動物一覧" data-adm-zh="小动物列表">小動物一覧</span></h3>
+                <p id="smallAnimalLoadStatus" style="font-size:12px;color:var(--text-light);margin-top:4px;" aria-live="polite"><span data-adm-ja="クラウドから読み込んでください" data-adm-zh="请从云端加载">クラウドから読み込んでください</span></p>
+              </div>
+              <div class="table-actions">
+                <button type="button" class="top-btn btn-secondary" id="smallAnimalRetryBtn" onclick="loadSmallAnimals()" style="font-size:12px;display:none;">🔄 <span data-adm-ja="再読込" data-adm-zh="重新加载">再読込</span></button>
+                <button type="button" class="top-btn btn-primary" id="smallAnimalAddBtn" onclick="openSmallAnimalForm()" style="font-size:12px;" disabled>＋ <span data-adm-ja="小動物を追加" data-adm-zh="添加小动物">小動物を追加</span></button>
+              </div>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead><tr>
+                  <th class="thumb-cell"><span data-adm-ja="写真" data-adm-zh="照片">写真</span></th>
+                  <th><span data-adm-ja="ブリーダーID" data-adm-zh="繁殖者ID">ブリーダーID</span></th>
+                  <th><span data-adm-ja="種別 / 品種" data-adm-zh="种类 / 品种">種別 / 品種</span></th>
+                  <th><span data-adm-ja="性別 / カラー" data-adm-zh="性别 / 毛色">性別 / カラー</span></th>
+                  <th><span data-adm-ja="誕生日" data-adm-zh="出生日期">誕生日</span></th>
+                  <th><span data-adm-ja="価格" data-adm-zh="价格">価格</span></th>
+                  <th><span data-adm-ja="ステータス" data-adm-zh="状态">ステータス</span></th>
+                  <th><span data-adm-ja="操作" data-adm-zh="操作">操作</span></th>
+                </tr></thead>
+                <tbody id="smallAnimalsTableBody"></tbody>
+              </table>
+            </div>
           </div>
         </div>
 
@@ -858,7 +890,7 @@
 
           <div class="guide-step">
             <h4><span class="step-number">8</span> <span data-adm-ja="データの仕組みについて" data-adm-zh="关于数据机制">データの仕組みについて</span></h4>
-            <p><span data-adm-ja="📌 <strong>知っておくべきこと：</strong><br>・データは<strong>クラウド（Worker KV）</strong>と<strong>ブラウザ（localStorage）</strong>の両方に保存されます<br>・ログイン時にクラウドから最新データを自動で取得します<br>・保存するたびにクラウドにも自動で同期されます<br>・「データ管理」→「クラウドに移行」で手動同期もできます<br>・ブラウザを変えてもクラウドのデータが自動で反映されます<br>・サイトURL: <a href='https://fuluckpet.com' target='_blank'>fuluckpet.com</a><br>・管理画面URL: <a href='https://fuluckpet.com/admin/' target='_blank'>fuluckpet.com/admin/</a>" data-adm-zh="📌 <strong>需要了解的事项：</strong><br>・数据同时保存在<strong>云端（Worker KV）</strong>和<strong>浏览器（localStorage）</strong>中<br>・登录时会自动从云端获取最新数据<br>・每次保存都会自动同步到云端<br>・可在「数据管理」→「迁移到云端」手动同步<br>・更换浏览器后云端数据会自动加载<br>・网站地址: <a href='https://fuluckpet.com' target='_blank'>fuluckpet.com</a><br>・管理后台地址: <a href='https://fuluckpet.com/admin/' target='_blank'>fuluckpet.com/admin/</a>">📌 <strong>知っておくべきこと：</strong><br>・データは<strong>クラウド（Worker KV）</strong>と<strong>ブラウザ（localStorage）</strong>の両方に保存されます<br>・ログイン時にクラウドから最新データを自動で取得します<br>・保存するたびにクラウドにも自動で同期されます<br>・「データ管理」→「クラウドに移行」で手動同期もできます<br>・ブラウザを変えてもクラウドのデータが自動で反映されます<br>・サイトURL: <a href='https://fuluckpet.com' target='_blank'>fuluckpet.com</a><br>・管理画面URL: <a href='https://fuluckpet.com/admin/' target='_blank'>fuluckpet.com/admin/</a></span></p>
+            <p><span data-adm-ja="📌 <strong>知っておくべきこと：</strong><br>・データは<strong>クラウド（Worker KV）</strong>と<strong>ブラウザ（localStorage）</strong>の両方に保存されます<br>・ログイン時にクラウドから最新データを自動で取得します<br>・保存するたびにクラウドにも自動で同期されます<br>・「データ管理」→「クラウドに移行」で手動同期もできます<br>・ブラウザを変えてもクラウドのデータが自動で反映されます<br>・サイトURL: <a href='https://fuluckpet.com' target='_blank' rel='noopener'>fuluckpet.com</a><br>・管理画面URL: <a href='https://fuluckpet.com/admin/' target='_blank' rel='noopener'>fuluckpet.com/admin/</a>" data-adm-zh="📌 <strong>需要了解的事项：</strong><br>・数据同时保存在<strong>云端（Worker KV）</strong>和<strong>浏览器（localStorage）</strong>中<br>・登录时会自动从云端获取最新数据<br>・每次保存都会自动同步到云端<br>・可在「数据管理」→「迁移到云端」手动同步<br>・更换浏览器后云端数据会自动加载<br>・网站地址: <a href='https://fuluckpet.com' target='_blank' rel='noopener'>fuluckpet.com</a><br>・管理后台地址: <a href='https://fuluckpet.com/admin/' target='_blank' rel='noopener'>fuluckpet.com/admin/</a>">📌 <strong>知っておくべきこと：</strong><br>・データは<strong>クラウド（Worker KV）</strong>と<strong>ブラウザ（localStorage）</strong>の両方に保存されます<br>・ログイン時にクラウドから最新データを自動で取得します<br>・保存するたびにクラウドにも自動で同期されます<br>・「データ管理」→「クラウドに移行」で手動同期もできます<br>・ブラウザを変えてもクラウドのデータが自動で反映されます<br>・サイトURL: <a href='https://fuluckpet.com' target='_blank' rel='noopener'>fuluckpet.com</a><br>・管理画面URL: <a href='https://fuluckpet.com/admin/' target='_blank' rel='noopener'>fuluckpet.com/admin/</a></span></p>
           </div>
         </div>
 
@@ -921,6 +953,61 @@
       <div class="modal-footer">
         <button class="btn-cancel" onclick="closeModal('kittenFormModal')"><span data-adm-ja="キャンセル" data-adm-zh="取消">キャンセル</span></button>
         <button class="btn-save" onclick="saveKitten()"><span data-adm-ja="保存する" data-adm-zh="保存">保存する</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== SMALL ANIMAL FORM MODAL ====== -->
+  <div class="modal-overlay" id="smallAnimalFormModal">
+    <div class="modal modal-lg">
+      <div class="modal-header"><h2 id="smallAnimalFormTitle"><span data-adm-ja="小動物の追加" data-adm-zh="添加小动物">小動物の追加</span></h2><button class="modal-close" type="button" onclick="closeModal('smallAnimalFormModal')">×</button></div>
+      <div class="modal-body">
+        <input type="hidden" id="smallAnimalEditId">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="sa_breederId"><span data-adm-ja="ブリーダーID *" data-adm-zh="繁殖者ID *">ブリーダーID *</span></label>
+            <input class="form-input" id="sa_breederId" autocomplete="off" placeholder="例：RB-2026-001">
+            <div class="form-hint"><span data-adm-ja="保存後は変更できない識別子です" data-adm-zh="保存后不可修改的唯一标识">保存後は変更できない識別子です</span></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="sa_species"><span data-adm-ja="種別 *" data-adm-zh="种类 *">種別 *</span></label>
+            <select class="form-select" id="sa_species"><option value="rabbit">ウサギ / Rabbit / 兔</option></select>
+          </div>
+        </div>
+        <div class="form-row-3">
+          <div class="form-group"><label class="form-label" for="sa_breed"><span data-adm-ja="品種" data-adm-zh="品种">品種</span></label><input class="form-input" id="sa_breed" placeholder="例：ネザーランドドワーフ"></div>
+          <div class="form-group"><label class="form-label" for="sa_color"><span data-adm-ja="カラー" data-adm-zh="毛色">カラー</span></label><input class="form-input" id="sa_color" placeholder="オーナー確認済みの表記"></div>
+          <div class="form-group"><label class="form-label" for="sa_gender"><span data-adm-ja="性別" data-adm-zh="性别">性別</span></label><select class="form-select" id="sa_gender"><option value="♂">♂ 男の子</option><option value="♀">♀ 女の子</option><option value="unknown">未確認 / 未确认</option></select></div>
+        </div>
+        <div class="form-row-3">
+          <div class="form-group"><label class="form-label" for="sa_birthday"><span data-adm-ja="誕生月" data-adm-zh="出生月份">誕生月</span></label><input class="form-input" type="month" id="sa_birthday"></div>
+          <div class="form-group"><label class="form-label" for="sa_price"><span data-adm-ja="価格（税込）" data-adm-zh="价格（含税）">価格（税込）</span></label><input class="form-input" type="number" min="0" step="1" id="sa_price" placeholder="オーナー確認後に入力"></div>
+          <div class="form-group"><label class="form-label" for="sa_status"><span data-adm-ja="ステータス *" data-adm-zh="状态 *">ステータス *</span></label><select class="form-select" id="sa_status"><option value="available">販売中</option><option value="reserved">商談中</option><option value="sold">ご家族決定</option></select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="sa_photos"><span data-adm-ja="写真URL" data-adm-zh="照片URL">写真URL</span></label>
+            <textarea class="form-textarea" id="sa_photos" rows="4" placeholder="1行に1つの https:// URL"></textarea>
+            <div class="form-hint"><span data-adm-ja="保存後は一覧の「写真」から端末アップロードも使えます" data-adm-zh="保存后可在列表的“照片”中从设备上传">保存後は一覧の「写真」から端末アップロードも使えます</span></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="sa_coverIndex"><span data-adm-ja="カバー写真番号" data-adm-zh="封面照片序号">カバー写真番号</span></label>
+            <input class="form-input" type="number" min="1" step="1" id="sa_coverIndex" value="1">
+            <div class="form-hint"><span data-adm-ja="上の写真URLの1番目から数えます" data-adm-zh="从上方照片URL的第1张开始计数">上の写真URLの1番目から数えます</span></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label" for="sa_video"><span data-adm-ja="動画URL / 埋め込み" data-adm-zh="视频URL / 嵌入代码">動画URL / 埋め込み</span></label><textarea class="form-textarea" id="sa_video" rows="3"></textarea></div>
+          <div class="form-group"><label class="form-label" for="sa_note"><span data-adm-ja="備考" data-adm-zh="备注">備考</span></label><textarea class="form-textarea" id="sa_note" rows="3"></textarea></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="sa_isNew"><span data-adm-ja="NEWバッジ" data-adm-zh="NEW标签">NEWバッジ</span></label>
+          <select class="form-select" id="sa_isNew"><option value="true">表示</option><option value="false">非表示</option></select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" type="button" onclick="closeModal('smallAnimalFormModal')"><span data-adm-ja="キャンセル" data-adm-zh="取消">キャンセル</span></button>
+        <button class="btn-save" type="button" id="smallAnimalSaveBtn" onclick="saveSmallAnimal()"><span data-adm-ja="保存する" data-adm-zh="保存">保存する</span></button>
       </div>
     </div>
   </div>
@@ -1168,17 +1255,18 @@
 
   <div class="toast" id="toast"></div>
 
-<script src="js/api-client.js"></script>
-<script src="js/migrate.js"></script>
-<script src="js/admin-images.js"></script>
-<script src="js/admin-core.js"></script>
-<script src="js/admin-render.js"></script>
-<script src="js/admin-photos.js"></script>
-<script src="js/admin-drive.js"></script>
-<script src="js/admin-data.js"></script>
-<script src="js/admin-faq.js"></script>
-<script src="js/admin-articles.js"></script>
-<script src="js/admin-settings.js"></script>
+<script src="js/api-client.js?v=20260710a"></script>
+<script src="js/migrate.js?v=20260710a"></script>
+<script src="js/admin-images.js?v=20260710a"></script>
+<script src="js/admin-core.js?v=20260710a"></script>
+<script src="js/admin-render.js?v=20260710a"></script>
+<script src="js/admin-photos.js?v=20260710a"></script>
+<script src="js/admin-small-animals.js?v=20260710a"></script>
+<script src="js/admin-drive.js?v=20260710a"></script>
+<script src="js/admin-data.js?v=20260710a"></script>
+<script src="js/admin-faq.js?v=20260710a"></script>
+<script src="js/admin-articles.js?v=20260710a"></script>
+<script src="js/admin-settings.js?v=20260710a"></script>
 <script>
 // Publish button — first re-syncs data to API, then triggers GitHub Actions
 function handlePublish() {

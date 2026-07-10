@@ -23,8 +23,10 @@ function storage(initial = {}) {
 
 function element(id) {
   const classes = new Set();
-  return {
+  const node = {
     id,
+    children: [],
+    parentNode: null,
     style: {},
     dataset: {},
     value: '',
@@ -37,11 +39,21 @@ function element(id) {
       remove(...names) { names.forEach((name) => classes.delete(name)); },
       contains(name) { return classes.has(name); },
     },
+    appendChild(child) {
+      child.parentNode = this;
+      this.children.push(child);
+      return child;
+    },
+    replaceChildren(...children) {
+      this.children = [];
+      children.forEach((child) => this.appendChild(child));
+    },
     addEventListener() {},
     querySelector() { return null; },
     setAttribute() {},
     click() {},
   };
+  return node;
 }
 
 function harness({ local = null, get, bulkImport, publish } = {}) {

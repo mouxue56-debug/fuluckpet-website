@@ -10,6 +10,31 @@
   var path = location.pathname;
   if (path === '/' || path === '/index.html' || path.indexOf('/admin') === 0) return;
 
+  // Reuse the page-level kittens promise when the carousel (or another public
+  // widget) already started it. Keep this small bootstrap here as CTA-only pages
+  // do not load kitten-carousel.js.
+  function getSharedKittens() {
+    var store = window.FuluckPublicData || (window.FuluckPublicData = {});
+    var requests = store.kittenRequests || (store.kittenRequests = Object.create(null));
+    var url = API + '/api/kittens';
+    if (!requests[url]) {
+      var request = fetch(url)
+        .then(function(response) {
+          if (!response || response.ok !== true) throw new Error('Kittens API request failed');
+          return response.json();
+        })
+        .then(function(data) {
+          if (!Array.isArray(data)) throw new Error('Kittens API payload must be an array');
+          return data;
+        });
+      requests[url] = request;
+      request.catch(function() {
+        if (requests[url] === request) delete requests[url];
+      });
+    }
+    return requests[url];
+  }
+
   var kittenCount = 0;
   var widget = null;
   var visible = false;
@@ -73,8 +98,7 @@
   }
 
   // Fetch kitten count
-  fetch(API + '/api/kittens')
-    .then(function(r) { return r.json(); })
+  getSharedKittens()
     .then(function(data) {
       kittenCount = (data || []).filter(function(k) { return k.status === 'available'; }).length;
       render();

@@ -2,41 +2,107 @@
 // Depends on: admin-core.js (FuluckAPI, showToast, etc.), admin-images.js (t, admLang)
 
 var faqData = [];
+var faqRemoteReady = false;
+var faqMutationInFlight = false;
+
+function faqRequireRemoteReady() {
+  if (faqRemoteReady) return true;
+  showToast(t('FAQのクラウド同期が完了するまで操作できません','FAQ云端同步完成前无法操作'), 'error');
+  return false;
+}
+
+function faqBeginMutation() {
+  if (faqMutationInFlight) {
+    showToast(t('FAQの保存処理が完了するまでお待ちください','请等待FAQ保存完成'), 'error');
+    return false;
+  }
+  faqMutationInFlight = true;
+  return true;
+}
 
 function loadFaqData() {
-  if (typeof FuluckAPI === 'undefined') return;
-  FuluckAPI.get('/api/faq').then(function(items) {
-    faqData = items || [];
+  faqRemoteReady = false;
+  if (typeof FuluckAPI === 'undefined' || typeof FuluckAPI.get !== 'function') {
+    return Promise.resolve(false);
+  }
+  return FuluckAPI.get('/api/admin/faq').then(function(items) {
+    if (!Array.isArray(items)) throw new Error('Invalid FAQ collection');
+    faqData = items;
+    faqRemoteReady = true;
     renderFaqTable();
+    return true;
   }).catch(function() {
-    faqData = [];
+    faqRemoteReady = false;
     renderFaqTable();
+    showToast(t('FAQの読み込みに失敗しました。編集はロックされています','FAQ加载失败，编辑已锁定'), 'error');
+    return false;
   });
+}
+
+function faqText(value) {
+  return value == null ? '' : String(value);
+}
+
+function faqTableCell(text, styles) {
+  var cell = document.createElement('td');
+  cell.textContent = faqText(text);
+  Object.keys(styles || {}).forEach(function(property) {
+    cell.style[property] = styles[property];
+  });
+  return cell;
+}
+
+function faqActionButton(label, actionClass, handler) {
+  var button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'action-btn ' + actionClass;
+  button.textContent = label;
+  button.addEventListener('click', handler);
+  return button;
 }
 
 function renderFaqTable() {
   var tbody = document.getElementById('faqTableBody');
   if (!tbody) return;
+  tbody.textContent = '';
   if (faqData.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-light);padding:24px;">' + t('FAQデータがありません','暂无FAQ数据') + '</td></tr>';
+    var emptyRow = document.createElement('tr');
+    var emptyCell = faqTableCell(t('FAQデータがありません','暂无FAQ数据'), {
+      textAlign: 'center',
+      color: 'var(--text-light)',
+      padding: '24px'
+    });
+    emptyCell.colSpan = 5;
+    emptyRow.appendChild(emptyCell);
+    tbody.appendChild(emptyRow);
     return;
   }
-  var sorted = faqData.slice().sort(function(a, b) { return (a.order || 0) - (b.order || 0); });
-  tbody.innerHTML = sorted.map(function(f) {
-    var q = f.question ? (f.question.ja || f.question.zh || '') : '';
-    var cat = f.category || 'general';
+  var sorted = faqData.filter(function(f) {
+    return f && typeof f === 'object';
+  }).sort(function(a, b) { return (a.order || 0) - (b.order || 0); });
+  sorted.forEach(function(f) {
+    var q = faqText(f.question ? (f.question.ja || f.question.zh || '') : '');
+    var cat = faqText(f.category || 'general');
     var pubIcon = f.published ? '✅' : '⬜';
-    return '<tr>' +
-      '<td style="text-align:center;">' + (f.order || 0) + '</td>' +
-      '<td style="max-width:300px;">' + (q.length > 40 ? q.substring(0, 40) + '...' : q) + '</td>' +
-      '<td>' + cat + '</td>' +
-      '<td style="text-align:center;">' + pubIcon + '</td>' +
-      '<td><div class="action-btns">' +
-        '<button class="action-btn edit" onclick="editFaq(\'' + f.id + '\')">' + t('編集','编辑') + '</button>' +
-        '<button class="action-btn delete" onclick="deleteFaq(\'' + f.id + '\')">' + t('削除','删除') + '</button>' +
-      '</div></td>' +
-    '</tr>';
-  }).join('');
+    var row = document.createElement('tr');
+    row.appendChild(faqTableCell(f.order || 0, { textAlign: 'center' }));
+    row.appendChild(faqTableCell(q.length > 40 ? q.substring(0, 40) + '...' : q, { maxWidth: '300px' }));
+    row.appendChild(faqTableCell(cat));
+    row.appendChild(faqTableCell(pubIcon, { textAlign: 'center' }));
+
+    var actionsCell = document.createElement('td');
+    var actions = document.createElement('div');
+    actions.className = 'action-btns';
+    actions.appendChild(faqActionButton(t('編集','编辑'), 'edit', function() {
+      editFaq(f.id);
+    }));
+    actions.appendChild(faqActionButton(t('削除','删除'), 'delete', function() {
+      deleteFaq(f.id);
+    }));
+    actionsCell.appendChild(actions);
+    row.appendChild(actionsCell);
+    tbody.appendChild(row);
+  });
 }
 
 function openFaqForm(faq) {
@@ -60,6 +126,7 @@ function editFaq(id) {
 }
 
 function saveFaq() {
+  if (!faqRequireRemoteReady()) return Promise.resolve(false);
   var editId = document.getElementById('faqEditId').value;
   var obj = {
     question: {
@@ -77,49 +144,72 @@ function saveFaq() {
     published: document.getElementById('faq_published').value === 'true'
   };
 
-  if (!obj.question.ja) { showToast(t('質問（日本語）を入力してください','请输入问题（日语）'), 'error'); return; }
-
-  if (editId) {
-    var idx = faqData.findIndex(function(f) { return f.id === editId; });
-    if (idx >= 0) {
-      obj.id = editId;
-      obj.createdAt = faqData[idx].createdAt;
-      obj.updatedAt = new Date().toISOString();
-      faqData[idx] = obj;
-    }
-  } else {
-    obj.id = 'faq_' + Date.now();
-    obj.createdAt = new Date().toISOString();
-    faqData.push(obj);
+  if (!obj.question.ja) {
+    showToast(t('質問（日本語）を入力してください','请输入问题（日语）'), 'error');
+    return Promise.resolve(false);
   }
 
-  FuluckAPI.bulkImport('faq', faqData).then(function() {
+  var idx = -1;
+  if (editId) {
+    idx = faqData.findIndex(function(f) { return f.id === editId; });
+    if (idx < 0) {
+      showToast(t('編集対象のFAQが見つかりません','找不到要编辑的FAQ'), 'error');
+      return Promise.resolve(false);
+    }
+  }
+  if (!faqBeginMutation()) return Promise.resolve(false);
+
+  return Promise.resolve().then(function() {
+    return editId
+      ? FuluckAPI.put('/api/admin/faq/' + encodeURIComponent(editId), obj)
+      : FuluckAPI.post('/api/admin/faq', obj);
+  }).then(function(saved) {
+    if (!saved || typeof saved !== 'object' || !saved.id) throw new Error('Invalid FAQ response');
+    if (editId) {
+      var updated = Object.assign({}, faqData[idx], obj, saved, { id: editId });
+      faqData = faqData.map(function(item, itemIndex) { return itemIndex === idx ? updated : item; });
+    } else {
+      faqData = faqData.concat([saved]);
+    }
     closeModal('faqFormModal');
     renderFaqTable();
     showToast(t('保存しました','已保存'), 'success');
     addLog(t('FAQ を更新しました','更新了FAQ'));
+    return true;
   }).catch(function(err) {
     showToast('Error: ' + err.message, 'error');
+    return false;
+  }).finally(function() {
+    faqMutationInFlight = false;
   });
 }
 
 function deleteFaq(id) {
+  if (!faqRequireRemoteReady()) return Promise.resolve(false);
   var f = faqData.find(function(x) { return x.id === id; });
-  if (!f) return;
+  if (!f) return Promise.resolve(false);
   var q = f.question ? (f.question.ja || '') : '';
-  if (!confirm(t('FAQ「' + q + '」を削除しますか？','确定删除FAQ「' + q + '」？'))) return;
-  faqData = faqData.filter(function(x) { return x.id !== id; });
-  FuluckAPI.bulkImport('faq', faqData).then(function() {
+  if (!confirm(t('FAQ「' + q + '」を削除しますか？','确定删除FAQ「' + q + '」？'))) return Promise.resolve(false);
+  if (!faqBeginMutation()) return Promise.resolve(false);
+  return Promise.resolve().then(function() {
+    return FuluckAPI.del('/api/admin/faq/' + encodeURIComponent(id));
+  }).then(function() {
+    faqData = faqData.filter(function(x) { return x.id !== id; });
     renderFaqTable();
     showToast(t('削除しました','已删除'), 'success');
     addLog(t('FAQ を削除しました','删除了FAQ'));
+    return true;
   }).catch(function(err) {
     showToast('Error: ' + err.message, 'error');
+    return false;
+  }).finally(function() {
+    faqMutationInFlight = false;
   });
 }
 
 function seedDefaultFaq() {
-  if (!confirm(t('デフォルトの6件のFAQを読み込みますか？\n（既存データは上書きされます）','要加载默认的6条FAQ吗？\n（将覆盖现有数据）'))) return;
+  if (!faqRequireRemoteReady()) return Promise.resolve(false);
+  if (!confirm(t('デフォルトの6件のFAQを読み込みますか？\n（既存データは上書きされます）','要加载默认的6条FAQ吗？\n（将覆盖现有数据）'))) return Promise.resolve(false);
   var defaults = [
     { id:'faq_1', order:1, category:'general', published:true,
       question:{ ja:'猫アレルギーですが、サイベリアンなら大丈夫ですか？', en:'I have cat allergies. Will a Siberian be okay?', zh:'我有猫过敏，西伯利亚猫可以吗？' },
@@ -140,12 +230,19 @@ function seedDefaultFaq() {
       question:{ ja:'サイベリアン以外の猫種も扱っていますか？', en:'Do you have breeds other than Siberian?', zh:'除了西伯利亚猫还有其他品种吗？' },
       answer:{ ja:'はい、サイベリアンを中心に、ブリティッシュショートヘア・ブリティッシュロングヘア・ラグドールも取り扱っております。ご希望の猫種がございましたらお問い合わせください。', en:'Yes, in addition to Siberians, we also breed British Shorthairs, British Longhairs, and Ragdolls. Please contact us if you have a specific breed in mind.', zh:'是的，除了西伯利亚猫，我们还繁育英国短毛猫、英国长毛猫和布偶猫。如果您有特定品种需求，请联系我们。' } }
   ];
-  faqData = defaults;
-  FuluckAPI.bulkImport('faq', faqData).then(function() {
+  if (!faqBeginMutation()) return Promise.resolve(false);
+  return Promise.resolve().then(function() {
+    return FuluckAPI.bulkImport('faq', defaults);
+  }).then(function() {
+    faqData = defaults;
     renderFaqTable();
     showToast(t('デフォルトFAQを読み込みました','已加载默认FAQ'), 'success');
     addLog(t('デフォルトFAQ 6件を読み込みました','加载了6条默认FAQ'));
+    return true;
   }).catch(function(err) {
     showToast('Error: ' + err.message, 'error');
+    return false;
+  }).finally(function() {
+    faqMutationInFlight = false;
   });
 }

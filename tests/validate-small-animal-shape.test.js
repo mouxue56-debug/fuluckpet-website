@@ -89,3 +89,12 @@ test('rejects duplicate trimmed breederIds strictly', () => {
   assert.equal(result.ok, false);
   assert.ok(result.errors.some((e) => e.field === 'breederId' && /duplicate/i.test(e.reason)));
 });
+
+test('rejects the reserved bulk breederId before it can become an unreachable row', () => {
+  const result = validateSmallAnimalShape([
+    { breederId: ' bulk ', species: 'rabbit' },
+  ]);
+
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.field === 'breederId' && /reserved/i.test(e.reason)));
+});

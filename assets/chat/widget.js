@@ -463,6 +463,7 @@
     var input = el('textarea', {
       class: 'fuluck-chat-input',
       rows: '1',
+      maxlength: '1500',
       placeholder: t('chat.placeholder'),
       'aria-label': t('chat.placeholder')
     });
@@ -599,6 +600,25 @@
     else this.open();
   };
 
+  function forgetServerBatch(sid, attempt, cursor) {
+    if (attempt >= 60) return Promise.resolve();
+    return fetch(CFG.apiBase + CFG.chatPath + '?forget=1', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: sid, action: 'forget', forget_cursor: cursor })
+    }).then(function(response) {
+      if (!response.ok) throw new Error('forget failed: ' + response.status);
+      return response.json();
+    }).then(function(body) {
+      if (body && body.more && typeof body.cursor === 'string' && body.cursor) {
+        return forgetServerBatch(sid, attempt + 1, body.cursor);
+      }
+    }).catch(function() {
+      // Local history is already cleared. A later reset can safely resume from the
+      // first remaining server batch, so a transient failure stays non-fatal.
+    });
+  }
+
   FuluckChat.prototype.reset = function () {
     var sid = this.sessionId;
     lsDel(CFG.historyKey);
@@ -608,13 +628,9 @@
     this._pushHistory('assistant', greeting);
     this._appendMessage('assistant', greeting);
 
-    // Best-effort server forget; failures are non-fatal
+    // Best-effort bounded server forget; continue while the Worker reports more.
     try {
-      fetch(CFG.apiBase + CFG.chatPath + '?forget=1', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: sid, action: 'forget' })
-      }).catch(function () {});
+      forgetServerBatch(sid, 0, '');
     } catch (_) {}
   };
 

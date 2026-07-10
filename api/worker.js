@@ -28,6 +28,12 @@
  *   DASHSCOPE_QWEN36_KEY       = DashScope International API key for qwen3.6-plus (chat widget)
  */
 
+import launchConfig from '../small-animals-launch.json' with { type: 'json' };
+
+function visibleSmallAnimals(data, isPublic = launchConfig.public === true) {
+  return isPublic && Array.isArray(data) ? data : [];
+}
+
 // ===== Google Drive Integration =====
 
 const DRIVE_LIST_CACHE_TTL = 1800; // 30 minutes
@@ -38,6 +44,31 @@ const RESIZE_WIDTHS = [1600, 1200, 800]; // Progressive resize attempts
 // we buffer the whole body into an ArrayBuffer; a huge/non-image Drive file could OOM
 // the isolate. Reject anything over this from metadata BEFORE downloading.
 const MAX_DRIVE_ORIGIN_BYTES = 10 * 1024 * 1024; // 10MB
+
+const UPLOAD_CONTENT_TYPES = Object.freeze({
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+  gif: 'image/gif',
+  mp4: 'video/mp4',
+});
+
+async function uploadSignatureMatches(file, ext) {
+  const bytes = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+  const ascii = (start, end) => String.fromCharCode(...bytes.slice(start, end));
+  if (ext === 'jpg' || ext === 'jpeg') {
+    return bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  }
+  if (ext === 'png') {
+    const signature = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+    return bytes.length >= signature.length && signature.every((value, index) => bytes[index] === value);
+  }
+  if (ext === 'gif') return ascii(0, 6) === 'GIF87a' || ascii(0, 6) === 'GIF89a';
+  if (ext === 'webp') return bytes.length >= 12 && ascii(0, 4) === 'RIFF' && ascii(8, 12) === 'WEBP';
+  if (ext === 'mp4') return bytes.length >= 8 && ascii(4, 8) === 'ftyp';
+  return false;
+}
 
 // Base64url encode for JWT
 function base64url(buf) {
@@ -450,6 +481,67 @@ const CHAT_RATE_LIMIT_PER_HOUR = 30;
 const CHAT_LOG_TTL = 60 * 60 * 24 * 30;  // 30 days
 const CHAT_MAX_HISTORY = 20;
 const CHAT_MAX_INPUT_CHARS = 1500;
+const CHAT_MAX_MESSAGE_ITEMS = 40;
+const CHAT_MAX_BODY_BYTES = 64 * 1024;
+const CHAT_FORGET_RATE_LIMIT_PER_HOUR = 60;
+const CHAT_FORGET_DELETE_BATCH = 500;
+
+const AUTH_MAX_BODY_BYTES = 4 * 1024;
+const STORY_GENERATE_MAX_BODY_BYTES = 32 * 1024;
+const STORY_ANALYZE_MAX_BODY_BYTES = 5_600_000;
+const STORY_TEXT_FIELD_LIMITS = Object.freeze({
+  name: 100,
+  gender: 32,
+  color: 100,
+  date: 32,
+  personality: 600,
+  nameReason: 1000,
+  happyMoment: 2000,
+  otherPets: 600,
+  message: 2000,
+});
+
+function validateStoryTextFields(value) {
+  if (!isPlainObject(value)) {
+    return { ok: false, status: 400, error: 'invalid_payload' };
+  }
+  for (const [field, limit] of Object.entries(STORY_TEXT_FIELD_LIMITS)) {
+    if (!Object.prototype.hasOwnProperty.call(value, field) || value[field] == null) continue;
+    if (typeof value[field] !== 'string') {
+      return { ok: false, status: 400, error: 'invalid_payload', field };
+    }
+    if (value[field].length > limit) {
+      return { ok: false, status: 413, error: 'payload_too_large', field };
+    }
+  }
+  if (typeof value.name !== 'string' || !value.name.trim()) {
+    return { ok: false, status: 400, error: 'name is required', field: 'name' };
+  }
+  return { ok: true };
+}
+
+async function deleteChatLogBatch(env, sid, cursor) {
+  // Carry KV's opaque list cursor across requests. Re-listing page one immediately
+  // after deletes is unsafe because Workers KV can keep returning a stale page for
+  // a short period; the cursor lets us advance through that same list view while
+  // keeping each invocation within the KV operation budget.
+  const page = await env.DATA.list({
+    prefix: `chat:log:${sid}:`,
+    limit: CHAT_FORGET_DELETE_BATCH,
+    ...(cursor ? { cursor } : {}),
+  });
+  const keys = page.keys || [];
+  await Promise.all(keys.map((key) => env.DATA.delete(key.name)));
+  const more = page.list_complete === false;
+  if (more && (typeof page.cursor !== 'string' || !page.cursor)) {
+    throw new Error('KV list continuation cursor missing');
+  }
+  return {
+    deleted: keys.length,
+    more,
+    cursor: more ? page.cursor : '',
+  };
+}
 
 async function loadChatSystemPrompt(env) {
   // KV override wins so the owner can hot-edit without redeploy
@@ -934,6 +1026,58 @@ async function parseJsonWriteBody(request) {
   }
 }
 
+// Read untrusted JSON without allowing a chunked request to grow past the
+// endpoint's memory budget. Content-Length is only an early rejection hint; the
+// streaming counter remains authoritative when the header is missing or false.
+async function parseBoundedJson(request, maxBytes) {
+  const contentType = (request.headers.get('Content-Type') || '').toLowerCase();
+  if (!/^application\/json(?:\s*;|$)/.test(contentType)) {
+    return { ok: false, status: 415, error: 'unsupported_media_type' };
+  }
+
+  const lengthHeader = request.headers.get('Content-Length');
+  if (lengthHeader) {
+    const declared = Number(lengthHeader);
+    if (Number.isFinite(declared) && declared > maxBytes) {
+      return { ok: false, status: 413, error: 'payload_too_large' };
+    }
+  }
+
+  if (!request.body) {
+    return { ok: false, status: 400, error: 'invalid_json' };
+  }
+
+  const reader = request.body.getReader();
+  const chunks = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        try { await reader.cancel(); } catch (_) { /* best-effort cancellation */ }
+        return { ok: false, status: 413, error: 'payload_too_large' };
+      }
+      chunks.push(value);
+    }
+
+    const bytes = new Uint8Array(total);
+    let offset = 0;
+    for (const chunk of chunks) {
+      bytes.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+    return { ok: true, value: JSON.parse(new TextDecoder().decode(bytes)) };
+  } catch (_) {
+    return { ok: false, status: 400, error: 'invalid_json' };
+  }
+}
+
+function boundedJsonError(parsed) {
+  return json({ error: parsed.error }, parsed.status);
+}
+
 function unauthorized() {
   return json({ error: 'Unauthorized' }, 401);
 }
@@ -1013,6 +1157,11 @@ function validateBreederIdUniqueness(currentList, incomingList) {
 //   * photos  — if present, must be an array of strings (the gallery maps over it).
 // A non-object item is rejected outright.
 const KITTEN_STATUS_ENUM = ['available', 'reserved', 'sold'];
+const PUBLIC_CATALOG_ID_RE = /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/;
+
+function isSafePublicCatalogId(value) {
+  return typeof value === 'string' && PUBLIC_CATALOG_ID_RE.test(value);
+}
 
 // Returns { ok: true } or { ok: false, errors: [{ breederId, field, reason }] }.
 function validateKittenShapes(items) {
@@ -1024,6 +1173,15 @@ function validateKittenShapes(items) {
     if (!k || typeof k !== 'object' || Array.isArray(k)) {
       errors.push({ breederId: bid, field: '(item)', reason: 'not an object' });
       continue;
+    }
+    // breederId/id become filenames, URLs, and route identities in the static generator.
+    // Empty breederId remains allowed for an unsaved draft, but any supplied identity
+    // must be one conservative URL segment with no trimming or path normalization.
+    for (const field of ['breederId', 'id']) {
+      if (k[field] === undefined || k[field] === null || k[field] === '') continue;
+      if (!isSafePublicCatalogId(k[field])) {
+        errors.push({ breederId: bid, field, reason: 'not a safe public URL segment' });
+      }
     }
     // price — allow missing/empty; reject non-numeric when a value is actually present.
     if (k.price !== undefined && k.price !== null && String(k.price).trim() !== '') {
@@ -1089,6 +1247,8 @@ function validateSmallAnimalShape(items) {
     const displayId = breederId || fallbackId;
     if (!breederId) {
       errors.push({ breederId: displayId, field: 'breederId', reason: 'required non-empty string' });
+    } else if (breederId === 'bulk') {
+      errors.push({ breederId: displayId, field: 'breederId', reason: 'reserved collection route' });
     } else if (seenBreederIds.has(breederId)) {
       errors.push({ breederId: displayId, field: 'breederId', reason: 'duplicate breederId' });
     } else {
@@ -1156,6 +1316,11 @@ function randomSaltHex(byteLength = 16) {
 async function hashPassword(password, saltHex) {
   const data = new TextEncoder().encode(password + ':' + saltHex);
   const digest = await crypto.subtle.digest('SHA-256', data);
+  return bytesToHex(digest);
+}
+
+async function sha256HexText(value) {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
   return bytesToHex(digest);
 }
 
@@ -1229,22 +1394,31 @@ async function recordAuthFailure(env, ip) {
 // authfail cap (caller should reply 429 instead of 401). A CORRECT Bearer token never
 // increments the counter and is never throttled.
 async function checkAuth(request, env) {
+  const auth = request.headers.get('Authorization') || '';
+  const match = auth.match(/^Bearer\s+(\S+)$/);
+  // A missing or malformed credential is not a password guess. Reject it without
+  // consulting or consuming the shared brute-force budget so ordinary 401s cannot
+  // lock an administrator out.
+  if (!match) {
+    return { ok: false, tooMany: false, missing: true };
+  }
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
   if (await isTooManyAuthFailures(env, ip)) {
     return { ok: false, tooMany: true };
   }
-  const auth = request.headers.get('Authorization') || '';
-  const token = auth.replace('Bearer ', '');
+  const token = match[1];
   const { ok } = await verifyAndMaybeMigrate(env, token);
   if (!ok) {
     await recordAuthFailure(env, ip);
   }
-  return { ok, tooMany: false };
+  return { ok, tooMany: false, missing: false };
 }
 
 // ===== Booking validation =====
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const BOOKING_MAX_BODY_BYTES = 32 * 1024;
+const BOOKING_SUBMISSION_ID_RE = /^\d{16}-[0-9a-f]{32}$/;
 // Japanese phone: digits, hyphens, parens, plus, spaces; 9-15 chars after stripping.
 const PHONE_DIGITS_RE = /^[0-9+\-()\s]{9,20}$/;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -1266,6 +1440,15 @@ function validateBooking(body) {
   const data = {};
 
   if (!body || typeof body !== 'object') return { errors: ['Invalid JSON body'], data };
+
+  // Optional for compatibility with an older cached form. Current clients send a
+  // reverse-timestamp + 128-bit random token so retries address one deterministic
+  // KV record instead of creating another booking.
+  const submission_id = typeof body.submission_id === 'string' ? body.submission_id.trim() : '';
+  if (submission_id && !BOOKING_SUBMISSION_ID_RE.test(submission_id)) {
+    errors.push('submission_id format invalid');
+  }
+  data.submission_id = submission_id;
 
   // name (required, 1-100)
   const name = typeof body.name === 'string' ? body.name.trim() : '';
@@ -1644,6 +1827,7 @@ async function appendVisitEventFromBooking(env, data, bookingId) {
 
     await mutateCalendar(env, (doc) => {
       if (doc.events.length >= CAL_MAX_EVENTS) return; // silently skip if at cap
+      if (bookingId && doc.events.some((existing) => existing && existing.bookingId === bookingId)) return;
       doc.events.push(event);
     });
   } catch (e) {
@@ -1872,6 +2056,23 @@ function isStoryPath(path) {
   return path === '/api/story/analyze-photo' || path === '/api/story/generate';
 }
 
+// Chat is public to site visitors but can invoke providers, Telegram, and KV writes.
+// Classify the entire namespace (including encoded separators) so alternate spellings
+// cannot fall through to the wide-open public CORS policy.
+function isChatPath(path) {
+  let normalized = path;
+  for (let pass = 0; pass < 2; pass += 1) {
+    try {
+      const decoded = decodeURIComponent(normalized);
+      if (decoded === normalized) break;
+      normalized = decoded;
+    } catch (_) {
+      break;
+    }
+  }
+  return normalized === '/api/chat' || normalized.startsWith('/api/chat/');
+}
+
 // Per-IP KV throttle shared by the story endpoints (A1) and, as a second cap, by
 // chat (A2). Returns { limited, count, retryAfter }. Fails OPEN on KV error so a
 // KV blip never takes the feature down. Hour-bucketed key so it self-expires.
@@ -1908,16 +2109,26 @@ export default {
     const method = request.method;
 
     // Resolve CORS origin per request based on path classification.
-    const isPrivate = isPrivatePath(path);
+    const isArticlePreview = /^\/api\/articles\/[^/]+$/.test(path)
+      && url.searchParams.get('preview') === '1';
+    const isPrivate = isPrivatePath(path) || isArticlePreview;
     const isStory = isStoryPath(path);
-    // Site origin the code already knows — the CORS lock target for story endpoints (A1).
-    const siteOrigin = env.CORS_ORIGIN || 'https://fuluckpet.com';
+    const isChat = isChatPath(path);
+    // A wildcard configuration must never widen paid/side-effecting site-only routes.
+    const configuredSiteOrigin = env.CORS_ORIGIN;
+    const siteOrigin = configuredSiteOrigin && configuredSiteOrigin !== '*'
+      ? configuredSiteOrigin
+      : 'https://fuluckpet.com';
+    const requestOrigin = request.headers.get('Origin') || '';
+    const foreignSiteOnlyOrigin = (isStory || isChat)
+      && requestOrigin
+      && requestOrigin !== siteOrigin;
     let allowedOrigin;
     if (isPrivate) {
       allowedOrigin = corsForPrivate(request); // null if not whitelisted
-    } else if (isStory) {
+    } else if (isStory || isChat) {
       // Lock to the site origin — never '*'. A foreign origin gets an ACAO it can't
-      // match, so the browser blocks the paid-AI response; same-origin calls succeed.
+      // match. Foreign story/chat requests are rejected below before side effects.
       allowedOrigin = siteOrigin;
     } else {
       allowedOrigin = corsForPublic(); // always '*'
@@ -1925,16 +2136,16 @@ export default {
 
     // CORS preflight
     if (method === 'OPTIONS') {
-      // Private endpoints: reject preflights from non-whitelisted origins.
-      if (isPrivate && !allowedOrigin) {
-        return new Response(null, { status: 403 });
+      // Private and site-only endpoints reject disallowed origins before route work.
+      if ((isPrivate && !allowedOrigin) || foreignSiteOnlyOrigin) {
+        return new Response(null, { status: 403, headers: { 'Vary': 'Origin' } });
       }
       return new Response(null, {
         headers: {
           ...CORS_HEADERS,
-          // Story preflight advertises the locked site origin, never '*'.
+          // Story/chat preflight advertises the locked site origin, never '*'.
           'Access-Control-Allow-Origin': allowedOrigin || '*',
-          ...(isPrivate || isStory ? { 'Vary': 'Origin' } : {}),
+          ...(isPrivate || isStory || isChat ? { 'Vary': 'Origin' } : {}),
         },
       });
     }
@@ -1949,11 +2160,23 @@ export default {
       });
     }
 
+    // Foreign browser requests must stop before JSON parsing, KV, providers,
+    // Telegram forwarding, lead capture, or chat logging.
+    if (foreignSiteOnlyOrigin) {
+      const headers = new Headers({
+        'Content-Type': 'application/json',
+        'Vary': 'Origin',
+      });
+      return new Response(JSON.stringify({ error: 'Forbidden — origin not allowed' }), {
+        status: 403, headers,
+      });
+    }
+
     // Add CORS + security headers to every response.
     const addCors = (res) => {
       const headers = new Headers(res.headers);
       headers.set('Access-Control-Allow-Origin', allowedOrigin || '*');
-      if (isPrivate || isStory) headers.set('Vary', 'Origin');
+      if (isPrivate || isStory || isChat) headers.set('Vary', 'Origin');
       for (const [k, v] of Object.entries(CORS_HEADERS)) {
         headers.set(k, v);
       }
@@ -1984,12 +2207,15 @@ export default {
         return addCors(json(data || [], 200, 'no-store'));
       }
 
-      // GET /api/small-animals — public dark-launch collection. This route is
-      // intentionally before the admin auth gate and uses only the underscore KV
-      // key; no fallback cache is created for this unpublished collection.
+      // GET /api/small-animals — the predictable route stays empty throughout the
+      // owner-gated launch. Private rows are readable only through the authenticated
+      // admin endpoint until the shared launch config is flipped.
       if (path === '/api/small-animals' && method === 'GET') {
+        if (launchConfig.public !== true) {
+          return addCors(json([], 200, 'no-store'));
+        }
         const data = await env.DATA.get('small_animals', 'json');
-        return addCors(json(data || [], 200, 'no-store'));
+        return addCors(json(visibleSmallAnimals(data), 200, 'no-store'));
       }
 
       // GET /api/gallery — 公開：ギャラリー一覧
@@ -2058,21 +2284,54 @@ export default {
       // POST /api/chat — Fukunyan customer-service chat
       // Body: { session_id: string, messages: [{role,content}], action?: 'forget' }
       if (path === '/api/chat' && method === 'POST') {
-        const body = await request.json().catch(() => ({}));
+        const parsed = await parseBoundedJson(request, CHAT_MAX_BODY_BYTES);
+        if (!parsed.ok) return addCors(boundedJsonError(parsed));
+        const body = isPlainObject(parsed.value) ? parsed.value : {};
         const sid = String(body.session_id || '').slice(0, 64) || crypto.randomUUID();
 
-        // Forget action — purge logs for this session, then ack
+        // Forget action — independently throttled so rotating session IDs cannot
+        // turn deletion into an unbounded KV list workload. The session message
+        // counter is deliberately retained as an abuse-control record.
         if (body.action === 'forget') {
+          const forgetCursor = body.forget_cursor == null ? '' : body.forget_cursor;
+          if (typeof forgetCursor !== 'string' || forgetCursor.length > 2048) {
+            return addCors(json({ error: 'invalid_forget_cursor' }, 400));
+          }
+          const forgetRl = await ipRateLimit(
+            env,
+            'chat:forgetrl',
+            request.headers.get('CF-Connecting-IP'),
+            CHAT_FORGET_RATE_LIMIT_PER_HOUR,
+          );
+          if (forgetRl.limited) {
+            return addCors(json({ error: 'rate_limited' }, 429, undefined, {
+              'Retry-After': String(forgetRl.retryAfter),
+            }));
+          }
           try {
-            const { keys } = await env.DATA.list({ prefix: `chat:log:${sid}:` });
-            await Promise.all(keys.map(k => env.DATA.delete(k.name)));
-            await env.DATA.delete(`chat:ratelimit:${sid}`);
-          } catch (_) { /* best-effort */ }
+            const deletion = await deleteChatLogBatch(env, sid, forgetCursor);
+            if (deletion.more) {
+              return addCors(json({
+                success: true,
+                forgotten: false,
+                more: true,
+                cursor: deletion.cursor,
+              }));
+            }
+          } catch (_) {
+            return addCors(json({ success: false, error: 'forget_failed' }, 503));
+          }
           return addCors(json({ success: true, forgotten: true }));
         }
 
         // Validate messages
         const inMsgs = Array.isArray(body.messages) ? body.messages : [];
+        if (inMsgs.length > CHAT_MAX_MESSAGE_ITEMS || inMsgs.some((message) => (
+          message && typeof message.content === 'string'
+          && message.content.length > CHAT_MAX_INPUT_CHARS
+        ))) {
+          return addCors(json({ error: 'payload_too_large' }, 413));
+        }
         const cleaned = inMsgs
           .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
           .map(m => ({ role: m.role, content: m.content.slice(0, CHAT_MAX_INPUT_CHARS) }))
@@ -2207,12 +2466,9 @@ export default {
 
       // POST /api/story/analyze-photo — Gemini Vision で猫写真を分析
       if (path === '/api/story/analyze-photo' && method === 'POST') {
-        // A1: per-IP throttle BEFORE any body read or paid vision call.
-        const rl = await ipRateLimit(env, 'story:rl', request.headers.get('CF-Connecting-IP'), STORY_RATE_LIMIT_PER_HOUR);
-        if (rl.limited) {
-          return addCors(json({ error: 'rate_limited', detail: 'story endpoint hourly limit reached' }, 429, undefined, { 'Retry-After': String(rl.retryAfter) }));
-        }
-        const body = await request.json();
+        const parsed = await parseBoundedJson(request, STORY_ANALYZE_MAX_BODY_BYTES);
+        if (!parsed.ok) return addCors(boundedJsonError(parsed));
+        const body = isPlainObject(parsed.value) ? parsed.value : {};
         const dataUri = body.image;
         if (!dataUri || typeof dataUri !== 'string') {
           return addCors(json({ error: 'image (base64 data URI) is required' }, 400));
@@ -2227,6 +2483,11 @@ export default {
         // Reject if base64 is too large (~4MB decoded)
         if (base64Data.length > 5_500_000) {
           return addCors(json({ error: 'Image too large. Please use a smaller photo.' }, 400));
+        }
+        // A1: throttle after bounded validation but before any paid vision call.
+        const rl = await ipRateLimit(env, 'story:rl', request.headers.get('CF-Connecting-IP'), STORY_RATE_LIMIT_PER_HOUR);
+        if (rl.limited) {
+          return addCors(json({ error: 'rate_limited', detail: 'story endpoint hourly limit reached' }, 429, undefined, { 'Retry-After': String(rl.retryAfter) }));
         }
         // Try Gemini first, fallback to Qianwen Vision
         try {
@@ -2244,13 +2505,19 @@ export default {
 
       // POST /api/story/generate — AI文案生成（Gemini JA + Qianwen ZH 並列）
       if (path === '/api/story/generate' && method === 'POST') {
-        // A1: per-IP throttle BEFORE any body read or paid text-generation call.
+        const parsed = await parseBoundedJson(request, STORY_GENERATE_MAX_BODY_BYTES);
+        if (!parsed.ok) return addCors(boundedJsonError(parsed));
+        const body = parsed.value;
+        const shape = validateStoryTextFields(body);
+        if (!shape.ok) {
+          return addCors(json({ error: shape.error, field: shape.field }, shape.status));
+        }
+
+        // A1: throttle after bounded validation but before paid text generation.
         const rl = await ipRateLimit(env, 'story:rl', request.headers.get('CF-Connecting-IP'), STORY_RATE_LIMIT_PER_HOUR);
         if (rl.limited) {
           return addCors(json({ error: 'rate_limited', detail: 'story endpoint hourly limit reached' }, 429, undefined, { 'Retry-After': String(rl.retryAfter) }));
         }
-        const body = await request.json();
-        if (!body.name) return addCors(json({ error: 'name is required' }, 400));
 
         const jaPrompt = buildJaPrompt(body);
         const zhPrompt = buildZhPrompt(body);
@@ -2479,23 +2746,47 @@ export default {
       if (path === '/api/booking' && method === 'POST') {
         const requestId = crypto.randomUUID();
         try {
-          let body;
-          try { body = await request.json(); }
-          catch (_e) { return addCors(json({ error: 'Invalid JSON' }, 400)); }
+          const parsed = await parseBoundedJson(request, BOOKING_MAX_BODY_BYTES);
+          if (!parsed.ok) return addCors(boundedJsonError(parsed));
+          const body = parsed.value;
 
           const { errors, data } = validateBooking(body);
           if (errors.length) {
             return addCors(json({ error: 'Validation failed', details: errors }, 400));
           }
 
-          // Persist to KV first (90-day TTL); never lose a submission.
-          // Use reverse-sortable key so KV list() returns newest-first by default
-          // (admin/js/admin-bookings.js relies on this).
+          const source = (body && typeof body.source === 'string' ? body.source.slice(0, 100) : '') || 'website';
+          const submissionFingerprint = await sha256HexText(JSON.stringify({ data, source }));
+
+          // Persist to KV first (90-day TTL); never lose a submission. Current clients
+          // supply a reverse-sortable, high-entropy submission id, making the booking
+          // key deterministic across ordinary sequential timeout retries. This is not
+          // an exactly-once concurrency primitive: Workers KV is eventually consistent,
+          // so cross-PoP/concurrent notification dedupe remains a D1/DO owner-gated
+          // architecture item. Older cached clients use the historical generated key.
           const ts = Date.now();
           const rand = crypto.randomUUID().slice(0, 8);
-          const id = `${ts}-${rand}`;
-          const sortKey = String(Number.MAX_SAFE_INTEGER - ts).padStart(16, '0');
-          const kvKey = `booking:${sortKey}:${id}`;
+          const submissionId = data.submission_id;
+          const id = submissionId || `${ts}-${rand}`;
+          const sortKey = submissionId
+            ? ''
+            : `${String(Number.MAX_SAFE_INTEGER - ts).padStart(16, '0')}:`;
+          const kvKey = `booking:${sortKey}${id}`;
+
+          if (submissionId) {
+            const existing = await env.DATA.get(kvKey, 'json');
+            if (existing) {
+              if (existing.submission_fingerprint !== submissionFingerprint) {
+                return addCors(json({ error: 'submission_conflict' }, 409));
+              }
+              return addCors(json({
+                ok: true,
+                duplicate: true,
+                request_id: existing.request_id || '',
+              }, 200));
+            }
+          }
+
           const isoTs = new Date(ts).toISOString();
           const stored = {
             id,                              // admin list page lookups (DELETE/PUT by id)
@@ -2507,7 +2798,8 @@ export default {
             preferredDate2: data.preferred_date2 || '',
             preferredTime: data.preferred_time || '',
             visitMethod: data.visit_method || '',
-            source: (body && typeof body.source === 'string' ? body.source.slice(0, 100) : '') || 'website',
+            source,
+            submission_fingerprint: submissionFingerprint,
             request_id: requestId,
             created_at: isoTs,               // snake_case kept for legacy callers
             createdAt: isoTs,                // camelCase for admin/bookings.html
@@ -2573,6 +2865,9 @@ export default {
       // ===== AUTH CHECK =====
       // POST /api/auth — login check (hashed; constant-time compare; one-time legacy migration).
       if (path === '/api/auth' && method === 'POST') {
+        const parsed = await parseBoundedJson(request, AUTH_MAX_BODY_BYTES);
+        if (!parsed.ok) return addCors(boundedJsonError(parsed));
+        const body = isPlainObject(parsed.value) ? parsed.value : {};
         try {
           // Brute-force guard: max 10 failed attempts per IP per hour.
           // Shared helper (isTooManyAuthFailures/recordAuthFailure) — identical key + cap
@@ -2581,7 +2876,6 @@ export default {
           if (await isTooManyAuthFailures(env, ip)) {
             return addCors(json({ success: false, error: 'too_many_attempts' }, 429));
           }
-          const body = await request.json();
           const { ok, migrated } = await verifyAndMaybeMigrate(env, body && body.password);
           if (!ok) {
             await recordAuthFailure(env, ip);
@@ -2591,6 +2885,12 @@ export default {
           const rid = crypto.randomUUID();
           return addCors(internalError(err, rid));
         }
+      }
+
+      // Public routing ends here. Unknown public paths and unsupported methods must
+      // return 404 without being mistaken for admin password attempts.
+      if (!path.startsWith('/api/admin/')) {
+        return addCors(notFound());
       }
 
       // All routes below require auth
@@ -2739,23 +3039,43 @@ export default {
 
       if (path === '/api/admin/kittens' && method === 'POST') {
         const body = await request.json();
+        if (!isPlainObject(body)) return addCors(json({ error: 'Invalid kitten item' }, 400));
         const kittens = (await env.DATA.get('kittens', 'json')) || [];
         body.id = crypto.randomUUID();
         body.createdAt = new Date().toISOString();
-        kittens.push(body);
-        await env.DATA.put('kittens', JSON.stringify(kittens));
+        const next = kittens.concat([body]);
+        const uniqueness = validateBreederIdUniqueness(kittens, next);
+        const shape = validateKittenShapes(next);
+        if (!uniqueness.ok) {
+          return addCors(json({ error: `breederIdが重複しています: ${uniqueness.ids.join(', ')}` }, 400));
+        }
+        if (!shape.ok) {
+          return addCors(json({ error: 'Invalid kitten data', details: shape.errors }, 400));
+        }
+        await env.DATA.put('kittens', JSON.stringify(next));
         return addCors(json(body, 201));
       }
 
       if (path.startsWith('/api/admin/kittens/') && method === 'PUT') {
         const id = path.split('/').pop();
         const body = await request.json();
+        if (!isPlainObject(body)) return addCors(json({ error: 'Invalid kitten patch' }, 400));
         let kittens = (await env.DATA.get('kittens', 'json')) || [];
         const idx = kittens.findIndex(k => k.id === id);
         if (idx === -1) return addCors(notFound());
-        kittens[idx] = { ...kittens[idx], ...body, id, updatedAt: new Date().toISOString() };
-        await env.DATA.put('kittens', JSON.stringify(kittens));
-        return addCors(json(kittens[idx]));
+        const updated = { ...kittens[idx], ...body, id, updatedAt: new Date().toISOString() };
+        const next = kittens.slice();
+        next[idx] = updated;
+        const uniqueness = validateBreederIdUniqueness(kittens, next);
+        const shape = validateKittenShapes(next);
+        if (!uniqueness.ok) {
+          return addCors(json({ error: `breederIdが重複しています: ${uniqueness.ids.join(', ')}` }, 400));
+        }
+        if (!shape.ok) {
+          return addCors(json({ error: 'Invalid kitten data', details: shape.errors }, 400));
+        }
+        await env.DATA.put('kittens', JSON.stringify(next));
+        return addCors(json(updated));
       }
 
       if (path.startsWith('/api/admin/kittens/') && method === 'DELETE') {
@@ -3043,8 +3363,7 @@ export default {
         if (!file) return addCors(json({ error: 'No file provided' }, 400));
 
         const ext = file.name.split('.').pop().toLowerCase();
-        const allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'mp4'];
-        if (!allowed.includes(ext)) {
+        if (!Object.prototype.hasOwnProperty.call(UPLOAD_CONTENT_TYPES, ext)) {
           return addCors(json({ error: 'File type not allowed' }, 400));
         }
 
@@ -3052,14 +3371,18 @@ export default {
         if (file.size > 10 * 1024 * 1024) {
           return addCors(json({ error: 'File too large (max 10MB)' }, 400));
         }
+        if (!(await uploadSignatureMatches(file, ext))) {
+          return addCors(json({ error: 'File content does not match its extension' }, 415));
+        }
 
         const key = `uploads/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
         await env.BUCKET.put(key, file.stream(), {
-          httpMetadata: { contentType: file.type },
+          httpMetadata: { contentType: UPLOAD_CONTENT_TYPES[ext] },
         });
 
-        // R2 public URL — カスタムドメインまたは r2.dev を設定後に使用
-        const publicUrl = `https://${url.hostname}/${key}`;
+        // Return the URL handled by this Worker's public R2 route. The object key is
+        // deliberately generated from a closed safe alphabet above.
+        const publicUrl = `${url.origin}/r2/${key}`;
 
         return addCors(json({ url: publicUrl, key }));
       }
@@ -3460,4 +3783,4 @@ export default {
 // Named exports for unit testing (ignored by the Workers runtime, which only reads
 // the default export). tests/validate-breederid.test.js keeps a synced copy because
 // this project has no package.json / module toolchain to import ESM from plain Node.
-export { validateBreederIdUniqueness, dupCounts, validateSmallAnimalShape, validateCalendarEvent, rangeOverlap, icsEscape, buildIcs, bookingStatusToEventStatus, applyBookingCalendarSync };
+export { validateBreederIdUniqueness, dupCounts, validateKittenShapes, isSafePublicCatalogId, validateSmallAnimalShape, visibleSmallAnimals, validateCalendarEvent, rangeOverlap, icsEscape, buildIcs, bookingStatusToEventStatus, applyBookingCalendarSync };

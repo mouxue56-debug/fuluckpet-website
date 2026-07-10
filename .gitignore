@@ -20,3 +20,6 @@ tools/tmp/
 # Temp plans
 PLAN.md
 docs/
+
+# Local-only generated previews (may contain secret launch slugs)
+.private-preview/

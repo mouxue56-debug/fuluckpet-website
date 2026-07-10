@@ -33,6 +33,10 @@ function assetVersion(html, file) {
   const m = html.match(new RegExp(file.replace(/\./g, '\\.') + '\\?v=([\\w.-]+)'));
   return m ? m[1] : null;
 }
+function canonicalHref(html) {
+  const match = String(html || '').match(/<link\s+rel=["']canonical["']\s+href=["']([^"']+)["']/i);
+  return match ? match[1] : '';
+}
 function listHtmlTree(absDir = SITE, relDir = '') {
   const skipDirs = new Set(['.git', '.superpowers', 'node_modules']);
   const pages = [];
@@ -148,12 +152,13 @@ if (sitemap) {
     'parents.html',
     'reviews.html',
     ...listHtml('blog'),
+    ...listHtml('guide'),
     ...listHtml('kittens'),
     ...listHtml('en/kittens'),
     ...listHtml('zh/kittens'),
     ...listHtml('diary'),
   ];
-  for (const p of ['en/kittens.html', 'zh/kittens.html', 'diary/index.html']) {
+  for (const p of ['en/kittens.html', 'zh/kittens.html', 'diary/index.html', 'guide/index.html']) {
     if (read(p) != null) indexableGeneratedPages.push(p);
   }
   for (const p of indexableGeneratedPages) {
@@ -164,6 +169,11 @@ if (sitemap) {
       : `/${p}`;
     const loc = `https://fuluckpet.com${route}`;
     if (hasNoindexMeta(html)) {
+      continue;
+    }
+    const canonical = canonicalHref(html);
+    if (canonical && canonical !== loc) {
+      // A disk alias belongs to its canonical destination, not to sitemap.xml.
       continue;
     }
     if (!locSet.has(loc)) errors.push(`[sitemap] missing <loc>: ${loc}`);

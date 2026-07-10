@@ -10,10 +10,10 @@
   var currentFilter = 'all';
 
   var CATEGORIES = {
-    general:  { ja:'一般',    en:'General',  zh:'一般',  icon:'<i class="ico ico-message-circle" aria-hidden="true"></i>' },
-    purchase: { ja:'ご購入',  en:'Purchase', zh:'购买',  icon:'<i class="ico ico-shopping-cart" aria-hidden="true"></i>' },
-    care:     { ja:'お世話',  en:'Care',     zh:'护理',  icon:'<i class="ico ico-paw-print" aria-hidden="true"></i>' },
-    health:   { ja:'健康',    en:'Health',   zh:'健康',  icon:'<i class="ico ico-pill" aria-hidden="true"></i>' }
+    general:  { ja:'一般',    en:'General',  zh:'一般',  icon:'ico-message-circle' },
+    purchase: { ja:'ご購入',  en:'Purchase', zh:'购买',  icon:'ico-shopping-cart' },
+    care:     { ja:'お世話',  en:'Care',     zh:'护理',  icon:'ico-paw-print' },
+    health:   { ja:'健康',    en:'Health',   zh:'健康',  icon:'ico-pill' }
   };
 
   function getLang() {
@@ -26,14 +26,20 @@
     return obj[lang] || obj.ja || obj.en || '';
   }
 
-  function catLabel(key) {
-    var c = CATEGORIES[key];
-    return c ? txt(c) : key;
+  function isKnownCategory(key) {
+    return Object.prototype.hasOwnProperty.call(CATEGORIES, key);
   }
 
-  function catIcon(key) {
-    var c = CATEGORIES[key];
-    return c ? c.icon : '';
+  function catLabel(key) {
+    var c = isKnownCategory(key) ? CATEGORIES[key] : null;
+    return c ? txt(c) : String(key || '');
+  }
+
+  function createIcon(iconClass) {
+    var icon = document.createElement('i');
+    icon.className = 'ico ' + iconClass;
+    icon.setAttribute('aria-hidden', 'true');
+    return icon;
   }
 
   function countByCat(cat) {
@@ -43,34 +49,87 @@
 
   function renderFilters() {
     if (!filterContainer) return;
-    var cats = {};
+    var cats = Object.create(null);
     allFaq.forEach(function(f) { if (f.category) cats[f.category] = true; });
     var lang = getLang();
     var allLabel = lang === 'zh' ? '全部' : lang === 'en' ? 'All' : 'すべて';
+    filterContainer.textContent = '';
 
-    var html = '<button class="faq-filter-btn active" data-cat="all">' +
-      '<span class="filter-icon"><i class="ico ico-clipboard-list" aria-hidden="true"></i></span>' + allLabel +
-      '<span class="faq-filter-count">' + countByCat('all') + '</span>' +
-      '</button>';
-
-    Object.keys(CATEGORIES).forEach(function(c) {
-      if (cats[c]) {
-        html += '<button class="faq-filter-btn" data-cat="' + c + '">' +
-          '<span class="filter-icon">' + catIcon(c) + '</span>' + catLabel(c) +
-          '<span class="faq-filter-count">' + countByCat(c) + '</span>' +
-          '</button>';
-      }
-    });
-
-    filterContainer.innerHTML = html;
-    filterContainer.querySelectorAll('.faq-filter-btn').forEach(function(btn) {
-      btn.addEventListener('click', function() {
+    function appendFilter(category, label, iconClass) {
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'faq-filter-btn' + (currentFilter === category ? ' active' : '');
+      button.dataset.cat = category;
+      var iconWrap = document.createElement('span');
+      iconWrap.className = 'filter-icon';
+      iconWrap.appendChild(createIcon(iconClass));
+      button.appendChild(iconWrap);
+      button.appendChild(document.createTextNode(label));
+      var count = document.createElement('span');
+      count.className = 'faq-filter-count';
+      count.textContent = countByCat(category);
+      button.appendChild(count);
+      button.addEventListener('click', function() {
         currentFilter = this.dataset.cat;
-        filterContainer.querySelectorAll('.faq-filter-btn').forEach(function(b) { b.classList.remove('active'); });
+        filterContainer.querySelectorAll('.faq-filter-btn').forEach(function(item) { item.classList.remove('active'); });
         this.classList.add('active');
         renderList();
       });
+      filterContainer.appendChild(button);
+    }
+
+    appendFilter('all', allLabel, 'ico-clipboard-list');
+
+    Object.keys(CATEGORIES).forEach(function(c) {
+      if (cats[c]) {
+        appendFilter(c, catLabel(c), CATEGORIES[c].icon);
+      }
     });
+  }
+
+  function renderEmpty(message, iconClass) {
+    listContainer.textContent = '';
+    var empty = document.createElement('div');
+    empty.className = 'faq-empty';
+    var iconWrap = document.createElement('div');
+    iconWrap.className = 'faq-empty-icon';
+    iconWrap.appendChild(createIcon(iconClass));
+    var text = document.createElement('p');
+    text.textContent = message;
+    empty.appendChild(iconWrap);
+    empty.appendChild(text);
+    listContainer.appendChild(empty);
+  }
+
+  function createFaqItem(item, index) {
+    item = item && typeof item === 'object' ? item : {};
+    var faqItem = document.createElement('div');
+    faqItem.className = 'faq-item';
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'faq-q';
+    button.textContent = txt(item.question);
+    button.setAttribute('aria-expanded', 'false');
+    var panel = document.createElement('div');
+    panel.className = 'faq-a';
+    panel.id = 'faq-a-' + index;
+    panel.setAttribute('role', 'region');
+    button.setAttribute('aria-controls', panel.id);
+    var answer = document.createElement('p');
+    answer.textContent = txt(item.answer);
+    panel.appendChild(answer);
+    button.addEventListener('click', function() {
+      var isActive = faqItem.classList.contains('active');
+      listContainer.querySelectorAll('.faq-item').forEach(function(row) { row.classList.remove('active'); });
+      listContainer.querySelectorAll('.faq-q').forEach(function(question) { question.setAttribute('aria-expanded', 'false'); });
+      if (!isActive) {
+        faqItem.classList.add('active');
+        button.setAttribute('aria-expanded', 'true');
+      }
+    });
+    faqItem.appendChild(button);
+    faqItem.appendChild(panel);
+    return faqItem;
   }
 
   function renderList() {
@@ -81,69 +140,56 @@
     if (items.length === 0) {
       var lang = getLang();
       var msg = lang === 'zh' ? '暂无FAQ' : lang === 'en' ? 'No FAQs yet' : 'まだFAQがありません';
-      listContainer.innerHTML = '<div class="faq-empty"><div class="faq-empty-icon"><i class="ico ico-search" aria-hidden="true"></i></div><p>' + msg + '</p></div>';
+      renderEmpty(msg, 'ico-search');
       return;
     }
 
-    function itemHtml(item) {
-      var q = txt(item.question);
-      var a = txt(item.answer);
-      return '<div class="faq-item">' +
-        '<button class="faq-q">' + q + '</button>' +
-        '<div class="faq-a"><p>' + a + '</p></div>' +
-        '</div>';
-    }
+    var fragment = document.createDocumentFragment();
+    var itemIndex = 0;
 
     // 'all' view: group by category with the designed .faq-cat-label dividers.
     // (The static HTML ships these labels for SEO/no-JS, but this re-render used to
     // drop them — visitors never saw the grouped layout. Keep flat when filtered.)
     if (currentFilter === 'all') {
-      var groups = [];
       Object.keys(CATEGORIES).forEach(function(c) {
         var inCat = items.filter(function(f) { return f.category === c; });
         if (inCat.length) {
-          groups.push('<div class="faq-cat-label cat-' + c + '">' + catIcon(c) + ' ' + catLabel(c) + '</div>');
-          groups.push(inCat.map(itemHtml).join('\n'));
+          var categoryLabel = document.createElement('div');
+          categoryLabel.className = 'faq-cat-label cat-' + c;
+          categoryLabel.appendChild(createIcon(CATEGORIES[c].icon));
+          categoryLabel.appendChild(document.createTextNode(' ' + catLabel(c)));
+          fragment.appendChild(categoryLabel);
+          inCat.forEach(function(item) {
+            fragment.appendChild(createFaqItem(item, itemIndex++));
+          });
         }
       });
-      var uncat = items.filter(function(f) { return !CATEGORIES[f.category]; });
-      if (uncat.length) groups.push(uncat.map(itemHtml).join('\n'));
-      listContainer.innerHTML = groups.join('\n');
-    } else {
-      listContainer.innerHTML = items.map(itemHtml).join('\n');
-    }
-
-    // Bind accordion click handlers (+ a11y: expose expand state and link Q→A)
-    listContainer.querySelectorAll('.faq-q').forEach(function(btn, idx) {
-      var panel = btn.nextElementSibling; // .faq-a
-      if (panel) {
-        if (!panel.id) panel.id = 'faq-a-' + idx;
-        panel.setAttribute('role', 'region');
-        btn.setAttribute('aria-controls', panel.id);
-      }
-      btn.setAttribute('aria-expanded', 'false');
-      btn.addEventListener('click', function() {
-        var item = this.parentElement;
-        var isActive = item.classList.contains('active');
-        listContainer.querySelectorAll('.faq-item').forEach(function(fi) { fi.classList.remove('active'); });
-        listContainer.querySelectorAll('.faq-q').forEach(function(b) { b.setAttribute('aria-expanded', 'false'); });
-        if (!isActive) { item.classList.add('active'); this.setAttribute('aria-expanded', 'true'); }
+      var uncat = items.filter(function(f) { return !isKnownCategory(f.category); });
+      uncat.forEach(function(item) {
+        fragment.appendChild(createFaqItem(item, itemIndex++));
       });
-    });
+    } else {
+      items.forEach(function(item) {
+        fragment.appendChild(createFaqItem(item, itemIndex++));
+      });
+    }
+    listContainer.textContent = '';
+    listContainer.appendChild(fragment);
   }
 
   // Init
   fetch(API + '/api/faq')
     .then(function(r) { return r.json(); })
     .then(function(data) {
-      allFaq = data || [];
+      if (!Array.isArray(data)) throw new Error('Invalid FAQ collection');
+      allFaq = data.filter(function(item) { return item && typeof item === 'object'; });
       renderFilters();
       renderList();
     })
     .catch(function() {
       var lang = getLang();
       var msg = lang === 'zh' ? '加载失败，请稍后重试' : lang === 'en' ? 'Failed to load. Please try again.' : '読み込みに失敗しました。再度お試しください。';
-      listContainer.innerHTML = '<div class="faq-empty"><div class="faq-empty-icon"><i class="ico ico-triangle-alert" aria-hidden="true"></i></div><p>' + msg + '</p></div>';
+      renderEmpty(msg, 'ico-triangle-alert');
     });
 
   // Re-render on language change

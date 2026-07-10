@@ -137,6 +137,14 @@ function loadImageConfig() {
   applyImgLang();
 }
 
+function safeAdminImagePreviewUrl(value) {
+  var url = String(value || '').trim();
+  if (/^https:\/\/[^\s"'<>\\\u0000-\u001f\u007f]+$/i.test(url)) return url;
+  if (/^\/(?!\/)[^\s"'<>\\\u0000-\u001f\u007f]+$/.test(url)) return url;
+  if (/^data:image\/(?:png|jpe?g|gif|webp);base64,[a-z0-9+/=]+$/i.test(url)) return url;
+  return '';
+}
+
 function updatePreviewFor(fieldId) {
   var inputEl = document.getElementById(fieldId);
   if (!inputEl) return;
@@ -153,12 +161,38 @@ function updatePreviewFor(fieldId) {
     inputGroup.appendChild(preview);
   }
 
-  var url = inputEl.value.trim();
-  if (url) {
-    var isBase64 = url.indexOf('data:') === 0;
-    preview.innerHTML = '<img src="' + url + '" style="max-width:120px;max-height:80px;border-radius:6px;border:1px solid #e0e0e0;object-fit:cover;" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'inline\'"><span style="display:none;color:var(--text-light);font-size:11px;">🖼 ' + t('読み込み失敗','加载失败') + '</span>' + (isBase64 ? '<div style="font-size:10px;color:var(--mint-dark);margin-top:2px;">' + t('📤 保存時にクラウドへ自動アップロード','📤 保存时将自动上传到云端') + '</div>' : '');
-  } else {
-    preview.innerHTML = '';
+  var rawUrl = inputEl.value.trim();
+  var url = safeAdminImagePreviewUrl(rawUrl);
+  preview.textContent = '';
+  if (!rawUrl) return;
+
+  if (!url) {
+    var invalid = document.createElement('span');
+    invalid.style.cssText = 'color:var(--danger-dark);font-size:11px;';
+    invalid.textContent = '🖼 ' + t('安全な画像URLを入力してください','请输入安全的图片URL');
+    preview.appendChild(invalid);
+    return;
+  }
+
+  var image = document.createElement('img');
+  image.src = url;
+  image.alt = '';
+  image.style.cssText = 'max-width:120px;max-height:80px;border-radius:6px;border:1px solid #e0e0e0;object-fit:cover;';
+  var failure = document.createElement('span');
+  failure.style.cssText = 'display:none;color:var(--text-light);font-size:11px;';
+  failure.textContent = '🖼 ' + t('読み込み失敗','加载失败');
+  image.addEventListener('error', function() {
+    image.style.display = 'none';
+    failure.style.display = 'inline';
+  });
+  preview.appendChild(image);
+  preview.appendChild(failure);
+
+  if (url.indexOf('data:') === 0) {
+    var uploadHint = document.createElement('div');
+    uploadHint.style.cssText = 'font-size:10px;color:var(--mint-dark);margin-top:2px;';
+    uploadHint.textContent = t('📤 保存時にクラウドへ自動アップロード','📤 保存时将自动上传到云端');
+    preview.appendChild(uploadHint);
   }
 }
 

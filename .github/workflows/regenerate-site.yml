@@ -14,6 +14,7 @@ concurrency:
 
 jobs:
   regenerate:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -68,6 +69,26 @@ jobs:
               git rebase --abort || true
               exit 1
             }
+
+            # The base changed after our first green run. Regenerate and re-run every
+            # gate against the rebased HEAD before another push attempt.
+            node tools/generate-site.js
+            node tools/generate-diary.js
+            node --test tests/*.test.js
+            node tools/verify-generated.js
+            git add -A
+
+            if [ "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" ]; then
+              if git diff --staged --quiet; then
+                echo "Concurrent push already contains the generated output; nothing left to push."
+                echo "pushed=false" >> "$GITHUB_OUTPUT"
+                exit 0
+              fi
+              git commit -m "Auto-regenerate static pages"
+            elif ! git diff --staged --quiet; then
+              git commit --amend --no-edit
+            fi
+            BEFORE=$(git rev-parse HEAD^)
             sleep $((attempt * 3))
           done
 
@@ -91,14 +112,9 @@ jobs:
             exit 0
           fi
 
-          # Map paths -> https URLs (index.html -> /, others kept as-is), cap at 100.
-          URLS=$(printf '%s\n' "$CHANGED" | awk '
-            {
-              p=$0;
-              if (p=="index.html") { print "https://fuluckpet.com/"; next }
-              sub(/\/index\.html$/, "/", p);
-              print "https://fuluckpet.com/" p;
-            }' | head -100)
+          # Map only indexable files to URLs. The shared robots-meta parser keeps
+          # boarding and every dark-launch/noindex surface away from IndexNow.
+          URLS=$(printf '%s\n' "$CHANGED" | node tools/indexnow-urls.js | head -100)
 
           COUNT=$(printf '%s\n' "$URLS" | grep -c . || true)
           if [ "$COUNT" -eq 0 ]; then

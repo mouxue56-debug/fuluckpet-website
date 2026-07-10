@@ -14,8 +14,9 @@ function hasNoindexMeta(html) {
   return tags.some((tag) => {
     const name = metaAttribute(tag, 'name');
     const content = metaAttribute(tag, 'content');
-    return name && name.trim().toLowerCase() === 'robots' &&
-      content && /(?:^|[\s,])noindex(?:$|[\s,])/i.test(content);
+    if (!name || name.trim().toLowerCase() !== 'robots' || !content) return false;
+    const directives = content.toLowerCase().split(/[\s,]+/).filter(Boolean);
+    return directives.includes('noindex') || directives.includes('none');
   });
 }
 

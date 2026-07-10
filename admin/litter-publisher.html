@@ -126,7 +126,35 @@ var KONEKO='https://www.koneko-breeder.com/breeder_c995680.html';
 var SITE='https://fuluckpet.com';
 var kittens=[], selected=new Set();
 
-function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function escAttr(s){return esc(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+function safeImageUrl(value){
+  if(typeof value!=='string') return '';
+  var raw=value.trim();
+  if(!raw || /[\u0000-\u001f\u007f\s"'`<>]/.test(raw)) return '';
+  try{
+    var parsed=new URL(raw,SITE+'/');
+    return parsed.protocol==='https:'||parsed.protocol==='http:'?parsed.href:'';
+  }catch(_err){return '';}
+}
+function safeLinkUrl(value){
+  if(typeof value!=='string') return '';
+  var raw=value.trim();
+  if(!raw || /[\u0000-\u001f\u007f\s"'`<>]/.test(raw)) return '';
+  try{
+    var parsed=new URL(raw,SITE+'/admin/');
+    return parsed.protocol==='https:'||parsed.protocol==='http:'?raw:'';
+  }catch(_err){return '';}
+}
+function node(tag,className,text){
+  var el=document.createElement(tag);
+  if(className) el.className=className;
+  if(text!=null) el.textContent=String(text);
+  return el;
+}
+function showEmpty(container,message){
+  container.replaceChildren(node('div','empty',message));
+}
 function fmtPrice(p){return '¥'+Number(p||0).toLocaleString('ja-JP')}
 
 // group kittens by papa+mama+birth-month
@@ -144,19 +172,53 @@ function groupLitters(ks){
 function render(){
   var groups=groupLitters(kittens);
   var el=document.getElementById('litterGroups');
-  if(!groups.length){el.innerHTML='<div class="empty">在籍中の子猫がありません。子猫管理で登録してください。</div>';return;}
-  el.innerHTML=groups.map(function(g,gi){
+  if(!groups.length){showEmpty(el,'在籍中の子猫がありません。子猫管理で登録してください。');return;}
+  var groupNodes=groups.map(function(g,gi){
     var label=(g.papa!=='?'?g.papa:'親不明')+' × '+(g.mama!=='?'?g.mama:'親不明')+'｜'+(g.birthday||'-')+'生まれ・'+g.kits.length+'匹';
-    var cards=g.kits.map(function(k){
-      var sel=selected.has(k.breederId||k.id)?' sel':'';
-      var img=(k.photos&&k.photos[0])||'';
-      return '<div class="kit'+sel+'" data-id="'+esc(k.breederId||k.id)+'">'+
-        '<div class="chk">✓</div>'+
-        (img?'<img src="'+esc(img)+'" alt="" loading="lazy" onerror="this.style.background=\'#eee\'">':'<div style="height:110px;background:#f3f3f3;display:flex;align-items:center;justify-content:center;font-size:26px">🐱</div>')+
-        '<div class="meta"><b>'+esc(k.gender||'')+' '+esc(k.color||'')+'</b><br>'+esc(k.breederId||'')+'｜'+fmtPrice(k.price)+'</div></div>';
-    }).join('');
-    return '<div class="lg"><div class="lg-head" data-grp="'+gi+'">🐈 '+esc(label)+'<span class="pick">この窝を全選択</span></div><div class="kit-grid">'+cards+'</div></div>';
-  }).join('');
+    var group=node('div','lg');
+    var head=node('div','lg-head');
+    head.dataset.grp=String(gi);
+    head.appendChild(node('span','', '🐈 '+label));
+    head.appendChild(node('span','pick','この窝を全選択'));
+    group.appendChild(head);
+
+    var grid=node('div','kit-grid');
+    g.kits.forEach(function(k){
+      var id=String(k.breederId||k.id||'');
+      var card=node('div','kit'+(selected.has(id)?' sel':''));
+      card.dataset.id=id;
+      card.appendChild(node('div','chk','✓'));
+
+      var img=safeImageUrl(k.photos&&k.photos[0]);
+      if(img){
+        var image=node('img');
+        image.src=img;
+        image.alt='';
+        image.loading='lazy';
+        image.addEventListener('error',function(){image.style.background='#eee';});
+        card.appendChild(image);
+      }else{
+        var placeholder=node('div','', '🐱');
+        placeholder.style.height='110px';
+        placeholder.style.background='#f3f3f3';
+        placeholder.style.display='flex';
+        placeholder.style.alignItems='center';
+        placeholder.style.justifyContent='center';
+        placeholder.style.fontSize='26px';
+        card.appendChild(placeholder);
+      }
+
+      var meta=node('div','meta');
+      meta.appendChild(node('b','',(k.gender||'')+' '+(k.color||'')));
+      meta.appendChild(node('br'));
+      meta.appendChild(node('span','',(k.breederId||'')+'｜'+fmtPrice(k.price)));
+      card.appendChild(meta);
+      grid.appendChild(card);
+    });
+    group.appendChild(grid);
+    return group;
+  });
+  el.replaceChildren.apply(el,groupNodes);
   window.__groups=groups;
 }
 
@@ -189,14 +251,14 @@ function hashtags(ks){
 }
 function blogDraft(ks,title,date){
   var rows=ks.map(function(k){
-    var img=(k.photos&&k.photos[0])||'';
-    return '    <figure class="blog-figure">\n'+(img?'      <img src="'+img+'" alt="'+esc(k.color)+'のサイベリアン子猫" loading="lazy">\n':'')+
+    var img=safeImageUrl(k.photos&&k.photos[0]);
+    return '    <figure class="blog-figure">\n'+(img?'      <img src="'+escAttr(img)+'" alt="'+escAttr((k.color||'')+'のサイベリアン子猫')+'" loading="lazy">\n':'')+
       '      <figcaption>'+esc(k.gender)+'・'+esc(k.color)+'（'+esc(k.breederId)+'）／'+fmtPrice(k.price)+'（税込）</figcaption>\n    </figure>';
   }).join('\n');
   return '<p>'+esc(ks[0].papa)+'と'+esc(ks[0].mama)+'の間に、'+ks.length+'匹のサイベリアンの子猫が誕生しました🐾 '+
     '低アレルゲンで穏やかな性格を大切に、健康管理と社会化を丁寧に行いながら育てています。</p>\n\n'+
     '<h2>今回の子猫たち</h2>\n'+rows+'\n\n'+
-    '<p>毛色は'+uniq(colorsList(ks)).join('・')+'。お迎えをご検討の方は、LINEまたは見学予約からお気軽にご相談ください。実際に会って相性を確かめていただけます。</p>';
+    '<p>毛色は'+uniq(colorsList(ks)).map(esc).join('・')+'。お迎えをご検討の方は、LINEまたは見学予約からお気軽にご相談ください。実際に会って相性を確かめていただけます。</p>';
 }
 function igCaption(ks,title){
   return '🐾 '+title+'\n\n'+ks[0].papa+'×'+ks[0].mama+'の子猫が'+ks.length+'匹、すこやかに育っています。\n毛色は'+uniq(colorsList(ks)).slice(0,4).join('・')+'✨\n\n低アレルゲンで穏やか、大阪のサイベリアン専門ブリーダー（みんなの子猫ブリーダー全国1位🏆）。\nお迎え・見学のご相談はプロフィールのLINEから💬\n\n'+hashtags(ks);
@@ -217,11 +279,38 @@ function marketplaceFields(ks){
   }).join('\n\n');
 }
 
-function chan(id,icon,name,tag,value,note){
-  return '<div class="chan"><div class="chan-h">'+icon+' '+name+'<span class="tag">'+tag+'</span></div>'+
-    '<div class="chan-body"><textarea id="'+id+'">'+esc(value)+'</textarea>'+
-    '<div class="chan-actions"><button class="btn btn-mint" data-copy="'+id+'">📋 コピー</button>'+(note||'')+
-    '<span class="copied" id="cp-'+id+'">コピーしました</span></div></div></div>';
+function chan(id,icon,name,tag,value,link){
+  var channel=node('div','chan');
+  var heading=node('div','chan-h',icon+' '+name);
+  heading.appendChild(node('span','tag',tag));
+  channel.appendChild(heading);
+
+  var body=node('div','chan-body');
+  var textarea=node('textarea');
+  textarea.id=id;
+  textarea.value=String(value==null?'':value);
+  body.appendChild(textarea);
+
+  var actions=node('div','chan-actions');
+  var copy=node('button','btn btn-mint','📋 コピー');
+  copy.type='button';
+  copy.dataset.copy=id;
+  actions.appendChild(copy);
+
+  var href=link&&safeLinkUrl(link.href);
+  if(href){
+    var external=node('a','btn btn-ghost',link.label||'開く ↗');
+    external.href=href;
+    external.target='_blank';
+    external.rel='noopener';
+    actions.appendChild(external);
+  }
+  var copied=node('span','copied','コピーしました');
+  copied.id='cp-'+id;
+  actions.appendChild(copied);
+  body.appendChild(actions);
+  channel.appendChild(body);
+  return channel;
 }
 
 document.getElementById('genBtn').addEventListener('click',function(){
@@ -231,13 +320,14 @@ document.getElementById('genBtn').addEventListener('click',function(){
   var date=document.getElementById('litterDate').value||ks[0].birthday||'';
   window.__ctx={ks:ks,title:title,date:date};
 
-  document.getElementById('channels').innerHTML=
-    chan('cBlog','📝','公式ブログ下書き','HTML',blogDraft(ks,title,date),'<a class="btn btn-ghost" href="blog-editor.html" target="_blank">ブログ編集を開く ↗</a>')+
-    chan('cLine','💬','LINE先行案内','テキスト',lineBroadcast(ks,title),'<a class="btn btn-ghost" href="https://manager.line.biz/" target="_blank">LINE公式を開く ↗</a>')+
-    chan('cKoneko','🏆','みんなの子猫ブリーダー登録項目','貼付用',marketplaceFields(ks),'<a class="btn btn-ghost" href="'+KONEKO+'" target="_blank">出品ページを開く ↗</a>')+
-    chan('cIg','📸','Instagram キャプション','SNS',igCaption(ks,title),'<a class="btn btn-ghost" href="https://www.instagram.com/fuluckpet/" target="_blank">IGを開く ↗</a>')+
-    chan('cTt','🎵','TikTok キャプション','SNS',tiktokCaption(ks),'<a class="btn btn-ghost" href="https://www.tiktok.com/@fuluckpet" target="_blank">TikTokを開く ↗</a>')+
-    chan('cYt','▶️','YouTube 説明欄','SNS',ytDesc(ks,title),'<a class="btn btn-ghost" href="https://www.youtube.com/@fuluckpet" target="_blank">YouTubeを開く ↗</a>');
+  document.getElementById('channels').replaceChildren(
+    chan('cBlog','📝','公式ブログ下書き','HTML',blogDraft(ks,title,date),{href:'blog-editor.html',label:'ブログ編集を開く ↗'}),
+    chan('cLine','💬','LINE先行案内','テキスト',lineBroadcast(ks,title),{href:'https://manager.line.biz/',label:'LINE公式を開く ↗'}),
+    chan('cKoneko','🏆','みんなの子猫ブリーダー登録項目','貼付用',marketplaceFields(ks),{href:KONEKO,label:'出品ページを開く ↗'}),
+    chan('cIg','📸','Instagram キャプション','SNS',igCaption(ks,title),{href:'https://www.instagram.com/fuluckpet/',label:'IGを開く ↗'}),
+    chan('cTt','🎵','TikTok キャプション','SNS',tiktokCaption(ks),{href:'https://www.tiktok.com/@fuluckpet',label:'TikTokを開く ↗'}),
+    chan('cYt','▶️','YouTube 説明欄','SNS',ytDesc(ks,title),{href:'https://www.youtube.com/@fuluckpet',label:'YouTubeを開く ↗'})
+  );
 
   // checklist (traffic-optimal order)
   var steps=[
@@ -248,12 +338,34 @@ document.getElementById('genBtn').addEventListener('click',function(){
     {h:'⑤ TikTok に投稿',p:'最初の3秒がカギ。短い縦動画＋キャプション。',copy:'cTt',open:'https://www.tiktok.com/@fuluckpet',btn:'TikTok'},
     {h:'⑥ YouTube に投稿',p:'成長動画＋説明欄（SEO）。',copy:'cYt',open:'https://www.youtube.com/@fuluckpet',btn:'YouTube'}
   ];
-  document.getElementById('checklist').innerHTML=steps.map(function(s,i){
-    return '<div class="step-row" data-i="'+i+'"><div class="step-no" data-toggle="'+i+'">'+(i+1)+'</div>'+
-      '<div class="step-main"><h4>'+s.h+'</h4><p>'+s.p+'</p><div class="acts">'+
-      '<button class="btn btn-mint" data-copy="'+s.copy+'">📋 内容をコピー</button>'+
-      '<a class="btn btn-ghost" href="'+s.open+'" target="_blank">'+s.btn+' ↗</a></div></div></div>';
-  }).join('');
+  var stepNodes=steps.map(function(s,i){
+    var row=node('div','step-row');
+    row.dataset.i=String(i);
+    var number=node('div','step-no',i+1);
+    number.dataset.toggle=String(i);
+    row.appendChild(number);
+
+    var main=node('div','step-main');
+    main.appendChild(node('h4','',s.h));
+    main.appendChild(node('p','',s.p));
+    var actions=node('div','acts');
+    var copy=node('button','btn btn-mint','📋 内容をコピー');
+    copy.type='button';
+    copy.dataset.copy=s.copy;
+    actions.appendChild(copy);
+    var href=safeLinkUrl(s.open);
+    if(href){
+      var external=node('a','btn btn-ghost',s.btn+' ↗');
+      external.href=href;
+      external.target='_blank';
+      external.rel='noopener';
+      actions.appendChild(external);
+    }
+    main.appendChild(actions);
+    row.appendChild(main);
+    return row;
+  });
+  document.getElementById('checklist').replaceChildren.apply(document.getElementById('checklist'),stepNodes);
   document.getElementById('genPanel').style.display='';
   document.getElementById('pubPanel').style.display='';
   document.getElementById('genPanel').scrollIntoView({behavior:'smooth'});
@@ -278,7 +390,7 @@ function updateProg(){
 // load kittens
 fetch(API+'/api/kittens').then(function(r){return r.json();}).then(function(d){
   kittens=Array.isArray(d)?d:[]; render();
-}).catch(function(){document.getElementById('litterGroups').innerHTML='<div class="empty">子猫データの読み込みに失敗しました。ネットワークをご確認ください。</div>';});
+}).catch(function(){showEmpty(document.getElementById('litterGroups'),'子猫データの読み込みに失敗しました。ネットワークをご確認ください。');});
 </script>
 </body>
 </html>

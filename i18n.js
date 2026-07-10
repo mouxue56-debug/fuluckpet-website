@@ -9,6 +9,7 @@ const translations = {
     // Navigation
     'nav.about': '猫舎について',
     'nav.kittens': '子猫一覧',
+    'nav.smallAnimals': '小動物一覧',
     'nav.parents': '親猫紹介',
     'nav.visit': '見学案内',
     'nav.faq': 'よくある質問',
@@ -137,7 +138,7 @@ const translations = {
     // FAQ
     'faq.title': 'よくある質問',
     'faq.q1': '猫アレルギーですが、サイベリアンなら大丈夫ですか？',
-    'faq.a1': 'サイベリアンはアレルゲン（Fel d1）の分泌量が他の猫種より少ないとされていますが、個人差があります。ご心配な方にはトライアル期間を設けることも可能ですので、お気軽にご相談ください。',
+    'faq.a1': 'サイベリアンはアレルゲン（Fel d1）の分泌量が他の猫種より少ないとされていますが、個人差があります。ご心配な方には見学時にアレルギーの相性チェックのお時間を長めにお取りすることが可能です。お気軽にLINEでご相談ください。',
     'faq.q2': '見学は予約制ですか？',
     'faq.a2': 'はい、完全予約制となっております。LINEまたはお電話にて前日までにご予約ください。対面見学のほか、LINEビデオ通話での見学も承っております。',
     'faq.q3': '遠方に住んでいますが、お迎えは可能ですか？',
@@ -545,6 +546,7 @@ const translations = {
     // Navigation
     'nav.about': 'About Us',
     'nav.kittens': 'Kittens',
+    'nav.smallAnimals': 'Small Animals',
     'nav.parents': 'Parent Cats',
     'nav.visit': 'Visit Us',
     'nav.faq': 'FAQ',
@@ -673,7 +675,7 @@ const translations = {
     // FAQ
     'faq.title': 'Frequently Asked Questions',
     'faq.q1': 'I have cat allergies. Are Siberians safe for me?',
-    'faq.a1': 'Siberians produce less Fel d1 allergen than other breeds, though individual results vary. We can arrange a trial period for those with concerns.',
+    'faq.a1': 'Siberians produce less Fel d1 allergen than other breeds, but individual sensitivity varies. We can extend visit time so you have a longer in-room compatibility check. Feel free to consult us via LINE.',
     'faq.q2': 'Are visits by appointment only?',
     'faq.a2': 'Yes, visits are by appointment only. Please contact us via LINE or phone at least one day in advance.',
     'faq.q3': 'I live far away. Can I still adopt?',
@@ -1081,6 +1083,7 @@ const translations = {
     // Navigation
     'nav.about': '关于我们',
     'nav.kittens': '幼猫一览',
+    'nav.smallAnimals': '小动物一览',
     'nav.parents': '种猫介绍',
     'nav.visit': '参观指南',
     'nav.faq': '常见问题',
@@ -1209,7 +1212,7 @@ const translations = {
     // FAQ
     'faq.title': '常见问题',
     'faq.q1': '我有猫过敏，养西伯利亚猫可以吗？',
-    'faq.a1': '西伯利亚猫的过敏原（Fel d1）分泌量低于其他猫种，但因人而异。如有顾虑，我们可以安排试养期。',
+    'faq.a1': '西伯利亚猫的过敏原（Fel d1）分泌量低于其他猫种，但因人而异。如有顾虑，参观时可延长时间做亲和度测试。欢迎通过LINE咨询。',
     'faq.q2': '参观需要预约吗？',
     'faq.a2': '是的，完全预约制。请至少提前一天通过LINE或电话预约。除现场参观外，也提供LINE视频看猫。',
     'faq.q3': '我住得比较远，可以领养吗？',

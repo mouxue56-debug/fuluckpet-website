@@ -1,6 +1,87 @@
 // admin-render.js — renderAll, syncFromAPI, dashboard, kittens/parents/reviews CRUD
 // Depends on: admin-images.js (t, admLang), admin-core.js (data, saveData, etc.)
 
+function adminRenderText(value) {
+  return value === null || value === undefined ? '' : String(value);
+}
+
+function adminRenderClear(node) {
+  if (!node) return;
+  node.textContent = '';
+  if (typeof node.replaceChildren === 'function') node.replaceChildren();
+}
+
+function adminRenderStyle(node, styles) {
+  Object.keys(styles || {}).forEach(function(property) {
+    node.style[property] = styles[property];
+  });
+  return node;
+}
+
+function adminRenderElement(tagName, text, className, styles) {
+  var node = document.createElement(tagName);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = adminRenderText(text);
+  return adminRenderStyle(node, styles);
+}
+
+function adminRenderCell(text, styles) {
+  return adminRenderElement('td', text, '', styles);
+}
+
+function adminRenderButton(label, className, handler, styles) {
+  var button = adminRenderElement('button', label, className, styles);
+  button.type = 'button';
+  button.addEventListener('click', handler);
+  return button;
+}
+
+function adminRenderSafePhotoUrl(value) {
+  var url = adminRenderText(value).trim();
+  if (/^https:\/\/[^\s\u0000-\u001f\u007f]+$/i.test(url)) return url;
+  if (/^\/(?!\/)/.test(url) && !/[\\\u0000-\u001f\u007f]/.test(url)) return url;
+  if (/^data:image\/(?:png|jpe?g|gif|webp);base64,[a-z0-9+/=]+$/i.test(url)) return url;
+  return '';
+}
+
+function adminRenderPhotoCell(type, id, cover, fallbackEmoji) {
+  var cell = document.createElement('td');
+  cell.className = 'thumb-cell';
+  var safeCover = adminRenderSafePhotoUrl(cover);
+  var preview;
+  if (safeCover) {
+    preview = document.createElement('img');
+    preview.src = safeCover;
+    preview.alt = t('写真', '照片');
+    preview.className = 'thumb-img';
+    preview.title = t('クリックで写真管理', '点击管理照片');
+  } else {
+    preview = adminRenderElement('div', fallbackEmoji, 'thumb-placeholder', { cursor: 'pointer' });
+    preview.title = t('クリックで写真追加', '点击添加照片');
+  }
+  preview.addEventListener('click', function() { openPhotoModal(type, id); });
+  cell.appendChild(preview);
+  return cell;
+}
+
+function adminRenderPopulateParentSelect(selectId, parents, selectedName) {
+  var select = document.getElementById(selectId);
+  adminRenderClear(select);
+  var empty = document.createElement('option');
+  empty.value = '';
+  empty.textContent = '-- 選択 --';
+  select.appendChild(empty);
+  (Array.isArray(parents) ? parents : []).forEach(function(parent) {
+    var name = adminRenderText(parent && parent.name);
+    var option = document.createElement('option');
+    option.value = name;
+    option.textContent = name;
+    option.selected = !!selectedName && selectedName === name;
+    select.appendChild(option);
+  });
+  select.value = selectedName || '';
+}
+
 function renderAll() {
   data = getData();
   renderDashboard();
@@ -80,7 +161,7 @@ function syncFromAPI() {
 
 // Dashboard
 function renderDashboard() {
-  var k = data.kittens;
+  var k = Array.isArray(data.kittens) ? data.kittens : [];
   var avail = k.filter(function(x) { return x.status === 'available'; }).length;
   var reserved = k.filter(function(x) { return x.status === 'reserved'; }).length;
   var sold = k.filter(function(x) { return x.status === 'sold'; }).length;
@@ -89,18 +170,45 @@ function renderDashboard() {
   document.getElementById('statReviews').textContent = data.reviews.length;
   document.getElementById('statAvailable').textContent = avail;
 
-  document.getElementById('dashboardSummary').innerHTML =
-    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">' +
-    '<div style="text-align:center;padding:20px;background:#C6F6D5;border-radius:8px;"><div style="font-size:24px;font-weight:700;color:#22543D;">' + avail + '</div><div style="font-size:12px;color:#22543D;">' + t('販売中','在售') + '</div></div>' +
-    '<div style="text-align:center;padding:20px;background:#FEFCBF;border-radius:8px;"><div style="font-size:24px;font-weight:700;color:#744210;">' + reserved + '</div><div style="font-size:12px;color:#744210;">' + t('商談中','洽谈中') + '</div></div>' +
-    '<div style="text-align:center;padding:20px;background:#FED7E2;border-radius:8px;"><div style="font-size:24px;font-weight:700;color:#702459;">' + sold + '</div><div style="font-size:12px;color:#702459;">' + t('ご家族決定','已找到家庭') + '</div></div>' +
-    '</div>';
+  var summary = document.getElementById('dashboardSummary');
+  adminRenderClear(summary);
+  var summaryGrid = adminRenderElement('div', undefined, '', {
+    display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '16px'
+  });
+  [
+    { count: avail, label: t('販売中','在售'), background: '#C6F6D5', color: '#22543D' },
+    { count: reserved, label: t('商談中','洽谈中'), background: '#FEFCBF', color: '#744210' },
+    { count: sold, label: t('ご家族決定','已找到家庭'), background: '#FED7E2', color: '#702459' }
+  ].forEach(function(item) {
+    var card = adminRenderElement('div', undefined, '', {
+      textAlign: 'center', padding: '20px', background: item.background, borderRadius: '8px'
+    });
+    card.appendChild(adminRenderElement('div', item.count, '', { fontSize: '24px', fontWeight: '700', color: item.color }));
+    card.appendChild(adminRenderElement('div', item.label, '', { fontSize: '12px', color: item.color }));
+    summaryGrid.appendChild(card);
+  });
+  summary.appendChild(summaryGrid);
 
   try {
     var logs = JSON.parse(localStorage.getItem(LOG_KEY) || '[]');
-    document.getElementById('changeLog').innerHTML = logs.length ? logs.slice(0, 10).map(function(l) {
-      return '<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--text-light);margin-right:12px;">' + l.time + '</span>' + l.msg + '</div>';
-    }).join('') : '<p style="color:var(--text-light);font-size:13px">' + t('まだ変更履歴はありません','暂无修改记录') + '</p>';
+    var changeLog = document.getElementById('changeLog');
+    adminRenderClear(changeLog);
+    if (Array.isArray(logs) && logs.length) {
+      logs.slice(0, 10).forEach(function(log) {
+        var row = adminRenderElement('div', undefined, '', {
+          padding: '8px 0', borderBottom: '1px solid var(--border)', fontSize: '13px'
+        });
+        row.appendChild(adminRenderElement('span', log && log.time, '', {
+          color: 'var(--text-light)', marginRight: '12px'
+        }));
+        row.appendChild(document.createTextNode ? document.createTextNode(adminRenderText(log && log.msg)) : adminRenderElement('span', log && log.msg));
+        changeLog.appendChild(row);
+      });
+    } else {
+      changeLog.appendChild(adminRenderElement('p', t('まだ変更履歴はありません','暂无修改记录'), '', {
+        color: 'var(--text-light)', fontSize: '13px'
+      }));
+    }
   } catch(e) {}
 }
 
@@ -114,37 +222,58 @@ function renderKittens(filter) {
   var pageItems = items.slice(start, start + PAGE_SIZE);
 
   var tbody = document.getElementById('kittensTableBody');
-  tbody.innerHTML = pageItems.map(function(k) {
+  adminRenderClear(tbody);
+  pageItems.forEach(function(k) {
+    if (!k || typeof k !== 'object') return;
     var cover = getCoverPhoto(k);
-    var photoCount = (k.photos || []).length;
+    var photoCount = Array.isArray(k.photos) ? k.photos.length : 0;
     var statusClass = k.status === 'available' ? 'badge-available' : k.status === 'reserved' ? 'badge-reserved' : 'badge-sold';
     var statusText = k.status === 'available' ? t('販売中','在售') : k.status === 'reserved' ? t('商談中','洽谈中') : t('ご家族決定','已找到家庭');
     var genderDisplay = k.gender === '♂' ? t('♂ 男の子','♂ 公') : t('♀ 女の子','♀ 母');
-    var birthdayDisplay = k.birthday ? k.birthday.replace('-', '年') + '月' : '--';
-    return '<tr>' +
-      '<td class="thumb-cell">' + (cover ? '<img src="' + cover + '" class="thumb-img" onclick="openPhotoModal(\'kitten\',\'' + k.id + '\')" title="クリックで写真管理">' : '<div class="thumb-placeholder" onclick="openPhotoModal(\'kitten\',\'' + k.id + '\')" style="cursor:pointer;" title="クリックで写真追加">🐱</div>') + '</td>' +
-      '<td>' + (k.breederId || '--') + '</td>' +
-      '<td>' + k.breed + '</td>' +
-      '<td>' + genderDisplay + '</td>' +
-      '<td style="max-width:150px;">' + k.color + '</td>' +
-      '<td>' + birthdayDisplay + '</td>' +
-      '<td>¥' + (k.price||0).toLocaleString() + '</td>' +
-      '<td><span class="status-badge ' + statusClass + '">' + statusText + '</span>' + (k.isNew ? ' <span style="background:var(--mint);color:white;font-size:10px;padding:1px 6px;border-radius:4px;">NEW</span>' : '') + '</td>' +
-      '<td style="font-size:12px;white-space:nowrap;">' + (k.papa||'--') + ' / ' + (k.mama||'--') + '</td>' +
-      '<td><div class="action-btns">' +
-        '<button class="action-btn photo" onclick="openPhotoModal(\'kitten\',\'' + k.id + '\')">' + t('写真','照片') + (photoCount > 0 ? '(' + photoCount + ')' : '') + '</button>' +
-        (k.video ? '<span style="color:#c4302b;font-size:11px;font-weight:600;" title="' + t('YouTube動画あり','有YouTube视频') + '">▶YT</span>' : '') +
-        '<button class="action-btn edit" onclick="editKitten(\'' + k.id + '\')">' + t('編集','编辑') + '</button>' +
-        '<button class="action-btn delete" onclick="deleteKitten(\'' + k.id + '\')">' + t('削除','删除') + '</button>' +
-      '</div>' +
-      '<div class="quick-actions" style="margin-top:4px;display:flex;gap:4px;flex-wrap:wrap;">' +
-        (k.status !== 'sold' ? '<button class="action-btn" style="font-size:10px;padding:2px 6px;background:#FC8181;color:#fff;" onclick="quickSetStatus(\'' + k.id + '\',\'sold\')">' + t('売約済','已售') + '</button>' : '') +
-        (k.status !== 'reserved' ? '<button class="action-btn" style="font-size:10px;padding:2px 6px;background:#F6AD55;color:#fff;" onclick="quickSetStatus(\'' + k.id + '\',\'reserved\')">' + t('商談','洽谈') + '</button>' : '') +
-        (k.status !== 'available' ? '<button class="action-btn" style="font-size:10px;padding:2px 6px;background:#68D391;color:#fff;" onclick="quickSetStatus(\'' + k.id + '\',\'available\')">' + t('販売中','在售') + '</button>' : '') +
-        '<button class="action-btn" style="font-size:10px;padding:2px 6px;background:var(--mint);color:#fff;" onclick="quickEditPrice(\'' + k.id + '\')">' + t('価格変更','改价') + '</button>' +
-      '</div></td>' +
-    '</tr>';
-  }).join('');
+    var birthday = adminRenderText(k.birthday);
+    var birthdayDisplay = birthday ? birthday.replace('-', '年') + '月' : '--';
+    var numericPrice = Number(k.price);
+    var row = document.createElement('tr');
+    row.appendChild(adminRenderPhotoCell('kitten', k.id, cover, '🐱'));
+    row.appendChild(adminRenderCell(k.breederId || '--'));
+    row.appendChild(adminRenderCell(k.breed));
+    row.appendChild(adminRenderCell(genderDisplay));
+    row.appendChild(adminRenderCell(k.color, { maxWidth: '150px' }));
+    row.appendChild(adminRenderCell(birthdayDisplay));
+    row.appendChild(adminRenderCell('¥' + (Number.isFinite(numericPrice) ? numericPrice : 0).toLocaleString('ja-JP')));
+
+    var statusCell = document.createElement('td');
+    statusCell.appendChild(adminRenderElement('span', statusText, 'status-badge ' + statusClass));
+    if (k.isNew) statusCell.appendChild(adminRenderElement('span', ' NEW', '', {
+      background: 'var(--mint)', color: 'white', fontSize: '10px', padding: '1px 6px', borderRadius: '4px'
+    }));
+    row.appendChild(statusCell);
+    row.appendChild(adminRenderCell((k.papa || '--') + ' / ' + (k.mama || '--'), { fontSize: '12px', whiteSpace: 'nowrap' }));
+
+    var actionsCell = document.createElement('td');
+    var actions = adminRenderElement('div', undefined, 'action-btns');
+    actions.appendChild(adminRenderButton(t('写真','照片') + (photoCount > 0 ? '(' + photoCount + ')' : ''), 'action-btn photo', function() {
+      openPhotoModal('kitten', k.id);
+    }));
+    if (k.video) {
+      var videoBadge = adminRenderElement('span', '▶YT', '', { color: '#c4302b', fontSize: '11px', fontWeight: '600' });
+      videoBadge.title = t('YouTube動画あり','有YouTube视频');
+      actions.appendChild(videoBadge);
+    }
+    actions.appendChild(adminRenderButton(t('編集','编辑'), 'action-btn edit', function() { editKitten(k.id); }));
+    actions.appendChild(adminRenderButton(t('削除','删除'), 'action-btn delete', function() { deleteKitten(k.id); }));
+    actionsCell.appendChild(actions);
+
+    var quick = adminRenderElement('div', undefined, 'quick-actions', { marginTop: '4px', display: 'flex', gap: '4px', flexWrap: 'wrap' });
+    var quickStyle = { fontSize: '10px', padding: '2px 6px', color: '#fff' };
+    if (k.status !== 'sold') quick.appendChild(adminRenderButton(t('売約済','已售'), 'action-btn', function() { quickSetStatus(k.id, 'sold'); }, Object.assign({}, quickStyle, { background: '#FC8181' })));
+    if (k.status !== 'reserved') quick.appendChild(adminRenderButton(t('商談','洽谈'), 'action-btn', function() { quickSetStatus(k.id, 'reserved'); }, Object.assign({}, quickStyle, { background: '#F6AD55' })));
+    if (k.status !== 'available') quick.appendChild(adminRenderButton(t('販売中','在售'), 'action-btn', function() { quickSetStatus(k.id, 'available'); }, Object.assign({}, quickStyle, { background: '#68D391' })));
+    quick.appendChild(adminRenderButton(t('価格変更','改价'), 'action-btn', function() { quickEditPrice(k.id); }, Object.assign({}, quickStyle, { background: 'var(--mint)' })));
+    actionsCell.appendChild(quick);
+    row.appendChild(actionsCell);
+    tbody.appendChild(row);
+  });
 
   renderPagination('kittenPagination', kittenPage, totalPages, function(p) { kittenPage = p; renderKittens(filter); });
 }
@@ -192,8 +321,8 @@ function openKittenForm(kitten) {
 
   var papas = data.parents.filter(function(p) { return p.gender === '♂'; });
   var mamas = data.parents.filter(function(p) { return p.gender === '♀'; });
-  document.getElementById('kf_papa').innerHTML = '<option value="">-- 選択 --</option>' + papas.map(function(p) { return '<option value="' + p.name + '"' + (kitten && kitten.papa === p.name ? ' selected' : '') + '>' + p.name + '</option>'; }).join('');
-  document.getElementById('kf_mama').innerHTML = '<option value="">-- 選択 --</option>' + mamas.map(function(p) { return '<option value="' + p.name + '"' + (kitten && kitten.mama === p.name ? ' selected' : '') + '>' + p.name + '</option>'; }).join('');
+  adminRenderPopulateParentSelect('kf_papa', papas, kitten && kitten.papa);
+  adminRenderPopulateParentSelect('kf_mama', mamas, kitten && kitten.mama);
 
   openModal('kittenFormModal');
 }
@@ -256,7 +385,7 @@ function renderParents(filter) {
   filter = filter || document.getElementById('parentFilterBreed').value;
   var items = data.parents;
   if (filter === 'siberian') items = items.filter(function(p) { return p.breed === 'サイベリアン'; });
-  else if (filter === 'british') items = items.filter(function(p) { return p.breed.indexOf('ブリティッシュ') >= 0; });
+  else if (filter === 'british') items = items.filter(function(p) { return adminRenderText(p && p.breed).indexOf('ブリティッシュ') >= 0; });
   else if (filter === 'ragdoll') items = items.filter(function(p) { return p.breed === 'ラグドール'; });
 
   var totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
@@ -265,26 +394,38 @@ function renderParents(filter) {
   var pageItems = items.slice(start, start + PAGE_SIZE);
 
   var tbody = document.getElementById('parentsTableBody');
-  tbody.innerHTML = pageItems.map(function(p) {
+  adminRenderClear(tbody);
+  pageItems.forEach(function(p) {
+    if (!p || typeof p !== 'object') return;
     var cover = getCoverPhoto(p);
-    var photoCount = (p.photos || []).length;
+    var photoCount = Array.isArray(p.photos) ? p.photos.length : 0;
     var roleClass = p.role === 'パパ猫' ? 'badge-available' : 'badge-reserved';
-    return '<tr>' +
-      '<td class="thumb-cell">' + (cover ? '<img src="' + cover + '" class="thumb-img" onclick="openPhotoModal(\'parent\',\'' + p.id + '\')" title="クリックで写真管理">' : '<div class="thumb-placeholder" onclick="openPhotoModal(\'parent\',\'' + p.id + '\')" style="cursor:pointer;">🐈</div>') + '</td>' +
-      '<td><strong>' + p.name + '</strong></td>' +
-      '<td>' + p.breed + '</td>' +
-      '<td>' + p.gender + '</td>' +
-      '<td>' + p.color + '</td>' +
-      '<td>' + p.age + '</td>' +
-      '<td><span class="status-badge ' + roleClass + '">' + p.role + '</span></td>' +
-      '<td>' + (p.tested ? '<span style="color:var(--success);font-weight:600;">✓ ' + t('検査済','已检测') + '</span>' : '<span style="color:var(--text-light);">' + t('未検査','未检测') + '</span>') + '</td>' +
-      '<td><div class="action-btns">' +
-        '<button class="action-btn photo" onclick="openPhotoModal(\'parent\',\'' + p.id + '\')">' + t('写真','照片') + (photoCount > 0 ? '(' + photoCount + ')' : '') + '</button>' +
-        '<button class="action-btn edit" onclick="editParent(\'' + p.id + '\')">' + t('編集','编辑') + '</button>' +
-        '<button class="action-btn delete" onclick="deleteParent(\'' + p.id + '\')">' + t('削除','删除') + '</button>' +
-      '</div></td>' +
-    '</tr>';
-  }).join('');
+    var row = document.createElement('tr');
+    row.appendChild(adminRenderPhotoCell('parent', p.id, cover, '🐈'));
+    var nameCell = document.createElement('td');
+    nameCell.appendChild(adminRenderElement('strong', p.name));
+    row.appendChild(nameCell);
+    row.appendChild(adminRenderCell(p.breed));
+    row.appendChild(adminRenderCell(p.gender));
+    row.appendChild(adminRenderCell(p.color));
+    row.appendChild(adminRenderCell(p.age));
+    var roleCell = document.createElement('td');
+    roleCell.appendChild(adminRenderElement('span', p.role, 'status-badge ' + roleClass));
+    row.appendChild(roleCell);
+    var testedCell = document.createElement('td');
+    testedCell.appendChild(adminRenderElement('span', p.tested ? '✓ ' + t('検査済','已检测') : t('未検査','未检测'), '', {
+      color: p.tested ? 'var(--success)' : 'var(--text-light)', fontWeight: p.tested ? '600' : ''
+    }));
+    row.appendChild(testedCell);
+    var actionsCell = document.createElement('td');
+    var actions = adminRenderElement('div', undefined, 'action-btns');
+    actions.appendChild(adminRenderButton(t('写真','照片') + (photoCount > 0 ? '(' + photoCount + ')' : ''), 'action-btn photo', function() { openPhotoModal('parent', p.id); }));
+    actions.appendChild(adminRenderButton(t('編集','编辑'), 'action-btn edit', function() { editParent(p.id); }));
+    actions.appendChild(adminRenderButton(t('削除','删除'), 'action-btn delete', function() { deleteParent(p.id); }));
+    actionsCell.appendChild(actions);
+    row.appendChild(actionsCell);
+    tbody.appendChild(row);
+  });
 
   renderPagination('parentPagination', parentPage, totalPages, function(p) { parentPage = p; renderParents(filter); });
 }
@@ -354,19 +495,26 @@ function deleteParent(id) {
 // Reviews CRUD
 function renderReviews() {
   var tbody = document.getElementById('reviewsTableBody');
-  tbody.innerHTML = data.reviews.map(function(r) {
-    var excerpt = r.body.length > 50 ? r.body.substring(0, 50) + '...' : r.body;
-    return '<tr>' +
-      '<td><strong>' + r.author + '</strong></td>' +
-      '<td>' + r.region + '</td>' +
-      '<td>' + r.date + '</td>' +
-      '<td style="max-width:300px;">' + excerpt + '</td>' +
-      '<td><div class="action-btns">' +
-        '<button class="action-btn edit" onclick="editReview(\'' + r.id + '\')">' + t('編集','编辑') + '</button>' +
-        '<button class="action-btn delete" onclick="deleteReview(\'' + r.id + '\')">' + t('削除','删除') + '</button>' +
-      '</div></td>' +
-    '</tr>';
-  }).join('');
+  adminRenderClear(tbody);
+  (Array.isArray(data.reviews) ? data.reviews : []).forEach(function(r) {
+    if (!r || typeof r !== 'object') return;
+    var body = adminRenderText(r.body);
+    var excerpt = body.length > 50 ? body.substring(0, 50) + '...' : body;
+    var row = document.createElement('tr');
+    var authorCell = document.createElement('td');
+    authorCell.appendChild(adminRenderElement('strong', r.author));
+    row.appendChild(authorCell);
+    row.appendChild(adminRenderCell(r.region));
+    row.appendChild(adminRenderCell(r.date));
+    row.appendChild(adminRenderCell(excerpt, { maxWidth: '300px' }));
+    var actionsCell = document.createElement('td');
+    var actions = adminRenderElement('div', undefined, 'action-btns');
+    actions.appendChild(adminRenderButton(t('編集','编辑'), 'action-btn edit', function() { editReview(r.id); }));
+    actions.appendChild(adminRenderButton(t('削除','删除'), 'action-btn delete', function() { deleteReview(r.id); }));
+    actionsCell.appendChild(actions);
+    row.appendChild(actionsCell);
+    tbody.appendChild(row);
+  });
 }
 
 function openReviewForm(review) {

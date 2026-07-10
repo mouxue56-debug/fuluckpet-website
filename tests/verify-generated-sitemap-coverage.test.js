@@ -87,6 +87,24 @@ ${ALL_MARKERS}
   assert.match(result.stderr, /missing <loc>: https:\/\/fuluckpet\.com\/reviews\.html/);
 });
 
+test('verify-generated requires guide pages but does not require noncanonical blog aliases', (t) => {
+  const siteDir = createVerifierSite(t);
+  write(siteDir, 'guide/behavior.html', '<!doctype html><link rel="canonical" href="https://fuluckpet.com/guide/behavior.html"><title>Guide</title>\n');
+  write(siteDir, 'blog/alias.html', '<!doctype html><link rel="canonical" href="https://fuluckpet.com/blog/destination.html"><title>Alias</title>\n');
+  write(siteDir, 'sitemap.xml', `<?xml version="1.0"?>
+<urlset>
+  <url><loc>https://fuluckpet.com/kittens.html</loc></url>
+${ALL_MARKERS}
+</urlset>
+`);
+
+  const result = runVerifier(siteDir);
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /missing <loc>: https:\/\/fuluckpet\.com\/guide\/behavior\.html/);
+  assert.doesNotMatch(result.stderr, /missing <loc>: https:\/\/fuluckpet\.com\/blog\/alias\.html/);
+});
+
 test('verify-generated does not force a noindex generated page into sitemap', (t) => {
   const siteDir = createVerifierSite(t);
   write(siteDir, 'blog/dark.html', `<!doctype html>

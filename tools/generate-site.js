@@ -8,10 +8,13 @@ const fs = require('fs');
 const path = require('path');
 const { createLastmodStore } = require('./lastmod-store');
 const { hasNoindexMeta } = require('./robots-meta');
+const { safeJsonForHtmlScript: jsonForHtmlScript } = require('./safe-json-for-html');
+const launchConfig = require('../small-animals-launch.json');
 
 const API_BASE = 'https://fuluck-api.mouxue56.workers.dev';
 const SITE_DIR = path.resolve(__dirname, '..');
 const BASE_URL = 'https://fuluckpet.com';
+const PUBLIC_CATALOG_ID_RE = /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/;
 const FAVICON_HREF = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%235BC4A8'/><g fill='%23ffffff'><ellipse cx='11' cy='12' rx='2.3' ry='2.7'/><ellipse cx='21' cy='12' rx='2.3' ry='2.7'/><ellipse cx='7.5' cy='17.5' rx='2.1' ry='2.4'/><ellipse cx='24.5' cy='17.5' rx='2.1' ry='2.4'/><path d='M16 16.5c3.1 0 5.6 2.2 5.6 4.9 0 2.2-1.9 3.1-5.6 3.1s-5.6-.9-5.6-3.1c0-2.7 2.5-4.9 5.6-4.9z'/></g></svg>";
 
 // Asset cache-version map, read from the live kittens.html template so detail
@@ -77,16 +80,53 @@ const BREED_CONFIG = [
   }
 ];
 
+// ── Small-animal dark launch ─────────────────────────────────
+// small-animals-launch.json is the only tracked public/private switch. The private
+// slug is deliberately supplied only from the local environment: this repository is
+// public, so committing the token (or generated filenames) would disclose it.
+function requireSmallAnimalSlug(value, label, allowEmpty = false) {
+  const slug = String(value || '').trim();
+  if (!slug && allowEmpty) return '';
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+    throw new Error(`${label} must be one lowercase URL-safe single URL-safe segment`);
+  }
+  return slug;
+}
+
+const SMALL_ANIMALS_LAUNCH = Object.freeze({
+  public: launchConfig.public === true,
+  slugDark: requireSmallAnimalSlug(
+    process.env.SMALL_ANIMALS_DARK_SLUG,
+    'SMALL_ANIMALS_DARK_SLUG',
+    true,
+  ),
+  slugPublic: requireSmallAnimalSlug(launchConfig.slugPublic, 'slugPublic'),
+});
+
+const SPECIES_CONFIG = [
+  {
+    species: 'rabbit',
+    labelJa: 'ウサギ',
+    tag: 'Rabbit',
+    bgClass: 'sec-white',
+  },
+];
+
 // ── Helpers ────────────────────────────────────────────────────
 
-function fetchJSON(endpoint) {
+function fetchJSON(endpoint, options = {}) {
   return new Promise((resolve, reject) => {
     const url = API_BASE + endpoint;
-    https.get(url, (res) => {
+    https.get(url, options, (res) => {
       let data = '';
       res.setEncoding('utf8'); // decode multi-byte UTF-8 across chunk boundaries (avoid mojibake)
       res.on('data', (chunk) => { data += chunk; });
       res.on('end', () => {
+        const statusCode = Number(res.statusCode || 0);
+        if (statusCode < 200 || statusCode >= 300) {
+          reject(new Error(`HTTP ${statusCode || 'unknown'} from ${endpoint}`));
+          return;
+        }
         try {
           const parsed = JSON.parse(data);
           resolve(parsed);
@@ -96,6 +136,38 @@ function fetchJSON(endpoint) {
       });
     }).on('error', reject);
   });
+}
+
+async function fetchRequiredArray(endpoint, label) {
+  const value = await fetchJSON(endpoint);
+  if (!Array.isArray(value)) {
+    throw new Error(`${label} API response was not an array`);
+  }
+  return value;
+}
+
+function fetchSmallAnimalsForGeneration() {
+  if (SMALL_ANIMALS_LAUNCH.public) return fetchJSON('/api/small-animals');
+  if (!SMALL_ANIMALS_LAUNCH.slugDark) return Promise.resolve(null);
+
+  const password = String(process.env.FULUCK_ADMIN_PASS || '');
+  if (!password) {
+    return Promise.reject(new Error(
+      'FULUCK_ADMIN_PASS is required with SMALL_ANIMALS_DARK_SLUG for a local private preview',
+    ));
+  }
+  return fetchJSON('/api/admin/small-animals', {
+    headers: {
+      Authorization: `Bearer ${password}`,
+      Origin: BASE_URL,
+    },
+  });
+}
+
+function requireSmallAnimalDataForLaunch(value) {
+  if (SMALL_ANIMALS_LAUNCH.public && !Array.isArray(value)) {
+    throw new Error('Small-animal public launch requires a valid small-animal array before generation');
+  }
 }
 
 function escapeHtml(str) {
@@ -305,17 +377,54 @@ const COLOR_MAP = {
   'チンチラゴールデン ロングヘア': { en: 'Chinchilla Golden Longhair', zh: '金吉拉金色 长毛' },
   'ブラウンタビー（トリプルコート）': { en: 'Brown Tabby (Triple Coat)', zh: '棕虎斑（三层被毛）' },
   'ブルー&ホワイト（トリプルコート）': { en: 'Blue & White (Triple Coat)', zh: '蓝色&白色（三层被毛）' },
+  'ブルーパッチドタビー&ホワイト': { en: 'Blue Patched Tabby & White', zh: '蓝玳瑁虎斑加白' },
+  'ブルーパッチドタビー&ホワイト（トリプルコート）': { en: 'Blue Patched Tabby & White (Triple Coat)', zh: '蓝玳瑁虎斑加白（三层被毛）' },
   'ブルーパッチドタビー＆ホワイト': { en: 'Blue Patched Tabby & White', zh: '蓝玳瑁虎斑加白' },
   'ホワイト トリプルコート': { en: 'White, Triple Coat', zh: '白色 三层被毛' },
   'ホワイトソリッド（トリプルコート）': { en: 'Solid White (Triple Coat)', zh: '纯白色（三层被毛）' },
   'レッドリンクスポイント トリプルコート': { en: 'Red Lynx Point, Triple Coat', zh: '红色山猫重点色 三层被毛' },
+  'レッドリンクスポイント（トリプルコート）': { en: 'Red Lynx Point (Triple Coat)', zh: '红色山猫重点色（三层被毛）' },
 };
+
+// Small-animal dictionaries are deliberately independent from the cat catalog.
+// New owner data may pass through in Japanese with a build warning, but must never
+// silently mutate the established cat vocabulary above.
+const SPECIES_MAP = {
+  'ウサギ': { en: 'Rabbit', zh: '兔' },
+};
+const SMALL_ANIMAL_BREED_MAP = {
+  'ネザーランドドワーフ': { en: 'Netherland Dwarf', zh: '荷兰侏儒兔' },
+};
+const SMALL_ANIMAL_COLOR_MAP = {};
+
 function colorLabel(color, lang) {
   if (lang === 'ja' || !color) return color || '';
   const row = COLOR_MAP[color];
   if (row && row[lang]) return row[lang];
   console.warn(`  [i18n] no ${lang} color mapping for "${color}" — passthrough ja`);
   return color;
+}
+
+function smallAnimalMapLabel(value, lang, map, kind) {
+  if (lang === 'ja' || !value) return value || '';
+  const row = map[value];
+  if (row && row[lang]) return row[lang];
+  console.warn(`  [i18n] no ${lang} small-animal ${kind} mapping for "${value}" — passthrough ja`);
+  return value;
+}
+
+function smallAnimalSpeciesLabel(species, lang) {
+  const cfg = SPECIES_CONFIG.find(row => row.species === species);
+  const ja = cfg ? cfg.labelJa : species;
+  return smallAnimalMapLabel(ja, lang, SPECIES_MAP, 'species');
+}
+
+function smallAnimalBreedLabel(breed, lang) {
+  return smallAnimalMapLabel(breed, lang, SMALL_ANIMAL_BREED_MAP, 'breed');
+}
+
+function smallAnimalColorLabel(color, lang) {
+  return smallAnimalMapLabel(color, lang, SMALL_ANIMAL_COLOR_MAP, 'color');
 }
 
 // ── Catalog i18n artifact (client-side translation of data values) ────────────
@@ -339,17 +448,21 @@ function generateCatalogI18n() {
   const payload = {
     colors: transpose(COLOR_MAP),
     breeds: transpose(BREED_MAP),
+    smallAnimalSpecies: transpose(SPECIES_MAP),
+    smallAnimalBreeds: transpose(SMALL_ANIMAL_BREED_MAP),
+    smallAnimalColors: transpose(SMALL_ANIMAL_COLOR_MAP),
   };
   const body =
     '// GENERATED by tools/generate-site.js — DO NOT EDIT.\n' +
-    '// Single-source catalog value translations (color + breed) for client renderers.\n' +
-    '// Derived from COLOR_MAP + BREED_MAP in the generator; regen to update.\n' +
+    '// Single-source catalog value translations for cat and small-animal renderers.\n' +
+    '// Derived from the independent catalog maps in the generator; regen to update.\n' +
     'window.FULUCK_CATALOG_I18N = ' + JSON.stringify(payload, null, 2) + ';\n';
   const outPath = path.join(SITE_DIR, 'catalog-i18n.js');
   fs.writeFileSync(outPath, body, 'utf-8');
   const nColors = Object.keys(payload.colors.en).length;
   const nBreeds = Object.keys(payload.breeds.en).length;
-  console.log(`  catalog-i18n.js -> ${nColors} colors, ${nBreeds} breeds (en+zh)`);
+  const nSmallAnimalBreeds = Object.keys(payload.smallAnimalBreeds.en).length;
+  console.log(`  catalog-i18n.js -> ${nColors} cat colors, ${nBreeds} cat breeds, ${nSmallAnimalBreeds} small-animal breeds (en+zh)`);
 }
 
 // Section counter suffix: ja "サイベリアン (31匹)" / en "Siberian (31)" / zh "西伯利亚猫（31只）".
@@ -530,7 +643,7 @@ function buildListHeader(jaHeader, lang) {
 
   const styleV = verAsset('style.css', '20260708a');
   const navCssV = verAsset('nav.css', '20260628a');
-  const navJsV = verAsset('nav.js', '20260705b');
+  const navJsV = verAsset('nav.js', '20260710a');
   const relPath = 'kittens.html';
   const selfUrl = `${BASE_URL}/${langDir(lang)}kittens.html`;
   const kittensLabel = KITTENS_LABEL[lang];
@@ -609,12 +722,15 @@ ${hreflangBlock(relPath)}
 }
 
 function generateKittens(kittens, lang = 'ja') {
+  // This function is also imported by focused tooling/tests, so keep the write boundary
+  // safe even when main() is bypassed.
+  assertSafeKittenDetailIds(kittens);
   // FIX 9: dedupe listing records by fileId (keep-last) so baked cards + per-kitten
   // Product schema match the surviving detail page. Mirrors card-loader.js.
   kittens = dedupeByFileId(kittens);
   const filepath = path.join(SITE_DIR, 'kittens.html');
   const { header: jaHeader, tail } = extractTemplate(filepath);
-  const header = buildListHeader(jaHeader, lang);
+  const header = injectSmallAnimalNavigation(buildListHeader(jaHeader, lang), lang);
   const outPath = lang === 'ja'
     ? filepath
     : path.join(SITE_DIR, lang, 'kittens.html');
@@ -711,8 +827,14 @@ function generateKittens(kittens, lang = 'ja') {
       const hypoChip = k.breed === 'サイベリアン'
         ? `\n            <span class="usp-chip usp-chip--card" data-i18n="chip.hypoallergenic">${escapeHtml(hypoChipText(lang))}</span>`
         : '';
+      const detailEligible = k.status === 'available' || k.status === 'reserved';
+      const detailUrl = detailEligible
+        ? `/${langDir(lang)}kittens/${encodeURIComponent(k.breederId)}.html`
+        : '';
+      const cardRole = detailEligible ? 'link' : 'button';
+      const modalSemantics = detailEligible ? '' : ' aria-haspopup="dialog"';
       cardsHtml += `
-        <div class="kitten-card" data-status="${escapeHtml(k.status)}" data-price="${k.price || ''}" data-birthday="${escapeHtml(k.birthday)}" data-images="${escapeHtml(photo)}" data-video="" data-papa="${escapeHtml(k.papa)}" data-mama="${escapeHtml(k.mama)}" data-new="${k.isNew ? 'true' : 'false'}" data-name="" data-breeder-id="${escapeHtml(k.breederId)}">
+        <div class="kitten-card" role="${cardRole}" tabindex="0"${modalSemantics} data-status="${escapeHtml(k.status)}" data-price="${k.price || ''}" data-birthday="${escapeHtml(k.birthday)}" data-images="${escapeHtml(photo)}" data-video="" data-papa="${escapeHtml(k.papa)}" data-mama="${escapeHtml(k.mama)}" data-new="${k.isNew ? 'true' : 'false'}" data-name="" data-breeder-id="${escapeHtml(k.breederId)}" data-detail-url="${escapeHtml(detailUrl)}">
           <div class="kitten-img">
             <img src="${escapeHtml(photo)}" alt="${escapeHtml(cardAlt)}" ${imgLoadAttrs} width="360" height="360" style="width:100%;height:100%;object-fit:cover;aspect-ratio:1/1;">
             <span class="kit-status st-${escapeHtml(k.status)}"${statusI18nKey(k.status) ? ` data-i18n="${statusI18nKey(k.status)}"` : ''}>${escapeHtml(stL)}</span>${isNewBadge}
@@ -761,6 +883,9 @@ ${shapesHtml}
   let pIdx = 0;
   const listPageUrl = `${BASE_URL}/${langDir(lang)}kittens.html`;
   for (const k of kittens) {
+    // Sold inventory deliberately has no static detail page. Omitting Product markup is
+    // more truthful than advertising an Offer URL that the generator removes.
+    if (k.status !== 'available' && k.status !== 'reserved') continue;
     const photo = getCoverPhoto(k);
     if (!photo) continue;
     const gt = genderText(k.gender);
@@ -827,7 +952,7 @@ ${shapesHtml}
   const productJsonLd =
     '\n  <!-- Per-kitten Product schema (generated by SEO sweep) -->\n' +
     '  <script type="application/ld+json">\n' +
-    JSON.stringify(products, null, 2) +
+    jsonForHtmlScript(products, 2) +
     '\n  </script>\n';
 
   // Strip any prior generated block from the tail (idempotent regen)
@@ -848,11 +973,534 @@ ${shapesHtml}
   console.log(`  ${label} -> ${kittens.length} kittens (${sectionIdx} breed sections), ${products.length} Product schemas`);
 }
 
+// ── Generate Small Animals (owner-gated dark launch) ─────────
+
+const SMALL_ANIMAL_COPY = {
+  ja: {
+    list: '小動物一覧',
+    pageTitle: '小動物一覧｜福楽キャッテリー',
+    description: '福楽キャッテリーの小動物一覧。',
+    empty: '現在、掲載中の小動物はいません。',
+    species: '種類',
+    breed: '品種',
+    sex: '性別',
+    color: '毛色',
+    birthday: '誕生月',
+    status: '状態',
+    identifier: '個体番号',
+    back: '← 小動物一覧に戻る',
+    line: 'LINEでこの子について相談',
+  },
+  en: {
+    list: 'Small Animals',
+    pageTitle: 'Small Animals | Fuluck Cattery',
+    description: 'Small-animal listings at Fuluck Cattery.',
+    empty: 'There are currently no small animals listed.',
+    species: 'Species',
+    breed: 'Breed',
+    sex: 'Sex',
+    color: 'Color',
+    birthday: 'Born',
+    status: 'Status',
+    identifier: 'ID',
+    back: '← Back to Small Animals',
+    line: 'Ask about this animal on LINE',
+  },
+  zh: {
+    list: '小动物一览',
+    pageTitle: '小动物一览｜福楽キャッテリー',
+    description: '福楽キャッテリー的小动物一览。',
+    empty: '目前没有在售小动物。',
+    species: '种类',
+    breed: '品种',
+    sex: '性别',
+    color: '毛色',
+    birthday: '出生月',
+    status: '状态',
+    identifier: '个体编号',
+    back: '← 返回小动物一览',
+    line: '通过LINE咨询这只小动物',
+  },
+};
+
+const PRIVATE_PREVIEW_DIR = '.private-preview';
+
+function activeSmallAnimalSlug() {
+  const slug = SMALL_ANIMALS_LAUNCH.public
+    ? SMALL_ANIMALS_LAUNCH.slugPublic
+    : SMALL_ANIMALS_LAUNCH.slugDark;
+  if (!slug) {
+    throw new Error('Small-animal dark preview is disabled: SMALL_ANIMALS_DARK_SLUG is not set');
+  }
+  return slug;
+}
+
+function smallAnimalRoutePath(lang = 'ja', detailId = '') {
+  const previewPrefix = SMALL_ANIMALS_LAUNCH.public ? '' : `${PRIVATE_PREVIEW_DIR}/`;
+  const base = `${previewPrefix}${langDir(lang)}${activeSmallAnimalSlug()}`;
+  return detailId ? `${base}/${encodeURIComponent(detailId)}.html` : `${base}.html`;
+}
+
+function smallAnimalHreflangBlock(detailId = '') {
+  const ja = smallAnimalRoutePath('ja', detailId);
+  const en = smallAnimalRoutePath('en', detailId);
+  const zh = smallAnimalRoutePath('zh', detailId);
+  return `  <link rel="alternate" hreflang="ja" href="${BASE_URL}/${ja}">
+  <link rel="alternate" hreflang="en" href="${BASE_URL}/${en}">
+  <link rel="alternate" hreflang="zh" href="${BASE_URL}/${zh}">
+  <link rel="alternate" hreflang="x-default" href="${BASE_URL}/${ja}">`;
+}
+
+function smallAnimalOutputPrefix(lang = 'ja') {
+  const segments = [];
+  if (!SMALL_ANIMALS_LAUNCH.public) segments.push(PRIVATE_PREVIEW_DIR);
+  if (lang !== 'ja') segments.push(lang);
+  return segments;
+}
+
+function inactiveSmallAnimalSlug() {
+  return SMALL_ANIMALS_LAUNCH.public
+    ? SMALL_ANIMALS_LAUNCH.slugDark
+    : SMALL_ANIMALS_LAUNCH.slugPublic;
+}
+
+function smallAnimalOutputPath(...segments) {
+  const root = path.resolve(SITE_DIR);
+  const target = path.resolve(root, ...segments);
+  if (target === root || !target.startsWith(root + path.sep)) {
+    throw new Error(`Refusing unsafe small-animal output path: ${target}`);
+  }
+  return target;
+}
+
+function removePublicSmallAnimalOutput() {
+  for (const lang of ['ja', 'en', 'zh']) {
+    const prefix = lang === 'ja' ? [] : [lang];
+    const listPath = smallAnimalOutputPath(...prefix, `${SMALL_ANIMALS_LAUNCH.slugPublic}.html`);
+    const detailDir = smallAnimalOutputPath(...prefix, SMALL_ANIMALS_LAUNCH.slugPublic);
+    if (fs.existsSync(listPath)) fs.unlinkSync(listPath);
+    if (fs.existsSync(detailDir)) fs.rmSync(detailDir, { recursive: true, force: true });
+  }
+}
+
+function injectSmallAnimalNavigation(headerHtml, lang = 'ja') {
+  if (!headerHtml) return headerHtml;
+  // Generated links carry a marker so every pass can replace the prior language and a
+  // public→dark rollback removes stale discovery links from the shared template.
+  let output = headerHtml.replace(
+    /<a\b(?=[^>]*\bdata-small-animal-nav\b)[^>]*>[\s\S]*?<\/a>\s*/g,
+    '',
+  );
+  if (!SMALL_ANIMALS_LAUNCH.public) return output;
+  const copy = SMALL_ANIMAL_COPY[lang] || SMALL_ANIMAL_COPY.ja;
+  const href = `/${langDir(lang)}${activeSmallAnimalSlug()}.html`;
+
+  function insertIntoNav(html, marker, linkHtml) {
+    const markerIndex = html.indexOf(marker);
+    if (markerIndex === -1) return html;
+    const navEnd = html.indexOf('</nav>', markerIndex);
+    if (navEnd === -1) return html;
+    return html.slice(0, navEnd) + linkHtml + html.slice(navEnd);
+  }
+
+  output = insertIntoNav(
+    output,
+    'class="nav-links"',
+    `\n        <a href="${href}" class="nav-link" data-small-animal-nav>${escapeHtml(copy.list)}</a>\n      `,
+  );
+  output = insertIntoNav(
+    output,
+    'class="mobile-nav"',
+    `\n      <a href="${href}" class="mobile-nav-link" data-small-animal-nav>${escapeHtml(copy.list)}</a>\n    `,
+  );
+  return output;
+}
+
+function dedupeSmallAnimals(animals) {
+  const order = [];
+  const byBreederId = new Map();
+  for (const animal of animals || []) {
+    if (!animal || !animal.breederId) continue;
+    if (!byBreederId.has(animal.breederId)) order.push(animal.breederId);
+    byBreederId.set(animal.breederId, animal);
+  }
+  return order.map(id => byBreederId.get(id));
+}
+
+function smallAnimalPriceHtml(price, lang, className = 'kit-price') {
+  if (price === '' || price === null || price === undefined) return '';
+  const numericPrice = Number(price);
+  if (!Number.isFinite(numericPrice)) return '';
+  return `<p class="${className}">&yen;${formatPrice(numericPrice)} <span class="tax">${taxIncl(lang)}</span></p>`;
+}
+
+function smallAnimalHead({ lang, detailId = '', title, description }) {
+  const relPath = smallAnimalRoutePath(lang, detailId);
+  const selfUrl = `${BASE_URL}/${relPath}`;
+  const robotsMeta = SMALL_ANIMALS_LAUNCH.public
+    ? ''
+    : '  <meta name="robots" content="noindex,nofollow">\n';
+  return `<!DOCTYPE html>
+<html lang="${lang}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHtml(title)}</title>
+  <meta name="description" content="${escapeHtml(description)}">
+${robotsMeta}  <meta property="og:title" content="${escapeHtml(title)}">
+  <meta property="og:description" content="${escapeHtml(description)}">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="${escapeHtml(selfUrl)}">
+  <meta name="twitter:card" content="summary">
+  <meta name="theme-color" content="#7DD3C0">
+  <link rel="canonical" href="${escapeHtml(selfUrl)}">
+${smallAnimalHreflangBlock(detailId)}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
+  <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260708a')}">
+  <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20260628a')}">
+  <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
+  <script defer src="/nav.js?v=${verAsset('nav.js', '20260710a')}"></script>`;
+}
+
+function buildSmallAnimalListHtml(animals, headerHtml, footerHtml, lang = 'ja') {
+  const copy = SMALL_ANIMAL_COPY[lang] || SMALL_ANIMAL_COPY.ja;
+  headerHtml = injectSmallAnimalNavigation(headerHtml, lang);
+  const deduped = dedupeSmallAnimals(animals);
+  const groups = new Map(SPECIES_CONFIG.map(cfg => [cfg.species, []]));
+
+  for (const animal of deduped) {
+    if (!getCoverPhoto(animal)) continue;
+    if (!groups.has(animal.species)) {
+      console.warn(`  [warn] Unknown small-animal species "${animal.species}" for ${animal.breederId}, skipping`);
+      continue;
+    }
+    groups.get(animal.species).push(animal);
+  }
+
+  let lcpImgEmitted = false;
+  let sections = '';
+  for (const cfg of SPECIES_CONFIG) {
+    const group = groups.get(cfg.species) || [];
+    if (!group.length) continue;
+    let cards = '';
+    for (const animal of group) {
+      const photo = getCoverPhoto(animal);
+      const imgAttrs = lcpImgEmitted ? 'loading="lazy"' : 'loading="eager" fetchpriority="high"';
+      lcpImgEmitted = true;
+      const breed = smallAnimalBreedLabel(animal.breed, lang);
+      const color = smallAnimalColorLabel(animal.color, lang);
+      const gender = genderTextL(animal.gender, lang);
+      const status = statusTextL(animal.status, lang);
+      const species = smallAnimalSpeciesLabel(animal.species, lang);
+      const detailPath = `/${smallAnimalRoutePath(lang, animal.breederId)}`;
+      const detailEligible = animal.status === 'available' || animal.status === 'reserved';
+      const image = `<img src="${escapeHtml(photo)}" alt="${escapeHtml(`${species} ${breed} ${color} ${gender} ${animal.breederId}`.replace(/\s+/g, ' ').trim())}" ${imgAttrs} width="360" height="360" style="width:100%;height:100%;object-fit:cover;aspect-ratio:1/1;">`;
+      const imageHtml = detailEligible ? `<a href="${detailPath}">${image}</a>` : image;
+      cards += `
+        <article class="kitten-card" data-status="${escapeHtml(animal.status)}" data-breeder-id="${escapeHtml(animal.breederId)}">
+          <div class="kitten-img">
+            ${imageHtml}
+            <span class="kit-status st-${escapeHtml(animal.status)}">${escapeHtml(status)}</span>${animal.isNew ? '\n            <span class="kit-badge-new">NEW</span>' : ''}
+          </div>
+          <div class="kitten-body">
+            <p class="kit-meta">${escapeHtml(species)}</p>
+            <h3>${escapeHtml(breed)}</h3>
+            <p class="kit-meta">${escapeHtml([gender, color].filter(Boolean).join(' ・ '))}</p>
+            ${animal.birthday ? `<p class="kit-meta">${escapeHtml(bornPhrase(animal.birthday, lang))}</p>` : ''}
+            ${animal.note ? `<p class="kit-meta">${escapeHtml(animal.note)}</p>` : ''}
+            ${smallAnimalPriceHtml(animal.price, lang)}
+          </div>
+        </article>`;
+    }
+    sections += `
+  <section class="section ${cfg.bgClass}">
+    <div class="container">
+      <div class="sec-header">
+        <span class="sec-tag">${escapeHtml(cfg.tag)}</span>
+        <h2 class="sec-title">${escapeHtml(smallAnimalSpeciesLabel(cfg.species, lang))}${countLabel(group.length, lang)}</h2>
+      </div>
+      <div class="kittens-grid">${cards}
+      </div>
+    </div>
+  </section>`;
+  }
+
+  if (!sections) {
+    sections = `
+  <main id="main" class="section sec-white">
+    <div class="container">
+      <div class="small-animal-empty" role="status">
+        <span aria-hidden="true">🌿</span>
+        <p>${escapeHtml(copy.empty)}</p>
+      </div>
+    </div>
+  </main>`;
+  } else {
+    sections = `<main id="main">${sections}\n  </main>`;
+  }
+
+  return `${smallAnimalHead({ lang, title: copy.pageTitle, description: copy.description })}
+  <style>
+    .small-animal-empty { max-width:680px; margin:24px auto; padding:56px 32px; border:1px solid var(--border); border-radius:28px; background:var(--bg-cream); text-align:center; }
+    .small-animal-empty span { display:block; margin-bottom:16px; font-size:2rem; }
+    .small-animal-empty p { margin:0; color:var(--text-note); line-height:1.8; }
+    .kitten-card a { color:inherit; text-decoration:none; }
+  </style>
+</head>
+<body class="has-mobile-cta">
+  <a class="skip-link" href="#main">メインコンテンツへスキップ</a>
+  <div class="scroll-progress"></div>
+
+${headerHtml}
+
+  <section class="page-hero">
+    <div class="breadcrumb"><a href="/">${escapeHtml(HOME_LABEL[lang] || HOME_LABEL.ja)}</a><span>/</span><span>${escapeHtml(copy.list)}</span></div>
+    <h1>${escapeHtml(copy.list)}</h1>
+  </section>
+${sections}
+
+${footerHtml}
+
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20260710a')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20260710a')}"></script>
+</body>
+</html>`;
+}
+
+function buildSmallAnimalDetailHtml(animal, headerHtml, footerHtml, lang = 'ja') {
+  const copy = SMALL_ANIMAL_COPY[lang] || SMALL_ANIMAL_COPY.ja;
+  const fileId = animal.breederId;
+  const relPath = smallAnimalRoutePath(lang, fileId);
+  headerHtml = injectSmallAnimalNavigation(headerHtml, lang);
+  const pageUrl = `${BASE_URL}/${relPath}`;
+  const species = smallAnimalSpeciesLabel(animal.species, lang);
+  const breed = smallAnimalBreedLabel(animal.breed, lang);
+  const color = smallAnimalColorLabel(animal.color, lang);
+  const gender = genderTextL(animal.gender, lang);
+  const status = statusTextL(animal.status, lang);
+  const titleText = [species, breed, gender, color].filter(Boolean).join(' ・ ');
+  const pageTitle = `${titleText} | ${copy.list} | Fuluck Cattery`;
+  const description = [breed, color, gender, bornPhrase(animal.birthday, lang), fileId].filter(Boolean).join(' ・ ');
+  const photos = Array.isArray(animal.photos) ? animal.photos : [];
+  const coverPhoto = getCoverPhoto(animal) || '';
+  const structuredData = SMALL_ANIMALS_LAUNCH.public
+    ? `
+  <script type="application/ld+json">
+${jsonForHtmlScript({
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: titleText,
+  ...(lang !== 'ja' ? { inLanguage: lang } : {}),
+  image: photos,
+  sku: fileId,
+  ...(animal.price !== '' && animal.price !== null && animal.price !== undefined && Number.isFinite(Number(animal.price)) ? {
+    offers: {
+      '@type': 'Offer',
+      url: pageUrl,
+      priceCurrency: 'JPY',
+      price: String(Number(animal.price)),
+      availability: animal.status === 'available'
+        ? 'https://schema.org/InStock'
+        : 'https://schema.org/LimitedAvailability',
+      seller: { '@type': 'Organization', name: '福楽キャッテリー' },
+    },
+  } : {}),
+})}
+  </script>
+  <script type="application/ld+json">
+${jsonForHtmlScript({
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  ...(lang !== 'ja' ? { inLanguage: lang } : {}),
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: HOME_LABEL[lang] || HOME_LABEL.ja, item: `${BASE_URL}/` },
+    { '@type': 'ListItem', position: 2, name: copy.list, item: `${BASE_URL}/${smallAnimalRoutePath(lang)}` },
+    { '@type': 'ListItem', position: 3, name: titleText, item: pageUrl },
+  ],
+})}
+  </script>`
+    : '';
+
+  const thumbs = photos.length > 1
+    ? `<div class="small-animal-thumbs">${photos.map((photo, idx) => `<button type="button" class="small-animal-thumb${idx === (animal.coverIndex || 0) ? ' active' : ''}" data-photo="${escapeHtml(photo)}" aria-label="${escapeHtml(titleText)} ${idx + 1}"><img src="${escapeHtml(photo)}" alt="" loading="lazy"></button>`).join('')}</div>`
+    : '';
+  const rows = [
+    [copy.species, species],
+    [copy.breed, breed],
+    [copy.sex, gender],
+    ...(color ? [[copy.color, color]] : []),
+    ...(animal.birthday ? [[copy.birthday, bornPhrase(animal.birthday, lang)]] : []),
+    [copy.status, status],
+    [copy.identifier, fileId],
+  ].map(([label, value]) => `<tr><th>${escapeHtml(label)}</th><td>${escapeHtml(value)}</td></tr>`).join('\n          ');
+  const ytId = extractYouTubeId(animal.video);
+  const video = ytId
+    ? `<div class="small-animal-video"><iframe src="https://www.youtube.com/embed/${ytId}" title="${escapeHtml(titleText)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>`
+    : '';
+
+  return `${smallAnimalHead({ lang, detailId: fileId, title: pageTitle, description })}${structuredData}
+  <style>
+    .small-animal-detail { padding:24px 0 64px; }
+    .small-animal-layout { display:grid; gap:32px; }
+    .small-animal-main-photo { overflow:hidden; border-radius:28px; background:var(--bg-cream); aspect-ratio:4/3; }
+    .small-animal-main-photo img { width:100%; height:100%; object-fit:cover; display:block; }
+    .small-animal-thumbs { display:flex; gap:10px; margin-top:12px; overflow-x:auto; }
+    .small-animal-thumb { width:76px; height:76px; padding:0; border:2px solid transparent; border-radius:14px; overflow:hidden; background:none; cursor:pointer; flex:0 0 auto; }
+    .small-animal-thumb.active { border-color:var(--mint); }
+    .small-animal-thumb img { width:100%; height:100%; object-fit:cover; }
+    .small-animal-info h1 { margin:0 0 16px; font-size:clamp(1.55rem, 4vw, 2.2rem); line-height:1.35; }
+    .small-animal-info .kit-status { display:inline-block; margin-bottom:16px; }
+    .small-animal-info .kitten-detail-price { margin:0 0 24px; font-size:1.5rem; font-weight:700; color:var(--strawberry); }
+    .small-animal-table { width:100%; border-collapse:collapse; margin:0 0 24px; }
+    .small-animal-table th, .small-animal-table td { padding:11px 12px; border-bottom:1px solid var(--border); text-align:left; }
+    .small-animal-table th { width:120px; color:var(--text-note); font-weight:500; }
+    .small-animal-note { line-height:1.8; white-space:pre-wrap; }
+    .small-animal-actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:28px; }
+    .small-animal-actions .btn { text-decoration:none; }
+    .small-animal-video { position:relative; margin-top:24px; padding-bottom:56.25%; overflow:hidden; border-radius:20px; background:#000; }
+    .small-animal-video iframe { position:absolute; inset:0; width:100%; height:100%; border:0; }
+    @media (min-width:800px) { .small-animal-layout { grid-template-columns:minmax(0, 1.1fr) minmax(320px, .9fr); align-items:start; } }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">メインコンテンツへスキップ</a>
+  <div class="scroll-progress"></div>
+
+${headerHtml}
+
+  <main id="main" class="small-animal-detail">
+    <div class="container">
+      <nav class="breadcrumb"><a href="/">${escapeHtml(HOME_LABEL[lang] || HOME_LABEL.ja)}</a> &gt; <a href="/${smallAnimalRoutePath(lang)}">${escapeHtml(copy.list)}</a> &gt; ${escapeHtml(fileId)}</nav>
+      <div class="small-animal-layout">
+        <div>
+          <div class="small-animal-main-photo"><img id="smallAnimalMainPhoto" src="${escapeHtml(coverPhoto)}" alt="${escapeHtml(titleText)}" loading="eager" fetchpriority="high" width="800" height="600"></div>
+          ${thumbs}
+          ${video}
+        </div>
+        <div class="small-animal-info">
+          <h1>${escapeHtml(titleText)}</h1>
+          <span class="kit-status st-${escapeHtml(animal.status)}">${escapeHtml(status)}</span>
+          ${smallAnimalPriceHtml(animal.price, lang, 'kitten-detail-price')}
+          <table class="small-animal-table">${rows}</table>
+          ${animal.note ? `<p class="small-animal-note">${escapeHtml(animal.note)}</p>` : ''}
+          <div class="small-animal-actions">
+            <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="btn btn-primary" target="_blank" rel="noopener">${escapeHtml(copy.line)}</a>
+            <a href="/${smallAnimalRoutePath(lang)}" class="btn btn-outline">${escapeHtml(copy.back)}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+${footerHtml}
+
+  <script>
+  document.querySelectorAll('.small-animal-thumb').forEach(function(button) {
+    button.addEventListener('click', function() {
+      var main = document.getElementById('smallAnimalMainPhoto');
+      if (main) main.src = this.getAttribute('data-photo');
+      document.querySelectorAll('.small-animal-thumb').forEach(function(item) { item.classList.remove('active'); });
+      this.classList.add('active');
+    });
+  });
+  </script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20260710a')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20260710a')}"></script>
+</body>
+</html>`;
+}
+
+function generateSmallAnimals(animals, lang = 'ja') {
+  const slug = activeSmallAnimalSlug();
+  const outputPrefix = smallAnimalOutputPrefix(lang);
+  const outPath = smallAnimalOutputPath(...outputPrefix, `${slug}.html`);
+  fs.mkdirSync(path.dirname(outPath), { recursive: true });
+  const { headerHtml, footerHtml } = extractDetailTemplate();
+  fs.writeFileSync(outPath, buildSmallAnimalListHtml(animals, headerHtml, footerHtml, lang), 'utf8');
+
+  const inactiveSlug = inactiveSmallAnimalSlug();
+  if (inactiveSlug) {
+    const publicPrefix = lang === 'ja' ? [] : [lang];
+    const stalePath = smallAnimalOutputPath(...publicPrefix, `${inactiveSlug}.html`);
+    if (fs.existsSync(stalePath)) fs.unlinkSync(stalePath);
+  }
+  // Migrate any legacy root-level dark output and remove the formal public output on a
+  // public->private rollback. Public launch removes the entire ignored preview tree.
+  if (SMALL_ANIMALS_LAUNCH.public) {
+    const previewRoot = smallAnimalOutputPath(PRIVATE_PREVIEW_DIR);
+    if (fs.existsSync(previewRoot)) fs.rmSync(previewRoot, { recursive: true, force: true });
+  } else {
+    const publicPrefix = lang === 'ja' ? [] : [lang];
+    const legacyDarkPath = smallAnimalOutputPath(...publicPrefix, `${slug}.html`);
+    if (fs.existsSync(legacyDarkPath)) fs.unlinkSync(legacyDarkPath);
+  }
+  if (SMALL_ANIMALS_LAUNCH.public) {
+    console.log(`  ${langDir(lang)}${slug}.html -> ${dedupeSmallAnimals(animals).length} small animals`);
+  } else {
+    console.log(`  [private preview] ${lang} list -> ${dedupeSmallAnimals(animals).length} small animals`);
+  }
+}
+
+function generateSmallAnimalDetailPages(animals, lang = 'ja') {
+  const slug = activeSmallAnimalSlug();
+  const outputPrefix = smallAnimalOutputPrefix(lang);
+  const outputDir = smallAnimalOutputPath(...outputPrefix, slug);
+  fs.mkdirSync(outputDir, { recursive: true });
+
+  const eligible = dedupeSmallAnimals(animals).filter(animal =>
+    (animal.status === 'available' || animal.status === 'reserved') && getCoverPhoto(animal)
+  );
+  const expected = new Set(eligible.map(animal => `${encodeURIComponent(animal.breederId)}.html`));
+  let removed = 0;
+  for (const filename of fs.readdirSync(outputDir).filter(name => name.endsWith('.html'))) {
+    if (!expected.has(filename)) {
+      fs.unlinkSync(path.join(outputDir, filename));
+      removed++;
+    }
+  }
+
+  const inactiveSlug = inactiveSmallAnimalSlug();
+  if (inactiveSlug) {
+    const publicPrefix = lang === 'ja' ? [] : [lang];
+    const staleDir = smallAnimalOutputPath(...publicPrefix, inactiveSlug);
+    if (fs.existsSync(staleDir)) fs.rmSync(staleDir, { recursive: true, force: true });
+  }
+
+  if (SMALL_ANIMALS_LAUNCH.public) {
+    const previewRoot = smallAnimalOutputPath(PRIVATE_PREVIEW_DIR);
+    if (fs.existsSync(previewRoot)) fs.rmSync(previewRoot, { recursive: true, force: true });
+  } else {
+    const publicPrefix = lang === 'ja' ? [] : [lang];
+    const legacyDarkDir = smallAnimalOutputPath(...publicPrefix, slug);
+    if (fs.existsSync(legacyDarkDir)) fs.rmSync(legacyDarkDir, { recursive: true, force: true });
+  }
+
+  const { headerHtml, footerHtml } = extractDetailTemplate();
+  for (const animal of eligible) {
+    const filename = `${encodeURIComponent(animal.breederId)}.html`;
+    fs.writeFileSync(
+      path.join(outputDir, filename),
+      buildSmallAnimalDetailHtml(animal, headerHtml, footerHtml, lang),
+      'utf8',
+    );
+  }
+  if (SMALL_ANIMALS_LAUNCH.public) {
+    console.log(`  ${langDir(lang)}${slug}/ -> ${eligible.length} detail pages generated, ${removed} old pages removed`);
+  } else {
+    console.log(`  [private preview] ${lang} details -> ${eligible.length} generated, ${removed} old removed`);
+  }
+  return eligible;
+}
+
 // ── Generate Parents ──────────────────────────────────────────
 
 function generateParents(parents) {
   const filepath = path.join(SITE_DIR, 'parents.html');
-  const { header, tail } = extractTemplate(filepath);
+  const { header: extractedHeader, tail } = extractTemplate(filepath);
+  const header = injectSmallAnimalNavigation(extractedHeader, 'ja');
 
   // Group parents by breed
   const breedGroups = new Map();
@@ -916,7 +1564,7 @@ function generateParents(parents) {
         : '';
 
       cardsHtml += `
-        <div class="parent-card" onclick="openParentModal(this)" data-name="${escapeHtml(p.name)}" data-breed="${escapeHtml(p.breed)}" data-gender="${escapeHtml(p.gender)}" data-role="${escapeHtml(p.role)}" data-age="${escapeHtml(p.age)}" data-color="${escapeHtml(p.color)}" data-tested="${p.tested ? 'true' : 'false'}" style="position:relative;">${testedTag}
+        <div class="parent-card" role="button" tabindex="0" aria-haspopup="dialog" data-name="${escapeHtml(p.name)}" data-breed="${escapeHtml(p.breed)}" data-gender="${escapeHtml(p.gender)}" data-role="${escapeHtml(p.role)}" data-age="${escapeHtml(p.age)}" data-color="${escapeHtml(p.color)}" data-tested="${p.tested ? 'true' : 'false'}" style="position:relative;">${testedTag}
           <img src="${escapeHtml(photo)}" alt="${escapeHtml(`${p.name} - ${p.breed} ${p.color || ''} ${p.role || ''}`.trim())}" ${imgLoadAttrs} width="360" height="360" style="width:100%;height:100%;object-fit:cover;aspect-ratio:1/1;border-radius:var(--radius-lg) var(--radius-lg) 0 0;">
           <div class="parent-body">
             <h3>${escapeHtml(p.name)}</h3>
@@ -972,7 +1620,7 @@ ${shapesHtml}
   const animalJsonLd =
     '\n  <!-- Per-parent Animal schema (generated by SEO sweep) -->\n' +
     '  <script type="application/ld+json">\n' +
-    JSON.stringify(animals, null, 2) +
+    jsonForHtmlScript(animals, 2) +
     '\n  </script>\n';
 
   const cleanedTail = tail.replace(
@@ -990,7 +1638,8 @@ ${shapesHtml}
 
 function generateReviews(reviews) {
   const filepath = path.join(SITE_DIR, 'reviews.html');
-  const { header, tail } = extractTemplate(filepath);
+  const { header: extractedHeader, tail } = extractTemplate(filepath);
+  const header = injectSmallAnimalNavigation(extractedHeader, 'ja');
 
   let cardsHtml = '';
   for (const r of reviews) {
@@ -1056,6 +1705,7 @@ function extractYouTubeId(video) {
  * Build the full HTML for a kitten detail page
  */
 function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja') {
+  headerHtml = injectSmallAnimalNavigation(headerHtml, lang);
   const fileId = kitten.breederId || kitten.id;
   const gt = genderText(kitten.gender);
   const genderFull = kitten.gender ? `${kitten.gender} ${gt}` : '';
@@ -1101,6 +1751,9 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja') {
   const homeLabel = HOME_LABEL[lang] || HOME_LABEL.ja;
   const kittensLabel = KITTENS_LABEL[lang] || KITTENS_LABEL.ja;
   const htmlLang = lang;
+  const detailFontHref = lang === 'zh'
+    ? 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap'
+    : 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap';
 
   // Schema availability
   const schemaAvailability = kitten.status === 'available'
@@ -1109,7 +1762,7 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja') {
 
   // Product JSON-LD. inLanguage emitted for en/zh only — ja keeps its exact legacy schema
   // (commit-1 byte-identity contract; ja implicitly = the site's default language anyway).
-  const productJsonLd = JSON.stringify({
+  const productJsonLd = jsonForHtmlScript({
     "@context": "https://schema.org",
     "@type": "Product",
     "name": ldName,
@@ -1151,7 +1804,7 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja') {
   // display names, add inLanguage, and route Kittens → the per-lang list. Home stays the
   // canonical root URL for all langs (no /en/ or /zh/ home page exists → avoid a 404 link).
   const breadcrumbJsonLd = lang === 'ja'
-    ? JSON.stringify({
+    ? jsonForHtmlScript({
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
         "itemListElement": [
@@ -1160,7 +1813,7 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja') {
           { "@type": "ListItem", "position": 3, "name": titleText, "item": pageUrl }
         ]
       })
-    : JSON.stringify({
+    : jsonForHtmlScript({
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
         "inLanguage": lang,
@@ -1236,11 +1889,12 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja') {
 ${hreflangBlock(`kittens/${fileId}.html`)}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="preload" as="style" href="${detailFontHref}" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="${detailFontHref}" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260708a')}">
   <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20260628a')}">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
-  <script defer src="/nav.js?v=${verAsset('nav.js', '20260705b')}"></script>
+  <script defer src="/nav.js?v=${verAsset('nav.js', '20260710a')}"></script>
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
@@ -1539,11 +2193,11 @@ ${footerHtml}
     });
   });
   </script>
-  <script src="/i18n.js?v=${verAsset('i18n.js', '20260705b')}"></script>
-  <script src="/catalog-i18n.js?v=${verAsset('catalog-i18n.js', '20260705a')}"></script>
-  <script src="/kitten-carousel.js?v=${verAsset('kitten-carousel.js', '20260705a')}"></script>
-  <script src="/cta-widget.js?v=${verAsset('cta-widget.js', '20260623b')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20260708a')}"></script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20260710a')}"></script>
+  <script src="/catalog-i18n.js?v=${verAsset('catalog-i18n.js', '20260710a')}"></script>
+  <script src="/kitten-carousel.js?v=${verAsset('kitten-carousel.js', '20260710a')}"></script>
+  <script src="/cta-widget.js?v=${verAsset('cta-widget.js', '20260710a')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20260710a')}"></script>
 </body>
 </html>`;
 }
@@ -1613,7 +2267,41 @@ function extractDetailTemplate() {
   return { headerHtml, footerHtml };
 }
 
+function assertSafeKittenDetailIds(kittens) {
+  for (let index = 0; index < kittens.length; index++) {
+    const kitten = kittens[index];
+    for (const field of ['breederId', 'id']) {
+      const value = kitten && kitten[field];
+      if (value === undefined || value === null || value === '') continue;
+      if (typeof value !== 'string' || !PUBLIC_CATALOG_ID_RE.test(value)) {
+        throw new Error(`Unsafe kitten ${field} at row ${index}: expected one public URL segment`);
+      }
+    }
+    const eligible = kitten &&
+      (kitten.status === 'available' || kitten.status === 'reserved') &&
+      kitten.photos && kitten.photos.length > 0;
+    if (eligible && !PUBLIC_CATALOG_ID_RE.test(kitten.breederId || kitten.id || '')) {
+      throw new Error(`Unsafe kitten detail identity at row ${index}: breederId or id is required`);
+    }
+  }
+}
+
+function kittenDetailOutputPath(kittensDir, fileId) {
+  if (!PUBLIC_CATALOG_ID_RE.test(fileId)) {
+    throw new Error('Unsafe kitten detail URL segment');
+  }
+  const root = path.resolve(kittensDir);
+  const output = path.resolve(root, `${fileId}.html`);
+  if (!output.startsWith(root + path.sep)) {
+    throw new Error('Unsafe kitten detail output path');
+  }
+  return output;
+}
+
 function generateKittenDetailPages(kittens, parents, lang = 'ja') {
+  // Validate every identity before mkdir, cleanup, template reads, or writes. A bad KV
+  // row must stop the cron without mutating the last-good static site.
+  assertSafeKittenDetailIds(kittens);
   // ja → <root>/kittens/, en → <root>/en/kittens/, zh → <root>/zh/kittens/
   const kittensDir = lang === 'ja'
     ? path.join(SITE_DIR, 'kittens')
@@ -1669,10 +2357,14 @@ function generateKittenDetailPages(kittens, parents, lang = 'ja') {
     console.warn(`  [COLLISION] ${collisions.size} duplicate breederId(s): ${[...collisions].join(', ')} — each collapses multiple kittens into ONE detail page (data must be deduped in admin).`);
   }
 
+  // Generate the same keep-last record exposed by the listing. This makes the
+  // overwrite rule explicit, avoids redundant writes, and reports the real number
+  // of unique detail URLs while legacy duplicate rows await owner cleanup.
+  const detailKittens = dedupeByFileId(eligible);
   let generatedCount = 0;
-  for (const k of eligible) {
+  for (const k of detailKittens) {
     const fileId = k.breederId || k.id;
-    const outputPath = path.join(kittensDir, `${fileId}.html`);
+    const outputPath = kittenDetailOutputPath(kittensDir, fileId);
     const html = buildKittenDetailHtml(k, headerHtml, footerHtml, lang);
     fs.writeFileSync(outputPath, html, 'utf-8');
     generatedCount++;
@@ -1680,12 +2372,13 @@ function generateKittenDetailPages(kittens, parents, lang = 'ja') {
 
   const label = lang === 'ja' ? 'kittens/' : `${lang}/kittens/`;
   console.log(`  ${label} -> ${generatedCount} detail pages generated, ${removedCount} old pages removed`);
-  return eligible; // Return for sitemap use
+  return detailKittens; // Return the unique URL set for sitemap use
 }
 
 // ── Update Sitemap ────────────────────────────────────────────
 
-function updateSitemap(articles, kittenDetailPages, store) {
+function updateSitemap(articles, kittenDetailPages, store, smallAnimalDetailPages = []) {
+  assertSafeKittenDetailIds(kittenDetailPages || []);
   const filepath = path.join(SITE_DIR, 'sitemap.xml');
   const existing = fs.readFileSync(filepath, 'utf-8');
   const today = todayISO();
@@ -1695,9 +2388,28 @@ function updateSitemap(articles, kittenDetailPages, store) {
   // (save() does not prune, so entries coexist). Fall back to a local store if not passed.
   if (!store) store = createLastmodStore(SITE_DIR, today);
 
+  function canonicalHref(html) {
+    const match = String(html || '').match(/<link\s+rel=["']canonical["']\s+href=["']([^"']+)["']/i);
+    return match ? match[1] : '';
+  }
+
   // Extract the static (non-blog) portion: everything before "<!-- 子猫詳細ページ -->" or "<!-- ブログ記事 -->"
   const kittenDetailMarker = '<!-- 子猫詳細ページ -->';
+  const smallAnimalListMarker = '<!-- 小動物一覧ページ (ja/en/zh) -->';
+  const smallAnimalDetailMarker = '<!-- 小動物詳細ページ -->';
   const blogMarker = '<!-- ブログ記事 -->';
+
+  // A public catalogue fetch failure must not silently deindex every detail page.
+  // Preserve the last generated section byte-for-byte until a valid array returns.
+  let preservedSmallAnimalEntries = '';
+  if (SMALL_ANIMALS_LAUNCH.public && smallAnimalDetailPages === null) {
+    let start = existing.indexOf(smallAnimalListMarker);
+    if (start === -1) start = existing.indexOf(smallAnimalDetailMarker);
+    const end = start === -1 ? -1 : existing.indexOf(blogMarker, start);
+    if (start !== -1 && end !== -1) {
+      preservedSmallAnimalEntries = existing.slice(start, end).replace(/\s*$/, '') + '\n';
+    }
+  }
 
   let staticPart;
   const kittenMarkerIdx = existing.indexOf(kittenDetailMarker);
@@ -1783,8 +2495,71 @@ function updateSitemap(articles, kittenDetailPages, store) {
     if (enExists) kittenEntries += listEntry('en');
     if (zhExists) kittenEntries += listEntry('zh');
   }
-  if (enExists) kittenEntries += detailEntriesFor('en', '子猫詳細ページ (en)');
-  if (zhExists) kittenEntries += detailEntriesFor('zh', '子猫詳細ページ (zh)');
+  if (enExists) kittenEntries += detailEntriesFor('en', '<!-- 子猫詳細ページ (en) -->');
+  if (zhExists) kittenEntries += detailEntriesFor('zh', '<!-- 子猫詳細ページ (zh) -->');
+
+  // Discover every self-canonical guide page from disk. This section is emitted after
+  // the rebuilt kitten block so it never becomes part of staticPart and cannot duplicate
+  // on repeated runs.
+  let guideEntries = '  <!-- お迎えガイド -->\n';
+  let guideCount = 0;
+  const guideDir = path.join(SITE_DIR, 'guide');
+  if (fs.existsSync(guideDir)) {
+    for (const filename of fs.readdirSync(guideDir).filter(name => name.endsWith('.html')).sort()) {
+      const html = fs.readFileSync(path.join(guideDir, filename), 'utf8');
+      const relative = filename === 'index.html' ? 'guide/' : `guide/${filename}`;
+      const loc = `${BASE_URL}/${relative}`;
+      if (hasNoindexMeta(html) || canonicalHref(html) !== loc) continue;
+      guideEntries += `  <url>
+    <loc>${loc}</loc>
+    <lastmod>${store.lastmodForUrl(loc)}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>${filename === 'index.html' ? '0.8' : '0.7'}</priority>
+  </url>\n`;
+      guideCount++;
+    }
+  }
+
+  // A public-launch flip registers all three list pages and the same eligible detail
+  // set generated above. Dark mode emits zero bytes here, so the private slug can never
+  // leak into sitemap.xml. Markers are XML comments (never raw urlset text nodes).
+  let smallAnimalEntries = '';
+  const smallDetailPages = smallAnimalDetailPages === null
+    ? null
+    : dedupeSmallAnimals(smallAnimalDetailPages);
+  if (SMALL_ANIMALS_LAUNCH.public) {
+    if (smallDetailPages === null) {
+      smallAnimalEntries = preservedSmallAnimalEntries;
+    } else {
+      const slug = activeSmallAnimalSlug();
+      smallAnimalEntries += `  ${smallAnimalListMarker}\n`;
+      for (const lang of ['ja', 'en', 'zh']) {
+        const rel = `${langDir(lang)}${slug}.html`;
+        if (!fs.existsSync(path.join(SITE_DIR, rel))) continue;
+        const loc = `${BASE_URL}/${rel}`;
+        smallAnimalEntries += `  <url>
+    <loc>${loc}</loc>
+    <lastmod>${store.lastmodForUrl(loc)}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>\n`;
+      }
+
+      smallAnimalEntries += `  ${smallAnimalDetailMarker}\n`;
+      for (const lang of ['ja', 'en', 'zh']) {
+        for (const animal of smallDetailPages) {
+          const fileId = encodeURIComponent(animal.breederId);
+          const loc = `${BASE_URL}/${langDir(lang)}${slug}/${fileId}.html`;
+          smallAnimalEntries += `  <url>
+    <loc>${loc}</loc>
+    <lastmod>${store.lastmodForUrl(loc)}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>\n`;
+        }
+      }
+    }
+  }
 
   // Build blog article URLs — union of API articles + disk HTML files
   let blogEntries = `  ${blogMarker}\n`;
@@ -1803,26 +2578,51 @@ function updateSitemap(articles, kittenDetailPages, store) {
         blogSlugs.delete(slug);
         continue;
       }
+      const loc = `${BASE_URL}/blog/${f}`;
+      if (canonicalHref(html) !== loc) {
+        // Canonical aliases must never compete with their destination in sitemap.xml.
+        blogSlugs.delete(slug);
+        continue;
+      }
       blogSlugs.add(slug);
     }
   }
 
-  const sortedSlugs = [...blogSlugs].sort();
-  for (const slug of sortedSlugs) {
-    const url = `${BASE_URL}/blog/${slug}.html`;
+  const sortedSlugs = [...blogSlugs].filter((slug) => {
+    const filepath = path.join(blogDir, `${slug}.html`);
+    if (!fs.existsSync(filepath)) return false;
+    const html = fs.readFileSync(filepath, 'utf8');
+    return !hasNoindexMeta(html) && canonicalHref(html) === `${BASE_URL}/blog/${slug}.html`;
+  }).sort();
+  let localizedBlogCount = 0;
+  function appendBlogEntry(loc) {
     blogEntries += `  <url>
-    <loc>${BASE_URL}/blog/${escapeHtml(slug)}.html</loc>
-    <lastmod>${store.lastmodForUrl(url)}</lastmod>
+    <loc>${escapeHtml(loc)}</loc>
+    <lastmod>${store.lastmodForUrl(loc)}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>\n`;
   }
+  for (const slug of sortedSlugs) {
+    appendBlogEntry(`${BASE_URL}/blog/${slug}.html`);
+    for (const lang of ['en', 'zh']) {
+      const localizedPath = path.join(SITE_DIR, lang, 'blog', `${slug}.html`);
+      if (!fs.existsSync(localizedPath)) continue;
+      const localizedHtml = fs.readFileSync(localizedPath, 'utf8');
+      if (hasNoindexMeta(localizedHtml)) continue;
+      const localizedLoc = `${BASE_URL}/${lang}/blog/${slug}.html`;
+      if (canonicalHref(localizedHtml) !== localizedLoc) continue;
+      appendBlogEntry(localizedLoc);
+      localizedBlogCount++;
+    }
+  }
 
-  const output = staticPart + kittenEntries + blogEntries + '</urlset>\n';
+  const output = staticPart + kittenEntries + guideEntries + smallAnimalEntries + blogEntries + '</urlset>\n';
   fs.writeFileSync(filepath, output, 'utf-8');
   store.save();
   const diskOnly = sortedSlugs.length - publishedArticles.length;
-  console.log(`  sitemap.xml -> ${detailPages.length} kitten detail pages, ${sortedSlugs.length} blog articles updated${diskOnly > 0 ? ` (${diskOnly} from disk only)` : ''}`);
+  const smallCount = smallDetailPages === null ? 'preserved' : smallDetailPages.length;
+  console.log(`  sitemap.xml -> ${detailPages.length} kitten detail pages, ${guideCount} guide pages, ${smallCount} small-animal detail pages, ${sortedSlugs.length} ja + ${localizedBlogCount} localized blog URLs updated${diskOnly > 0 ? ` (${diskOnly} from disk only)` : ''}`);
 }
 
 // ── RSS feed (/feed.xml) ──────────────────────────────────────
@@ -1911,6 +2711,15 @@ ${itemsXml}
   console.log(`  feed.xml -> ${latest.length} latest blog articles (RSS 2.0)`);
 }
 
+function generateFeedIfAvailable(articles) {
+  if (!Array.isArray(articles)) {
+    console.log('  [skip] feed.xml (articles API unavailable; preserving last good output)');
+    return false;
+  }
+  generateFeed(articles);
+  return true;
+}
+
 // ── Drive Photo Enrichment ────────────────────────────────────
 
 async function enrichKittensWithDrivePhotos(kittens) {
@@ -1957,15 +2766,29 @@ async function main() {
 
   // Fetch all data in parallel
   console.log('Fetching data from API...');
-  const [kittens, parents, reviews, articles, faq] = await Promise.all([
-    fetchJSON('/api/kittens').catch(e => { console.error('  [error] kittens:', e.message); return []; }),
-    fetchJSON('/api/parents').catch(e => { console.error('  [error] parents:', e.message); return []; }),
-    fetchJSON('/api/reviews').catch(e => { console.error('  [error] reviews:', e.message); return []; }),
-    fetchJSON('/api/articles').catch(e => { console.error('  [error] articles:', e.message); return []; }),
-    fetchJSON('/api/faq').catch(e => { console.error('  [error] faq:', e.message); return []; })
+  const [kittens, parents, reviews, articlesResult, faq, smallAnimalsResult] = await Promise.all([
+    fetchRequiredArray('/api/kittens', 'kittens'),
+    fetchRequiredArray('/api/parents', 'parents'),
+    fetchRequiredArray('/api/reviews', 'reviews'),
+    fetchJSON('/api/articles').catch(e => { console.error('  [error] articles:', e.message); return null; }),
+    fetchRequiredArray('/api/faq', 'faq'),
+    fetchSmallAnimalsForGeneration().catch(e => { console.error('  [error] small animals:', e.message); return null; }),
   ]);
 
-  console.log(`  Fetched: ${kittens.length} kittens, ${parents.length} parents, ${reviews.length} reviews, ${articles.length} articles, ${faq.length} FAQ`);
+  const articles = Array.isArray(articlesResult) ? articlesResult : null;
+  if (articlesResult !== null && articles === null) {
+    console.error('  [error] articles: API response was not an array; preserving feed.xml');
+  }
+  const smallAnimals = Array.isArray(smallAnimalsResult) ? smallAnimalsResult : null;
+  if (smallAnimalsResult !== null && smallAnimals === null) {
+    console.error('  [error] small animals: API response was not an array; preserving existing generated pages');
+  }
+  requireSmallAnimalDataForLaunch(smallAnimals);
+  // Validate the complete API snapshot before Drive enrichment or the first filesystem
+  // write. One hostile row must leave the entire last-good static release untouched.
+  assertSafeKittenDetailIds(kittens);
+
+  console.log(`  Fetched: ${kittens.length} kittens, ${smallAnimals === null ? 'unavailable' : smallAnimals.length} small animals, ${parents.length} parents, ${reviews.length} reviews, ${articles === null ? 'unavailable' : articles.length} articles, ${faq.length} FAQ`);
   console.log('');
 
   // Enrich kittens with Drive photos (merge multi-photo arrays)
@@ -2002,6 +2825,22 @@ async function main() {
     console.log('  [skip] kittens/ detail pages (no data)');
   }
 
+  // Owner-gated small-animal pages always render an honest empty state for a successful
+  // [] response. A failed/non-array fetch preserves the last good generated output.
+  let smallAnimalDetailPages = [];
+  if (smallAnimals !== null && (SMALL_ANIMALS_LAUNCH.public || SMALL_ANIMALS_LAUNCH.slugDark)) {
+    for (const lang of ['ja', 'en', 'zh']) generateSmallAnimals(smallAnimals, lang);
+    smallAnimalDetailPages = generateSmallAnimalDetailPages(smallAnimals, 'ja');
+    generateSmallAnimalDetailPages(smallAnimals, 'en');
+    generateSmallAnimalDetailPages(smallAnimals, 'zh');
+  } else if (!SMALL_ANIMALS_LAUNCH.public && !SMALL_ANIMALS_LAUNCH.slugDark) {
+    removePublicSmallAnimalOutput();
+    console.log('  [skip] small-animal private preview (SMALL_ANIMALS_DARK_SLUG not set)');
+  } else {
+    console.log('  [skip] small-animal pages (API unavailable; preserving last good output)');
+    smallAnimalDetailPages = null;
+  }
+
   if (parents.length > 0) {
     generateParents(parents);
   } else {
@@ -2017,10 +2856,10 @@ async function main() {
   // Always update sitemap (even with 0 articles, keeps static pages updated).
   // Single shared lastmod-store for the whole run (ja + en + zh URLs coexist).
   const store = createLastmodStore(SITE_DIR, todayISO());
-  updateSitemap(articles, kittenDetailPages, store);
+  updateSitemap(articles, kittenDetailPages, store, smallAnimalDetailPages);
 
   // RSS feed of the latest blog articles (deterministic; no build timestamp).
-  generateFeed(articles);
+  generateFeedIfAvailable(articles);
 
   // Future capabilities (not yet implemented)
   console.log('  [future] blog.html — 104 article cards (not yet implemented)');
