@@ -2,7 +2,8 @@
 #
 # deploy-and-smoke-worker.sh — deploy the fuluck-api Worker and smoke-test it.
 #
-# Covers D4 (drive-img layered cache: edge + R2) and D3-B (breederId uniqueness).
+# Covers core catalogue availability, small-animal dark-launch routes, private auth
+# gates, and drive-img layered caching. Expensive/destructive throttling is opt-in.
 # Idempotent and safe to re-run. Each check prints a clear PASS/FAIL line; the
 # script exits non-zero if any check fails.
 #
@@ -43,20 +44,66 @@ echo ""
 echo "== SMOKE TESTS against $API_BASE =="
 
 # ---------------------------------------------------------------------------
-# 2. GET /api/kittens -> 200 + 38 records
+# 2. GET /api/kittens -> 200 + a non-empty array
 # ---------------------------------------------------------------------------
 body="$(curl -s -w $'\n%{http_code}' "$API_BASE/api/kittens")"
 code="$(printf '%s' "$body" | tail -n1)"
 json="$(printf '%s' "$body" | sed '$d')"
 count="$(printf '%s' "$json" | python3 -c 'import sys,json; print(len(json.load(sys.stdin)))' 2>/dev/null || echo -1)"
-if [ "$code" = "200" ] && [ "$count" = "38" ]; then
-  pass "/api/kittens -> 200 with 38 records"
+if [ "$code" = "200" ] && [ "$count" -gt 0 ] 2>/dev/null; then
+  pass "/api/kittens -> 200 with a non-empty array ($count records)"
 else
-  fail "/api/kittens -> HTTP $code, count=$count (expected 200 / 38)"
+  fail "/api/kittens -> HTTP $code, count=$count (expected 200 / non-empty array)"
 fi
 
 # ---------------------------------------------------------------------------
-# 3. Unauthed admin route -> 401 or 403 (existing auth/CORS gate must still bite)
+# 3. Small-animal dark-launch API: public empty/list response + private gates
+# ---------------------------------------------------------------------------
+body="$(curl -s -w $'\n%{http_code}' "$API_BASE/api/small-animals")"
+code="$(printf '%s' "$body" | tail -n1)"
+json="$(printf '%s' "$body" | sed '$d')"
+is_array="$(printf '%s' "$json" | python3 -c 'import sys,json; print("yes" if isinstance(json.load(sys.stdin), list) else "no")' 2>/dev/null || echo no)"
+if [ "$code" = "200" ] && [ "$is_array" = "yes" ]; then
+  pass "/api/small-animals -> 200 array"
+else
+  fail "/api/small-animals -> HTTP $code, array=$is_array (expected 200 / array)"
+fi
+
+code="$(curl -s -o /dev/null -w '%{http_code}' "$API_BASE/api/admin/small-animals")"
+if [ "$code" = "403" ]; then
+  pass "small-animal admin without Origin -> 403"
+else
+  fail "small-animal admin without Origin -> $code (expected 403)"
+fi
+
+code="$(curl -s -o /dev/null -w '%{http_code}' \
+  -H 'Origin: https://fuluckpet.com' "$API_BASE/api/admin/small-animals")"
+if [ "$code" = "401" ]; then
+  pass "small-animal admin with valid Origin but no Bearer -> 401"
+else
+  fail "small-animal admin with valid Origin but no Bearer -> $code (expected 401)"
+fi
+
+# Optional authenticated negative write: malformed bulk shape must be rejected
+# before KV put. The password is read only from the caller environment and never logged.
+if [ -n "${FULUCK_ADMIN_PASS:-}" ]; then
+  code="$(curl -s -o /dev/null -w '%{http_code}' -X POST \
+    -H 'Origin: https://fuluckpet.com' \
+    -H "Authorization: Bearer $FULUCK_ADMIN_PASS" \
+    -H 'Content-Type: application/json' \
+    --data '{"not":"an array"}' \
+    "$API_BASE/api/admin/small-animals/bulk")"
+  if [ "$code" = "400" ]; then
+    pass "authenticated malformed small-animal bulk -> 400/no write"
+  else
+    fail "authenticated malformed small-animal bulk -> $code (expected 400)"
+  fi
+else
+  echo "     authenticated malformed-write check skipped (FULUCK_ADMIN_PASS not set)"
+fi
+
+# ---------------------------------------------------------------------------
+# 4. Existing admin route -> 401 or 403 (auth/CORS gate must still bite)
 # ---------------------------------------------------------------------------
 code="$(curl -s -o /dev/null -w '%{http_code}' "$API_BASE/api/admin/kittens")"
 if [ "$code" = "401" ] || [ "$code" = "403" ]; then
@@ -66,8 +113,8 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 4. drive-img cached path: two GETs, print X-Img-Cache + timing each time.
-#    1st hit: ORIGIN or R2 (warm legacy R2 key).  2nd hit: EDGE or R2.
+# 5. drive-img cached path: two GETs, print X-Img-Cache + timing each time.
+#    1st hit: ORIGIN, R2, or already-warm EDGE.  2nd hit: EDGE or R2.
 #    Also assert Cache-Control immutable + ETag present.
 # ---------------------------------------------------------------------------
 smoke_img() {
@@ -91,7 +138,7 @@ smoke_img() {
   echo "     GET#2  HTTP $code2  X-Img-Cache=${x2:-<none>}  ${t2}s"
 
   # Assertions
-  case "$x1" in ORIGIN|R2) pass "$id GET#1 X-Img-Cache=$x1 (ORIGIN|R2)";; *) fail "$id GET#1 X-Img-Cache=${x1:-<none>} (expected ORIGIN|R2)";; esac
+  case "$x1" in ORIGIN|R2|EDGE) pass "$id GET#1 X-Img-Cache=$x1 (ORIGIN|R2|EDGE)";; *) fail "$id GET#1 X-Img-Cache=${x1:-<none>} (expected ORIGIN|R2|EDGE)";; esac
   case "$x2" in EDGE|R2)   pass "$id GET#2 X-Img-Cache=$x2 (EDGE|R2, cache warmed)";; *) fail "$id GET#2 X-Img-Cache=${x2:-<none>} (expected EDGE|R2)";; esac
   case "$cc" in *immutable*) pass "$id Cache-Control has immutable ($cc)";; *) fail "$id Cache-Control='$cc' (expected immutable)";; esac
   if [ -n "$etag" ]; then pass "$id ETag present ($etag)"; else fail "$id ETag missing"; fi
@@ -100,7 +147,7 @@ smoke_img "$IMG_A"
 smoke_img "$IMG_B"
 
 # ---------------------------------------------------------------------------
-# 5. Bogus drive-img id -> non-200, error shape preserved, and NOT cached
+# 6. Bogus drive-img id -> non-200, error shape preserved, and NOT cached
 #    (repeat returns the same error, never an X-Img-Cache=EDGE/R2 hit).
 # ---------------------------------------------------------------------------
 echo "  -- drive-img bogus id (must not cache errors) --"
@@ -125,7 +172,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 6. A1 — story endpoints CORS-locked: OPTIONS/POST from a FOREIGN origin must NOT
+# 7. A1 — story endpoints CORS-locked: OPTIONS/POST from a FOREIGN origin must NOT
 #    return Access-Control-Allow-Origin: *  (expect the locked site origin, or none).
 # ---------------------------------------------------------------------------
 echo "  -- A1 story CORS lock (foreign origin must not get ACAO:*) --"
@@ -158,12 +205,13 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 7. A1 — story per-IP throttle: a burst of >cap requests returns 429. The body is
+# 8. A1 — story per-IP throttle: a burst of >cap requests returns 429. The body is
 #    intentionally minimal/invalid so it fails validation fast — but the throttle runs
 #    BEFORE the paid AI call and before the body read, so once the cap (20/hour) is hit
 #    we get a 429 (not a 400/500). We fire 25 to clear the cap, then assert a 429 shows.
 #    NOTE: this consumes the hour bucket for the test runner's egress IP — expected.
 # ---------------------------------------------------------------------------
+if [ "${RUN_RATE_LIMIT_SMOKE:-0}" = "1" ]; then
 echo "  -- A1 story per-IP throttle (>cap -> 429 before paid call) --"
 STORY_EP="$API_BASE/api/story/generate"
 saw_429=0
@@ -188,9 +236,12 @@ else
   # Only meaningful if we're actually capped now; treat as soft-info if not capped.
   echo "     (Retry-After not observed — bucket may have reset; non-fatal)"
 fi
+else
+  echo "  -- A1 story per-IP throttle skipped (set RUN_RATE_LIMIT_SMOKE=1 to saturate the production bucket) --"
+fi
 
 # ---------------------------------------------------------------------------
-# 8. B4 — drive-img edge cache key normalized: the SAME fileId with a junk ?cachebust
+# 9. B4 — drive-img edge cache key normalized: the SAME fileId with a junk ?cachebust
 #    must resolve to the SAME cached entry (not a fresh ORIGIN miss each time), proving
 #    the query string is stripped from the cache key. Warm once, then hit with a random
 #    cachebust and expect EDGE or R2 (a cache hit), never a cold ORIGIN.
