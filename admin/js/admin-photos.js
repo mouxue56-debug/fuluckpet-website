@@ -49,7 +49,7 @@ function addGalleryPhoto() {
   item.photos.push(url);
   if (item.photos.length === 1) item.coverIndex = 0;
 
-  saveAndPublish(data);
+  saveAndPublishFromUI(data);
   renderGalleryGrid(item);
   renderAll();
   document.getElementById('newPhotoUrl').value = '';
@@ -69,7 +69,7 @@ function deleteGalleryPhoto(index) {
   item.photos.splice(index, 1);
   if (item.coverIndex >= item.photos.length) item.coverIndex = Math.max(0, item.photos.length - 1);
 
-  saveAndPublish(data);
+  saveAndPublishFromUI(data);
   renderGalleryGrid(item);
   renderAll();
   addLog(t((type === 'kitten' ? '子猫 ' + item.breederId : '親猫 ' + item.name) + ' の写真を削除しました', (type === 'kitten' ? '删除了子猫 ' + item.breederId : '删除了种猫 ' + item.name) + ' 的照片'));
@@ -121,7 +121,7 @@ function uploadPhotosFromDevice() {
   }
 
   chain.then(function() {
-    saveAndPublish(data);
+    saveAndPublishFromUI(data);
     renderGalleryGrid(item);
     renderAll();
     fileInput.value = '';
@@ -149,7 +149,7 @@ function setGalleryCover(index) {
   if (!item) return;
   item.coverIndex = index;
 
-  saveAndPublish(data);
+  saveAndPublishFromUI(data);
   renderGalleryGrid(item);
   renderAll();
   addLog(t((type === 'kitten' ? '子猫 ' + item.breederId : '親猫 ' + item.name) + ' のカバー写真を変更しました', (type === 'kitten' ? '更改了子猫 ' + item.breederId : '更改了种猫 ' + item.name) + ' 的封面照片'));

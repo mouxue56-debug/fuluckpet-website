@@ -12,7 +12,8 @@ function renderAll() {
 }
 
 function syncFromAPI() {
-  if (typeof FuluckAPI === 'undefined') return;
+  if (remoteSyncPending && remoteSyncPromise) return remoteSyncPromise;
+  remoteSyncPending = true;
 
   var syncIndicator = document.getElementById('syncStatus');
   if (syncIndicator) {
@@ -20,49 +21,61 @@ function syncFromAPI() {
     syncIndicator.className = 'sync-status syncing';
   }
 
-  Promise.all([
-    FuluckAPI.get('/api/kittens').catch(function() { return null; }),
-    FuluckAPI.get('/api/parents').catch(function() { return null; }),
-    FuluckAPI.get('/api/reviews').catch(function() { return null; })
-  ]).then(function(results) {
-    var kv_kittens = results[0];
-    var kv_parents = results[1];
-    var kv_reviews = results[2];
-    var changed = false;
-
-    // Smart merge: API is source of truth, but preserve local-only fields
-    if (kv_kittens && kv_kittens.length > 0) {
-      data.kittens = kv_kittens;
-      changed = true;
+  // Drain every save that was queued before this refresh request. New saves are
+  // rejected by remoteSyncPending, preventing a GET from racing a KV replace.
+  remoteSyncPromise = saveQueue.then(function() {
+    remoteDataReady = false;
+    remoteDataSnapshot = null;
+    if (typeof FuluckAPI === 'undefined' || typeof FuluckAPI.get !== 'function') {
+      throw new Error('Remote sync API is unavailable.');
     }
-    if (kv_parents && kv_parents.length > 0) {
-      data.parents = kv_parents;
-      changed = true;
-    }
-    if (kv_reviews && kv_reviews.length > 0) {
-      data.reviews = kv_reviews;
-      changed = true;
+    return Promise.all([
+      FuluckAPI.get('/api/kittens'),
+      FuluckAPI.get('/api/parents'),
+      FuluckAPI.get('/api/reviews')
+    ]);
+  }).then(function(results) {
+    if (!results.every(Array.isArray)) {
+      throw new Error('Remote sync returned an invalid collection payload.');
     }
 
-    if (changed) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      renderDashboard();
-      renderKittens();
-      renderParents();
-      renderReviews();
-    }
+    // Empty arrays are authoritative too. Never preserve stale local rows merely
+    // because a legitimate remote collection currently has no records.
+    data = migrateData({
+      kittens: JSON.parse(JSON.stringify(results[0])),
+      parents: JSON.parse(JSON.stringify(results[1])),
+      reviews: JSON.parse(JSON.stringify(results[2]))
+    });
+    remoteDataSnapshot = cloneAdminCollections(data);
+    remoteDataReady = true;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    renderDashboard();
+    renderKittens();
+    renderParents();
+    renderReviews();
 
     if (syncIndicator) {
       syncIndicator.textContent = t('☁️ 同期済み','☁️ 已同步');
       syncIndicator.className = 'sync-status synced';
       setTimeout(function() { syncIndicator.className = 'sync-status'; }, 3000);
     }
-  }).catch(function() {
+    hideRetrySyncButton();
+    remoteSyncPending = false;
+    remoteSyncPromise = null;
+    return true;
+  }).catch(function(err) {
+    remoteDataReady = false;
+    remoteDataSnapshot = null;
+    remoteSyncPending = false;
+    remoteSyncPromise = null;
+    console.error('Remote data load failed:', err);
     if (syncIndicator) {
-      syncIndicator.textContent = t('⚠️ オフラインモード','⚠️ 离线模式');
+      syncIndicator.textContent = t('⚠️ 読込失敗・保存ロック中','⚠️ 加载失败・保存已锁定');
       syncIndicator.className = 'sync-status sync-error';
     }
+    return false;
   });
+  return remoteSyncPromise;
 }
 
 // Dashboard
@@ -145,7 +158,7 @@ function quickSetStatus(id, newStatus) {
   var statusLabels = { available: t('販売中','在售'), reserved: t('商談中','洽谈中'), sold: t('ご家族決定','已售') };
   kitten.status = newStatus;
   addLog(t('子猫 ' + kitten.breederId + ' を「' + statusLabels[newStatus] + '」に変更しました','子猫 ' + kitten.breederId + ' 状态改为「' + statusLabels[newStatus] + '」'));
-  saveAndPublish(data);
+  saveAndPublishFromUI(data);
   renderAll();
 }
 
@@ -159,7 +172,7 @@ function quickEditPrice(id) {
   if (isNaN(newPrice) || newPrice <= 0) { showToast(t('正しい金額を入力してください','请输入正确金额'), 'error'); return; }
   kitten.price = newPrice;
   addLog(t('子猫 ' + kitten.breederId + ' の価格を ¥' + newPrice.toLocaleString() + ' に変更しました','子猫 ' + kitten.breederId + ' 价格改为 ¥' + newPrice.toLocaleString()));
-  saveAndPublish(data);
+  saveAndPublishFromUI(data);
   renderAll();
 }
 
@@ -221,7 +234,7 @@ function saveKitten() {
     data.kittens.push(obj);
     addLog(t('子猫 ' + obj.breederId + ' を追加しました','添加了子猫 ' + obj.breederId));
   }
-  saveAndPublish(data);
+  saveAndPublishFromUI(data);
   closeModal('kittenFormModal');
   renderAll();
 }
@@ -231,10 +244,11 @@ function deleteKitten(id) {
   if (!k) return;
   if (!confirm(t('子猫 ' + k.breederId + ' を削除しますか？','确定删除子猫 ' + k.breederId + '？'))) return;
   data.kittens = data.kittens.filter(function(x) { return x.id !== id; });
-  saveAndPublish(data);
-  addLog(t('子猫 ' + k.breederId + ' を削除しました','删除了子猫 ' + k.breederId));
+  saveAndPublishFromUI(data, function() {
+    addLog(t('子猫 ' + k.breederId + ' を削除しました','删除了子猫 ' + k.breederId));
+    showToast(t('削除しました','已删除'), 'success');
+  });
   renderAll();
-  showToast(t('削除しました','已删除'), 'success');
 }
 
 // Parents CRUD
@@ -320,7 +334,7 @@ function saveParent() {
     data.parents.push(obj);
     addLog(t('親猫 ' + obj.name + ' を追加しました','添加了种猫 ' + obj.name));
   }
-  saveAndPublish(data);
+  saveAndPublishFromUI(data);
   closeModal('parentFormModal');
   renderAll();
 }
@@ -330,10 +344,11 @@ function deleteParent(id) {
   if (!p) return;
   if (!confirm(t('親猫 ' + p.name + ' を削除しますか？','确定删除种猫 ' + p.name + '？'))) return;
   data.parents = data.parents.filter(function(x) { return x.id !== id; });
-  saveAndPublish(data);
-  addLog(t('親猫 ' + p.name + ' を削除しました','删除了种猫 ' + p.name));
+  saveAndPublishFromUI(data, function() {
+    addLog(t('親猫 ' + p.name + ' を削除しました','删除了种猫 ' + p.name));
+    showToast(t('削除しました','已删除'), 'success');
+  });
   renderAll();
-  showToast(t('削除しました','已删除'), 'success');
 }
 
 // Reviews CRUD
@@ -387,7 +402,7 @@ function saveReview() {
     data.reviews.push(obj);
     addLog(t('レビュー ' + obj.author + ' を追加しました','添加了评价 ' + obj.author));
   }
-  saveAndPublish(data);
+  saveAndPublishFromUI(data);
   closeModal('reviewFormModal');
   renderAll();
 }
@@ -397,8 +412,9 @@ function deleteReview(id) {
   if (!r) return;
   if (!confirm(t('レビュー ' + r.author + ' を削除しますか？','确定删除评价 ' + r.author + '？'))) return;
   data.reviews = data.reviews.filter(function(x) { return x.id !== id; });
-  saveAndPublish(data);
-  addLog(t('レビュー ' + r.author + ' を削除しました','删除了评价 ' + r.author));
+  saveAndPublishFromUI(data, function() {
+    addLog(t('レビュー ' + r.author + ' を削除しました','删除了评价 ' + r.author));
+    showToast(t('削除しました','已删除'), 'success');
+  });
   renderAll();
-  showToast(t('削除しました','已删除'), 'success');
 }

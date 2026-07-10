@@ -208,7 +208,7 @@ function importSelectedDrivePhotos() {
   var btn = document.getElementById('drivePhotoImportBtn');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ ' + (admLang === 'zh' ? '导入中...' : '取り込み中...'); }
 
-  saveAndPublish(data);
+  saveAndPublishFromUI(data);
 
   // Re-render the manual gallery + master grid; clear selection + uncheck checkboxes.
   if (typeof renderGalleryGrid === 'function') renderGalleryGrid(item);

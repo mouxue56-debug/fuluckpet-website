@@ -1185,27 +1185,14 @@ function handlePublish() {
   var btn = document.getElementById('publishBtn');
   if (btn.disabled) return;
 
-  // Check if sync indicator shows error
-  var syncEl = document.getElementById('syncStatus');
-  if (syncEl && syncEl.classList.contains('sync-error')) {
-    if (!confirm(t(
-      'クラウド同期に問題があります。このまま発行すると、最新の変更が反映されない可能性があります。続けますか？',
-      '云端同步有问题。继续发布可能无法反映最新修改。确定继续吗？'
-    ))) return;
-  }
-
   btn.disabled = true;
   var span = btn.querySelector('span');
   var origText = span.textContent;
   span.textContent = t('同期＆発行中...','同步发布中...');
 
-  // Step 1: Force re-sync data to API before publishing
-  var syncPromises = ['kittens', 'parents', 'reviews'].map(function(type) {
-    if (!data[type]) return Promise.resolve();
-    return FuluckAPI.bulkImport(type, data[type]);
-  });
-
-  Promise.all(syncPromises)
+  // The shared save gate requires a complete remote read, writes only changed
+  // collections, and rejects on any KV failure. Publish can never bypass it.
+  saveData(data)
     .then(function() {
       // Step 2: Trigger GitHub Actions
       return FuluckAPI.publish();
