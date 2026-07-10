@@ -40,6 +40,14 @@ test('worker smoke locks chat preflight and POST to the site origin', () => {
   assert.match(SCRIPT, /chat.*same-origin/i);
 });
 
+test('post-deploy waits for release-specific CORS readiness before smoke', () => {
+  assert.match(SCRIPT, /wait_for_worker_release/);
+  assert.match(SCRIPT, /\/api\/chat%2Fdiagnostic/);
+  assert.match(SCRIPT, /for attempt in 1 2 3 4 5 6 7 8 9 10/);
+  assert.match(SCRIPT, /sleep 2/);
+  assert.match(SCRIPT, /propagation timeout/i);
+});
+
 test('worker smoke proves foreign story requests are rejected before paid work', () => {
   assert.match(SCRIPT, /story CORS lock/i);
   assert.match(SCRIPT, /story.*OPTIONS.*foreign-origin.*403/i);

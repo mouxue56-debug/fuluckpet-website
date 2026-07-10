@@ -15,6 +15,9 @@
 set -u -o pipefail
 
 API_BASE="https://fuluck-api.mouxue56.workers.dev"
+SITE_ORIGIN="https://fuluckpet.com"
+FOREIGN_ORIGIN="https://evil.example.com"
+RELEASE_PROBE_PATH="/api/chat%2Fdiagnostic"
 # Two REAL kitten-card LCP images (Drive file ids from kittens.html).
 IMG_A="1WgbZ2SZ1c8Q43wBdqu8vu9w3a3Idxj-A"
 IMG_B="11A__yaCqHdX2DQWdoJJt09SL96fommeS"
@@ -28,6 +31,33 @@ fail_count=0
 pass() { echo "  PASS  $1"; pass_count=$((pass_count+1)); }
 fail() { echo "  FAIL  $1"; fail_count=$((fail_count+1)); }
 
+# A Worker upload can finish before the nearest edge serves the new version. Poll
+# one release-specific security contract before the full smoke so propagation is
+# not misreported as a regression. A genuine bad release still fails after the
+# bounded window instead of being silently retried forever.
+wait_for_worker_release() {
+  local attempt headers code acao
+  for attempt in 1 2 3 4 5 6 7 8 9 10; do
+    headers="$(curl -s -D - -o /dev/null -w 'CODE %{http_code}' -X OPTIONS \
+      -H "Origin: $FOREIGN_ORIGIN" \
+      -H 'Access-Control-Request-Method: POST' \
+      -H 'Access-Control-Request-Headers: content-type' \
+      "$API_BASE$RELEASE_PROBE_PATH")"
+    code="$(printf '%s' "$headers" | grep -o 'CODE [0-9]*' | awk '{print $2}')"
+    acao="$(printf '%s' "$headers" | tr -d '\r' | awk -F': ' 'tolower($1)=="access-control-allow-origin"{print $2}')"
+    if [ "$code" = "403" ] && [ -z "$acao" ]; then
+      echo "   release readiness confirmed on attempt $attempt."
+      return 0
+    fi
+    if [ "$attempt" != "10" ]; then
+      echo "   edge still serving the prior contract (HTTP ${code:-unknown}); retrying in 2s..."
+      sleep 2
+    fi
+  done
+  echo "DEPLOY PROPAGATION TIMEOUT — release-specific CORS contract never became ready."
+  return 1
+}
+
 # ---------------------------------------------------------------------------
 # 1. DEPLOY
 # ---------------------------------------------------------------------------
@@ -36,8 +66,8 @@ if [ "${SKIP_DEPLOY:-0}" = "1" ]; then
 else
   echo "== DEPLOY: cd api && npx wrangler deploy =="
   ( cd "$REPO_ROOT/api" && npx wrangler deploy ) || { echo "DEPLOY FAILED — aborting smoke tests."; exit 1; }
-  echo "   deploy complete; waiting 5s for propagation..."
-  sleep 5
+  echo "   deploy complete; waiting for release-specific edge readiness..."
+  wait_for_worker_release || exit 1
 fi
 
 echo ""
@@ -179,8 +209,6 @@ fi
 # 7. A1 — story endpoints reject a FOREIGN origin before rate-limit/provider work.
 # ---------------------------------------------------------------------------
 echo "  -- A1 story CORS lock (foreign origin rejected before paid work) --"
-SITE_ORIGIN="https://fuluckpet.com"
-FOREIGN_ORIGIN="https://evil.example.com"
 for ep in "/api/story/analyze-photo" "/api/story/generate"; do
   story_headers="$(curl -s -D - -o /dev/null -w 'CODE %{http_code}' -X OPTIONS \
       -H "Origin: $FOREIGN_ORIGIN" \
