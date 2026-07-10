@@ -107,6 +107,16 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
 
+function hasNoindexMeta(html) {
+  const tags = String(html || '').match(/<meta\b[^>]*>/gi) || [];
+  return tags.some((tag) => {
+    const name = tag.match(/\bname\s*=\s*(["'])([^"']*)\1/i);
+    const content = tag.match(/\bcontent\s*=\s*(["'])([^"']*)\1/i);
+    return name && name[2].trim().toLowerCase() === 'robots' &&
+      content && /(?:^|[\s,])noindex(?:$|[\s,])/i.test(content[2]);
+  });
+}
+
 function formatPrice(price) {
   return Number(price).toLocaleString('ja-JP');
 }
@@ -1795,7 +1805,14 @@ function updateSitemap(articles, kittenDetailPages, store) {
   if (fs.existsSync(blogDir)) {
     const diskFiles = fs.readdirSync(blogDir).filter(f => f.endsWith('.html'));
     for (const f of diskFiles) {
-      blogSlugs.add(f.replace('.html', ''));
+      const slug = f.replace('.html', '');
+      const html = fs.readFileSync(path.join(blogDir, f), 'utf-8');
+      if (hasNoindexMeta(html)) {
+        // The file's robots policy wins over stale API publication metadata.
+        blogSlugs.delete(slug);
+        continue;
+      }
+      blogSlugs.add(slug);
     }
   }
 

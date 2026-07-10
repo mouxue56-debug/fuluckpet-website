@@ -32,6 +32,15 @@ function assetVersion(html, file) {
   const m = html.match(new RegExp(file.replace(/\./g, '\\.') + '\\?v=([\\w.-]+)'));
   return m ? m[1] : null;
 }
+function hasNoindexMeta(html) {
+  const tags = String(html || '').match(/<meta\b[^>]*>/gi) || [];
+  return tags.some((tag) => {
+    const name = tag.match(/\bname\s*=\s*(["'])([^"']*)\1/i);
+    const content = tag.match(/\bcontent\s*=\s*(["'])([^"']*)\1/i);
+    return name && name[2].trim().toLowerCase() === 'robots' &&
+      content && /(?:^|[\s,])noindex(?:$|[\s,])/i.test(content[2]);
+  });
+}
 
 // --- Collect the set of generated pages to check ---
 // D2: the trilingual money pages under /en/ and /zh/ are generated the same way as the
@@ -117,6 +126,9 @@ if (sitemap) {
   // Every public generated page on disk must have a sitemap entry. Deliberately
   // exclude owner-gated noindex surfaces such as boarding and future dark launches.
   const indexableGeneratedPages = [
+    'kittens.html',
+    'parents.html',
+    'reviews.html',
     ...listHtml('blog'),
     ...listHtml('kittens'),
     ...listHtml('en/kittens'),
@@ -127,10 +139,16 @@ if (sitemap) {
     if (read(p) != null) indexableGeneratedPages.push(p);
   }
   for (const p of indexableGeneratedPages) {
+    const html = read(p);
+    if (html == null) continue;
     const route = p.endsWith('/index.html')
       ? `/${p.slice(0, -'index.html'.length)}`
       : `/${p}`;
     const loc = `https://fuluckpet.com${route}`;
+    if (hasNoindexMeta(html)) {
+      if (locSet.has(loc)) errors.push(`[sitemap] noindex page has <loc>: ${loc}`);
+      continue;
+    }
     if (!locSet.has(loc)) errors.push(`[sitemap] missing <loc>: ${loc}`);
   }
 } else {
