@@ -923,6 +923,17 @@ function json(data, status = 200, cacheControl, extraHeaders) {
   return new Response(JSON.stringify(data), { status, headers });
 }
 
+async function parseJsonWriteBody(request) {
+  try {
+    return { ok: true, value: await request.json() };
+  } catch (_) {
+    return {
+      ok: false,
+      details: [{ breederId: '#request', field: '(body)', reason: 'malformed JSON' }],
+    };
+  }
+}
+
 function unauthorized() {
   return json({ error: 'Unauthorized' }, 401);
 }
@@ -1033,6 +1044,96 @@ function validateKittenShapes(items) {
       }
     }
   }
+  if (errors.length) return { ok: false, errors };
+  return { ok: true };
+}
+
+// ===== Small-animal collection validation =====
+//
+// `small_animals` deliberately has a stricter identity contract than the legacy
+// kitten catalogue: every record is a rabbit keyed by a unique, non-empty
+// breederId. Unknown fields remain tolerated so future admin versions can round
+// trip new fields without an API rollout.
+const SMALL_ANIMAL_STATUS_ENUM = ['available', 'reserved', 'sold'];
+
+function isPlainObject(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const proto = Object.getPrototypeOf(value);
+  return proto === Object.prototype || proto === null;
+}
+
+// Returns { ok: true } or { ok: false, errors: [{ breederId, field, reason }] }.
+// Duplicate breederIds are compared after trimming, while the stored value is
+// preserved verbatim for forward-compatible admin round trips.
+function validateSmallAnimalShape(items) {
+  if (!Array.isArray(items)) {
+    return {
+      ok: false,
+      errors: [{ breederId: '#collection', field: '(collection)', reason: 'not an array' }],
+    };
+  }
+
+  const errors = [];
+  const seenBreederIds = new Set();
+
+  for (let i = 0; i < items.length; i++) {
+    const animal = items[i];
+    const fallbackId = `#${i}`;
+
+    if (!isPlainObject(animal)) {
+      errors.push({ breederId: fallbackId, field: '(item)', reason: 'not a plain object' });
+      continue;
+    }
+
+    const breederId = typeof animal.breederId === 'string' ? animal.breederId.trim() : '';
+    const displayId = breederId || fallbackId;
+    if (!breederId) {
+      errors.push({ breederId: displayId, field: 'breederId', reason: 'required non-empty string' });
+    } else if (seenBreederIds.has(breederId)) {
+      errors.push({ breederId: displayId, field: 'breederId', reason: 'duplicate breederId' });
+    } else {
+      seenBreederIds.add(breederId);
+    }
+
+    if (animal.species !== 'rabbit') {
+      errors.push({ breederId: displayId, field: 'species', reason: 'must equal rabbit' });
+    }
+
+    if (
+      Object.prototype.hasOwnProperty.call(animal, 'price') &&
+      animal.price !== null &&
+      animal.price !== undefined &&
+      String(animal.price).trim() !== '' &&
+      !Number.isFinite(Number(animal.price))
+    ) {
+      errors.push({ breederId: displayId, field: 'price', reason: 'not finite numeric' });
+    }
+
+    if (
+      Object.prototype.hasOwnProperty.call(animal, 'status') &&
+      !SMALL_ANIMAL_STATUS_ENUM.includes(animal.status)
+    ) {
+      errors.push({
+        breederId: displayId,
+        field: 'status',
+        reason: `not in [${SMALL_ANIMAL_STATUS_ENUM.join(', ')}]`,
+      });
+    }
+
+    if (
+      Object.prototype.hasOwnProperty.call(animal, 'photos') &&
+      (!Array.isArray(animal.photos) || !animal.photos.every((photo) => typeof photo === 'string'))
+    ) {
+      errors.push({ breederId: displayId, field: 'photos', reason: 'not an array of strings' });
+    }
+
+    for (const forbiddenField of ['papa', 'mama']) {
+      if (Object.prototype.hasOwnProperty.call(animal, forbiddenField)) {
+        errors.push({ breederId: displayId, field: forbiddenField, reason: 'field is forbidden' });
+      }
+    }
+  }
+
   if (errors.length) return { ok: false, errors };
   return { ok: true };
 }
@@ -1883,6 +1984,14 @@ export default {
         return addCors(json(data || [], 200, 'no-store'));
       }
 
+      // GET /api/small-animals — public dark-launch collection. This route is
+      // intentionally before the admin auth gate and uses only the underscore KV
+      // key; no fallback cache is created for this unpublished collection.
+      if (path === '/api/small-animals' && method === 'GET') {
+        const data = await env.DATA.get('small_animals', 'json');
+        return addCors(json(data || [], 200, 'no-store'));
+      }
+
       // GET /api/gallery — 公開：ギャラリー一覧
       if (path === '/api/gallery' && method === 'GET') {
         const data = await env.DATA.get('gallery', 'json');
@@ -2494,6 +2603,105 @@ export default {
       }
 
       // ===== ADMIN ROUTES =====
+
+      // --- Small Animals CRUD (breederId is the immutable primary key) ---
+      if (path === '/api/admin/small-animals/bulk' && method === 'POST') {
+        const parsed = await parseJsonWriteBody(request);
+        if (!parsed.ok) {
+          return addCors(json({ error: 'Invalid JSON body', details: parsed.details }, 400));
+        }
+        const items = parsed.value;
+        if (!Array.isArray(items)) {
+          return addCors(json({
+            error: 'Expected array',
+            details: [{ breederId: '#collection', field: '(collection)', reason: 'not an array' }],
+          }, 400));
+        }
+        const shape = validateSmallAnimalShape(items);
+        if (!shape.ok) {
+          return addCors(json({ error: 'Invalid small-animal data', details: shape.errors }, 400));
+        }
+        await env.DATA.put('small_animals', JSON.stringify(items));
+        return addCors(json({ success: true, count: items.length }));
+      }
+
+      if (path === '/api/admin/small-animals' && method === 'GET') {
+        const data = await env.DATA.get('small_animals', 'json');
+        return addCors(json(data || [], 200, 'no-store'));
+      }
+
+      if (path === '/api/admin/small-animals' && method === 'POST') {
+        const parsed = await parseJsonWriteBody(request);
+        if (!parsed.ok) {
+          return addCors(json({ error: 'Invalid JSON body', details: parsed.details }, 400));
+        }
+        const body = parsed.value;
+        const animals = (await env.DATA.get('small_animals', 'json')) || [];
+        const next = [...animals, body];
+        const shape = validateSmallAnimalShape(next);
+        if (!shape.ok) {
+          return addCors(json({ error: 'Invalid small-animal data', details: shape.errors }, 400));
+        }
+        await env.DATA.put('small_animals', JSON.stringify(next));
+        return addCors(json(body, 201));
+      }
+
+      const smallAnimalItemMatch = path.match(/^\/api\/admin\/small-animals\/([^/]+)$/);
+      if (smallAnimalItemMatch && (method === 'PUT' || method === 'DELETE')) {
+        let breederId;
+        try {
+          breederId = decodeURIComponent(smallAnimalItemMatch[1]);
+        } catch (_) {
+          return addCors(json({
+            error: 'Invalid breederId encoding',
+            details: [{ breederId: smallAnimalItemMatch[1], field: 'breederId', reason: 'invalid URL encoding' }],
+          }, 400));
+        }
+        // `/bulk` is a reserved collection endpoint for every method, never an
+        // item identifier (including percent-encoded spellings that decode to it).
+        if (breederId === 'bulk') return addCors(notFound());
+
+        const animals = (await env.DATA.get('small_animals', 'json')) || [];
+        const index = animals.findIndex((animal) => animal && animal.breederId === breederId);
+        if (index === -1) return addCors(notFound());
+
+        if (method === 'DELETE') {
+          const next = animals.filter((_, itemIndex) => itemIndex !== index);
+          await env.DATA.put('small_animals', JSON.stringify(next));
+          return addCors(json({ success: true }));
+        }
+
+        const parsed = await parseJsonWriteBody(request);
+        if (!parsed.ok) {
+          return addCors(json({ error: 'Invalid JSON body', details: parsed.details }, 400));
+        }
+        const body = parsed.value;
+        if (!isPlainObject(body)) {
+          return addCors(json({
+            error: 'Invalid small-animal patch',
+            details: [{ breederId, field: '(item)', reason: 'not a plain object' }],
+          }, 400));
+        }
+        if (
+          Object.prototype.hasOwnProperty.call(body, 'breederId') &&
+          body.breederId !== breederId
+        ) {
+          return addCors(json({
+            error: 'breederId is immutable',
+            details: [{ breederId, field: 'breederId', reason: 'must match path breederId' }],
+          }, 400));
+        }
+
+        const updated = { ...animals[index], ...body, breederId };
+        const next = animals.slice();
+        next[index] = updated;
+        const shape = validateSmallAnimalShape(next);
+        if (!shape.ok) {
+          return addCors(json({ error: 'Invalid small-animal data', details: shape.errors }, 400));
+        }
+        await env.DATA.put('small_animals', JSON.stringify(next));
+        return addCors(json(updated));
+      }
 
       // --- Bulk Import (for localStorage → KV migration) ---
       const bulkMatch = path.match(/^\/api\/admin\/(kittens|parents|reviews)\/bulk$/);
@@ -3252,4 +3460,4 @@ export default {
 // Named exports for unit testing (ignored by the Workers runtime, which only reads
 // the default export). tests/validate-breederid.test.js keeps a synced copy because
 // this project has no package.json / module toolchain to import ESM from plain Node.
-export { validateBreederIdUniqueness, dupCounts, validateCalendarEvent, rangeOverlap, icsEscape, buildIcs, bookingStatusToEventStatus, applyBookingCalendarSync };
+export { validateBreederIdUniqueness, dupCounts, validateSmallAnimalShape, validateCalendarEvent, rangeOverlap, icsEscape, buildIcs, bookingStatusToEventStatus, applyBookingCalendarSync };
