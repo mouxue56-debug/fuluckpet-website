@@ -21,5 +21,9 @@ tools/tmp/
 PLAN.md
 docs/
 
+# Local-only internal manuals (GitHub Pages publishes tracked root Markdown)
+/*.md
+!/README.md
+
 # Local-only generated previews (may contain secret launch slugs)
 .private-preview/
