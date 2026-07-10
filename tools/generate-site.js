@@ -7,6 +7,7 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const { createLastmodStore } = require('./lastmod-store');
+const { hasNoindexMeta } = require('./robots-meta');
 
 const API_BASE = 'https://fuluck-api.mouxue56.workers.dev';
 const SITE_DIR = path.resolve(__dirname, '..');
@@ -105,16 +106,6 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
-}
-
-function hasNoindexMeta(html) {
-  const tags = String(html || '').match(/<meta\b[^>]*>/gi) || [];
-  return tags.some((tag) => {
-    const name = tag.match(/\bname\s*=\s*(["'])([^"']*)\1/i);
-    const content = tag.match(/\bcontent\s*=\s*(["'])([^"']*)\1/i);
-    return name && name[2].trim().toLowerCase() === 'robots' &&
-      content && /(?:^|[\s,])noindex(?:$|[\s,])/i.test(content[2]);
-  });
 }
 
 function formatPrice(price) {

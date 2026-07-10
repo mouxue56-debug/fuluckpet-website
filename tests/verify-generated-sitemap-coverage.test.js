@@ -18,6 +18,10 @@ function createVerifierSite(t) {
     path.join(PROJECT, 'tools/verify-generated.js'),
     path.join(siteDir, 'tools/verify-generated.js'),
   );
+  const robotsMeta = path.join(PROJECT, 'tools/robots-meta.js');
+  if (fs.existsSync(robotsMeta)) {
+    fs.copyFileSync(robotsMeta, path.join(siteDir, 'tools/robots-meta.js'));
+  }
 
   fs.writeFileSync(path.join(siteDir, 'kittens.html'), `<!doctype html>
 <link rel="stylesheet" href="/style.css?v=test">
@@ -120,4 +124,24 @@ ${ALL_MARKERS}
 
   assert.equal(result.status, 1, `expected noindex leak failure, got stdout: ${result.stdout}`);
   assert.match(result.stderr, /noindex page has <loc>: https:\/\/fuluckpet\.com\/blog\/dark\.html/);
+});
+
+test('verify-generated rejects an unquoted noindex page outside generated coverage when it leaks', (t) => {
+  const siteDir = createVerifierSite(t);
+  write(siteDir, 'boarding/index.html', `<!doctype html>
+<meta content=noindex,nofollow name=robots>
+<title>Owner-gated boarding</title>
+`);
+  write(siteDir, 'sitemap.xml', `<?xml version="1.0"?>
+<urlset>
+  <url><loc>https://fuluckpet.com/kittens.html</loc></url>
+  <url><loc>https://fuluckpet.com/boarding/</loc></url>
+${ALL_MARKERS}
+</urlset>
+`);
+
+  const result = runVerifier(siteDir);
+
+  assert.equal(result.status, 1, `expected noindex leak failure, got stdout: ${result.stdout}`);
+  assert.match(result.stderr, /noindex page has <loc>: https:\/\/fuluckpet\.com\/boarding\//);
 });

@@ -12,6 +12,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { hasNoindexMeta } = require('./robots-meta');
 
 const SITE = path.resolve(__dirname, '..');
 const errors = [];
@@ -32,14 +33,26 @@ function assetVersion(html, file) {
   const m = html.match(new RegExp(file.replace(/\./g, '\\.') + '\\?v=([\\w.-]+)'));
   return m ? m[1] : null;
 }
-function hasNoindexMeta(html) {
-  const tags = String(html || '').match(/<meta\b[^>]*>/gi) || [];
-  return tags.some((tag) => {
-    const name = tag.match(/\bname\s*=\s*(["'])([^"']*)\1/i);
-    const content = tag.match(/\bcontent\s*=\s*(["'])([^"']*)\1/i);
-    return name && name[2].trim().toLowerCase() === 'robots' &&
-      content && /(?:^|[\s,])noindex(?:$|[\s,])/i.test(content[2]);
-  });
+function listHtmlTree(absDir = SITE, relDir = '') {
+  const skipDirs = new Set(['.git', '.superpowers', 'node_modules']);
+  const pages = [];
+  for (const entry of fs.readdirSync(absDir, { withFileTypes: true })) {
+    if (entry.isDirectory()) {
+      if (skipDirs.has(entry.name)) continue;
+      pages.push(...listHtmlTree(path.join(absDir, entry.name), path.join(relDir, entry.name)));
+    } else if (entry.isFile() && entry.name.endsWith('.html')) {
+      pages.push(path.join(relDir, entry.name).split(path.sep).join('/'));
+    }
+  }
+  return pages;
+}
+
+function publicUrlForHtml(rel) {
+  if (rel === 'index.html') return 'https://fuluckpet.com/';
+  if (rel.endsWith('/index.html')) {
+    return `https://fuluckpet.com/${rel.slice(0, -'index.html'.length)}`;
+  }
+  return `https://fuluckpet.com/${rel}`;
 }
 
 // --- Collect the set of generated pages to check ---
@@ -146,10 +159,19 @@ if (sitemap) {
       : `/${p}`;
     const loc = `https://fuluckpet.com${route}`;
     if (hasNoindexMeta(html)) {
-      if (locSet.has(loc)) errors.push(`[sitemap] noindex page has <loc>: ${loc}`);
       continue;
     }
     if (!locSet.has(loc)) errors.push(`[sitemap] missing <loc>: ${loc}`);
+  }
+
+  // Negative policy is global, not limited to the public generated-page allowlist:
+  // any deployed HTML declaring noindex must stay out of sitemap, including boarding,
+  // admin, previews, and future owner-gated dark launches.
+  for (const p of listHtmlTree()) {
+    const html = read(p);
+    if (!hasNoindexMeta(html)) continue;
+    const loc = publicUrlForHtml(p);
+    if (locSet.has(loc)) errors.push(`[sitemap] noindex page has <loc>: ${loc}`);
   }
 } else {
   errors.push('[sitemap] sitemap.xml missing');

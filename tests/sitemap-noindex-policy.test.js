@@ -13,6 +13,10 @@ function loadSiteGeneratorInTempSite(t) {
   const toolsDir = path.join(siteDir, 'tools');
   fs.mkdirSync(toolsDir, { recursive: true });
   fs.copyFileSync(path.join(PROJECT, 'tools/lastmod-store.js'), path.join(toolsDir, 'lastmod-store.js'));
+  const robotsMeta = path.join(PROJECT, 'tools/robots-meta.js');
+  if (fs.existsSync(robotsMeta)) {
+    fs.copyFileSync(robotsMeta, path.join(toolsDir, 'robots-meta.js'));
+  }
 
   const source = fs.readFileSync(path.join(PROJECT, 'tools/generate-site.js'), 'utf8');
   const mainCall = source.lastIndexOf('\nmain().catch');
@@ -37,7 +41,7 @@ test('site sitemap disk scan excludes noindex blog pages', (t) => {
   const { siteDir, generator } = loadSiteGeneratorInTempSite(t);
   write(siteDir, 'blog/public.html', '<!doctype html><title>Public</title>\n');
   write(siteDir, 'blog/dark.html', `<!doctype html>
-<meta content="nofollow, noindex" name="robots">
+<meta content=noindex,nofollow name=robots>
 <title>Dark preview</title>
 `);
   write(siteDir, 'sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>
