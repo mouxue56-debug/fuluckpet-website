@@ -8,7 +8,21 @@
 
   // ===== i18n for card-loader =====
   function getLang() {
-    try { return localStorage.getItem('fuluckpet-lang') || 'ja'; } catch(e) { return 'ja'; }
+    // Render for the page the visitor actually opened. A saved preference can
+    // legitimately lag behind a direct /en/ or /zh/ link, so it is only a
+    // fallback when the document and route do not identify a supported locale.
+    var documentLang = document && document.documentElement && document.documentElement.lang;
+    documentLang = String(documentLang || '').toLowerCase().split('-')[0];
+    if (documentLang === 'ja' || documentLang === 'en' || documentLang === 'zh') return documentLang;
+
+    var pathname = String((window.location && window.location.pathname) || '');
+    if (/^\/en(?:\/|$)/.test(pathname)) return 'en';
+    if (/^\/zh(?:\/|$)/.test(pathname)) return 'zh';
+
+    try {
+      var savedLang = localStorage.getItem('fuluckpet-lang');
+      return savedLang === 'en' || savedLang === 'zh' || savedLang === 'ja' ? savedLang : 'ja';
+    } catch(e) { return 'ja'; }
   }
 
   var CARD_I18N = {
@@ -16,8 +30,10 @@
       available: '販売中', reserved: 'ご予約済', sold: 'ご家族決定',
       male: '<i class="ico ico-mars" aria-hidden="true"></i> 男の子', female: '<i class="ico ico-venus" aria-hidden="true"></i> 女の子',
       photoAlt: '子猫の写真', taxIncl: '（税込）',
+      askPrice: '価格はお問い合わせください',
       dnaTested: '<i class="ico ico-check" aria-hidden="true"></i> 遺伝子検査済', verifiedReview: '<i class="ico ico-check" aria-hidden="true"></i> 認証済みレビュー',
       reviewPlatform: 'みんなの子猫ブリーダー',
+      noKittens: '現在、掲載中の子猫はいません。', noParents: '現在、掲載中の親猫はいません。', noReviews: '現在、掲載中のレビューはありません。',
       bornFmt: function(y, m) { return y + '年' + m + '月生まれ'; },
       counter: '匹',
       hypoallergenic: '低アレルゲンのシベリアン'
@@ -26,8 +42,10 @@
       available: 'Available', reserved: 'Reserved', sold: 'Adopted',
       male: '<i class="ico ico-mars" aria-hidden="true"></i> Male', female: '<i class="ico ico-venus" aria-hidden="true"></i> Female',
       photoAlt: 'Kitten photo', taxIncl: '(tax incl.)',
+      askPrice: 'Please ask for the current price',
       dnaTested: '<i class="ico ico-check" aria-hidden="true"></i> DNA Tested', verifiedReview: '<i class="ico ico-check" aria-hidden="true"></i> Verified Review',
       reviewPlatform: 'Minna no Koneko Breeder',
+      noKittens: 'There are currently no kittens listed.', noParents: 'There are currently no parent cats listed.', noReviews: 'There are currently no reviews listed.',
       bornFmt: function(y, m) { return 'Born ' + y + '/' + m; },
       counter: '',
       hypoallergenic: 'Hypoallergenic Siberian',
@@ -38,8 +56,10 @@
       available: '可预约', reserved: '已预订', sold: '已出售',
       male: '<i class="ico ico-mars" aria-hidden="true"></i> 男孩', female: '<i class="ico ico-venus" aria-hidden="true"></i> 女孩',
       photoAlt: '小猫照片', taxIncl: '（含税）',
+      askPrice: '价格请咨询',
       dnaTested: '<i class="ico ico-check" aria-hidden="true"></i> 基因检测完毕', verifiedReview: '<i class="ico ico-check" aria-hidden="true"></i> 已认证评价',
       reviewPlatform: '大家的幼猫繁殖者',
+      noKittens: '目前没有在售幼猫。', noParents: '目前没有刊登中的父母猫。', noReviews: '目前没有刊登中的评价。',
       bornFmt: function(y, m) { return y + '年' + m + '月出生'; },
       counter: '只',
       hypoallergenic: '低致敏西伯利亚猫',
@@ -51,6 +71,12 @@
   function ct(key) {
     var lang = getLang();
     return (CARD_I18N[lang] || CARD_I18N.ja)[key] || CARD_I18N.ja[key];
+  }
+
+  function emptyStateHTML(key) {
+    return '<div class="catalog-empty" role="status" data-generated-empty="true" style="grid-column:1/-1;text-align:center;">' +
+      '<p class="sec-desc">' + escAttr(ct(key)) + '</p>' +
+    '</div>';
   }
 
   function ctBreed(breed) {
@@ -181,7 +207,7 @@
     if (typeof value === 'string' && !/^\d+$/.test(value)) return null;
     if (typeof value !== 'number' && typeof value !== 'string') return null;
     var number = Number(value);
-    if (!Number.isFinite(number) || number < 0 || !Number.isInteger(number)) return null;
+    if (!Number.isFinite(number) || number <= 0 || !Number.isInteger(number)) return null;
     return number;
   }
 
@@ -351,8 +377,10 @@
 
     // The static generator intentionally removes sold detail pages. Keep sold cards
     // interactive through the existing modal without sending visitors to a known 404.
+    var activeLang = getLang();
+    var localePrefix = activeLang === 'en' || activeLang === 'zh' ? '/' + activeLang : '';
     var detailUrl = detailId && (status === 'available' || status === 'reserved')
-      ? '/kittens/' + detailId + '.html'
+      ? localePrefix + '/kittens/' + detailId + '.html'
       : '';
     var cardRole = opts && opts.showImages && detailUrl ? 'link' : 'button';
     var modalSemantics = cardRole === 'button' ? ' aria-haspopup="dialog"' : '';
@@ -373,7 +401,7 @@
         '<p class="kit-meta">' + genderFull + ' ・ ' + escAttr(ctColor(color)) + '</p>' +
         '<p class="kit-meta">' + bdayText + '</p>' +
         (k.note ? '<p class="kit-meta" style="font-size:11px;color:var(--text-note);">' + escAttr(safeEmbeddedText(k.note)) + '</p>' : '') +
-        '<p class="kit-price">' + priceText + ' <span class="tax">' + ct('taxIncl') + '</span></p>' +
+        '<p class="kit-price">' + (price === null ? escAttr(ct('askPrice')) : priceText + ' <span class="tax">' + ct('taxIncl') + '</span>') + '</p>' +
       '</div>' +
     '</div>';
   }
@@ -437,6 +465,13 @@
     if (slots.length === 0) return;
 
     var deduped = dedupeByFileId(kittens);
+    if (deduped.length === 0) {
+      slots.forEach(function(slot, index) {
+        slot.grid.innerHTML = index === 0 ? emptyStateHTML('noKittens') : '';
+        if (slot.title && slot.breedJa) slot.title.textContent = sectionBreedName(slot.breedJa) + countLabel(0);
+      });
+      return;
+    }
     // Bucket each kitten to the slot whose breed matches its breed-section; if no slot
     // matches (a breed the page didn't bake a section for), append to the first slot so the
     // kitten stays visible — never silently drop inventory (FIX 7).
@@ -478,6 +513,13 @@
       slots.push({ grid: grid, breedJa: TAG_TO_BREED[tag] || null });
     }
     if (slots.length === 0) return;
+
+    if (parents.length === 0) {
+      slots.forEach(function(slot, index) {
+        slot.grid.innerHTML = index === 0 ? emptyStateHTML('noParents') : '';
+      });
+      return;
+    }
 
     var buckets = slots.map(function() { return []; });
     var slotByBreed = {};
@@ -523,8 +565,10 @@
       // Homepage Siberian subset: select by BREED (folds the mix into Siberian), not by
       // platform group — empty-group Siberian records were being dropped here too (FIX 7).
       var sib = dedupeByFileId(kittens).filter(function(k) { return breedSectionIndex(k.breed) === 0 && safeStatus(k.status) !== 'sold'; });
-      if (sib.length > 0 && kittensGrid) {
-        kittensGrid.innerHTML = sib.map(function(k) { return kittenCardHTML(k, {showImages: false}); }).join('');
+      if (kittensGrid) {
+        kittensGrid.innerHTML = sib.length > 0
+          ? sib.map(function(k) { return kittenCardHTML(k, {showImages: false}); }).join('')
+          : emptyStateHTML('noKittens');
         var vc = document.getElementById('visibleCount');
         if (vc) vc.textContent = sib.length;
       }
@@ -532,14 +576,18 @@
       // Parents: show first 3 Siberian parents
       var parGrid = document.querySelector('#parents .parents-grid');
       var sibParents = parents.filter(function(p) { return p.group === 'c995680'; }).slice(0, 3);
-      if (sibParents.length > 0 && parGrid) {
-        parGrid.innerHTML = sibParents.map(function(p) { return parentCardHTML(p); }).join('');
+      if (parGrid) {
+        parGrid.innerHTML = sibParents.length > 0
+          ? sibParents.map(function(p) { return parentCardHTML(p); }).join('')
+          : emptyStateHTML('noParents');
       }
 
       // Reviews: show first 3
       var revGrid = document.querySelector('#reviews .reviews-grid');
-      if (reviews.length > 0 && revGrid) {
-        revGrid.innerHTML = reviews.slice(0, 3).map(function(r) { return reviewCardHTML(r); }).join('');
+      if (revGrid) {
+        revGrid.innerHTML = reviews.length > 0
+          ? reviews.slice(0, 3).map(function(r) { return reviewCardHTML(r); }).join('')
+          : emptyStateHTML('noReviews');
       }
 
       // Rebind events after dynamic rendering
@@ -558,41 +606,13 @@
   if (isKittensPage) {
     fetchArray('/api/kittens')
       .then(function(kittens) {
-        if (!kittens || kittens.length === 0) return;
         var grids = document.querySelectorAll('.kittens-grid');
         if (grids.length === 0) return;
 
         renderKittensPage(kittens);
 
-        // Inject per-kitten JSON-LD Product schema for SEO
-        var available = kittens.filter(function(k) { return safeStatus(k.status) === 'available'; });
-        if (available.length > 0) {
-          var ldItems = available.map(function(k) {
-            var genderValue = safeGender(k.gender);
-            var gender = genderValue === '♂' ? '男の子' : genderValue === '♀' ? '女の子' : '';
-            var breed = safeString(k.breed) || 'サイベリアン';
-            var color = safeString(k.color);
-            var birthday = safeBirthday(k.birthday);
-            var price = safePrice(k.price);
-            return {
-              '@type': 'Product',
-              'name': breed + ' ' + gender + ' ' + color,
-              'description': '大阪の福楽キャッテリー（ブリーダー：羅方遠/ラホウエン）の' + breed + '子猫。' + gender + '・' + color + (birthday ? '・' + birthday.replace('-', '年').replace(/-0?/, '月') + '生まれ' : '') + '。',
-              'brand': { '@type': 'Brand', 'name': '福楽キャッテリー' },
-              'offers': {
-                '@type': 'Offer',
-                'price': price === null ? '' : String(price),
-                'priceCurrency': 'JPY',
-                'availability': 'https://schema.org/InStock',
-                'seller': { '@type': 'Organization', 'name': '福楽キャッテリー', 'url': 'https://fuluckpet.com/' }
-              }
-            };
-          });
-          var ldScript = document.createElement('script');
-          ldScript.type = 'application/ld+json';
-          ldScript.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': ldItems });
-          document.head.appendChild(ldScript);
-        }
+        // Product JSON-LD is emitted once by the static generator. Re-appending a
+        // runtime graph here produced duplicate, Japanese-only offers on en/zh pages.
 
         if (typeof window.rebindCards === 'function') {
           window.rebindCards();
@@ -607,7 +627,6 @@
   if (isParentsPage) {
     fetchArray('/api/parents')
       .then(function(parents) {
-        if (!parents || parents.length === 0) return;
         renderParentsPage(parents);
 
         if (typeof window.rebindCards === 'function') {
@@ -623,11 +642,12 @@
   if (isReviewsPage) {
     fetchArray('/api/reviews')
       .then(function(reviews) {
-        if (!reviews || reviews.length === 0) return;
         var grid = document.querySelector('.reviews-page-grid');
         if (!grid) return;
 
-        grid.innerHTML = reviews.map(function(r) { return reviewCardHTML(r); }).join('');
+        grid.innerHTML = reviews.length > 0
+          ? reviews.map(function(r) { return reviewCardHTML(r); }).join('')
+          : emptyStateHTML('noReviews');
 
         if (typeof window.rebindCards === 'function') {
           window.rebindCards();
@@ -649,17 +669,25 @@
         var parents = results[1] || [];
         var reviews = results[2] || [];
         var sib = dedupeByFileId(kittens).filter(function(k) { return breedSectionIndex(k.breed) === 0 && safeStatus(k.status) !== 'sold'; });
-        if (sib.length > 0 && kittensGrid) {
-          kittensGrid.innerHTML = sib.map(function(k) { return kittenCardHTML(k, {showImages: false}); }).join('');
+        if (kittensGrid) {
+          kittensGrid.innerHTML = sib.length > 0
+            ? sib.map(function(k) { return kittenCardHTML(k, {showImages: false}); }).join('')
+            : emptyStateHTML('noKittens');
+          var vc = document.getElementById('visibleCount');
+          if (vc) vc.textContent = sib.length;
         }
         var parGrid = document.querySelector('#parents .parents-grid');
         var sibParents = parents.filter(function(p) { return p.group === 'c995680'; }).slice(0, 3);
-        if (sibParents.length > 0 && parGrid) {
-          parGrid.innerHTML = sibParents.map(function(p) { return parentCardHTML(p); }).join('');
+        if (parGrid) {
+          parGrid.innerHTML = sibParents.length > 0
+            ? sibParents.map(function(p) { return parentCardHTML(p); }).join('')
+            : emptyStateHTML('noParents');
         }
         var revGrid = document.querySelector('#reviews .reviews-grid');
-        if (reviews.length > 0 && revGrid) {
-          revGrid.innerHTML = reviews.slice(0, 3).map(function(r) { return reviewCardHTML(r); }).join('');
+        if (revGrid) {
+          revGrid.innerHTML = reviews.length > 0
+            ? reviews.slice(0, 3).map(function(r) { return reviewCardHTML(r); }).join('')
+            : emptyStateHTML('noReviews');
         }
         if (typeof window.rebindCards === 'function') window.rebindCards();
         window.dispatchEvent(new Event('cardsLoaded'));
@@ -669,7 +697,6 @@
     if (isKittensPage) {
       fetchArray('/api/kittens')
         .then(function(kittens) {
-          if (!kittens || kittens.length === 0) return;
           if (document.querySelectorAll('.kittens-grid').length === 0) return;
           renderKittensPage(kittens);
           if (typeof window.rebindCards === 'function') window.rebindCards();
@@ -680,7 +707,6 @@
     if (isParentsPage) {
       fetchArray('/api/parents')
         .then(function(parents) {
-          if (!parents || parents.length === 0) return;
           renderParentsPage(parents);
           if (typeof window.rebindCards === 'function') window.rebindCards();
           window.dispatchEvent(new Event('cardsLoaded'));
@@ -690,10 +716,11 @@
     if (isReviewsPage) {
       fetchArray('/api/reviews')
         .then(function(reviews) {
-          if (!reviews || reviews.length === 0) return;
           var grid = document.querySelector('.reviews-page-grid');
           if (!grid) return;
-          grid.innerHTML = reviews.map(function(r) { return reviewCardHTML(r); }).join('');
+          grid.innerHTML = reviews.length > 0
+            ? reviews.map(function(r) { return reviewCardHTML(r); }).join('')
+            : emptyStateHTML('noReviews');
           if (typeof window.rebindCards === 'function') window.rebindCards();
         }).catch(function() {});
     }

@@ -109,9 +109,12 @@ var FuluckAPI = (function() {
     },
 
     // Upload file to R2 (multipart/form-data) — returns { url, key }
-    uploadFile: function(file) {
+    uploadFile: function(file, options) {
       var formData = new FormData();
       formData.append('file', file);
+      if (options && options.prefix === 'small-animals') {
+        formData.append('prefix', 'small-animals');
+      }
       var opts = {
         method: 'POST',
         headers: { 'Authorization': getAuth() },
@@ -126,6 +129,12 @@ var FuluckAPI = (function() {
           }
           return res.json();
         });
+    },
+
+    // Delete only a Worker-generated upload key. The Worker independently validates
+    // the closed key format and namespace before touching R2.
+    deleteUpload: function(key) {
+      return request('DELETE', '/api/admin/upload', { key: key });
     },
 
     // Check API availability

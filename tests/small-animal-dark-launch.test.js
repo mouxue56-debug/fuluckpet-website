@@ -195,6 +195,44 @@ test('detail builder keeps dark policy and omits cat-parent fields', () => {
   }
 });
 
+test('unconfirmed small-animal gender stays valid and is rendered honestly in every language', () => {
+  const generator = loadGeneratorInternals();
+  const animal = {
+    breederId: 'TEST-SA-UNKNOWN',
+    species: 'rabbit',
+    breed: 'ネザーランドドワーフ',
+    gender: 'unknown',
+    status: 'available',
+    photos: ['https://example.invalid/rabbit.jpg'],
+  };
+  const labels = { ja: '未確認', en: 'Not confirmed', zh: '未确认' };
+  for (const lang of ['ja', 'en', 'zh']) {
+    const html = generator.buildSmallAnimalDetailHtml(animal, '<header></header>', '<footer></footer>', lang);
+    assert.match(html, new RegExp(labels[lang]));
+    assert.doesNotMatch(html, />unknown</);
+  }
+});
+
+test('zero or fractional small-animal prices never become free-sale UI or Product offers', () => {
+  const generator = loadGeneratorInternals({ publicLaunch: true, darkSlug: '' });
+  for (const [index, price] of [0, 1.5, true, [88000], {}].entries()) {
+    const animal = {
+      breederId: `TEST-SA-PRICE-${index}`,
+      species: 'rabbit',
+      breed: 'ネザーランドドワーフ',
+      gender: 'unknown',
+      status: 'available',
+      price,
+      photos: ['https://example.invalid/rabbit.jpg'],
+    };
+    const list = generator.buildSmallAnimalListHtml([animal], '<header></header>', '<footer></footer>', 'ja');
+    const detail = generator.buildSmallAnimalDetailHtml(animal, '<header></header>', '<footer></footer>', 'ja');
+    assert.doesNotMatch(list, /&yen;/);
+    assert.doesNotMatch(detail, /&yen;/);
+    assert.doesNotMatch(detail, /"@type"\s*:\s*"Offer"/);
+  }
+});
+
 test('fake dark token is absent from sitemap and every tracked site HTML page', () => {
   const sitemap = fs.readFileSync(path.join(ROOT, 'sitemap.xml'), 'utf8');
   assert.doesNotMatch(sitemap, new RegExp(DARK_SLUG));

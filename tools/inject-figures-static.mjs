@@ -7,7 +7,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const ROOT = '/Users/lauralyu/projects/fuluckpet-website';
+const ROOT = process.env.FULUCK_REPO_ROOT
+  ? path.resolve(process.env.FULUCK_REPO_ROOT)
+  : path.resolve(import.meta.dirname, '..');
 const BLOG_DIR = path.join(ROOT, 'blog');
 
 const KEEP_SNS_COVER = new Set(['fuluck-founder-story']);

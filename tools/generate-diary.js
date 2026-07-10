@@ -12,6 +12,8 @@ const { safeJsonForHtmlScript } = require('./safe-json-for-html');
 const API_BASE = 'https://fuluck-api.mouxue56.workers.dev';
 const SITE_DIR = path.resolve(__dirname, '..');
 const BASE_URL = 'https://fuluckpet.com';
+const HTTP_TIMEOUT_MS = 15000;
+const MAX_JSON_RESPONSE_BYTES = 5 * 1024 * 1024;
 const FAVICON_HREF = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%235BC4A8'/><g fill='%23ffffff'><ellipse cx='11' cy='12' rx='2.3' ry='2.7'/><ellipse cx='21' cy='12' rx='2.3' ry='2.7'/><ellipse cx='7.5' cy='17.5' rx='2.1' ry='2.4'/><ellipse cx='24.5' cy='17.5' rx='2.1' ry='2.4'/><path d='M16 16.5c3.1 0 5.6 2.2 5.6 4.9 0 2.2-1.9 3.1-5.6 3.1s-5.6-.9-5.6-3.1c0-2.7 2.5-4.9 5.6-4.9z'/></g></svg>";
 
 // -- Helpers ---------------------------------------------------------------
@@ -19,23 +21,74 @@ const FAVICON_HREF = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'
 function fetchJSON(endpoint) {
   return new Promise((resolve, reject) => {
     const url = API_BASE + endpoint;
-    https.get(url, (res) => {
+    let request;
+    let settled = false;
+    let deadlineTimer;
+    function clearDeadline() {
+      if (deadlineTimer !== undefined) {
+        clearTimeout(deadlineTimer);
+        deadlineTimer = undefined;
+      }
+    }
+    function fail(error) {
+      if (settled) return;
+      settled = true;
+      clearDeadline();
+      reject(error);
+      if (request && typeof request.destroy === 'function') request.destroy();
+    }
+    // ClientRequest#setTimeout is a socket inactivity timeout and may not cover a
+    // DNS/connect stall. Start an independent wall-clock deadline before the request.
+    deadlineTimer = setTimeout(() => {
+      fail(new Error(`Request timed out for ${endpoint} after ${HTTP_TIMEOUT_MS}ms`));
+    }, HTTP_TIMEOUT_MS);
+    try {
+      request = https.get(url, (res) => {
       let data = '';
+      let receivedBytes = 0;
+      const declaredBytes = Number(res.headers && res.headers['content-length']);
+      if (Number.isFinite(declaredBytes) && declaredBytes > MAX_JSON_RESPONSE_BYTES) {
+        fail(new Error(`Response too large from ${endpoint}: exceeds ${MAX_JSON_RESPONSE_BYTES} bytes`));
+        return;
+      }
       res.setEncoding('utf8'); // decode multi-byte UTF-8 across chunk boundaries (avoid mojibake)
-      res.on('data', (chunk) => { data += chunk; });
+      res.on('data', (chunk) => {
+        if (settled) return;
+        receivedBytes += Buffer.byteLength(chunk, 'utf8');
+        if (receivedBytes > MAX_JSON_RESPONSE_BYTES) {
+          fail(new Error(`Response too large from ${endpoint}: exceeds ${MAX_JSON_RESPONSE_BYTES} bytes`));
+          return;
+        }
+        data += chunk;
+      });
+      res.on('error', fail);
       res.on('end', () => {
+        if (settled) return;
         const statusCode = Number(res.statusCode || 0);
         if (statusCode < 200 || statusCode >= 300) {
-          reject(new Error(`HTTP ${statusCode || 'unknown'} from ${endpoint}${res.statusMessage ? `: ${res.statusMessage}` : ''}`));
+          fail(new Error(`HTTP ${statusCode || 'unknown'} from ${endpoint}${res.statusMessage ? `: ${res.statusMessage}` : ''}`));
           return;
         }
         try {
-          resolve(JSON.parse(data));
+          const parsed = JSON.parse(data);
+          settled = true;
+          clearDeadline();
+          resolve(parsed);
         } catch (e) {
-          reject(new Error(`Failed to parse JSON from ${endpoint}: ${e.message}`));
+          fail(new Error(`Failed to parse JSON from ${endpoint}: ${e.message}`));
         }
       });
-    }).on('error', reject);
+      });
+    } catch (error) {
+      fail(error);
+      return;
+    }
+    request.on('error', fail);
+    if (typeof request.setTimeout === 'function') {
+      request.setTimeout(HTTP_TIMEOUT_MS, () => {
+        fail(new Error(`Request timed out for ${endpoint} after ${HTTP_TIMEOUT_MS}ms`));
+      });
+    }
   });
 }
 
@@ -668,7 +721,7 @@ function buildHead({ title, description, pageUrl, image, jsonLd, ogType = 'artic
   <link rel="stylesheet" href="/guide/guide.css?v=${ver('guide/guide.css', '20260706a')}">
   <link rel="stylesheet" href="/blog.css?v=${ver('blog.css', '20260706a')}">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
-  <script defer src="/nav.js?v=${ver('nav.js', '20260710a')}"></script>
+  <script defer src="/nav.js?v=${ver('nav.js', '20260710b')}"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
 ${jsonLd.join('\n')}
@@ -922,10 +975,10 @@ ${bodyJa}
 
 ${chrome.footerHtml}
 
-  <script src="/i18n.js?v=${ver('i18n.js', '20260710a')}"></script>
+  <script src="/i18n.js?v=${ver('i18n.js', '20260710b')}"></script>
   <script>window._diaryArticleI18n = ${safeJsonForHtmlScript(i18n)}; window._blogArticleI18n = window._diaryArticleI18n;</script>
-  <script src="/blog/blog-i18n.js?v=${ver('blog/blog-i18n.js', '20260710a')}"></script>
-  <script src="/script.js?v=${ver('script.js', '20260710a')}"></script>
+  <script src="/blog/blog-i18n.js?v=${ver('blog/blog-i18n.js', '20260710b')}"></script>
+  <script src="/script.js?v=${ver('script.js', '20260710b')}"></script>
 
   <div class="mobile-cta-bar" role="navigation" aria-label="クイック連絡">
     <div class="mobile-cta-bar-inner">
@@ -1090,8 +1143,8 @@ ${chrome.headerHtml}
 
 ${chrome.footerHtml}
 
-  <script src="/i18n.js?v=${ver('i18n.js', '20260710a')}"></script>
-  <script src="/script.js?v=${ver('script.js', '20260710a')}"></script>
+  <script src="/i18n.js?v=${ver('i18n.js', '20260710b')}"></script>
+  <script src="/script.js?v=${ver('script.js', '20260710b')}"></script>
 
   <div class="mobile-cta-bar" role="navigation" aria-label="クイック連絡">
     <div class="mobile-cta-bar-inner">
@@ -1346,6 +1399,7 @@ module.exports = {
   buildDiaryEntryHtml,
   buildDiaryIndexHtml,
   extractYouTubeIds,
+  fetchJSON,
   renderDiarySite,
   updateSitemap
 };

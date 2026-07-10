@@ -1,5 +1,5 @@
 # Emoji -> Lucide icon name map for fuluckpet.com de-emoji refactor.
-# Values must match an SVG filename in /Users/lauralyu/Desktop/svg/icons/<name>.svg
+# Values must match the icon asset source selected by the caller.
 # Emoji NOT in this map are left untouched (arrows, bullets, gender handled separately).
 
 MAP = {

@@ -286,6 +286,7 @@ function runMainScript(options = {}) {
     mama: options.mama || '',
     breederId: options.breederId || '',
     detailUrl: options.detailUrl || '',
+    price: options.priceData === undefined ? '220000' : options.priceData,
   };
   kittenCard.appendChild(element('h3', htmlWrites, '', options.breed || 'サイベリアン'));
   kittenCard.appendChild(element('p', htmlWrites, 'kit-meta', options.meta || '男の子 ・ ブルー'));
@@ -308,7 +309,7 @@ function runMainScript(options = {}) {
   const events = Object.create(null);
   const querySelectors = [];
   const document = {
-    documentElement: { scrollTop: 0, scrollHeight: 1, clientHeight: 1 },
+    documentElement: { lang: options.lang || 'ja', scrollTop: 0, scrollHeight: 1, clientHeight: 1 },
     body: { style: {} },
     activeElement: null,
     createElement(tag) { return new FakeElement(tag, htmlWrites); },
@@ -432,6 +433,82 @@ test('kitten modal uses text nodes and protocol-checked media for card-backed fi
   assert.equal(result.kittenModal.querySelector('.kit-status').textContent, '販売中');
   assert.ok(result.kittenModal.querySelector('.modal-parents'), 'normal parent section remains present');
   assert.ok(result.kittenModal.querySelector('.modal-actions'), 'normal booking action remains present');
+  assert.doesNotMatch(
+    result.kittenModal.textContent,
+    /1回接種済み|PKD\(-\)|HCM\(-\)|ワクチン接種済|遺伝子検査済|健康診断済|駆虫済み/,
+    'individual medical claims require per-kitten owner data',
+  );
+});
+
+test('kitten modal follows the active document language instead of publishing Japanese UI on localized pages', () => {
+  const cases = [{
+    lang: 'en',
+    expected: ['Available', 'Breed', 'Sex', 'Color', 'Birthday', 'Listing ID', 'Parents', 'Dad', 'Mom',
+      'In-Person Sales under the Animal Protection Law', 'Ask about this kitten on LINE', 'Book a Visit'],
+  }, {
+    lang: 'zh-CN',
+    expected: ['可预约', '品种', '性别', '毛色', '生日', '刊登ID', '父母猫', '爸爸', '妈妈',
+      '依据《动物爱护管理法》的面对面销售', '通过LINE咨询这只猫咪', '预约见学'],
+  }];
+
+  for (const entry of cases) {
+    const result = runMainScript({
+      lang: entry.lang,
+      papa: 'PAPA-01',
+      mama: 'MAMA-01',
+      breederId: 'KIT-01',
+    });
+    result.kittenCard.click();
+    const text = result.kittenModal.textContent;
+    entry.expected.forEach((label) => assert.match(text, new RegExp(label), `${entry.lang}: ${label}`));
+    assert.doesNotMatch(
+      text,
+      /販売中|猫種|性別|カラー|誕生日|掲載ID|両親|パパ|ママ|動物愛護管理法に基づく対面販売|この子についてLINEで相談|見学を予約/,
+      `${entry.lang} modal must not fall back to Japanese labels`,
+    );
+  }
+});
+
+test('unpriced kitten inquiry copy never receives a tax-included suffix', () => {
+  const cases = [
+    { lang: 'ja', price: '価格はお問い合わせください', tax: '（税込）' },
+    { lang: 'en', price: 'Please ask for the current price', tax: '(tax incl.)' },
+    { lang: 'zh', price: '价格请咨询', tax: '（含税）' },
+  ];
+  for (const entry of cases) {
+    const result = runMainScript({ lang: entry.lang, price: entry.price, priceData: '' });
+    result.kittenCard.click();
+    const row = result.kittenModal.querySelector('.modal-price-row');
+    assert.ok(row, `${entry.lang} keeps the inquiry price row`);
+    assert.equal(row.querySelector('.modal-price').textContent, entry.price);
+    assert.doesNotMatch(row.textContent, new RegExp(entry.tax.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+    assert.equal(row.querySelector('.tax'), null);
+  }
+});
+
+test('parent modal and kitten navigation localize neutral facts without inventing named medical results', async () => {
+  const cases = [{
+    lang: 'en',
+    expected: ['Father', 'Breed', 'Sex', 'Color', 'Age', 'Test information', 'Test information recorded', 'No kittens are currently displayed'],
+    previous: 'Previous',
+    next: 'Next',
+  }, {
+    lang: 'zh',
+    expected: ['父猫', '品种', '性别', '毛色', '年龄', '检测信息', '已登记检测信息', '目前没有显示中的幼猫'],
+    previous: '上一只',
+    next: '下一只',
+  }];
+
+  for (const entry of cases) {
+    const result = runMainScript({ lang: entry.lang, parentName: 'Parent-01' });
+    result.kittenCard.click();
+    assert.match(result.kittenModal.querySelector('.modal-kitten-prev').textContent, new RegExp(entry.previous));
+    assert.match(result.kittenModal.querySelector('.modal-kitten-next').textContent, new RegExp(entry.next));
+    await result.window.openParentModal(result.parentCard);
+    const text = result.parentModal.textContent;
+    entry.expected.forEach((label) => assert.match(text, new RegExp(label), `${entry.lang}: ${label}`));
+    assert.doesNotMatch(text, /PKD|HCM|検査済み|検査予定|猫種|性別|カラー|年齢|現在表示中の子猫はいません/);
+  }
 });
 
 test('parent modal renders remote parent and child fields safely without losing normal details', async () => {

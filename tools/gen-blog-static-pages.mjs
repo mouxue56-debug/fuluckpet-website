@@ -8,7 +8,9 @@ import safeJsonModule from './safe-json-for-html.js';
 
 const { safeJsonForHtmlScript } = safeJsonModule;
 
-const ROOT = '/Users/lauralyu/projects/fuluckpet-website';
+const ROOT = process.env.FULUCK_REPO_ROOT
+  ? path.resolve(process.env.FULUCK_REPO_ROOT)
+  : path.resolve(import.meta.dirname, '..');
 const BLOG_DIR = path.join(ROOT, 'blog');
 const TEMPLATE_SRC = path.join(BLOG_DIR, 'cat-allergy-guide.html');
 const BATCH_FILE = '/tmp/blog-articles-batch.json';
@@ -261,9 +263,9 @@ ${body}
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 15l-6-6-6 6"/></svg>
   </button>
 
-  <script src="/i18n.js?v=20260710a"></script>
-  <script src="/blog/blog-i18n.js?v=20260710a"></script>
-  <script src="/script.js?v=20260710a"></script>
+  <script src="/i18n.js?v=20260710b"></script>
+  <script src="/blog/blog-i18n.js?v=20260710b"></script>
+  <script src="/script.js?v=20260710b"></script>
 
 </body>
 </html>

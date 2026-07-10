@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * tools/seed-kb.js — emit `wrangler kv:key put` commands to seed the
+ * tools/seed-kb.js — emit pinned Wrangler commands to seed the
  * static knowledge-base chunks consumed by retrieveKnowledge() in api/worker.js.
  *
  * Usage:
@@ -14,7 +14,7 @@
  * Regenerate after major HTML copy changes:
  *   1. Adjust the raw extracts below (or re-run the cleanup against Kimi using
  *      `KIMI_API_KEY` from .env).
- *   2. Run `node tools/seed-kb.js | tee /tmp/seed.sh` and pipe into wrangler.
+ *   2. Run `node tools/seed-kb.js | tee /tmp/seed.sh` and inspect the pinned commands.
  *   3. Restart the worker (or simply re-deploy) — retrieveKnowledge() reads the
  *      latest values on every chat turn.
  */
@@ -114,7 +114,7 @@ if (args.includes('--check') || args.includes('-c')) {
   console.error('# booking.html  (full strip):', strip(sources['booking.html']).length);
   console.error('# CLEANED CHUNK SIZES');
   for (const [k, v] of Object.entries(CHUNKS)) console.error(`# ${k}: ${v.length}`);
-  console.error('# (use without --check to emit wrangler commands)');
+  console.error('# (use without --check to emit pinned Wrangler commands)');
   process.exit(0);
 }
 
@@ -126,7 +126,7 @@ let count = 0;
 for (const [k, v] of Object.entries(CHUNKS)) {
   if (!v || !v.trim()) continue;
   const safe = v.slice(0, 8000);
-  console.log(`wrangler kv:key put --binding=DATA ${shellEscape(k)} ${shellEscape(safe)}`);
+  console.log(`npx --yes wrangler@4.70.0 kv key put --binding=DATA ${shellEscape(k)} ${shellEscape(safe)}`);
   count++;
 }
 console.log('');

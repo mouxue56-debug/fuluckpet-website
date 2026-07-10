@@ -86,7 +86,7 @@ function harness(apiItems, behavior = {}) {
   assert.ok(fs.existsSync(MODULE_PATH), 'admin/js/admin-small-animals.js must exist');
   const source = fs.readFileSync(MODULE_PATH, 'utf8');
   const elements = new Map();
-  const calls = { get: [], post: [], put: [], del: [], upload: [], toasts: [], logs: [], opened: [], closed: [] };
+  const calls = { get: [], post: [], put: [], del: [], deleteUpload: [], upload: [], toasts: [], logs: [], opened: [], closed: [] };
   const ids = [
     'smallAnimalsTableBody', 'smallAnimalLoadStatus', 'smallAnimalRetryBtn', 'smallAnimalAddBtn',
     'smallAnimalFormModal', 'smallAnimalFormTitle', 'smallAnimalEditId', 'smallAnimalSaveBtn',
@@ -137,9 +137,13 @@ function harness(apiItems, behavior = {}) {
         calls.del.push(pathname);
         return behavior.del ? behavior.del(pathname) : Promise.resolve({ success: true });
       },
-      uploadFile(file) {
-        calls.upload.push(file);
-        return behavior.uploadFile ? behavior.uploadFile(file) : Promise.resolve({ url: 'https://example.test/upload.jpg', key: 'uploads/upload.jpg' });
+      uploadFile(file, options) {
+        calls.upload.push({ file, options: json(options || {}) });
+        return behavior.uploadFile ? behavior.uploadFile(file, options) : Promise.resolve({ url: 'https://example.test/upload.jpg', key: 'uploads/upload.jpg' });
+      },
+      deleteUpload(key) {
+        calls.deleteUpload.push(key);
+        return behavior.deleteUpload ? behavior.deleteUpload(key) : Promise.resolve({ success: true });
       },
     },
     t(ja) { return ja; },
@@ -191,7 +195,23 @@ test('admin page wires one small-animal tab, safe table, complete form, and no p
   assert.doesNotMatch(HTML, /id="sa_(?:papa|mama)"/);
   assert.match(HTML, /<option value="rabbit">/);
   assert.match(HTML, /type="month" id="sa_birthday"/);
-  assert.match(HTML, /<script src="js\/admin-small-animals\.js\?v=20260710a"><\/script>/);
+  assert.match(HTML, /<script src="js\/admin-small-animals\.js\?v=20260710b"><\/script>/);
+  assert.match(HTML, /<input(?=[^>]*id="sa_price")(?=[^>]*min="1")(?=[^>]*step="1")[^>]*>/);
+});
+
+test('price is either blank or a positive integer before any small-animal write', async () => {
+  const { context, calls, elements } = harness([]);
+  await context.loadSmallAnimals();
+
+  setForm(elements, { sa_breederId: 'RB-ZERO', sa_price: '0' });
+  assert.equal(await context.saveSmallAnimal(), false);
+  setForm(elements, { sa_breederId: 'RB-FRACTION', sa_price: '1.5' });
+  assert.equal(await context.saveSmallAnimal(), false);
+  assert.deepEqual(calls.post, []);
+
+  setForm(elements, { sa_breederId: 'RB-BLANK', sa_price: '' });
+  assert.equal(await context.saveSmallAnimal(), true);
+  assert.equal(calls.post[0].body.price, '');
 });
 
 test('authenticated full collection read is fail-closed and renders hostile values as literal text', async () => {
@@ -363,7 +383,10 @@ test('photo edits and uploads use the existing uploader but update local photos 
       return failPut ? Promise.reject(new Error('photo save failed')) : Promise.resolve(json(body));
     },
     uploadFile(file) {
-      return Promise.resolve({ url: 'https://example.test/' + file.name, key: 'uploads/' + file.name });
+      return Promise.resolve({
+        url: 'https://example.test/' + file.name,
+        key: 'small-animals/1700000000000-a1b2c3d4.webp',
+      });
     },
   });
   await context.loadSmallAnimals();
@@ -385,11 +408,38 @@ test('photo edits and uploads use the existing uploader but update local photos 
   elements.get('photoUploadInput').files = [{ name: 'rabbit.webp' }];
   assert.equal(await context.smallAnimalUploadPhotosFromDevice(), true);
   assert.equal(calls.upload.length, 1);
+  assert.deepEqual(calls.upload[0].options, { prefix: 'small-animals' });
   assert.deepEqual(json(context.smallAnimals[0].photos), [
     'https://example.test/old.jpg',
     'https://example.test/new.jpg',
     'https://example.test/rabbit.webp',
   ]);
+  assert.deepEqual(calls.deleteUpload, []);
+});
+
+test('failed small-animal photo persistence removes only R2 keys created by that upload attempt', async () => {
+  const initial = [{ breederId: 'RB-CLEANUP', species: 'rabbit', photos: [], coverIndex: 0 }];
+  let uploadNumber = 0;
+  const { context, calls, elements } = harness(initial, {
+    put() { return Promise.reject(new Error('photo save failed')); },
+    uploadFile(file) {
+      uploadNumber += 1;
+      return Promise.resolve({
+        url: 'https://example.test/' + file.name,
+        key: 'small-animals/170000000000' + uploadNumber + '-a1b2c3d' + uploadNumber + '.webp',
+      });
+    },
+  });
+  await context.loadSmallAnimals();
+  context.openSmallAnimalPhotoModal('RB-CLEANUP');
+  elements.get('photoUploadInput').files = [{ name: 'one.webp' }, { name: 'two.webp' }];
+
+  assert.equal(await context.smallAnimalUploadPhotosFromDevice(), false);
+  assert.deepEqual(calls.deleteUpload, [
+    'small-animals/1700000000001-a1b2c3d1.webp',
+    'small-animals/1700000000002-a1b2c3d2.webp',
+  ]);
+  assert.deepEqual(json(context.smallAnimals), initial);
 });
 
 test('photo modal integration delegates only the small-animal branch and leaves cat code paths intact', () => {

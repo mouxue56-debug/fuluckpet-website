@@ -28,6 +28,7 @@ function createVerifierSite(t) {
 <link rel="stylesheet" href="/nav.css?v=test">
 <script src="/i18n.js?v=test"></script>
 <script src="/nav.js?v=test"></script>
+<a class="skip-link" href="#main">Skip</a><main id="main"></main>
 `, 'utf8');
   return siteDir;
 }
@@ -182,4 +183,31 @@ ${ALL_MARKERS}
 
   assert.equal(result.status, 1, `expected explicit-index noindex failure, got stdout: ${result.stdout}`);
   assert.match(result.stderr, /noindex page has <loc>: https:\/\/fuluckpet\.com\/boarding\/index\.html/);
+});
+
+test('verify-generated rejects broken kitten detail landmarks and duplicate Product schema', (t) => {
+  const siteDir = createVerifierSite(t);
+  write(siteDir, 'kittens/broken.html', `<!doctype html>
+<link rel="stylesheet" href="/style.css?v=test">
+<link rel="stylesheet" href="/nav.css?v=test">
+<script src="/i18n.js?v=test"></script>
+<script src="/nav.js?v=test"></script>
+<main id="main">
+<script type="application/ld+json">{"@type":"Product"}</script>
+<script type="application/ld+json">{"@type":"Product"}</script>
+<!-- ========== FOOTER ========== -->
+`);
+  write(siteDir, 'sitemap.xml', `<?xml version="1.0"?>
+<urlset>
+  <url><loc>https://fuluckpet.com/kittens.html</loc></url>
+  <url><loc>https://fuluckpet.com/kittens/broken.html</loc></url>
+${ALL_MARKERS}
+</urlset>
+`);
+
+  const result = runVerifier(siteDir);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /landmark.*kittens\/broken\.html.*main/i);
+  assert.match(result.stderr, /landmark.*kittens\/broken\.html.*skip/i);
+  assert.match(result.stderr, /schema.*kittens\/broken\.html.*Product/i);
 });

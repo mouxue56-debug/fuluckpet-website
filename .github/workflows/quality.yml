@@ -1,0 +1,30 @@
+name: Quality Gate
+
+on:
+  push:
+  pull_request:
+
+# This workflow only verifies repository contents. It cannot publish or mutate them.
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: '.node-version'
+
+      - name: Run complete regression suite
+        run: node --test tests/*.test.js
+
+      - name: Verify generated output
+        run: node tools/verify-generated.js

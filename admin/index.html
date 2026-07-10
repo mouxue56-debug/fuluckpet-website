@@ -56,8 +56,9 @@
     .sidebar-nav { flex:1; padding:16px 12px; overflow-y:auto; }
     .nav-section { margin-bottom:24px; }
     .nav-section-title { font-size:11px; font-weight:700; color:var(--text-light); text-transform:uppercase; letter-spacing:1px; padding:0 12px; margin-bottom:8px; }
-    .nav-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; cursor:pointer; transition:all .2s; font-size:14px; font-weight:500; color:var(--text-light); }
+    .nav-item { display:flex; align-items:center; gap:10px; width:100%; box-sizing:border-box; padding:10px 12px; border:0; border-radius:8px; background:none; cursor:pointer; transition:all .2s; font-family:inherit; font-size:14px; font-weight:500; text-align:left; color:var(--text-light); }
     .nav-item:hover { background:var(--mint-light); color:var(--text); }
+    .nav-item:focus-visible { outline:3px solid var(--mint-dark); outline-offset:2px; }
     .nav-item.active { background:linear-gradient(135deg,var(--mint),var(--mint-dark)); color:white; }
     .nav-item .icon { font-size:18px; width:24px; text-align:center; }
     .sidebar-footer { padding:16px 24px; border-top:1px solid var(--border); flex-shrink:0; }
@@ -264,18 +265,18 @@
       <nav class="sidebar-nav">
         <div class="nav-section">
           <div class="nav-section-title"><span data-adm-ja="メイン" data-adm-zh="主要">メイン</span></div>
-          <div class="nav-item active" data-page="dashboard"><span class="icon">📊</span> <span data-adm-ja="ダッシュボード" data-adm-zh="仪表盘">ダッシュボード</span></div>
-          <div class="nav-item" data-page="kittens"><span class="icon">🐱</span> <span data-adm-ja="子猫管理" data-adm-zh="子猫管理">子猫管理</span></div>
-          <div class="nav-item" data-page="small-animals"><span class="icon">🐇</span> <span data-adm-ja="小動物管理" data-adm-zh="小动物管理">小動物管理</span></div>
-          <div class="nav-item" data-page="parents"><span class="icon">🐈</span> <span data-adm-ja="親猫管理" data-adm-zh="种猫管理">親猫管理</span></div>
+          <button type="button" class="nav-item active" data-page="dashboard" aria-current="page"><span class="icon">📊</span> <span data-adm-ja="ダッシュボード" data-adm-zh="仪表盘">ダッシュボード</span></button>
+          <button type="button" class="nav-item" data-page="kittens"><span class="icon">🐱</span> <span data-adm-ja="子猫管理" data-adm-zh="子猫管理">子猫管理</span></button>
+          <button type="button" class="nav-item" data-page="small-animals"><span class="icon">🐇</span> <span data-adm-ja="小動物管理" data-adm-zh="小动物管理">小動物管理</span></button>
+          <button type="button" class="nav-item" data-page="parents"><span class="icon">🐈</span> <span data-adm-ja="親猫管理" data-adm-zh="种猫管理">親猫管理</span></button>
         </div>
         <div class="nav-section">
           <div class="nav-section-title"><span data-adm-ja="コンテンツ" data-adm-zh="内容">コンテンツ</span></div>
-          <div class="nav-item" data-page="reviews"><span class="icon">⭐</span> <span data-adm-ja="お客様の声" data-adm-zh="客户评价">お客様の声</span></div>
-          <div class="nav-item" data-page="faq"><span class="icon">❓</span> <span data-adm-ja="FAQ管理" data-adm-zh="FAQ管理">FAQ管理</span></div>
-          <div class="nav-item" data-page="articles"><span class="icon">📝</span> <span data-adm-ja="知識ライブラリ" data-adm-zh="知识库">知識ライブラリ</span></div>
-          <div class="nav-item" data-page="images"><span class="icon">🖼️</span> <span data-adm-ja="画像管理" data-adm-zh="图片管理">画像管理</span></div>
-          <div class="nav-item" data-page="drive"><span class="icon">☁️</span> <span data-adm-ja="Drive写真" data-adm-zh="Drive照片">Drive写真</span></div>
+          <button type="button" class="nav-item" data-page="reviews"><span class="icon">⭐</span> <span data-adm-ja="お客様の声" data-adm-zh="客户评价">お客様の声</span></button>
+          <button type="button" class="nav-item" data-page="faq"><span class="icon">❓</span> <span data-adm-ja="FAQ管理" data-adm-zh="FAQ管理">FAQ管理</span></button>
+          <button type="button" class="nav-item" data-page="articles"><span class="icon">📝</span> <span data-adm-ja="知識ライブラリ" data-adm-zh="知识库">知識ライブラリ</span></button>
+          <button type="button" class="nav-item" data-page="images"><span class="icon">🖼️</span> <span data-adm-ja="画像管理" data-adm-zh="图片管理">画像管理</span></button>
+          <button type="button" class="nav-item" data-page="drive"><span class="icon">☁️</span> <span data-adm-ja="Drive写真" data-adm-zh="Drive照片">Drive写真</span></button>
           <a class="nav-item" href="blog-editor.html" style="text-decoration:none;"><span class="icon">📝</span> <span data-adm-ja="ブログ編集" data-adm-zh="博客编辑">ブログ編集</span></a>
           <a class="nav-item" href="diary-editor.html" style="text-decoration:none;"><span class="icon">📝</span> <span data-adm-ja="子猫成長日記" data-adm-zh="子猫成长日记">子猫成長日記</span></a>
           <a class="nav-item" href="bookings.html" style="text-decoration:none;"><span class="icon">📋</span> <span data-adm-ja="予約一覧" data-adm-zh="预约一览">予約一覧</span></a>
@@ -284,9 +285,9 @@
         </div>
         <div class="nav-section">
           <div class="nav-section-title"><span data-adm-ja="設定" data-adm-zh="设置">設定</span></div>
-          <div class="nav-item" data-page="data"><span class="icon">💾</span> <span data-adm-ja="データ管理" data-adm-zh="数据管理">データ管理</span></div>
-          <div class="nav-item" data-page="guide"><span class="icon">📖</span> <span data-adm-ja="操作ガイド" data-adm-zh="操作指南">操作ガイド</span></div>
-          <div class="nav-item" data-page="settings"><span class="icon">⚙️</span> <span data-adm-ja="パスワード変更" data-adm-zh="修改密码">パスワード変更</span></div>
+          <button type="button" class="nav-item" data-page="data"><span class="icon">💾</span> <span data-adm-ja="データ管理" data-adm-zh="数据管理">データ管理</span></button>
+          <button type="button" class="nav-item" data-page="guide"><span class="icon">📖</span> <span data-adm-ja="操作ガイド" data-adm-zh="操作指南">操作ガイド</span></button>
+          <button type="button" class="nav-item" data-page="settings"><span class="icon">⚙️</span> <span data-adm-ja="パスワード変更" data-adm-zh="修改密码">パスワード変更</span></button>
         </div>
       </nav>
       <div class="sidebar-footer">
@@ -912,9 +913,9 @@
   </div>
 
   <!-- ====== KITTEN FORM MODAL ====== -->
-  <div class="modal-overlay" id="kittenFormModal">
+  <div class="modal-overlay" id="kittenFormModal" role="dialog" aria-modal="true" aria-labelledby="kittenFormTitle" aria-hidden="true" tabindex="-1">
     <div class="modal modal-lg">
-      <div class="modal-header"><h2 id="kittenFormTitle"><span data-adm-ja="子猫の追加" data-adm-zh="添加子猫">子猫の追加</span></h2><button class="modal-close" onclick="closeModal('kittenFormModal')">×</button></div>
+      <div class="modal-header"><h2 id="kittenFormTitle"><span data-adm-ja="子猫の追加" data-adm-zh="添加子猫">子猫の追加</span></h2><button class="modal-close" type="button" aria-label="閉じる" onclick="closeModal('kittenFormModal')">×</button></div>
       <div class="modal-body">
         <input type="hidden" id="kittenEditId">
         <div class="form-row">
@@ -958,9 +959,9 @@
   </div>
 
   <!-- ====== SMALL ANIMAL FORM MODAL ====== -->
-  <div class="modal-overlay" id="smallAnimalFormModal">
+  <div class="modal-overlay" id="smallAnimalFormModal" role="dialog" aria-modal="true" aria-labelledby="smallAnimalFormTitle" aria-hidden="true" tabindex="-1">
     <div class="modal modal-lg">
-      <div class="modal-header"><h2 id="smallAnimalFormTitle"><span data-adm-ja="小動物の追加" data-adm-zh="添加小动物">小動物の追加</span></h2><button class="modal-close" type="button" onclick="closeModal('smallAnimalFormModal')">×</button></div>
+      <div class="modal-header"><h2 id="smallAnimalFormTitle"><span data-adm-ja="小動物の追加" data-adm-zh="添加小动物">小動物の追加</span></h2><button class="modal-close" type="button" aria-label="閉じる" onclick="closeModal('smallAnimalFormModal')">×</button></div>
       <div class="modal-body">
         <input type="hidden" id="smallAnimalEditId">
         <div class="form-row">
@@ -981,7 +982,7 @@
         </div>
         <div class="form-row-3">
           <div class="form-group"><label class="form-label" for="sa_birthday"><span data-adm-ja="誕生月" data-adm-zh="出生月份">誕生月</span></label><input class="form-input" type="month" id="sa_birthday"></div>
-          <div class="form-group"><label class="form-label" for="sa_price"><span data-adm-ja="価格（税込）" data-adm-zh="价格（含税）">価格（税込）</span></label><input class="form-input" type="number" min="0" step="1" id="sa_price" placeholder="オーナー確認後に入力"></div>
+          <div class="form-group"><label class="form-label" for="sa_price"><span data-adm-ja="価格（税込）" data-adm-zh="价格（含税）">価格（税込）</span></label><input class="form-input" type="number" min="1" step="1" id="sa_price" placeholder="オーナー確認後に入力"></div>
           <div class="form-group"><label class="form-label" for="sa_status"><span data-adm-ja="ステータス *" data-adm-zh="状态 *">ステータス *</span></label><select class="form-select" id="sa_status"><option value="available">販売中</option><option value="reserved">商談中</option><option value="sold">ご家族決定</option></select></div>
         </div>
         <div class="form-row">
@@ -1013,9 +1014,9 @@
   </div>
 
   <!-- ====== PARENT FORM MODAL ====== -->
-  <div class="modal-overlay" id="parentFormModal">
+  <div class="modal-overlay" id="parentFormModal" role="dialog" aria-modal="true" aria-labelledby="parentFormTitle" aria-hidden="true" tabindex="-1">
     <div class="modal">
-      <div class="modal-header"><h2 id="parentFormTitle"><span data-adm-ja="親猫の編集" data-adm-zh="编辑种猫">親猫の編集</span></h2><button class="modal-close" onclick="closeModal('parentFormModal')">×</button></div>
+      <div class="modal-header"><h2 id="parentFormTitle"><span data-adm-ja="親猫の編集" data-adm-zh="编辑种猫">親猫の編集</span></h2><button class="modal-close" type="button" aria-label="閉じる" onclick="closeModal('parentFormModal')">×</button></div>
       <div class="modal-body">
         <input type="hidden" id="parentEditId">
         <div class="form-row">
@@ -1047,9 +1048,9 @@
   </div>
 
   <!-- ====== REVIEW FORM MODAL ====== -->
-  <div class="modal-overlay" id="reviewFormModal">
+  <div class="modal-overlay" id="reviewFormModal" role="dialog" aria-modal="true" aria-labelledby="reviewFormTitle" aria-hidden="true" tabindex="-1">
     <div class="modal">
-      <div class="modal-header"><h2 id="reviewFormTitle"><span data-adm-ja="レビューの編集" data-adm-zh="编辑评价">レビューの編集</span></h2><button class="modal-close" onclick="closeModal('reviewFormModal')">×</button></div>
+      <div class="modal-header"><h2 id="reviewFormTitle"><span data-adm-ja="レビューの編集" data-adm-zh="编辑评价">レビューの編集</span></h2><button class="modal-close" type="button" aria-label="閉じる" onclick="closeModal('reviewFormModal')">×</button></div>
       <div class="modal-body">
         <input type="hidden" id="reviewEditId">
         <div class="form-row">
@@ -1067,9 +1068,9 @@
   </div>
 
   <!-- ====== PHOTO / GALLERY MODAL ====== -->
-  <div class="modal-overlay" id="photoModal">
+  <div class="modal-overlay" id="photoModal" role="dialog" aria-modal="true" aria-labelledby="photoModalTitle" aria-hidden="true" tabindex="-1">
     <div class="modal modal-lg">
-      <div class="modal-header"><h2><span data-adm-ja="写真アルバム管理" data-adm-zh="照片相册管理">写真アルバム管理</span></h2><button class="modal-close" onclick="closeModal('photoModal')">×</button></div>
+      <div class="modal-header"><h2 id="photoModalTitle"><span data-adm-ja="写真アルバム管理" data-adm-zh="照片相册管理">写真アルバム管理</span></h2><button class="modal-close" type="button" aria-label="閉じる" onclick="closeModal('photoModal')">×</button></div>
       <div class="modal-body">
         <input type="hidden" id="photo_type">
         <input type="hidden" id="photo_id">
@@ -1116,11 +1117,11 @@
   </div>
 
   <!-- FAQ Form Modal -->
-  <div class="modal-overlay" id="faqFormModal">
+  <div class="modal-overlay" id="faqFormModal" role="dialog" aria-modal="true" aria-labelledby="faqFormTitle" aria-hidden="true" tabindex="-1">
     <div class="modal">
       <div class="modal-header">
         <h2 id="faqFormTitle"><span data-adm-ja="FAQ追加" data-adm-zh="添加FAQ">FAQ追加</span></h2>
-        <button class="modal-close" onclick="closeModal('faqFormModal')">✕</button>
+        <button class="modal-close" type="button" aria-label="閉じる" onclick="closeModal('faqFormModal')">✕</button>
       </div>
       <div class="modal-body">
         <input type="hidden" id="faqEditId">
@@ -1183,11 +1184,11 @@
   </div>
 
   <!-- Article Form Modal -->
-  <div class="modal-overlay" id="articleFormModal">
+  <div class="modal-overlay" id="articleFormModal" role="dialog" aria-modal="true" aria-labelledby="articleFormTitle" aria-hidden="true" tabindex="-1">
     <div class="modal modal-lg">
       <div class="modal-header">
         <h2 id="articleFormTitle"><span data-adm-ja="記事追加" data-adm-zh="添加文章">記事追加</span></h2>
-        <button class="modal-close" onclick="closeModal('articleFormModal')">✕</button>
+        <button class="modal-close" type="button" aria-label="閉じる" onclick="closeModal('articleFormModal')">✕</button>
       </div>
       <div class="modal-body">
         <input type="hidden" id="articleEditId">
@@ -1255,18 +1256,18 @@
 
   <div class="toast" id="toast"></div>
 
-<script src="js/api-client.js?v=20260710a"></script>
-<script src="js/migrate.js?v=20260710a"></script>
-<script src="js/admin-images.js?v=20260710a"></script>
-<script src="js/admin-core.js?v=20260710a"></script>
-<script src="js/admin-render.js?v=20260710a"></script>
-<script src="js/admin-photos.js?v=20260710a"></script>
-<script src="js/admin-small-animals.js?v=20260710a"></script>
-<script src="js/admin-drive.js?v=20260710a"></script>
-<script src="js/admin-data.js?v=20260710a"></script>
-<script src="js/admin-faq.js?v=20260710a"></script>
-<script src="js/admin-articles.js?v=20260710a"></script>
-<script src="js/admin-settings.js?v=20260710a"></script>
+<script src="js/api-client.js?v=20260710b"></script>
+<script src="js/migrate.js?v=20260710b"></script>
+<script src="js/admin-images.js?v=20260710b"></script>
+<script src="js/admin-core.js?v=20260710b"></script>
+<script src="js/admin-render.js?v=20260710b"></script>
+<script src="js/admin-photos.js?v=20260710b"></script>
+<script src="js/admin-small-animals.js?v=20260710b"></script>
+<script src="js/admin-drive.js?v=20260710b"></script>
+<script src="js/admin-data.js?v=20260710b"></script>
+<script src="js/admin-faq.js?v=20260710b"></script>
+<script src="js/admin-articles.js?v=20260710b"></script>
+<script src="js/admin-settings.js?v=20260710b"></script>
 <script>
 // Publish button — first re-syncs data to API, then triggers GitHub Actions
 function handlePublish() {

@@ -15,6 +15,8 @@ const API_BASE = 'https://fuluck-api.mouxue56.workers.dev';
 const SITE_DIR = path.resolve(__dirname, '..');
 const BASE_URL = 'https://fuluckpet.com';
 const PUBLIC_CATALOG_ID_RE = /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/;
+const HTTP_TIMEOUT_MS = 15000;
+const MAX_JSON_RESPONSE_BYTES = 5 * 1024 * 1024;
 const FAVICON_HREF = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%235BC4A8'/><g fill='%23ffffff'><ellipse cx='11' cy='12' rx='2.3' ry='2.7'/><ellipse cx='21' cy='12' rx='2.3' ry='2.7'/><ellipse cx='7.5' cy='17.5' rx='2.1' ry='2.4'/><ellipse cx='24.5' cy='17.5' rx='2.1' ry='2.4'/><path d='M16 16.5c3.1 0 5.6 2.2 5.6 4.9 0 2.2-1.9 3.1-5.6 3.1s-5.6-.9-5.6-3.1c0-2.7 2.5-4.9 5.6-4.9z'/></g></svg>";
 
 // Asset cache-version map, read from the live kittens.html template so detail
@@ -117,24 +119,74 @@ const SPECIES_CONFIG = [
 function fetchJSON(endpoint, options = {}) {
   return new Promise((resolve, reject) => {
     const url = API_BASE + endpoint;
-    https.get(url, options, (res) => {
+    let request;
+    let settled = false;
+    let deadlineTimer;
+    function clearDeadline() {
+      if (deadlineTimer !== undefined) {
+        clearTimeout(deadlineTimer);
+        deadlineTimer = undefined;
+      }
+    }
+    function fail(error) {
+      if (settled) return;
+      settled = true;
+      clearDeadline();
+      reject(error);
+      if (request && typeof request.destroy === 'function') request.destroy();
+    }
+    // ClientRequest#setTimeout is a socket inactivity timeout and may not cover a
+    // DNS/connect stall. Start an independent wall-clock deadline before the request.
+    deadlineTimer = setTimeout(() => {
+      fail(new Error(`Request timed out for ${endpoint} after ${HTTP_TIMEOUT_MS}ms`));
+    }, HTTP_TIMEOUT_MS);
+    try {
+      request = https.get(url, options, (res) => {
       let data = '';
+      let receivedBytes = 0;
+      const declaredBytes = Number(res.headers && res.headers['content-length']);
+      if (Number.isFinite(declaredBytes) && declaredBytes > MAX_JSON_RESPONSE_BYTES) {
+        fail(new Error(`Response too large from ${endpoint}: exceeds ${MAX_JSON_RESPONSE_BYTES} bytes`));
+        return;
+      }
       res.setEncoding('utf8'); // decode multi-byte UTF-8 across chunk boundaries (avoid mojibake)
-      res.on('data', (chunk) => { data += chunk; });
+      res.on('data', (chunk) => {
+        if (settled) return;
+        receivedBytes += Buffer.byteLength(chunk, 'utf8');
+        if (receivedBytes > MAX_JSON_RESPONSE_BYTES) {
+          fail(new Error(`Response too large from ${endpoint}: exceeds ${MAX_JSON_RESPONSE_BYTES} bytes`));
+          return;
+        }
+        data += chunk;
+      });
+      res.on('error', fail);
       res.on('end', () => {
+        if (settled) return;
         const statusCode = Number(res.statusCode || 0);
         if (statusCode < 200 || statusCode >= 300) {
-          reject(new Error(`HTTP ${statusCode || 'unknown'} from ${endpoint}`));
+          fail(new Error(`HTTP ${statusCode || 'unknown'} from ${endpoint}`));
           return;
         }
         try {
           const parsed = JSON.parse(data);
+          settled = true;
+          clearDeadline();
           resolve(parsed);
         } catch (e) {
-          reject(new Error(`Failed to parse JSON from ${endpoint}: ${e.message}`));
+          fail(new Error(`Failed to parse JSON from ${endpoint}: ${e.message}`));
         }
       });
-    }).on('error', reject);
+      });
+    } catch (error) {
+      fail(error);
+      return;
+    }
+    request.on('error', fail);
+    if (typeof request.setTimeout === 'function') {
+      request.setTimeout(HTTP_TIMEOUT_MS, () => {
+        fail(new Error(`Request timed out for ${endpoint} after ${HTTP_TIMEOUT_MS}ms`));
+      });
+    }
   });
 }
 
@@ -182,6 +234,20 @@ function escapeHtml(str) {
 
 function formatPrice(price) {
   return Number(price).toLocaleString('ja-JP');
+}
+
+function validSalePrice(price) {
+  if (typeof price === 'string' && price.trim() === '') return null;
+  if (typeof price === 'number') return Number.isSafeInteger(price) && price > 0 ? price : null;
+  if (typeof price !== 'string' || !/^[1-9][0-9]*$/.test(price)) return null;
+  const numeric = Number(price);
+  return Number.isSafeInteger(numeric) ? numeric : null;
+}
+
+function priceInquiryText(lang) {
+  if (lang === 'en') return 'Please ask for the current price';
+  if (lang === 'zh') return '价格请咨询';
+  return '価格はお問い合わせください';
 }
 
 function formatBirthday(birthday) {
@@ -581,6 +647,20 @@ function waveDivider(toClass) {
   </div>`;
 }
 
+function emptyCatalogSection(message, tag = 'Availability') {
+  return `
+
+  <!-- ========== GENERATED EMPTY STATE ========== -->
+  <section class="section sec-white" data-generated-empty="true">
+    <div class="container">
+      <div class="sec-header catalog-empty" role="status" style="max-width:680px;margin:0 auto;text-align:center;">
+        <span class="sec-tag">${escapeHtml(tag)}</span>
+        <p class="sec-desc" style="margin:12px auto 0;">${escapeHtml(message)}</p>
+      </div>
+    </div>
+  </section>`;
+}
+
 // ── Generate Kittens ──────────────────────────────────────────
 
 // Absolutize relative header/footer links so the en/zh list pages (one level deep) resolve
@@ -608,6 +688,11 @@ const KITTENS_CTA_I18N = {
     'LINEで問い合わせ': 'LINE咨询',
     '見学を予約する': '预约参观',
   },
+};
+const KITTENS_EMPTY_COPY = {
+  ja: { message: '現在、掲載中の子猫はいません。', tag: '掲載状況' },
+  en: { message: 'There are currently no kittens listed.', tag: 'Availability' },
+  zh: { message: '目前没有在售幼猫。', tag: '刊登情况' },
 };
 function localizeKittensCta(html, lang) {
   const map = KITTENS_CTA_I18N[lang];
@@ -643,7 +728,7 @@ function buildListHeader(jaHeader, lang) {
 
   const styleV = verAsset('style.css', '20260708a');
   const navCssV = verAsset('nav.css', '20260628a');
-  const navJsV = verAsset('nav.js', '20260710a');
+  const navJsV = verAsset('nav.js', '20260710b');
   const relPath = 'kittens.html';
   const selfUrl = `${BASE_URL}/${langDir(lang)}kittens.html`;
   const kittensLabel = KITTENS_LABEL[lang];
@@ -800,7 +885,8 @@ function generateKittens(kittens, lang = 'ja') {
       const st = statusText(k.status);
       const gt = genderText(k.gender);
       const bd = formatBirthday(k.birthday);
-      const pr = formatPrice(k.price);
+      const salePrice = validSalePrice(k.price);
+      const pr = salePrice === null ? '' : formatPrice(salePrice);
       const isNewBadge = k.isNew ? '\n            <span class="kit-badge-new">NEW</span>' : '';
 
       // Localized baked strings (ja passthrough → byte-identical). The card has no
@@ -844,7 +930,7 @@ function generateKittens(kittens, lang = 'ja') {
             <p class="kit-meta">${metaLine}</p>
             <p class="kit-meta">${bornCard}</p>
             ${k.note ? `<p class="kit-meta" style="font-size:11px;color:var(--text-note);">${escapeHtml(k.note)}</p>` : ''}
-            <p class="kit-price">&yen;${pr} <span class="tax">${taxIncl(lang)}</span></p>
+            <p class="kit-price">${salePrice === null ? escapeHtml(priceInquiryText(lang)) : `&yen;${pr} <span class="tax">${taxIncl(lang)}</span>`}</p>
           </div>
         </div>`;
     }
@@ -873,14 +959,14 @@ ${shapesHtml}
     sectionIdx++;
   }
 
+  if (sectionIdx === 0) {
+    const empty = KITTENS_EMPTY_COPY[lang] || KITTENS_EMPTY_COPY.ja;
+    sections = emptyCatalogSection(empty.message, empty.tag);
+  }
+
   // Per-kitten Product JSON-LD (rich-result eligibility for each card)
   const availMap = { available: 'InStock', reserved: 'OnBackOrder', sold: 'OutOfStock' };
-  const traitPick = (() => {
-    const pool = ['低アレルゲンで人懐こい', '健康的で活発な', '穏やかで上品な', '愛らしい性格の', '人懐こく健康的な'];
-    return (i) => pool[i % pool.length];
-  })();
   const products = [];
-  let pIdx = 0;
   const listPageUrl = `${BASE_URL}/${langDir(lang)}kittens.html`;
   for (const k of kittens) {
     // Sold inventory deliberately has no static detail page. Omitting Product markup is
@@ -888,14 +974,17 @@ ${shapesHtml}
     if (k.status !== 'available' && k.status !== 'reserved') continue;
     const photo = getCoverPhoto(k);
     if (!photo) continue;
+    const salePrice = validSalePrice(k.price);
+    if (salePrice === null) continue;
     const gt = genderText(k.gender);
     const fileId = k.breederId || k.id;
-    const trait = traitPick(pIdx++);
     // Localized name/description (ja passthrough → byte-identical).
     let name, description;
     if (lang === 'ja') {
       name = `${k.breed}・${k.color || ''}・${gt}・${fileId}`;
-      description = `${trait}${k.breed} ${k.color || ''} ${gt}。大阪・福楽キャッテリー`.trim();
+      description = `${k.breed} ${k.color || ''} ${gt}。大阪・福楽キャッテリー掲載ID ${fileId}。`
+        .replace(/\s+/g, ' ')
+        .trim();
     } else {
       const bL = breedLabel(k.breed, lang);
       const cL = colorLabel(k.color, lang);
@@ -921,28 +1010,9 @@ ${shapesHtml}
         "@type": "Offer",
         "url": `${BASE_URL}/${langDir(lang)}kittens/${fileId}.html`,
         "priceCurrency": "JPY",
-        "price": String(k.price || 0),
-        "priceValidUntil": "2026-12-31",
+        "price": String(salePrice),
         "availability": `https://schema.org/${availMap[k.status] || 'InStock'}`,
-        "seller": { "@type": "Organization", "name": "福楽キャッテリー" },
-        // hasMerchantReturnPolicy + shippingDetails — required by GSC for Product/Offer schema.
-        // Live cattery = no general return; the FAQ explains the health-guarantee terms.
-        "hasMerchantReturnPolicy": {
-          "@type": "MerchantReturnPolicy",
-          "applicableCountry": "JP",
-          "returnPolicyCategory": "https://schema.org/MerchantReturnNotPermitted",
-          "merchantReturnLink": `${BASE_URL}/faq.html`
-        },
-        "shippingDetails": {
-          "@type": "OfferShippingDetails",
-          "shippingRate": { "@type": "MonetaryAmount", "value": "0", "currency": "JPY" },
-          "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "JP" },
-          "deliveryTime": {
-            "@type": "ShippingDeliveryTime",
-            "handlingTime": { "@type": "QuantitativeValue", "minValue": 0, "maxValue": 3, "unitCode": "DAY" },
-            "transitTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 5, "unitCode": "DAY" }
-          }
-        }
+        "seller": { "@type": "Organization", "name": "福楽キャッテリー" }
       }
       // No per-kitten aggregateRating: the business-wide 5.0/113 belongs on the
       // LocalBusiness, not on each Product (no single kitten has 113 reviews —
@@ -984,6 +1054,7 @@ const SMALL_ANIMAL_COPY = {
     species: '種類',
     breed: '品種',
     sex: '性別',
+    unknownSex: '未確認',
     color: '毛色',
     birthday: '誕生月',
     status: '状態',
@@ -999,6 +1070,7 @@ const SMALL_ANIMAL_COPY = {
     species: 'Species',
     breed: 'Breed',
     sex: 'Sex',
+    unknownSex: 'Not confirmed',
     color: 'Color',
     birthday: 'Born',
     status: 'Status',
@@ -1014,6 +1086,7 @@ const SMALL_ANIMAL_COPY = {
     species: '种类',
     breed: '品种',
     sex: '性别',
+    unknownSex: '未确认',
     color: '毛色',
     birthday: '出生月',
     status: '状态',
@@ -1128,10 +1201,13 @@ function dedupeSmallAnimals(animals) {
 }
 
 function smallAnimalPriceHtml(price, lang, className = 'kit-price') {
-  if (price === '' || price === null || price === undefined) return '';
-  const numericPrice = Number(price);
-  if (!Number.isFinite(numericPrice)) return '';
+  const numericPrice = validSmallAnimalSalePrice(price);
+  if (numericPrice === null) return '';
   return `<p class="${className}">&yen;${formatPrice(numericPrice)} <span class="tax">${taxIncl(lang)}</span></p>`;
+}
+
+function validSmallAnimalSalePrice(price) {
+  return validSalePrice(price);
 }
 
 function smallAnimalHead({ lang, detailId = '', title, description }) {
@@ -1162,7 +1238,7 @@ ${smallAnimalHreflangBlock(detailId)}
   <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260708a')}">
   <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20260628a')}">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
-  <script defer src="/nav.js?v=${verAsset('nav.js', '20260710a')}"></script>`;
+  <script defer src="/nav.js?v=${verAsset('nav.js', '20260710b')}"></script>`;
 }
 
 function buildSmallAnimalListHtml(animals, headerHtml, footerHtml, lang = 'ja') {
@@ -1192,7 +1268,7 @@ function buildSmallAnimalListHtml(animals, headerHtml, footerHtml, lang = 'ja') 
       lcpImgEmitted = true;
       const breed = smallAnimalBreedLabel(animal.breed, lang);
       const color = smallAnimalColorLabel(animal.color, lang);
-      const gender = genderTextL(animal.gender, lang);
+      const gender = animal.gender === 'unknown' ? copy.unknownSex : genderTextL(animal.gender, lang);
       const status = statusTextL(animal.status, lang);
       const species = smallAnimalSpeciesLabel(animal.species, lang);
       const detailPath = `/${smallAnimalRoutePath(lang, animal.breederId)}`;
@@ -1264,8 +1340,8 @@ ${sections}
 
 ${footerHtml}
 
-  <script src="/i18n.js?v=${verAsset('i18n.js', '20260710a')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20260710a')}"></script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20260710b')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20260710b')}"></script>
 </body>
 </html>`;
 }
@@ -1279,13 +1355,14 @@ function buildSmallAnimalDetailHtml(animal, headerHtml, footerHtml, lang = 'ja')
   const species = smallAnimalSpeciesLabel(animal.species, lang);
   const breed = smallAnimalBreedLabel(animal.breed, lang);
   const color = smallAnimalColorLabel(animal.color, lang);
-  const gender = genderTextL(animal.gender, lang);
+  const gender = animal.gender === 'unknown' ? copy.unknownSex : genderTextL(animal.gender, lang);
   const status = statusTextL(animal.status, lang);
   const titleText = [species, breed, gender, color].filter(Boolean).join(' ・ ');
   const pageTitle = `${titleText} | ${copy.list} | Fuluck Cattery`;
   const description = [breed, color, gender, bornPhrase(animal.birthday, lang), fileId].filter(Boolean).join(' ・ ');
   const photos = Array.isArray(animal.photos) ? animal.photos : [];
   const coverPhoto = getCoverPhoto(animal) || '';
+  const salePrice = validSmallAnimalSalePrice(animal.price);
   const structuredData = SMALL_ANIMALS_LAUNCH.public
     ? `
   <script type="application/ld+json">
@@ -1296,12 +1373,12 @@ ${jsonForHtmlScript({
   ...(lang !== 'ja' ? { inLanguage: lang } : {}),
   image: photos,
   sku: fileId,
-  ...(animal.price !== '' && animal.price !== null && animal.price !== undefined && Number.isFinite(Number(animal.price)) ? {
+  ...(salePrice !== null ? {
     offers: {
       '@type': 'Offer',
       url: pageUrl,
       priceCurrency: 'JPY',
-      price: String(Number(animal.price)),
+      price: String(salePrice),
       availability: animal.status === 'available'
         ? 'https://schema.org/InStock'
         : 'https://schema.org/LimitedAvailability',
@@ -1407,8 +1484,8 @@ ${footerHtml}
     });
   });
   </script>
-  <script src="/i18n.js?v=${verAsset('i18n.js', '20260710a')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20260710a')}"></script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20260710b')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20260710b')}"></script>
 </body>
 </html>`;
 }
@@ -1598,6 +1675,10 @@ ${shapesHtml}
     sectionIdx++;
   }
 
+  if (sectionIdx === 0) {
+    sections = emptyCatalogSection('現在、掲載中の親猫はいません。', '掲載状況');
+  }
+
   // Per-parent Animal JSON-LD
   const animals = [];
   for (const p of parents) {
@@ -1657,6 +1738,12 @@ function generateReviews(reviews) {
           </div>
         </div>`;
   }
+  if (reviews.length === 0) {
+    cardsHtml = `
+        <div class="review-card catalog-empty" role="status" data-generated-empty="true">
+          <p class="review-body" style="text-align:center;">現在、掲載中のレビューはありません。</p>
+        </div>`;
+  }
 
   const reviewSection = `
 
@@ -1711,7 +1798,8 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja') {
   const genderFull = kitten.gender ? `${kitten.gender} ${gt}` : '';
   const st = statusText(kitten.status);
   const bd = formatBirthday(kitten.birthday);
-  const pr = formatPrice(kitten.price);
+  const salePrice = validSalePrice(kitten.price);
+  const pr = salePrice === null ? '' : formatPrice(salePrice);
   const coverPhoto = getCoverPhoto(kitten);
   const photos = kitten.photos || [];
   const pageUrl = `${BASE_URL}/${langDir(lang)}kittens/${fileId}.html`;
@@ -1734,17 +1822,17 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja') {
   let pageTitle, metaDesc, ldName, ldDesc;
   if (lang === 'en') {
     pageTitle = `${titleText} | Kitten Detail | Fuluck Cattery`;
-    metaDesc = `${breedL} kitten at Fuluck Cattery in Osaka. ${colorL || ''}, ${genderFullL}${bornL ? ', ' + bornL : ''}. ¥${pr} (tax incl.) ${statusTextL(kitten.status, 'en')}.`.replace(/\s+/g, ' ').trim();
+    metaDesc = `${breedL} kitten at Fuluck Cattery in Osaka. ${colorL || ''}, ${genderFullL}${bornL ? ', ' + bornL : ''}. ${salePrice === null ? priceInquiryText(lang) : `¥${pr} (tax incl.)`} ${statusTextL(kitten.status, 'en')}.`.replace(/\s+/g, ' ').trim();
     ldName = titleText;
     ldDesc = `${breedL} kitten from Fuluck Cattery (breeder: Ra Hoen) in Osaka. ${colorL || ''}, ${genderFullL}${bornL ? ', ' + bornL : ''}.`.replace(/\s+/g, ' ').trim();
   } else if (lang === 'zh') {
     pageTitle = `${titleText}｜幼猫详情｜福楽キャッテリー`;
-    metaDesc = `大阪福楽キャッテリー的${breedL}幼猫。${colorL || ''}、${genderFullL}${bornL ? '、' + bornL : ''}。¥${pr}（含税）${statusTextL(kitten.status, 'zh')}。`;
+    metaDesc = `大阪福楽キャッテリー的${breedL}幼猫。${colorL || ''}、${genderFullL}${bornL ? '、' + bornL : ''}。${salePrice === null ? priceInquiryText(lang) : `¥${pr}（含税）`}${statusTextL(kitten.status, 'zh')}。`;
     ldName = titleText;
     ldDesc = `大阪福楽キャッテリー（繁育者：罗方远）的${breedL}幼猫。${colorL || ''}、${genderFullL}${bornL ? '、' + bornL : ''}。`;
   } else {
     pageTitle = `${titleText}｜子猫詳細｜福楽キャッテリー`;
-    metaDesc = `大阪の福楽キャッテリーの${kitten.breed || ''}の子猫。${kitten.color || ''}、${genderFull}、${bd ? bd + '生まれ' : ''}。¥${pr}（税込）${st}。`;
+    metaDesc = `大阪の福楽キャッテリーの${kitten.breed || ''}の子猫。${kitten.color || ''}、${genderFull}、${bd ? bd + '生まれ' : ''}。${salePrice === null ? priceInquiryText(lang) : `¥${pr}（税込）`}${st}。`;
     ldName = titleText;
     ldDesc = `大阪の福楽キャッテリー（ブリーダー：羅方遠）の${kitten.breed || ''}の子猫。${kitten.color || ''}、${genderFull}、${bd ? bd + '生まれ' : ''}。`;
   }
@@ -1762,7 +1850,7 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja') {
 
   // Product JSON-LD. inLanguage emitted for en/zh only — ja keeps its exact legacy schema
   // (commit-1 byte-identity contract; ja implicitly = the site's default language anyway).
-  const productJsonLd = jsonForHtmlScript({
+  const productJsonLd = salePrice === null ? '' : jsonForHtmlScript({
     "@context": "https://schema.org",
     "@type": "Product",
     "name": ldName,
@@ -1772,33 +1860,19 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja') {
     "brand": { "@type": "Brand", "name": "福楽キャッテリー" },
     "offers": {
       "@type": "Offer",
-      "price": String(kitten.price || 0),
+      "price": String(salePrice),
       "priceCurrency": "JPY",
       "availability": schemaAvailability,
       "url": pageUrl,
       "seller": {
         "@type": "Organization",
         "name": "福楽キャッテリー"
-      },
-      // GSC required: hasMerchantReturnPolicy + shippingDetails
-      "hasMerchantReturnPolicy": {
-        "@type": "MerchantReturnPolicy",
-        "applicableCountry": "JP",
-        "returnPolicyCategory": "https://schema.org/MerchantReturnNotPermitted",
-        "merchantReturnLink": `${BASE_URL}/faq.html`
-      },
-      "shippingDetails": {
-        "@type": "OfferShippingDetails",
-        "shippingRate": { "@type": "MonetaryAmount", "value": "0", "currency": "JPY" },
-        "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "JP" },
-        "deliveryTime": {
-          "@type": "ShippingDeliveryTime",
-          "handlingTime": { "@type": "QuantitativeValue", "minValue": 0, "maxValue": 3, "unitCode": "DAY" },
-          "transitTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 5, "unitCode": "DAY" }
-        }
       }
     }
   });
+  const productSchemaHtml = productJsonLd
+    ? `  <script type="application/ld+json">\n  ${productJsonLd}\n  </script>\n`
+    : '';
 
   // Breadcrumb JSON-LD. ja keeps its exact legacy shape (byte-identity); en/zh localize the
   // display names, add inLanguage, and route Kittens → the per-lang list. Home stays the
@@ -1826,12 +1900,14 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja') {
 
   // Alt-text word for "photo N": ja "写真" / en "photo" / zh "照片".
   const photoWord = lang === 'en' ? 'photo' : (lang === 'zh' ? '照片' : '写真');
+  const showPhoto = lang === 'en' ? 'Show photo' : (lang === 'zh' ? '显示照片' : '写真を表示');
+  const skipLabel = lang === 'en' ? 'Skip to main content' : (lang === 'zh' ? '跳至主要内容' : 'メインコンテンツへスキップ');
   // Thumbnails HTML
   let thumbsHtml = '';
   if (photos.length > 1) {
     thumbsHtml = `
       <div class="kitten-detail-thumbs">
-        ${photos.map((p, i) => `<img src="${escapeHtml(p)}" alt="${escapeHtml(breedL || '')} ${escapeHtml(colorL || '')} ${photoWord}${i + 1}" class="kitten-detail-thumb${i === (kitten.coverIndex || 0) ? ' active' : ''}" data-idx="${i}" loading="lazy">`).join('\n        ')}
+        ${photos.map((p, i) => `<button type="button" class="kitten-detail-thumb${i === (kitten.coverIndex || 0) ? ' active' : ''}" data-src="${escapeHtml(p)}" data-idx="${i}" aria-label="${showPhoto} ${i + 1}" aria-pressed="${i === (kitten.coverIndex || 0) ? 'true' : 'false'}"><img src="${escapeHtml(p)}" alt="" loading="lazy" width="88" height="88"></button>`).join('\n        ')}
       </div>`;
   }
 
@@ -1880,7 +1956,7 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja') {
   <meta name="description" content="${escapeHtml(metaDesc)}">
   <meta property="og:title" content="${escapeHtml(pageTitle)}">
   <meta property="og:description" content="${escapeHtml(metaDesc)}">
-  <meta property="og:type" content="product">
+  <meta property="og:type" content="${salePrice === null ? 'website' : 'product'}">
   <meta property="og:image" content="${escapeHtml(coverPhoto)}">
   <meta property="og:url" content="${escapeHtml(pageUrl)}">
   <meta name="twitter:card" content="summary_large_image">
@@ -1894,14 +1970,11 @@ ${hreflangBlock(`kittens/${fileId}.html`)}
   <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260708a')}">
   <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20260628a')}">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
-  <script defer src="/nav.js?v=${verAsset('nav.js', '20260710a')}"></script>
+  <script defer src="/nav.js?v=${verAsset('nav.js', '20260710b')}"></script>
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
-  <script type="application/ld+json">
-  ${productJsonLd}
-  </script>
-  <script type="application/ld+json">
+${productSchemaHtml}  <script type="application/ld+json">
   ${breadcrumbJsonLd}
   </script>
   <style>
@@ -1936,15 +2009,25 @@ ${hreflangBlock(`kittens/${fileId}.html`)}
   .kitten-detail-thumb {
     width: 72px;
     height: 72px;
-    object-fit: cover;
     border-radius: var(--radius-sm);
     cursor: pointer;
     opacity: 0.6;
     transition: opacity 0.2s, box-shadow 0.2s;
     flex-shrink: 0;
     border: 2px solid transparent;
+    padding: 0;
+    background: transparent;
+    overflow: hidden;
+  }
+  .kitten-detail-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+    display: block;
   }
   .kitten-detail-thumb:hover,
+  .kitten-detail-thumb:focus-visible,
   .kitten-detail-thumb.active {
     opacity: 1;
     border-color: var(--mint);
@@ -2107,10 +2190,14 @@ ${hreflangBlock(`kittens/${fileId}.html`)}
 </head>
 <body>
 
+  <a class="skip-link" href="#main" data-i18n="a11y.skipToMain">${skipLabel}</a>
+
   <!-- Scroll Progress Bar -->
   <div class="scroll-progress"></div>
 
 ${headerHtml}
+
+  <main id="main">
 
   <!-- Breadcrumb -->
   <nav class="breadcrumb">
@@ -2142,7 +2229,7 @@ ${headerHtml}
       </div>
 
       <!-- Price -->
-      <p class="kitten-detail-price">&yen;${pr} <span class="tax" data-i18n="kitten.taxIncl">${taxIncl(lang)}</span></p>
+      <p class="kitten-detail-price">${salePrice === null ? escapeHtml(priceInquiryText(lang)) : `&yen;${pr} <span class="tax" data-i18n="kitten.taxIncl">${taxIncl(lang)}</span>`}</p>
 
       <!-- Detail table -->
       <table class="kitten-detail-table">
@@ -2180,6 +2267,8 @@ ${headerHtml}
     </div>
   </section>
 
+  </main>
+
 ${footerHtml}
 
   <script>
@@ -2187,17 +2276,22 @@ ${footerHtml}
   document.querySelectorAll('.kitten-detail-thumb').forEach(function(thumb) {
     thumb.addEventListener('click', function() {
       var mainImg = document.getElementById('mainPhoto');
-      if (mainImg) mainImg.src = this.src;
-      document.querySelectorAll('.kitten-detail-thumb').forEach(function(t) { t.classList.remove('active'); });
+      var nextSrc = this.getAttribute('data-src');
+      if (mainImg && nextSrc) mainImg.src = nextSrc;
+      document.querySelectorAll('.kitten-detail-thumb').forEach(function(t) {
+        t.classList.remove('active');
+        t.setAttribute('aria-pressed', 'false');
+      });
       this.classList.add('active');
+      this.setAttribute('aria-pressed', 'true');
     });
   });
   </script>
-  <script src="/i18n.js?v=${verAsset('i18n.js', '20260710a')}"></script>
-  <script src="/catalog-i18n.js?v=${verAsset('catalog-i18n.js', '20260710a')}"></script>
-  <script src="/kitten-carousel.js?v=${verAsset('kitten-carousel.js', '20260710a')}"></script>
-  <script src="/cta-widget.js?v=${verAsset('cta-widget.js', '20260710a')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20260710a')}"></script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20260710b')}"></script>
+  <script src="/catalog-i18n.js?v=${verAsset('catalog-i18n.js', '20260710b')}"></script>
+  <script src="/kitten-carousel.js?v=${verAsset('kitten-carousel.js', '20260710b')}"></script>
+  <script src="/cta-widget.js?v=${verAsset('cta-widget.js', '20260710b')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20260710b')}"></script>
 </body>
 </html>`;
 }
@@ -2229,6 +2323,9 @@ function extractDetailTemplate() {
   if (headerStart !== -1 && pageHeroIdx !== -1) {
     // Everything from HEADER comment to just before PAGE HERO, trimmed
     headerHtml = html.substring(headerStart, pageHeroIdx).trim();
+    // The list page opens its content landmark immediately before PAGE HERO. Detail pages
+    // own their landmark and skip link, so do not carry this unmatched opening tag across.
+    headerHtml = headerHtml.replace(/\s*<main\b[^>]*>\s*$/i, '');
   }
 
   // Footer: from FOOTER comment to closing </footer>, plus fixed LINE button and back-to-top
@@ -2737,21 +2834,30 @@ async function enrichKittensWithDrivePhotos(kittens) {
   for (const f of folders) folderMap[f.name] = f.id;
 
   let enriched = 0;
-  for (const k of kittens) {
-    const bid = k.breederId;
-    if (!bid || !folderMap[bid]) continue;
-    try {
-      const images = await fetchJSON('/api/drive/images/' + folderMap[bid]);
-      if (Array.isArray(images) && images.length > 0) {
-        k.photos = images.map(img => img.url.startsWith('/')
-          ? API_BASE + img.url : img.url);
-        enriched++;
-        console.log('    Drive: ' + bid + ' -> ' + images.length + ' photos');
+  const targets = kittens.filter(k => k.breederId && folderMap[k.breederId]);
+  const messages = new Array(targets.length);
+  let nextTarget = 0;
+  async function enrichNext() {
+    while (nextTarget < targets.length) {
+      const index = nextTarget++;
+      const k = targets[index];
+      const bid = k.breederId;
+      try {
+        const images = await fetchJSON('/api/drive/images/' + folderMap[bid]);
+        if (Array.isArray(images) && images.length > 0) {
+          k.photos = images.map(img => img.url.startsWith('/')
+            ? API_BASE + img.url : img.url);
+          enriched++;
+          messages[index] = '    Drive: ' + bid + ' -> ' + images.length + ' photos';
+        }
+      } catch (e) {
+        messages[index] = '    [warn] Drive images for ' + bid + ': ' + e.message;
       }
-    } catch (e) {
-      console.log('    [warn] Drive images for ' + bid + ': ' + e.message);
     }
   }
+  const concurrency = Math.min(4, targets.length);
+  await Promise.all(Array.from({ length: concurrency }, enrichNext));
+  messages.filter(Boolean).forEach(message => console.log(message));
   console.log('  Drive enrichment: ' + enriched + '/' + kittens.length + ' kittens');
 }
 
@@ -2804,26 +2910,20 @@ async function main() {
   // color/breed data at render time. Data-independent (derived from generator tables).
   generateCatalogI18n();
 
-  if (kittens.length > 0) {
-    generateKittens(kittens, 'ja');
-  } else {
-    console.log('  [skip] kittens.html (no data)');
-  }
+  generateKittens(kittens, 'ja');
 
   // Generate kitten detail pages (individual pages per kitten), ja then en + zh.
   let kittenDetailPages = [];
-  if (kittens.length > 0) {
-    // ja detail pass first — it populates ASSET_VERSIONS (via extractDetailTemplate) that
-    // the en/zh list-header builder reads. Same eligible set drives all langs, so the
-    // hreflang triad stays symmetric (a kitten in ja exists in en+zh, never a 404).
-    kittenDetailPages = generateKittenDetailPages(kittens, parents, 'ja');
-    generateKittens(kittens, 'en');
-    generateKittens(kittens, 'zh');
-    generateKittenDetailPages(kittens, parents, 'en');
-    generateKittenDetailPages(kittens, parents, 'zh');
-  } else {
-    console.log('  [skip] kittens/ detail pages (no data)');
-  }
+  // ja detail pass first — it populates ASSET_VERSIONS (via extractDetailTemplate) that
+  // the en/zh list-header builder reads. Same eligible set drives all langs, so the
+  // hreflang triad stays symmetric (a kitten in ja exists in en+zh, never a 404).
+  // A successful [] is authoritative: render an honest empty list and remove stale
+  // detail files. Network/non-array failures have already aborted before this write phase.
+  kittenDetailPages = generateKittenDetailPages(kittens, parents, 'ja');
+  generateKittens(kittens, 'en');
+  generateKittens(kittens, 'zh');
+  generateKittenDetailPages(kittens, parents, 'en');
+  generateKittenDetailPages(kittens, parents, 'zh');
 
   // Owner-gated small-animal pages always render an honest empty state for a successful
   // [] response. A failed/non-array fetch preserves the last good generated output.
@@ -2841,17 +2941,8 @@ async function main() {
     smallAnimalDetailPages = null;
   }
 
-  if (parents.length > 0) {
-    generateParents(parents);
-  } else {
-    console.log('  [skip] parents.html (no data)');
-  }
-
-  if (reviews.length > 0) {
-    generateReviews(reviews);
-  } else {
-    console.log('  [skip] reviews.html (no data)');
-  }
+  generateParents(parents);
+  generateReviews(reviews);
 
   // Always update sitemap (even with 0 articles, keeps static pages updated).
   // Single shared lastmod-store for the whole run (ja + en + zh URLs coexist).

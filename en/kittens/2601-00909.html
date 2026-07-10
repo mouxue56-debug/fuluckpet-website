@@ -24,12 +24,12 @@
   <link rel="stylesheet" href="/style.css?v=20260708a">
   <link rel="stylesheet" href="/nav.css?v=20260628a">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%235BC4A8'/><g fill='%23ffffff'><ellipse cx='11' cy='12' rx='2.3' ry='2.7'/><ellipse cx='21' cy='12' rx='2.3' ry='2.7'/><ellipse cx='7.5' cy='17.5' rx='2.1' ry='2.4'/><ellipse cx='24.5' cy='17.5' rx='2.1' ry='2.4'/><path d='M16 16.5c3.1 0 5.6 2.2 5.6 4.9 0 2.2-1.9 3.1-5.6 3.1s-5.6-.9-5.6-3.1c0-2.7 2.5-4.9 5.6-4.9z'/></g></svg>">
-  <script defer src="/nav.js?v=20260710a"></script>
+  <script defer src="/nav.js?v=20260710b"></script>
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
   <script type="application/ld+json">
-  {"@context":"https://schema.org","@type":"Product","name":"Siberian Female Blue Lynx Point Neva Masquerade","description":"Siberian kitten from Fuluck Cattery (breeder: Ra Hoen) in Osaka. Blue Lynx Point Neva Masquerade, Female, Born 2025/12.","inLanguage":"en","image":["https://fuluck-api.mouxue56.workers.dev/api/drive/img/1VAz9cpKRYcZjzNASJK6t34q4dCNTNRxX","https://fuluck-api.mouxue56.workers.dev/api/drive/img/1PTt4ywMrUbhERFZJ4q_qVYhBeQ2G4PEH","https://fuluck-api.mouxue56.workers.dev/api/drive/img/1q1oDDdhGQVJKLVSHnRA8acbsjFHANbMy","https://fuluck-api.mouxue56.workers.dev/api/drive/img/1eXxwh-WRUQp3H1qTlak85O_A9JjwdlyQ","https://fuluck-api.mouxue56.workers.dev/api/drive/img/1eZTMa-Z7R9cHZKCQdgBLpiLrQdB2RT40"],"brand":{"@type":"Brand","name":"福楽キャッテリー"},"offers":{"@type":"Offer","price":"280000","priceCurrency":"JPY","availability":"https://schema.org/InStock","url":"https://fuluckpet.com/en/kittens/2601-00909.html","seller":{"@type":"Organization","name":"福楽キャッテリー"},"hasMerchantReturnPolicy":{"@type":"MerchantReturnPolicy","applicableCountry":"JP","returnPolicyCategory":"https://schema.org/MerchantReturnNotPermitted","merchantReturnLink":"https://fuluckpet.com/faq.html"},"shippingDetails":{"@type":"OfferShippingDetails","shippingRate":{"@type":"MonetaryAmount","value":"0","currency":"JPY"},"shippingDestination":{"@type":"DefinedRegion","addressCountry":"JP"},"deliveryTime":{"@type":"ShippingDeliveryTime","handlingTime":{"@type":"QuantitativeValue","minValue":0,"maxValue":3,"unitCode":"DAY"},"transitTime":{"@type":"QuantitativeValue","minValue":1,"maxValue":5,"unitCode":"DAY"}}}}}
+  {"@context":"https://schema.org","@type":"Product","name":"Siberian Female Blue Lynx Point Neva Masquerade","description":"Siberian kitten from Fuluck Cattery (breeder: Ra Hoen) in Osaka. Blue Lynx Point Neva Masquerade, Female, Born 2025/12.","inLanguage":"en","image":["https://fuluck-api.mouxue56.workers.dev/api/drive/img/1VAz9cpKRYcZjzNASJK6t34q4dCNTNRxX","https://fuluck-api.mouxue56.workers.dev/api/drive/img/1PTt4ywMrUbhERFZJ4q_qVYhBeQ2G4PEH","https://fuluck-api.mouxue56.workers.dev/api/drive/img/1q1oDDdhGQVJKLVSHnRA8acbsjFHANbMy","https://fuluck-api.mouxue56.workers.dev/api/drive/img/1eXxwh-WRUQp3H1qTlak85O_A9JjwdlyQ","https://fuluck-api.mouxue56.workers.dev/api/drive/img/1eZTMa-Z7R9cHZKCQdgBLpiLrQdB2RT40"],"brand":{"@type":"Brand","name":"福楽キャッテリー"},"offers":{"@type":"Offer","price":"280000","priceCurrency":"JPY","availability":"https://schema.org/InStock","url":"https://fuluckpet.com/en/kittens/2601-00909.html","seller":{"@type":"Organization","name":"福楽キャッテリー"}}}
   </script>
   <script type="application/ld+json">
   {"@context":"https://schema.org","@type":"BreadcrumbList","inLanguage":"en","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://fuluckpet.com/"},{"@type":"ListItem","position":2,"name":"Kittens","item":"https://fuluckpet.com/en/kittens.html"},{"@type":"ListItem","position":3,"name":"Siberian Female Blue Lynx Point Neva Masquerade","item":"https://fuluckpet.com/en/kittens/2601-00909.html"}]}
@@ -66,15 +66,25 @@
   .kitten-detail-thumb {
     width: 72px;
     height: 72px;
-    object-fit: cover;
     border-radius: var(--radius-sm);
     cursor: pointer;
     opacity: 0.6;
     transition: opacity 0.2s, box-shadow 0.2s;
     flex-shrink: 0;
     border: 2px solid transparent;
+    padding: 0;
+    background: transparent;
+    overflow: hidden;
+  }
+  .kitten-detail-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+    display: block;
   }
   .kitten-detail-thumb:hover,
+  .kitten-detail-thumb:focus-visible,
   .kitten-detail-thumb.active {
     opacity: 1;
     border-color: var(--mint);
@@ -237,6 +247,8 @@
 </head>
 <body>
 
+  <a class="skip-link" href="#main" data-i18n="a11y.skipToMain">Skip to main content</a>
+
   <!-- Scroll Progress Bar -->
   <div class="scroll-progress"></div>
 
@@ -357,11 +369,11 @@
         </div>
         
       <div class="kitten-detail-thumbs">
-        <img src="https://fuluck-api.mouxue56.workers.dev/api/drive/img/1VAz9cpKRYcZjzNASJK6t34q4dCNTNRxX" alt="Siberian Blue Lynx Point Neva Masquerade photo1" class="kitten-detail-thumb active" data-idx="0" loading="lazy">
-        <img src="https://fuluck-api.mouxue56.workers.dev/api/drive/img/1PTt4ywMrUbhERFZJ4q_qVYhBeQ2G4PEH" alt="Siberian Blue Lynx Point Neva Masquerade photo2" class="kitten-detail-thumb" data-idx="1" loading="lazy">
-        <img src="https://fuluck-api.mouxue56.workers.dev/api/drive/img/1q1oDDdhGQVJKLVSHnRA8acbsjFHANbMy" alt="Siberian Blue Lynx Point Neva Masquerade photo3" class="kitten-detail-thumb" data-idx="2" loading="lazy">
-        <img src="https://fuluck-api.mouxue56.workers.dev/api/drive/img/1eXxwh-WRUQp3H1qTlak85O_A9JjwdlyQ" alt="Siberian Blue Lynx Point Neva Masquerade photo4" class="kitten-detail-thumb" data-idx="3" loading="lazy">
-        <img src="https://fuluck-api.mouxue56.workers.dev/api/drive/img/1eZTMa-Z7R9cHZKCQdgBLpiLrQdB2RT40" alt="Siberian Blue Lynx Point Neva Masquerade photo5" class="kitten-detail-thumb" data-idx="4" loading="lazy">
+        <button type="button" class="kitten-detail-thumb active" data-src="https://fuluck-api.mouxue56.workers.dev/api/drive/img/1VAz9cpKRYcZjzNASJK6t34q4dCNTNRxX" data-idx="0" aria-label="Show photo 1" aria-pressed="true"><img src="https://fuluck-api.mouxue56.workers.dev/api/drive/img/1VAz9cpKRYcZjzNASJK6t34q4dCNTNRxX" alt="" loading="lazy" width="88" height="88"></button>
+        <button type="button" class="kitten-detail-thumb" data-src="https://fuluck-api.mouxue56.workers.dev/api/drive/img/1PTt4ywMrUbhERFZJ4q_qVYhBeQ2G4PEH" data-idx="1" aria-label="Show photo 2" aria-pressed="false"><img src="https://fuluck-api.mouxue56.workers.dev/api/drive/img/1PTt4ywMrUbhERFZJ4q_qVYhBeQ2G4PEH" alt="" loading="lazy" width="88" height="88"></button>
+        <button type="button" class="kitten-detail-thumb" data-src="https://fuluck-api.mouxue56.workers.dev/api/drive/img/1q1oDDdhGQVJKLVSHnRA8acbsjFHANbMy" data-idx="2" aria-label="Show photo 3" aria-pressed="false"><img src="https://fuluck-api.mouxue56.workers.dev/api/drive/img/1q1oDDdhGQVJKLVSHnRA8acbsjFHANbMy" alt="" loading="lazy" width="88" height="88"></button>
+        <button type="button" class="kitten-detail-thumb" data-src="https://fuluck-api.mouxue56.workers.dev/api/drive/img/1eXxwh-WRUQp3H1qTlak85O_A9JjwdlyQ" data-idx="3" aria-label="Show photo 4" aria-pressed="false"><img src="https://fuluck-api.mouxue56.workers.dev/api/drive/img/1eXxwh-WRUQp3H1qTlak85O_A9JjwdlyQ" alt="" loading="lazy" width="88" height="88"></button>
+        <button type="button" class="kitten-detail-thumb" data-src="https://fuluck-api.mouxue56.workers.dev/api/drive/img/1eZTMa-Z7R9cHZKCQdgBLpiLrQdB2RT40" data-idx="4" aria-label="Show photo 5" aria-pressed="false"><img src="https://fuluck-api.mouxue56.workers.dev/api/drive/img/1eZTMa-Z7R9cHZKCQdgBLpiLrQdB2RT40" alt="" loading="lazy" width="88" height="88"></button>
       </div>
       </div>
     </div>
@@ -420,6 +432,8 @@
       <div class="kitten-carousel-mount"></div>
     </div>
   </section>
+
+  </main>
 
 <!-- ========== FOOTER ========== -->
   <footer class="footer" id="footer">
@@ -496,16 +510,21 @@
   document.querySelectorAll('.kitten-detail-thumb').forEach(function(thumb) {
     thumb.addEventListener('click', function() {
       var mainImg = document.getElementById('mainPhoto');
-      if (mainImg) mainImg.src = this.src;
-      document.querySelectorAll('.kitten-detail-thumb').forEach(function(t) { t.classList.remove('active'); });
+      var nextSrc = this.getAttribute('data-src');
+      if (mainImg && nextSrc) mainImg.src = nextSrc;
+      document.querySelectorAll('.kitten-detail-thumb').forEach(function(t) {
+        t.classList.remove('active');
+        t.setAttribute('aria-pressed', 'false');
+      });
       this.classList.add('active');
+      this.setAttribute('aria-pressed', 'true');
     });
   });
   </script>
-  <script src="/i18n.js?v=20260710a"></script>
-  <script src="/catalog-i18n.js?v=20260710a"></script>
-  <script src="/kitten-carousel.js?v=20260710a"></script>
-  <script src="/cta-widget.js?v=20260710a"></script>
-  <script src="/script.js?v=20260710a"></script>
+  <script src="/i18n.js?v=20260710b"></script>
+  <script src="/catalog-i18n.js?v=20260710b"></script>
+  <script src="/kitten-carousel.js?v=20260710b"></script>
+  <script src="/cta-widget.js?v=20260710b"></script>
+  <script src="/script.js?v=20260710b"></script>
 </body>
 </html>

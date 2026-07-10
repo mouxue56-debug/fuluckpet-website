@@ -8,7 +8,9 @@ import safeJsonModule from './safe-json-for-html.js';
 
 const { safeJsonForHtmlScript } = safeJsonModule;
 
-const ROOT = '/Users/lauralyu/projects/fuluckpet-website';
+const ROOT = process.env.FULUCK_REPO_ROOT
+  ? path.resolve(process.env.FULUCK_REPO_ROOT)
+  : path.resolve(import.meta.dirname, '..');
 const BLOG_DIR = path.join(ROOT, 'blog');
 const FAVICON_HREF = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%235BC4A8'/><g fill='%23ffffff'><ellipse cx='11' cy='12' rx='2.3' ry='2.7'/><ellipse cx='21' cy='12' rx='2.3' ry='2.7'/><ellipse cx='7.5' cy='17.5' rx='2.1' ry='2.4'/><ellipse cx='24.5' cy='17.5' rx='2.1' ry='2.4'/><path d='M16 16.5c3.1 0 5.6 2.2 5.6 4.9 0 2.2-1.9 3.1-5.6 3.1s-5.6-.9-5.6-3.1c0-2.7 2.5-4.9 5.6-4.9z'/></g></svg>";
 
@@ -203,9 +205,9 @@ ${body}
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 15l-6-6-6 6"/></svg>
   </button>
 
-  <script src="/i18n.js?v=20260710a"></script>
-  <script src="/blog/blog-i18n.js?v=20260710a"></script>
-  <script src="/script.js?v=20260710a"></script>
+  <script src="/i18n.js?v=20260710b"></script>
+  <script src="/blog/blog-i18n.js?v=20260710b"></script>
+  <script src="/script.js?v=20260710b"></script>
 
 </body>
 </html>

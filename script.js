@@ -522,6 +522,52 @@ document.addEventListener('DOMContentLoaded', () => {
     return chip;
   }
 
+  const KITTEN_MODAL_COPY = {
+    ja: {
+      status: { available: '販売中', reserved: 'ご予約済', sold: 'ご家族決定' },
+      soldText: 'ご家族が決まりました', tax: '（税込）', breed: '猫種', sex: '性別', color: 'カラー',
+      birthday: '誕生日', listingId: '掲載ID', parents: '両親', dad: 'パパ', mom: 'ママ',
+      previous: '前', next: '次', previousTitle: '前の子猫', nextTitle: '次の子猫',
+      parentFather: 'パパ猫', parentMother: 'ママ猫', parentFallback: '親猫', photosLoading: '読み込み中...', photosPreparing: '写真準備中',
+      age: '年齢', testInfo: '検査情報', testRecorded: '検査情報あり', testMissing: '検査情報の掲載なし', noChildren: '現在表示中の子猫はいません',
+      male: '♂ 男の子', female: '♀ 女の子',
+      lawTitle: '動物愛護管理法に基づく対面販売',
+      lawText: '法律の規定により、ご購入前に必ずキャッテリーにお越しいただき、子猫と対面していただく必要がございます。',
+      line: 'この子についてLINEで相談', note: '※ 購入前のちょっとした質問だけでもOKです', booking: '見学を予約',
+    },
+    en: {
+      status: { available: 'Available', reserved: 'Reserved', sold: 'Adopted' },
+      soldText: 'This kitten has joined a family', tax: '(tax incl.)', breed: 'Breed', sex: 'Sex', color: 'Color',
+      birthday: 'Birthday', listingId: 'Listing ID', parents: 'Parents', dad: 'Dad', mom: 'Mom',
+      previous: 'Previous', next: 'Next', previousTitle: 'Previous kitten', nextTitle: 'Next kitten',
+      parentFather: 'Father', parentMother: 'Mother', parentFallback: 'Parent cat', photosLoading: 'Loading photos...', photosPreparing: 'Photos are being prepared',
+      age: 'Age', testInfo: 'Test information', testRecorded: 'Test information recorded', testMissing: 'No test information listed', noChildren: 'No kittens are currently displayed',
+      male: 'Male', female: 'Female',
+      lawTitle: 'In-Person Sales under the Animal Protection Law',
+      lawText: 'Japanese law requires an in-person meeting to see the kitten and receive an explanation before purchase. Please arrange a visit to the cattery.',
+      line: 'Ask about this kitten on LINE', note: 'Questions are welcome, even before you decide to purchase.', booking: 'Book a Visit',
+    },
+    zh: {
+      status: { available: '可预约', reserved: '已预订', sold: '已出售' },
+      soldText: '这只猫咪已找到新家', tax: '（含税）', breed: '品种', sex: '性别', color: '毛色',
+      birthday: '生日', listingId: '刊登ID', parents: '父母猫', dad: '爸爸', mom: '妈妈',
+      previous: '上一只', next: '下一只', previousTitle: '上一只幼猫', nextTitle: '下一只幼猫',
+      parentFather: '父猫', parentMother: '母猫', parentFallback: '父母猫', photosLoading: '照片加载中...', photosPreparing: '照片准备中',
+      age: '年龄', testInfo: '检测信息', testRecorded: '已登记检测信息', testMissing: '未刊登检测信息', noChildren: '目前没有显示中的幼猫',
+      male: '男孩', female: '女孩',
+      lawTitle: '依据《动物爱护管理法》的面对面销售',
+      lawText: '根据日本法律，购买前必须到访猫舍，与幼猫见面并听取相关说明。请提前预约参观。',
+      line: '通过LINE咨询这只猫咪', note: '尚未决定购买也没关系，欢迎先咨询。', booking: '预约见学',
+    },
+  };
+
+  function getKittenModalCopy() {
+    const lang = String(document.documentElement?.lang || 'ja').toLowerCase();
+    if (lang.startsWith('en')) return KITTEN_MODAL_COPY.en;
+    if (lang.startsWith('zh')) return KITTEN_MODAL_COPY.zh;
+    return KITTEN_MODAL_COPY.ja;
+  }
+
   function populateModalInfo(card) {
     if (!kittenModal) return;
     const info = kittenModal.querySelector('.modal-info');
@@ -541,65 +587,54 @@ document.addEventListener('DOMContentLoaded', () => {
     const breederId = card.dataset.breederId || '';
     const isSold = status === 'sold';
 
-    const statusLabels = { available: '販売中', reserved: 'ご予約済', sold: 'ご家族決定' };
+    const copy = getKittenModalCopy();
+
     const statusClasses = { available: 'st-available', reserved: 'st-reserved', sold: 'st-sold' };
 
     const content = [];
     const statusRow = createModalNode('div', 'modal-status-row');
-    statusRow.appendChild(createModalNode('span', 'kit-status ' + statusClasses[status], statusLabels[status]));
+    statusRow.appendChild(createModalNode('span', 'kit-status ' + statusClasses[status], copy.status[status]));
     if (isNew) statusRow.appendChild(createModalNode('span', 'kit-badge-new', 'NEW'));
     content.push(statusRow, createModalNode('h2', 'modal-name', displayName));
 
     if (!isSold) {
       const priceRow = createModalNode('div', 'modal-price-row');
-      priceRow.appendChild(createModalNode('span', 'modal-price', price.replace(/（税込）/, '')));
-      priceRow.appendChild(createModalNode('span', 'tax', '（税込）'));
+      priceRow.appendChild(createModalNode('span', 'modal-price', price.replace(/(?:（税込）|\(tax incl\.\)|（含税）)/gi, '').trim()));
+      const rawDataPrice = String(card.dataset.price || '').trim();
+      const hasNumericPrice = /^[1-9][0-9]*$/.test(rawDataPrice) || /[¥￥]\s*[0-9]/.test(price);
+      if (hasNumericPrice) priceRow.appendChild(createModalNode('span', 'tax', copy.tax));
       content.push(priceRow);
     } else {
-      const sold = createModalNode('p', 'sold-text', 'ご家族が決まりました');
+      const sold = createModalNode('p', 'sold-text', copy.soldText);
       sold.style.marginBottom = '20px';
       content.push(sold);
     }
 
     const details = createModalNode('div', 'modal-details');
     const genderParts = gender.split('・');
-    appendModalDetail(details, '猫種', breed);
-    appendModalDetail(details, '性別', (genderParts[0] || '').trim());
-    appendModalDetail(details, 'カラー', (genderParts[1] || '').trim());
-    appendModalDetail(details, '誕生日', birthday);
-    appendModalDetail(details, 'ワクチン', '1回接種済み');
-    appendModalDetail(details, '遺伝子検査', 'PKD(-) HCM(-)');
-    if (breederId) appendModalDetail(details, '掲載ID', breederId, { accent: true });
+    appendModalDetail(details, copy.breed, breed);
+    appendModalDetail(details, copy.sex, (genderParts[0] || '').trim());
+    appendModalDetail(details, copy.color, (genderParts[1] || '').trim());
+    appendModalDetail(details, copy.birthday, birthday);
+    if (breederId) appendModalDetail(details, copy.listingId, breederId, { accent: true });
     content.push(details);
 
     if (papa || mama) {
       const parents = createModalNode('div', 'modal-parents');
-      parents.appendChild(createModalNode('h4', '', '両親'));
+      parents.appendChild(createModalNode('h4', '', copy.parents));
       const row = createModalNode('div', 'modal-parent-row');
-      if (papa) row.appendChild(createParentChip(papa, 'パパ', 'ico-mars'));
-      if (mama) row.appendChild(createParentChip(mama, 'ママ', 'ico-venus'));
+      if (papa) row.appendChild(createParentChip(papa, copy.dad, 'ico-mars'));
+      if (mama) row.appendChild(createParentChip(mama, copy.mom, 'ico-venus'));
       parents.appendChild(row);
       content.push(parents);
     }
 
-    const health = createModalNode('div', 'modal-health');
-    health.appendChild(createModalNode('h4', '', '健康情報'));
-    const healthTags = createModalNode('div', 'health-tags');
-    ['ワクチン接種済', '遺伝子検査済', '健康診断済', '駆虫済み'].forEach((label) => {
-      const tag = createModalNode('span', 'health-tag tag-good');
-      appendModalIcon(tag, 'ico-check');
-      tag.appendChild(document.createTextNode(' ' + label));
-      healthTags.appendChild(tag);
-    });
-    health.appendChild(healthTags);
-    content.push(health);
-
     const law = createModalNode('div', 'law-notice-compact');
     const lawTitle = createModalNode('div', 'law-notice-title');
     appendModalIcon(lawTitle, 'ico-clipboard-list');
-    lawTitle.appendChild(document.createTextNode(' 動物愛護管理法に基づく対面販売'));
+    lawTitle.appendChild(document.createTextNode(' ' + copy.lawTitle));
     law.appendChild(lawTitle);
-    law.appendChild(createModalNode('p', '', '法律の規定により、ご購入前に必ずキャッテリーにお越しいただき、子猫と対面していただく必要がございます。'));
+    law.appendChild(createModalNode('p', '', copy.lawText));
     content.push(law);
 
     const line = createModalNode('a', 'btn btn-line modal-line-btn');
@@ -613,10 +648,10 @@ document.addEventListener('DOMContentLoaded', () => {
     line.style.fontWeight = '700';
     line.style.letterSpacing = '0.02em';
     appendModalIcon(line, 'ico-paw-print');
-    line.appendChild(document.createTextNode(' この子についてLINEで相談'));
+    line.appendChild(document.createTextNode(' ' + copy.line));
     content.push(line);
 
-    const note = createModalNode('p', '', '※ 購入前のちょっとした質問だけでもOKです');
+    const note = createModalNode('p', '', copy.note);
     note.style.textAlign = 'center';
     note.style.fontSize = '12px';
     note.style.color = 'var(--text-note)';
@@ -625,7 +660,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const actions = createModalNode('div', 'modal-actions');
     actions.style.marginTop = '12px';
-    const booking = createModalNode('a', 'btn btn-secondary modal-visit-btn', '見学を予約');
+    const booking = createModalNode('a', 'btn btn-secondary modal-visit-btn', copy.booking);
     booking.setAttribute('href', '/booking.html');
     booking.addEventListener('click', () => closeModalA11y(kittenModal));
     actions.appendChild(booking);
@@ -690,6 +725,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const prevBtn = kittenModal?.querySelector('.modal-kitten-prev');
     const nextBtn = kittenModal?.querySelector('.modal-kitten-next');
     if (!prevBtn || !nextBtn) return;
+    const copy = getKittenModalCopy();
+    prevBtn.textContent = '‹ ' + copy.previous;
+    prevBtn.title = copy.previousTitle;
+    nextBtn.textContent = copy.next + ' ›';
+    nextBtn.title = copy.nextTitle;
 
     // Find prev/next visible card
     let hasPrev = false, hasNext = false;
@@ -705,10 +745,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Add nav buttons to modal-overlay (not container, to avoid overflow clipping)
   if (kittenModal) {
+    const navCopy = getKittenModalCopy();
     const prevBtn = document.createElement('button');
     prevBtn.className = 'modal-kitten-nav modal-kitten-prev';
-    prevBtn.textContent = '‹ 前';
-    prevBtn.title = '前の子猫';
+    prevBtn.textContent = '‹ ' + navCopy.previous;
+    prevBtn.title = navCopy.previousTitle;
     prevBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       for (let i = currentKittenIndex - 1; i >= 0; i--) {
@@ -718,8 +759,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const nextBtn = document.createElement('button');
     nextBtn.className = 'modal-kitten-nav modal-kitten-next';
-    nextBtn.textContent = '次 ›';
-    nextBtn.title = '次の子猫';
+    nextBtn.textContent = navCopy.next + ' ›';
+    nextBtn.title = navCopy.nextTitle;
     nextBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       for (let i = currentKittenIndex + 1; i < allKittenCards.length; i++) {
@@ -772,13 +813,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const age = card.dataset.age || '';
     const color = card.dataset.color || '';
     const tested = card.dataset.tested === 'true';
+    const copy = getKittenModalCopy();
 
     const nameEl = parentModal.querySelector('.modal-name');
     if (nameEl) nameEl.textContent = name;
 
     const roleEl = parentModal.querySelector('.parent-role');
     if (roleEl) {
-      roleEl.textContent = role;
+      roleEl.textContent = gender === '♂' ? copy.parentFather : gender === '♀' ? copy.parentMother : role;
       roleEl.className = 'parent-role ' + (gender === '♂' ? 'role-papa' : 'role-mama');
     }
 
@@ -789,9 +831,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // If no images yet but has Drive folder, load from Drive
       if (images.length === 0 && /^[A-Za-z0-9_-]+$/.test(card.dataset.driveFolder || '') && window.DriveLoader) {
-        buildMediaCarousel(gallery, [], '', name || '親猫', {
+        buildMediaCarousel(gallery, [], '', name || copy.parentFallback, {
           placeholderClass: 'parent-modal-ph',
-          emptyMessage: '読み込み中...'
+          emptyMessage: copy.photosLoading
         });
         const driveUrls = await window.DriveLoader.loadCardImages(card);
         if (driveUrls) {
@@ -799,9 +841,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      buildMediaCarousel(gallery, images, '', name || '親猫', {
+      buildMediaCarousel(gallery, images, '', name || copy.parentFallback, {
         placeholderClass: 'parent-modal-ph',
-        emptyMessage: '写真準備中'
+        emptyMessage: copy.photosPreparing
       });
     }
 
@@ -809,11 +851,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const details = parentModal.querySelector('.modal-details');
     if (details) {
       details.replaceChildren();
-      appendModalDetail(details, '猫種', breed);
-      appendModalDetail(details, '性別', gender === '♂' ? '♂ 男の子' : gender === '♀' ? '♀ 女の子' : '');
-      if (color) appendModalDetail(details, 'カラー', color);
-      if (age) appendModalDetail(details, '年齢', age);
-      appendModalDetail(details, '遺伝子検査', tested ? 'PKD(-) HCM(-) 検査済み' : '検査予定', tested ? { icon: 'ico-circle-check' } : {});
+      appendModalDetail(details, copy.breed, breed);
+      appendModalDetail(details, copy.sex, gender === '♂' ? copy.male : gender === '♀' ? copy.female : '');
+      if (color) appendModalDetail(details, copy.color, color);
+      if (age) appendModalDetail(details, copy.age, age);
+      appendModalDetail(details, copy.testInfo, tested ? copy.testRecorded : copy.testMissing, tested ? { icon: 'ico-circle-check' } : {});
     }
 
     // Find children kittens
@@ -827,11 +869,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const childName = child.querySelector('h3')?.textContent || '';
         const childMeta = child.querySelector('.kit-meta')?.textContent || '';
         const childStatus = child.dataset.status || '';
-        const statusLabel = { available: '販売中', reserved: 'ご予約済', sold: 'ご家族決定' }[childStatus] || '';
+        const statusLabel = copy.status[childStatus] || '';
         childrenContainer.appendChild(createModalNode('span', 'child-chip', childName + ' ' + childMeta + (statusLabel ? ' (' + statusLabel + ')' : '')));
       });
       if (children.length === 0) {
-        const empty = createModalNode('span', '', '現在表示中の子猫はいません');
+        const empty = createModalNode('span', '', copy.noChildren);
         empty.style.color = 'var(--text-note)';
         empty.style.fontSize = '13px';
         childrenContainer.appendChild(empty);

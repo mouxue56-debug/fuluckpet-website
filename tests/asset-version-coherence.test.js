@@ -7,7 +7,7 @@ const path = require('node:path');
 const test = require('node:test');
 
 const ROOT = path.resolve(__dirname, '..');
-const RELEASE = '20260710a';
+const RELEASE = '20260710b';
 const PUBLIC_ASSETS = [
   'nav.js',
   'i18n.js',
@@ -18,6 +18,7 @@ const PUBLIC_ASSETS = [
   'faq-page-loader.js',
   'kitten-carousel.js',
   'script.js',
+  'assets/chat/widget.css',
   'assets/chat/widget.js',
 ];
 
@@ -33,7 +34,7 @@ test('tracked pages use the current release stamp for changed public JavaScript'
     const html = fs.readFileSync(path.join(ROOT, relative), 'utf8');
     for (const asset of PUBLIC_ASSETS) {
       const escaped = asset.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const references = [...html.matchAll(new RegExp(`src=["'][^"']*${escaped}(?:\\?v=([^"']+))?["']`, 'g'))];
+      const references = [...html.matchAll(new RegExp(`(?:src|href)=["'][^"']*${escaped}(?:\\?v=([^"']+))?["']`, 'g'))];
       for (const reference of references) {
         assert.equal(reference[1], RELEASE, `${relative}: ${asset} must use ?v=${RELEASE}`);
       }

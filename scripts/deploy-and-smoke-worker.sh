@@ -1,22 +1,42 @@
 #!/usr/bin/env bash
 #
-# deploy-and-smoke-worker.sh — deploy the fuluck-api Worker and smoke-test it.
+# deploy-and-smoke-worker.sh — smoke-test the fuluck-api Worker, with guarded deploy.
 #
 # Covers core catalogue availability, small-animal dark-launch routes, private auth
 # gates, and drive-img layered caching. Expensive/destructive throttling is opt-in.
 # Idempotent and safe to re-run. Each check prints a clear PASS/FAIL line; the
 # script exits non-zero if any check fails.
 #
-# Usage:  scripts/deploy-and-smoke-worker.sh            # deploy, then smoke
-#         SKIP_DEPLOY=1 scripts/deploy-and-smoke-worker.sh   # smoke only (no deploy)
+# Usage:  scripts/deploy-and-smoke-worker.sh            # default: smoke-only
+#         scripts/deploy-and-smoke-worker.sh --deploy   # gated deploy, then smoke
+#         scripts/deploy-and-smoke-worker.sh --help
 #
-# Requires: wrangler (via npx) authenticated for the fuluck-api account; curl.
+# Requires: npx authenticated for the fuluck-api account; curl.
 
 set -u -o pipefail
 
-API_BASE="https://fuluck-api.mouxue56.workers.dev"
-SITE_ORIGIN="https://fuluckpet.com"
-FOREIGN_ORIGIN="https://evil.example.com"
+readonly WRANGLER_VERSION="4.70.0"
+readonly -a WRANGLER=(npx --yes "wrangler@$WRANGLER_VERSION")
+
+MODE="smoke"
+case "${1:-}" in
+  "") ;;
+  --deploy) MODE="deploy" ;;
+  -h|--help)
+    sed -n '2,15p' "$0"
+    exit 0
+    ;;
+  *)
+    echo "Unknown argument: $1" >&2
+    echo "Usage: $0 [--deploy]" >&2
+    exit 64
+    ;;
+esac
+[ "$#" -le 1 ] || { echo "Only one mode argument is accepted." >&2; exit 64; }
+
+API_BASE="${FULUCK_API_BASE:-https://fuluck-api.mouxue56.workers.dev}"
+SITE_ORIGIN="${FULUCK_SITE_ORIGIN:-https://fuluckpet.com}"
+FOREIGN_ORIGIN="${FULUCK_FOREIGN_ORIGIN:-https://evil.example.com}"
 RELEASE_PROBE_PATH="/api/chat%2Fdiagnostic"
 # Two REAL kitten-card LCP images (Drive file ids from kittens.html).
 IMG_A="1WgbZ2SZ1c8Q43wBdqu8vu9w3a3Idxj-A"
@@ -25,18 +45,159 @@ IMG_B="11A__yaCqHdX2DQWdoJJt09SL96fommeS"
 IMG_BOGUS="BOGUS_nonexistent_id_smoke_xyz123"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+RELEASE_SHA=""
+PREVIOUS_VERSION_ID=""
+DEPLOYED_VERSION_ID=""
+DEPLOY_COMMAND_SUCCEEDED=0
+ROLLBACK_OWNED=0
 
 pass_count=0
 fail_count=0
 pass() { echo "  PASS  $1"; pass_count=$((pass_count+1)); }
 fail() { echo "  FAIL  $1"; fail_count=$((fail_count+1)); }
+die() { echo "ERROR: $*" >&2; exit 1; }
+
+command -v curl >/dev/null || die "curl is required"
+command -v python3 >/dev/null || die "python3 is required"
+command -v node >/dev/null || die "Node.js is required"
+
+# Every live probe is bounded. POST probes are deliberately not retried because
+# a replay could duplicate provider work if a route regresses past validation.
+curl() {
+  command curl --connect-timeout "${CURL_CONNECT_TIMEOUT:-10}" \
+    --max-time "${CURL_MAX_TIME:-30}" "$@"
+}
+
+current_single_version_id() {
+  local status_json
+  status_json="$(cd "$REPO_ROOT/api" && "${WRANGLER[@]}" deployments status --json)" || return 1
+  printf '%s' "$status_json" | node -e '
+    let text = "";
+    process.stdin.on("data", chunk => { text += chunk; });
+    process.stdin.on("end", () => {
+      let deployment;
+      try { deployment = JSON.parse(text); } catch { process.exit(2); }
+      const versions = Array.isArray(deployment.versions) ? deployment.versions : [];
+      if (versions.length !== 1 || Number(versions[0].percentage) !== 100 || !versions[0].version_id) {
+        process.exit(3);
+      }
+      process.stdout.write(String(versions[0].version_id));
+    });
+  '
+}
+
+verify_version_provenance() {
+  local version_id="$1" expected_sha="$2" version_json
+  version_json="$(cd "$REPO_ROOT/api" && "${WRANGLER[@]}" versions view "$version_id" --json)" || return 1
+  printf '%s' "$version_json" | node -e '
+    const expectedSha = process.argv[1];
+    let text = "";
+    process.stdin.on("data", chunk => { text += chunk; });
+    process.stdin.on("end", () => {
+      let version;
+      try { version = JSON.parse(text); } catch { process.exit(2); }
+      const annotations = version.annotations || {};
+      const tag = annotations["workers/tag"];
+      const message = annotations["workers/message"];
+      if (version.id !== process.argv[2] || tag !== `git-${expectedSha}` || message !== `git=${expectedSha}`) {
+        process.exit(3);
+      }
+    });
+  ' "$expected_sha" "$version_id"
+}
+
+rollback_previous() {
+  local reason="$1" active_version_id
+  if [ "$ROLLBACK_OWNED" != "1" ]; then
+    if [ "$DEPLOY_COMMAND_SUCCEEDED" = "1" ]; then
+      echo "MANUAL INTERVENTION REQUIRED: $reason; rollback ownership was never established, so no automatic rollback was attempted." >&2
+      return 1
+    fi
+    return 0
+  fi
+
+  active_version_id="$(current_single_version_id)" || {
+    echo "MANUAL INTERVENTION REQUIRED: $reason; the unique active Worker version could not be proven. No automatic rollback was attempted." >&2
+    return 1
+  }
+  if [ "$active_version_id" != "$DEPLOYED_VERSION_ID" ]; then
+    echo "MANUAL INTERVENTION REQUIRED: $reason; active Worker version changed from owned $DEPLOYED_VERSION_ID to $active_version_id. No automatic rollback was attempted." >&2
+    return 1
+  fi
+  if ! verify_version_provenance "$active_version_id" "$RELEASE_SHA"; then
+    echo "MANUAL INTERVENTION REQUIRED: $reason; active version $active_version_id no longer proves git=$RELEASE_SHA. No automatic rollback was attempted." >&2
+    return 1
+  fi
+
+  echo "DEPLOYED RELEASE FAILED: $reason" >&2
+  echo "Rolling back git=$RELEASE_SHA to Worker version $PREVIOUS_VERSION_ID ..." >&2
+  if (cd "$REPO_ROOT/api" && "${WRANGLER[@]}" rollback "$PREVIOUS_VERSION_ID" --yes \
+      --message "automatic rollback after $reason; failed git=$RELEASE_SHA"); then
+    ROLLBACK_OWNED=0
+    DEPLOY_COMMAND_SUCCEEDED=0
+    echo "Rollback command completed." >&2
+    return 0
+  fi
+  echo "ROLLBACK FAILED. Manual intervention required; previous version: $PREVIOUS_VERSION_ID" >&2
+  return 1
+}
+
+abort_after_deploy() {
+  local reason="$1"
+  rollback_previous "$reason" || true
+  exit 1
+}
+
+on_interrupt() {
+  rollback_previous "interrupted smoke" || true
+  exit 130
+}
+trap on_interrupt INT TERM HUP
+
+run_deploy_preflight() {
+  local branch origin_sha dirty
+  command -v git >/dev/null || die "git is required"
+  command -v node >/dev/null || die "Node.js is required"
+  command -v npx >/dev/null || die "npx is required"
+
+  branch="$(git -C "$REPO_ROOT" branch --show-current)"
+  [ "$branch" = "main" ] || die "deploy is allowed only from main (current: ${branch:-detached})"
+  git -C "$REPO_ROOT" diff --quiet --ignore-submodules -- || die "tracked worktree changes must be committed"
+  git -C "$REPO_ROOT" diff --cached --quiet --ignore-submodules -- || die "staged changes must be committed"
+  dirty="$(git -C "$REPO_ROOT" status --porcelain --untracked-files=all)"
+  [ -z "$dirty" ] || die "worktree must be clean before deploy"
+
+  git -C "$REPO_ROOT" fetch --quiet origin main || die "cannot refresh origin/main"
+  RELEASE_SHA="$(git -C "$REPO_ROOT" rev-parse HEAD)" || die "cannot resolve release SHA"
+  origin_sha="$(git -C "$REPO_ROOT" rev-parse origin/main)" || die "cannot resolve origin/main"
+  [ "$RELEASE_SHA" = "$origin_sha" ] || die "HEAD must exactly match origin/main"
+
+  echo "== PREDEPLOY QUALITY GATES: git=$RELEASE_SHA =="
+  (cd "$REPO_ROOT" && node --test tests/*.test.js) || die "test suite failed"
+  (cd "$REPO_ROOT" && node tools/verify-generated.js) || die "generated-output verification failed"
+  (cd "$REPO_ROOT/api" && "${WRANGLER[@]}" deploy --strict --dry-run \
+      --keep-vars \
+      --var "RELEASE_SHA:$RELEASE_SHA" --message "preflight git=$RELEASE_SHA") || die "Wrangler dry-run failed"
+
+  # Tests and verifiers must not have changed the release after the first check.
+  git -C "$REPO_ROOT" diff --quiet --ignore-submodules -- || die "quality gates changed tracked files"
+  git -C "$REPO_ROOT" diff --cached --quiet --ignore-submodules -- || die "quality gates changed the index"
+  dirty="$(git -C "$REPO_ROOT" status --porcelain --untracked-files=all)"
+  [ -z "$dirty" ] || die "quality gates left the worktree dirty"
+  [ "$(git -C "$REPO_ROOT" rev-parse HEAD)" = "$RELEASE_SHA" ] || die "HEAD changed during preflight"
+  [ "$(git -C "$REPO_ROOT" rev-parse origin/main)" = "$RELEASE_SHA" ] || die "origin/main changed during preflight"
+
+  PREVIOUS_VERSION_ID="$(current_single_version_id)" || die \
+    "cannot identify one 100% active Worker version; refusing deploy because rollback is not deterministic"
+  echo "Preflight passed. Rollback target: $PREVIOUS_VERSION_ID"
+}
 
 # A Worker upload can finish before the nearest edge serves the new version. Poll
 # one release-specific security contract before the full smoke so propagation is
 # not misreported as a regression. A genuine bad release still fails after the
 # bounded window instead of being silently retried forever.
 wait_for_worker_release() {
-  local attempt headers code acao
+  local attempt headers code acao release
   for attempt in 1 2 3 4 5 6 7 8 9 10; do
     headers="$(curl -s -D - -o /dev/null -w 'CODE %{http_code}' -X OPTIONS \
       -H "Origin: $FOREIGN_ORIGIN" \
@@ -45,12 +206,13 @@ wait_for_worker_release() {
       "$API_BASE$RELEASE_PROBE_PATH")"
     code="$(printf '%s' "$headers" | grep -o 'CODE [0-9]*' | awk '{print $2}')"
     acao="$(printf '%s' "$headers" | tr -d '\r' | awk -F': ' 'tolower($1)=="access-control-allow-origin"{print $2}')"
-    if [ "$code" = "403" ] && [ -z "$acao" ]; then
+    release="$(printf '%s' "$headers" | tr -d '\r' | awk -F': ' 'tolower($1)=="x-fuluck-release"{print $2}')"
+    if [ "$code" = "403" ] && [ -z "$acao" ] && [ "$release" = "$RELEASE_SHA" ]; then
       echo "   release readiness confirmed on attempt $attempt."
       return 0
     fi
     if [ "$attempt" != "10" ]; then
-      echo "   edge still serving the prior contract (HTTP ${code:-unknown}); retrying in 2s..."
+      echo "   edge release ${release:-unknown} not ready (HTTP ${code:-unknown}); retrying in 2s..."
       sleep 2
     fi
   done
@@ -59,15 +221,31 @@ wait_for_worker_release() {
 }
 
 # ---------------------------------------------------------------------------
-# 1. DEPLOY
+# 1. OPTIONAL GUARDED DEPLOY
 # ---------------------------------------------------------------------------
-if [ "${SKIP_DEPLOY:-0}" = "1" ]; then
-  echo "== DEPLOY skipped (SKIP_DEPLOY=1) =="
-else
-  echo "== DEPLOY: cd api && npx wrangler deploy =="
-  ( cd "$REPO_ROOT/api" && npx wrangler deploy ) || { echo "DEPLOY FAILED — aborting smoke tests."; exit 1; }
+if [ "$MODE" = "deploy" ]; then
+  run_deploy_preflight
+  echo "== DEPLOY: git=$RELEASE_SHA =="
+  if (cd "$REPO_ROOT/api" && "${WRANGLER[@]}" deploy --strict \
+      --keep-vars \
+      --var "RELEASE_SHA:$RELEASE_SHA" --tag "git-$RELEASE_SHA" --message "git=$RELEASE_SHA"); then
+    DEPLOY_COMMAND_SUCCEEDED=1
+  else
+    echo "MANUAL INTERVENTION REQUIRED: deploy command failed with uncertain remote state. No automatic rollback was attempted." >&2
+    exit 1
+  fi
+  DEPLOYED_VERSION_ID="$(current_single_version_id)" || abort_after_deploy \
+    "control plane did not report one active version"
+  [ "$DEPLOYED_VERSION_ID" != "$PREVIOUS_VERSION_ID" ] || abort_after_deploy \
+    "control plane still reports the previous version"
+  verify_version_provenance "$DEPLOYED_VERSION_ID" "$RELEASE_SHA" || abort_after_deploy \
+    "active version metadata does not match git=$RELEASE_SHA"
+  ROLLBACK_OWNED=1
+  echo "   control plane confirmed Worker version $DEPLOYED_VERSION_ID for git=$RELEASE_SHA"
   echo "   deploy complete; waiting for release-specific edge readiness..."
-  wait_for_worker_release || exit 1
+  wait_for_worker_release || abort_after_deploy "release readiness smoke failed"
+else
+  echo "== DEPLOY skipped (default smoke-only mode; pass --deploy explicitly) =="
 fi
 
 echo ""
@@ -379,4 +557,15 @@ esac
 # ---------------------------------------------------------------------------
 echo ""
 echo "== RESULT: $pass_count passed, $fail_count failed =="
-[ "$fail_count" -eq 0 ] || exit 1
+if [ "$fail_count" -ne 0 ]; then
+  if [ "$DEPLOY_COMMAND_SUCCEEDED" = "1" ]; then
+    abort_after_deploy "post-deploy smoke reported $fail_count failure(s)"
+  fi
+  exit 1
+fi
+
+if [ "$ROLLBACK_OWNED" = "1" ]; then
+  ROLLBACK_OWNED=0
+  DEPLOY_COMMAND_SUCCEEDED=0
+  echo "Release accepted: git=$RELEASE_SHA version=$DEPLOYED_VERSION_ID (rollback target was $PREVIOUS_VERSION_ID)."
+fi

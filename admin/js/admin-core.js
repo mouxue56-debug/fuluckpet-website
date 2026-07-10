@@ -359,8 +359,12 @@ document.querySelectorAll('.nav-item').forEach(function(item) {
     // External-link nav items (<a href="...">) have no data-page — let the
     // browser handle navigation, don't try to switch SPA panels.
     if (!page) return;
-    document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+    document.querySelectorAll('.nav-item').forEach(function(n) {
+      n.classList.remove('active');
+      n.removeAttribute('aria-current');
+    });
     item.classList.add('active');
+    item.setAttribute('aria-current', 'page');
     document.querySelectorAll('.panel-page').forEach(function(p) { p.classList.remove('active'); });
     var panel = document.getElementById('page-' + page);
     if (panel) panel.classList.add('active');
@@ -381,8 +385,85 @@ document.getElementById('addNewBtn').addEventListener('click', function() {
 });
 
 // Modal & Toast
-function openModal(id) { document.getElementById(id).classList.add('active'); }
-function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+var modalReturnFocus = Object.create(null);
+var MODAL_FOCUSABLE_SELECTOR = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled]):not([type="hidden"])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])'
+].join(',');
+
+function getModalFocusableElements(modal) {
+  return Array.prototype.slice.call(modal.querySelectorAll(MODAL_FOCUSABLE_SELECTOR)).filter(function(el) {
+    if (el.disabled || el.hidden || el.getAttribute('aria-hidden') === 'true') return false;
+    return typeof el.getClientRects !== 'function' || el.getClientRects().length > 0;
+  });
+}
+
+function getActiveModal() {
+  var active = document.querySelectorAll('.modal-overlay.active');
+  return active.length ? active[active.length - 1] : null;
+}
+
+function openModal(id) {
+  var modal = document.getElementById(id);
+  if (!modal) return;
+  if (!modal.classList.contains('active')) {
+    var trigger = document.activeElement;
+    if (trigger && trigger !== document.body && typeof trigger.focus === 'function') {
+      modalReturnFocus[id] = trigger;
+    }
+  }
+  modal.classList.add('active');
+  modal.setAttribute('aria-hidden', 'false');
+  var focusable = getModalFocusableElements(modal);
+  var initialFocus = modal.querySelector('[autofocus]') || focusable[0] || modal;
+  if (initialFocus === modal && !modal.hasAttribute('tabindex')) modal.setAttribute('tabindex', '-1');
+  if (typeof initialFocus.focus === 'function') initialFocus.focus();
+}
+
+function closeModal(id) {
+  var modal = document.getElementById(id);
+  if (!modal) return;
+  modal.classList.remove('active');
+  modal.setAttribute('aria-hidden', 'true');
+  var trigger = modalReturnFocus[id];
+  delete modalReturnFocus[id];
+  if (trigger && trigger.isConnected !== false && typeof trigger.focus === 'function') trigger.focus();
+}
+
+function handleModalKeydown(e) {
+  var modal = getActiveModal();
+  if (!modal) return;
+  if (e.key === 'Escape' || e.key === 'Esc') {
+    e.preventDefault();
+    closeModal(modal.id);
+    return;
+  }
+  if (e.key !== 'Tab') return;
+  var focusable = getModalFocusableElements(modal);
+  if (focusable.length === 0) {
+    e.preventDefault();
+    modal.focus();
+    return;
+  }
+  var first = focusable[0];
+  var last = focusable[focusable.length - 1];
+  var focusIsInside = modal.contains(document.activeElement);
+  if (e.shiftKey && (!focusIsInside || document.activeElement === first)) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && (!focusIsInside || document.activeElement === last)) {
+    e.preventDefault();
+    first.focus();
+  }
+}
+
+if (typeof document.addEventListener === 'function') {
+  document.addEventListener('keydown', handleModalKeydown);
+}
 
 function showToast(msg, type) {
   var t = document.getElementById('toast');

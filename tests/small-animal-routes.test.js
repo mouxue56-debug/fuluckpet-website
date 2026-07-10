@@ -77,6 +77,19 @@ function request(path, { method = 'GET', origin, auth = false, body, rawBody } =
   });
 }
 
+function requestWithDeclaredLength(path, declaredLength) {
+  return new Request(`https://fuluckpet.com${path}`, {
+    method: 'POST',
+    headers: {
+      Origin: ORIGIN,
+      Authorization: `Bearer ${PASSWORD}`,
+      'Content-Type': 'application/json',
+      'Content-Length': String(declaredLength),
+    },
+    body: '{}',
+  });
+}
+
 async function fetchWorker(env, req) {
   return worker.fetch(req, env, { waitUntil() {} });
 }
@@ -113,10 +126,40 @@ test('dark public GET returns [] without reading the private collection', async 
   assertNoCatCollectionAccess(DATA);
 });
 
-test('the shared launch gate reveals rows only after the owner public flip', () => {
-  const rows = [{ breederId: 'PUBLIC-RB', species: 'rabbit' }];
+test('the shared launch gate exposes only an explicit public field projection after owner flip', () => {
+  const rows = [{
+    breederId: 'PUBLIC-RB',
+    species: 'rabbit',
+    breed: 'ネザーランドドワーフ',
+    color: 'ブルー',
+    gender: 'unknown',
+    price: 88000,
+    status: 'available',
+    birthday: '2026-05',
+    photos: ['https://example.test/rabbit.webp'],
+    coverIndex: 0,
+    video: 'https://youtu.be/example',
+    isNew: true,
+    note: 'may contain an internal owner note',
+    supplierCost: 12000,
+    futureField: { preservedPrivately: true },
+  }];
   assert.deepEqual(visibleSmallAnimals(rows, false), []);
-  assert.deepEqual(visibleSmallAnimals(rows, true), rows);
+  assert.deepEqual(visibleSmallAnimals(rows, true), [{
+    breederId: 'PUBLIC-RB',
+    species: 'rabbit',
+    breed: 'ネザーランドドワーフ',
+    color: 'ブルー',
+    gender: 'unknown',
+    price: 88000,
+    status: 'available',
+    birthday: '2026-05',
+    photos: ['https://example.test/rabbit.webp'],
+    coverIndex: 0,
+    video: 'https://youtu.be/example',
+    isNew: true,
+  }]);
+  assert.equal(rows[0].futureField.preservedPrivately, true, 'projection must not mutate private admin data');
 });
 
 test('admin gates reject missing Origin before auth and missing Bearer after valid Origin', async () => {
@@ -161,9 +204,9 @@ test('authenticated POST creates and root GET reads back; duplicate POST is 400 
 });
 
 test('PUT uses decoded breederId, merges stored object, and preserves path identity', async () => {
-  const original = { breederId: 'RB / 01', species: 'rabbit', name: 'Before', status: 'available' };
+  const original = { breederId: 'RB-01', species: 'rabbit', name: 'Before', status: 'available' };
   const { env, DATA } = await makeEnv([original]);
-  const encodedId = encodeURIComponent(original.breederId);
+  const encodedId = 'RB%2D01';
 
   const updated = await fetchWorker(env, request(`/api/admin/small-animals/${encodedId}`, {
     method: 'PUT', origin: ORIGIN, auth: true, body: { name: 'After', price: '99000' },
@@ -274,6 +317,30 @@ test('malformed JSON is a structured 400 on POST, PUT, and bulk without a data p
   assert.deepEqual(smallAnimalMutationKeys(DATA), []);
   assert.deepEqual(DATA.json('small_animals'), [{ breederId: 'RB-JSON', species: 'rabbit' }]);
   assertNoCatCollectionAccess(DATA);
+});
+
+test('authenticated small-animal JSON writes reject declared and streamed bodies over 1 MiB before mutation', async () => {
+  const original = [{ breederId: 'RB-LIMIT', species: 'rabbit' }];
+  const { env, DATA } = await makeEnv(original);
+
+  const declared = await fetchWorker(
+    env,
+    requestWithDeclaredLength('/api/admin/small-animals/bulk', 1024 * 1024 + 1),
+  );
+  assert.equal(declared.status, 413);
+  assert.equal((await declared.json()).error, 'payload_too_large');
+
+  const streamed = await fetchWorker(env, request('/api/admin/small-animals/bulk', {
+    method: 'POST',
+    origin: ORIGIN,
+    auth: true,
+    rawBody: JSON.stringify([{ breederId: 'RB-STREAM', species: 'rabbit', note: 'x'.repeat(1024 * 1024) }]),
+  }));
+  assert.equal(streamed.status, 413);
+  assert.equal((await streamed.json()).error, 'payload_too_large');
+
+  assert.deepEqual(smallAnimalMutationKeys(DATA), []);
+  assert.deepEqual(DATA.json('small_animals'), original);
 });
 
 test('valid and empty bulk replace exactly the small_animals key', async () => {

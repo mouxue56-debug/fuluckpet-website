@@ -39,3 +39,14 @@ test('launch config URL rolls once per minute to bypass stale edge assets', () =
   assert.equal(nav.smallAnimalLaunchConfigUrl(179999), '/small-animals-launch.json?v=2');
   assert.equal(nav.smallAnimalLaunchConfigUrl(180000), '/small-animals-launch.json?v=3');
 });
+
+test('runtime launch config fetch has a deadline so navigation enhancement cannot hang', async (t) => {
+  const originalFetch = global.fetch;
+  t.after(() => { global.fetch = originalFetch; });
+  global.fetch = function (_url, options) {
+    return new Promise((_resolve, reject) => {
+      options.signal.addEventListener('abort', () => reject(new Error('aborted')), { once: true });
+    });
+  };
+  await assert.rejects(nav.loadSmallAnimalLaunch(1), /aborted|timeout/i);
+});

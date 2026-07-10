@@ -30,8 +30,20 @@
 
 import launchConfig from '../small-animals-launch.json' with { type: 'json' };
 
+const PUBLIC_SMALL_ANIMAL_FIELDS = Object.freeze([
+  'breederId', 'species', 'breed', 'color', 'gender', 'price', 'status',
+  'birthday', 'photos', 'coverIndex', 'video', 'isNew',
+]);
+
 function visibleSmallAnimals(data, isPublic = launchConfig.public === true) {
-  return isPublic && Array.isArray(data) ? data : [];
+  if (!isPublic || !Array.isArray(data)) return [];
+  return data.filter((animal) => animal && typeof animal === 'object' && !Array.isArray(animal)).map((animal) => {
+    const visible = {};
+    for (const field of PUBLIC_SMALL_ANIMAL_FIELDS) {
+      if (Object.prototype.hasOwnProperty.call(animal, field)) visible[field] = animal[field];
+    }
+    return visible;
+  });
 }
 
 // ===== Google Drive Integration =====
@@ -53,6 +65,7 @@ const UPLOAD_CONTENT_TYPES = Object.freeze({
   gif: 'image/gif',
   mp4: 'video/mp4',
 });
+const ADMIN_UPLOAD_KEY_RE = /^(?:uploads|small-animals)\/[0-9]+-[0-9a-f]{8}\.(?:jpg|jpeg|png|webp|gif|mp4)$/;
 
 async function uploadSignatureMatches(file, ext) {
   const bytes = new Uint8Array(await file.slice(0, 12).arrayBuffer());
@@ -489,6 +502,9 @@ const CHAT_FORGET_DELETE_BATCH = 500;
 const AUTH_MAX_BODY_BYTES = 4 * 1024;
 const STORY_GENERATE_MAX_BODY_BYTES = 32 * 1024;
 const STORY_ANALYZE_MAX_BODY_BYTES = 5_600_000;
+const ADMIN_JSON_MAX_BODY_BYTES = 1024 * 1024;
+const UPLOAD_MAX_FILE_BYTES = 10 * 1024 * 1024;
+const UPLOAD_MAX_BODY_BYTES = UPLOAD_MAX_FILE_BYTES + 256 * 1024;
 const STORY_TEXT_FIELD_LIMITS = Object.freeze({
   name: 100,
   gender: 32,
@@ -1026,15 +1042,10 @@ async function parseJsonWriteBody(request) {
   }
 }
 
-// Read untrusted JSON without allowing a chunked request to grow past the
+// Read an untrusted body without allowing a chunked request to grow past the
 // endpoint's memory budget. Content-Length is only an early rejection hint; the
 // streaming counter remains authoritative when the header is missing or false.
-async function parseBoundedJson(request, maxBytes) {
-  const contentType = (request.headers.get('Content-Type') || '').toLowerCase();
-  if (!/^application\/json(?:\s*;|$)/.test(contentType)) {
-    return { ok: false, status: 415, error: 'unsupported_media_type' };
-  }
-
+async function readBoundedBody(request, maxBytes) {
   const lengthHeader = request.headers.get('Content-Length');
   if (lengthHeader) {
     const declared = Number(lengthHeader);
@@ -1044,7 +1055,7 @@ async function parseBoundedJson(request, maxBytes) {
   }
 
   if (!request.body) {
-    return { ok: false, status: 400, error: 'invalid_json' };
+    return { ok: true, bytes: new Uint8Array(0) };
   }
 
   const reader = request.body.getReader();
@@ -1068,10 +1079,35 @@ async function parseBoundedJson(request, maxBytes) {
       bytes.set(chunk, offset);
       offset += chunk.byteLength;
     }
-    return { ok: true, value: JSON.parse(new TextDecoder().decode(bytes)) };
+    return { ok: true, bytes };
+  } catch (_) {
+    return { ok: false, status: 400, error: 'invalid_body' };
+  }
+}
+
+// Read untrusted JSON through the shared byte ceiling, then parse only the
+// bounded buffer. This protects both declared-length and chunked requests.
+async function parseBoundedJson(request, maxBytes) {
+  const contentType = (request.headers.get('Content-Type') || '').toLowerCase();
+  if (!/^application\/json(?:\s*;|$)/.test(contentType)) {
+    return { ok: false, status: 415, error: 'unsupported_media_type' };
+  }
+
+  const bounded = await readBoundedBody(request, maxBytes);
+  if (!bounded.ok) return bounded;
+  try {
+    return { ok: true, value: JSON.parse(new TextDecoder().decode(bounded.bytes)) };
   } catch (_) {
     return { ok: false, status: 400, error: 'invalid_json' };
   }
+}
+
+function requestWithBoundedBody(request, bytes) {
+  return new Request(request.url, {
+    method: request.method,
+    headers: request.headers,
+    body: bytes,
+  });
 }
 
 function boundedJsonError(parsed) {
@@ -1149,9 +1185,8 @@ function validateBreederIdUniqueness(currentList, incomingList) {
 // (the admin panel round-trips many keys we don't model here — we must not reject those).
 //
 // Checks, per incoming kitten item:
-//   * price   — if present & non-empty, must be numeric-coercible (Number.isFinite after
-//               Number()). The site renders price via Number(k.price); '' / null default
-//               to 0 downstream, so blank price is allowed.
+//   * price   — if present & non-empty, must be a positive safe integer number or a
+//               digit-only string. Blank/null remains allowed as "price on request".
 //   * status  — if present, must be one of the known enum the site/generator understand
 //               (statusText / statusI18nKey: available | reserved | sold).
 //   * photos  — if present, must be an array of strings (the gallery maps over it).
@@ -1161,6 +1196,16 @@ const PUBLIC_CATALOG_ID_RE = /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/;
 
 function isSafePublicCatalogId(value) {
   return typeof value === 'string' && PUBLIC_CATALOG_ID_RE.test(value);
+}
+
+function isPositiveIntegerPriceValue(value) {
+  if (typeof value === 'number') return Number.isSafeInteger(value) && value > 0;
+  if (typeof value !== 'string' || !/^[1-9][0-9]*$/.test(value)) return false;
+  return Number.isSafeInteger(Number(value));
+}
+
+function isBlankOptionalPrice(value) {
+  return value === null || value === undefined || (typeof value === 'string' && value.trim() === '');
 }
 
 // Returns { ok: true } or { ok: false, errors: [{ breederId, field, reason }] }.
@@ -1183,10 +1228,11 @@ function validateKittenShapes(items) {
         errors.push({ breederId: bid, field, reason: 'not a safe public URL segment' });
       }
     }
-    // price — allow missing/empty; reject non-numeric when a value is actually present.
-    if (k.price !== undefined && k.price !== null && String(k.price).trim() !== '') {
-      if (!Number.isFinite(Number(k.price))) {
-        errors.push({ breederId: bid, field: 'price', reason: 'not numeric' });
+    // price — allow missing/empty; otherwise accept only a positive integer number
+    // or digit string. Never coerce booleans, arrays, or objects into sale prices.
+    if (!isBlankOptionalPrice(k.price)) {
+      if (!isPositiveIntegerPriceValue(k.price)) {
+        errors.push({ breederId: bid, field: 'price', reason: 'not a positive integer number or digit string' });
       }
     }
     // status — allow missing; reject unknown values.
@@ -1247,6 +1293,8 @@ function validateSmallAnimalShape(items) {
     const displayId = breederId || fallbackId;
     if (!breederId) {
       errors.push({ breederId: displayId, field: 'breederId', reason: 'required non-empty string' });
+    } else if (!isSafePublicCatalogId(animal.breederId)) {
+      errors.push({ breederId: displayId, field: 'breederId', reason: 'not a safe public URL segment' });
     } else if (breederId === 'bulk') {
       errors.push({ breederId: displayId, field: 'breederId', reason: 'reserved collection route' });
     } else if (seenBreederIds.has(breederId)) {
@@ -1261,12 +1309,10 @@ function validateSmallAnimalShape(items) {
 
     if (
       Object.prototype.hasOwnProperty.call(animal, 'price') &&
-      animal.price !== null &&
-      animal.price !== undefined &&
-      String(animal.price).trim() !== '' &&
-      !Number.isFinite(Number(animal.price))
+      !isBlankOptionalPrice(animal.price) &&
+      !isPositiveIntegerPriceValue(animal.price)
     ) {
-      errors.push({ breederId: displayId, field: 'price', reason: 'not finite numeric' });
+      errors.push({ breederId: displayId, field: 'price', reason: 'not a positive integer' });
     }
 
     if (
@@ -1287,7 +1333,47 @@ function validateSmallAnimalShape(items) {
       errors.push({ breederId: displayId, field: 'photos', reason: 'not an array of strings' });
     }
 
-    for (const forbiddenField of ['papa', 'mama']) {
+    if (
+      Object.prototype.hasOwnProperty.call(animal, 'gender') &&
+      animal.gender !== '' &&
+      !['♂', '♀', 'unknown'].includes(animal.gender)
+    ) {
+      errors.push({ breederId: displayId, field: 'gender', reason: 'not in [♂, ♀, unknown]' });
+    }
+
+    if (
+      Object.prototype.hasOwnProperty.call(animal, 'birthday') &&
+      animal.birthday !== '' &&
+      (typeof animal.birthday !== 'string' || !/^\d{4}-(0[1-9]|1[0-2])$/.test(animal.birthday))
+    ) {
+      errors.push({ breederId: displayId, field: 'birthday', reason: 'not YYYY-MM' });
+    }
+
+    if (Object.prototype.hasOwnProperty.call(animal, 'coverIndex')) {
+      const validIndex = Number.isInteger(animal.coverIndex) && animal.coverIndex >= 0;
+      const withinPhotos = !Array.isArray(animal.photos) || animal.photos.length === 0 || animal.coverIndex < animal.photos.length;
+      if (!validIndex || !withinPhotos) {
+        errors.push({ breederId: displayId, field: 'coverIndex', reason: 'not a valid photo index' });
+      }
+    }
+
+    if (
+      Object.prototype.hasOwnProperty.call(animal, 'isNew') &&
+      typeof animal.isNew !== 'boolean'
+    ) {
+      errors.push({ breederId: displayId, field: 'isNew', reason: 'not boolean' });
+    }
+
+    for (const textField of ['breed', 'color', 'video', 'note']) {
+      if (
+        Object.prototype.hasOwnProperty.call(animal, textField) &&
+        typeof animal[textField] !== 'string'
+      ) {
+        errors.push({ breederId: displayId, field: textField, reason: 'not a string' });
+      }
+    }
+
+    for (const forbiddenField of ['papa', 'mama', 'cage_type']) {
       if (Object.prototype.hasOwnProperty.call(animal, forbiddenField)) {
         errors.push({ breederId: displayId, field: forbiddenField, reason: 'field is forbidden' });
       }
@@ -2074,8 +2160,9 @@ function isChatPath(path) {
 }
 
 // Per-IP KV throttle shared by the story endpoints (A1) and, as a second cap, by
-// chat (A2). Returns { limited, count, retryAfter }. Fails OPEN on KV error so a
-// KV blip never takes the feature down. Hour-bucketed key so it self-expires.
+// chat (A2). Returns { limited, count, retryAfter, available }. The shared helper
+// reports KV failure without choosing product policy: paid Story fails closed,
+// while Chat retains its existing fail-open availability policy. Hour-bucketed.
 async function ipRateLimit(env, prefix, ip, cap) {
   const safeIp = ip || 'unknown';
   const key = `${prefix}:${safeIp}:${Math.floor(Date.now() / 3600000)}`;
@@ -2084,12 +2171,12 @@ async function ipRateLimit(env, prefix, ip, cap) {
     if (count >= cap) {
       // Seconds until the top of the next hour — a sane Retry-After.
       const retryAfter = 3600 - Math.floor((Date.now() % 3600000) / 1000);
-      return { limited: true, count, retryAfter };
+      return { limited: true, count, retryAfter, available: true };
     }
     await env.DATA.put(key, String(count + 1), { expirationTtl: 3600 });
-    return { limited: false, count: count + 1, retryAfter: 0 };
+    return { limited: false, count: count + 1, retryAfter: 0, available: true };
   } catch (_) {
-    return { limited: false, count: 0, retryAfter: 0 };
+    return { limited: false, count: 0, retryAfter: 0, available: false };
   }
 }
 
@@ -2107,6 +2194,14 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
     const method = request.method;
+    const releaseValue = typeof env.RELEASE_SHA === 'string' && /^[A-Za-z0-9._-]{1,80}$/.test(env.RELEASE_SHA)
+      ? env.RELEASE_SHA
+      : 'unversioned';
+    const releaseHeaders = (initial = {}) => {
+      const headers = new Headers(initial);
+      headers.set('X-Fuluck-Release', releaseValue);
+      return headers;
+    };
 
     // Resolve CORS origin per request based on path classification.
     const isArticlePreview = /^\/api\/articles\/[^/]+$/.test(path)
@@ -2138,15 +2233,15 @@ export default {
     if (method === 'OPTIONS') {
       // Private and site-only endpoints reject disallowed origins before route work.
       if ((isPrivate && !allowedOrigin) || foreignSiteOnlyOrigin) {
-        return new Response(null, { status: 403, headers: { 'Vary': 'Origin' } });
+        return new Response(null, { status: 403, headers: releaseHeaders({ 'Vary': 'Origin' }) });
       }
       return new Response(null, {
-        headers: {
+        headers: releaseHeaders({
           ...CORS_HEADERS,
           // Story/chat preflight advertises the locked site origin, never '*'.
           'Access-Control-Allow-Origin': allowedOrigin || '*',
           ...(isPrivate || isStory || isChat ? { 'Vary': 'Origin' } : {}),
-        },
+        }),
       });
     }
 
@@ -2154,7 +2249,7 @@ export default {
     // (Browsers will already have blocked the preflight; this catches direct
     //  fetches from non-browser clients or curl probes.)
     if (isPrivate && !allowedOrigin) {
-      const headers = new Headers({ 'Content-Type': 'application/json' });
+      const headers = releaseHeaders({ 'Content-Type': 'application/json' });
       return new Response(JSON.stringify({ error: 'Forbidden — origin not allowed' }), {
         status: 403, headers,
       });
@@ -2163,7 +2258,7 @@ export default {
     // Foreign browser requests must stop before JSON parsing, KV, providers,
     // Telegram forwarding, lead capture, or chat logging.
     if (foreignSiteOnlyOrigin) {
-      const headers = new Headers({
+      const headers = releaseHeaders({
         'Content-Type': 'application/json',
         'Vary': 'Origin',
       });
@@ -2175,6 +2270,7 @@ export default {
     // Add CORS + security headers to every response.
     const addCors = (res) => {
       const headers = new Headers(res.headers);
+      headers.set('X-Fuluck-Release', releaseValue);
       headers.set('Access-Control-Allow-Origin', allowedOrigin || '*');
       if (isPrivate || isStory || isChat) headers.set('Vary', 'Origin');
       for (const [k, v] of Object.entries(CORS_HEADERS)) {
@@ -2486,6 +2582,9 @@ export default {
         }
         // A1: throttle after bounded validation but before any paid vision call.
         const rl = await ipRateLimit(env, 'story:rl', request.headers.get('CF-Connecting-IP'), STORY_RATE_LIMIT_PER_HOUR);
+        if (!rl.available) {
+          return addCors(json({ error: 'rate_limit_unavailable', detail: 'story endpoint temporarily unavailable' }, 503));
+        }
         if (rl.limited) {
           return addCors(json({ error: 'rate_limited', detail: 'story endpoint hourly limit reached' }, 429, undefined, { 'Retry-After': String(rl.retryAfter) }));
         }
@@ -2515,6 +2614,9 @@ export default {
 
         // A1: throttle after bounded validation but before paid text generation.
         const rl = await ipRateLimit(env, 'story:rl', request.headers.get('CF-Connecting-IP'), STORY_RATE_LIMIT_PER_HOUR);
+        if (!rl.available) {
+          return addCors(json({ error: 'rate_limit_unavailable', detail: 'story endpoint temporarily unavailable' }, 503));
+        }
         if (rl.limited) {
           return addCors(json({ error: 'rate_limited', detail: 'story endpoint hourly limit reached' }, 429, undefined, { 'Retry-After': String(rl.retryAfter) }));
         }
@@ -2900,6 +3002,20 @@ export default {
       }
       if (!adminAuth.ok) {
         return addCors(unauthorized());
+      }
+
+      // Every authenticated admin JSON write is bounded before any route calls
+      // request.json(). The multipart upload route has its own larger, file-aware
+      // ceiling below. Rebuilding from the bounded bytes keeps existing route
+      // validation and response contracts intact.
+      if (
+        request.body &&
+        (method === 'POST' || method === 'PUT' || method === 'DELETE') &&
+        !(path === '/api/admin/upload' && method === 'POST')
+      ) {
+        const bounded = await readBoundedBody(request, ADMIN_JSON_MAX_BODY_BYTES);
+        if (!bounded.ok) return addCors(boundedJsonError(bounded));
+        request = requestWithBoundedBody(request, bounded.bytes);
       }
 
       // ===== ADMIN ROUTES =====
@@ -3358,24 +3474,43 @@ export default {
 
       // --- Image Upload (R2) ---
       if (path === '/api/admin/upload' && method === 'POST') {
-        const formData = await request.formData();
+        const contentType = (request.headers.get('Content-Type') || '').toLowerCase();
+        if (!/^multipart\/form-data(?:\s*;|$)/.test(contentType)) {
+          return addCors(json({ error: 'unsupported_media_type' }, 415));
+        }
+        const bounded = await readBoundedBody(request, UPLOAD_MAX_BODY_BYTES);
+        if (!bounded.ok) return addCors(boundedJsonError(bounded));
+
+        let formData;
+        try {
+          formData = await requestWithBoundedBody(request, bounded.bytes).formData();
+        } catch (_) {
+          return addCors(json({ error: 'invalid_multipart' }, 400));
+        }
         const file = formData.get('file');
-        if (!file) return addCors(json({ error: 'No file provided' }, 400));
+        if (!file || typeof file.name !== 'string' || typeof file.stream !== 'function') {
+          return addCors(json({ error: 'No file provided' }, 400));
+        }
+
+        const requestedPrefix = formData.get('prefix');
+        if (requestedPrefix !== null && requestedPrefix !== '' && requestedPrefix !== 'small-animals') {
+          return addCors(json({ error: 'Invalid upload prefix' }, 400));
+        }
+        const keyPrefix = requestedPrefix === 'small-animals' ? 'small-animals' : 'uploads';
 
         const ext = file.name.split('.').pop().toLowerCase();
         if (!Object.prototype.hasOwnProperty.call(UPLOAD_CONTENT_TYPES, ext)) {
           return addCors(json({ error: 'File type not allowed' }, 400));
         }
 
-        // Max 10MB
-        if (file.size > 10 * 1024 * 1024) {
-          return addCors(json({ error: 'File too large (max 10MB)' }, 400));
+        if (file.size > UPLOAD_MAX_FILE_BYTES) {
+          return addCors(json({ error: 'File too large (max 10MB)' }, 413));
         }
         if (!(await uploadSignatureMatches(file, ext))) {
           return addCors(json({ error: 'File content does not match its extension' }, 415));
         }
 
-        const key = `uploads/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
+        const key = `${keyPrefix}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
         await env.BUCKET.put(key, file.stream(), {
           httpMetadata: { contentType: UPLOAD_CONTENT_TYPES[ext] },
         });
@@ -3391,9 +3526,9 @@ export default {
       if (path === '/api/admin/upload' && method === 'DELETE') {
         const body = await request.json();
         if (!body.key) return addCors(json({ error: 'No key provided' }, 400));
-        // Only admin-uploaded objects (uploads/…) may be deleted. Reject any other key so
-        // this endpoint can't be used to delete arbitrary R2 objects (e.g. drive-img/… cache).
-        if (typeof body.key !== 'string' || !body.key.startsWith('uploads/')) {
+        // Only keys generated by this upload endpoint may be deleted. This includes the
+        // isolated dark-launch namespace while excluding arbitrary R2/cache paths.
+        if (typeof body.key !== 'string' || !ADMIN_UPLOAD_KEY_RE.test(body.key)) {
           return addCors(json({ error: 'Invalid key' }, 400));
         }
         await env.BUCKET.delete(body.key);

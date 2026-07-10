@@ -102,3 +102,15 @@ test('valid production-style POST and PUT identities remain supported', async ()
   assert.equal(updated.status, 200);
   assert.equal((await updated.json()).breederId, '2607-00595');
 });
+
+test('kitten write routes reject coercible non-scalar and non-positive prices', async () => {
+  const original = [{ id: 'safe-row-id', breederId: '2607-00594', price: 180000, status: 'available', photos: [] }];
+  const badPrices = [true, [250000], [], {}, 0, 1.5];
+  for (const price of badPrices) {
+    const { env, puts, store } = await makeEnv(original);
+    const response = await fetchWorker(env, request('/api/admin/kittens/safe-row-id', 'PUT', { price }));
+    assert.equal(response.status, 400, `price=${JSON.stringify(price)}`);
+    assert.equal(puts.some((entry) => entry.key === 'kittens'), false);
+    assert.deepEqual(JSON.parse(store.get('kittens')), original);
+  }
+});

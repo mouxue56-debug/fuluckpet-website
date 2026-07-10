@@ -6,6 +6,12 @@ Thumbs.db
 node_modules/
 .wrangler/
 
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
 # IDE
 .vscode/
 .idea/
@@ -17,6 +23,9 @@ node_modules/
 # Migration temp files
 tools/tmp/
 
+# Private rollback snapshots from production data tools
+tools/backups/
+
 # Temp plans
 PLAN.md
 docs/
@@ -24,6 +33,7 @@ docs/
 # Local-only internal manuals (GitHub Pages publishes tracked root Markdown)
 /*.md
 !/README.md
+/assets/chat/live2d/DECISION.md
 
 # Local-only generated previews (may contain secret launch slugs)
 .private-preview/

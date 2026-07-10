@@ -7,7 +7,7 @@
  *
  * The function touches KV, so we drive it with a tiny in-memory fake that mimics
  * env.DATA.get / env.DATA.put and honours the hour-bucketed key. This exercises the
- * REAL control flow: cap enforcement, increment, Retry-After, and fail-open on error.
+ * REAL control flow: cap enforcement, increment, Retry-After, and explicit KV health.
  *
  * Run: node tests/ip-rate-limit.test.js
  */
@@ -23,12 +23,12 @@ async function ipRateLimit(env, prefix, ip, cap) {
     const count = parseInt((await env.DATA.get(key)) || '0', 10);
     if (count >= cap) {
       const retryAfter = 3600 - Math.floor((Date.now() % 3600000) / 1000);
-      return { limited: true, count, retryAfter };
+      return { limited: true, count, retryAfter, available: true };
     }
     await env.DATA.put(key, String(count + 1), { expirationTtl: 3600 });
-    return { limited: false, count: count + 1, retryAfter: 0 };
+    return { limited: false, count: count + 1, retryAfter: 0, available: true };
   } catch (_) {
-    return { limited: false, count: 0, retryAfter: 0 };
+    return { limited: false, count: 0, retryAfter: 0, available: false };
   }
 }
 // ---- end copy ----
@@ -69,6 +69,7 @@ console.log('A1/A2 per-IP KV throttle (ipRateLimit)\n');
     const r = await ipRateLimit(env, 'story:rl', '1.2.3.4', 20);
     assert.strictEqual(r.limited, false);
     assert.strictEqual(r.count, 1);
+    assert.strictEqual(r.available, true);
     passed++; console.log('  PASS  first call under cap is not limited and increments to 1');
   })().catch((e) => { failed++; console.log('  FAIL  first-call\n        ' + e.message); });
 
@@ -114,11 +115,12 @@ console.log('A1/A2 per-IP KV throttle (ipRateLimit)\n');
     passed++; console.log('  PASS  missing IP falls back to the :unknown: bucket');
   })().catch((e) => { failed++; console.log('  FAIL  missing-ip\n        ' + e.message); });
 
-  await (async function failsOpenOnKvError() {
+  await (async function reportsKvErrorWithoutForcingTheSharedPolicy() {
     const env = fakeEnv({ throwOnGet: true });
     const r = await ipRateLimit(env, 'story:rl', 'ip', 20);
-    assert.strictEqual(r.limited, false, 'KV error must fail OPEN (never take the feature down)');
-    passed++; console.log('  PASS  fails OPEN on KV error');
+    assert.strictEqual(r.limited, false, 'the shared result leaves policy to the caller');
+    assert.strictEqual(r.available, false, 'callers must be able to distinguish KV failure from allowance');
+    passed++; console.log('  PASS  reports KV unavailability without silently marking a request limited');
   })().catch((e) => { failed++; console.log('  FAIL  fail-open\n        ' + e.message); });
 
   await (async function chatIpCapHigherThanSession() {

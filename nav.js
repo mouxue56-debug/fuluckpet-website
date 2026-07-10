@@ -134,14 +134,28 @@
     return '/small-animals-launch.json?v=' + Math.floor(timestamp / 60000);
   }
 
-  function loadSmallAnimalLaunch() {
+  function loadSmallAnimalLaunch(timeoutMs) {
     if (typeof fetch !== 'function') return Promise.resolve(null);
     // Minute-bucketed query keeps the owner flip fresh even when the CDN applies its
     // one-year static-asset rule, without creating one cache key per visitor.
-    return fetch(smallAnimalLaunchConfigUrl(), { credentials: 'same-origin', cache: 'no-store' }).then(function (res) {
+    var deadlineMs = Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : 5000;
+    var controller = typeof AbortController === 'function' ? new AbortController() : null;
+    var timer;
+    var request = fetch(smallAnimalLaunchConfigUrl(), {
+      credentials: 'same-origin',
+      cache: 'default',
+      signal: controller ? controller.signal : undefined
+    }).then(function (res) {
       if (!res || !res.ok) throw new Error('launch config unavailable');
       return res.json();
     });
+    var deadline = new Promise(function (_resolve, reject) {
+      timer = setTimeout(function () {
+        if (controller) controller.abort();
+        reject(new Error('launch config timeout'));
+      }, deadlineMs);
+    });
+    return Promise.race([request, deadline]).finally(function () { clearTimeout(timer); });
   }
 
   function localizedItemHref(item, lang) {
@@ -590,6 +604,7 @@
       resetSmallAnimalLaunchForTest: resetSmallAnimalLaunchForTest,
       hasStaticSibling: hasStaticSibling,
       localizedItemHref: localizedItemHref,
+      loadSmallAnimalLaunch: loadSmallAnimalLaunch,
       smallAnimalLaunchConfigUrl: smallAnimalLaunchConfigUrl,
       navGroups: function () { return NAV_GROUPS; }
     };

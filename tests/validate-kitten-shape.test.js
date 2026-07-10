@@ -22,6 +22,16 @@ function isSafePublicCatalogId(value) {
   return typeof value === 'string' && PUBLIC_CATALOG_ID_RE.test(value);
 }
 
+function isPositiveIntegerPriceValue(value) {
+  if (typeof value === 'number') return Number.isSafeInteger(value) && value > 0;
+  if (typeof value !== 'string' || !/^[1-9][0-9]*$/.test(value)) return false;
+  return Number.isSafeInteger(Number(value));
+}
+
+function isBlankOptionalPrice(value) {
+  return value === null || value === undefined || (typeof value === 'string' && value.trim() === '');
+}
+
 function validateKittenShapes(items) {
   const errors = [];
   const list = Array.isArray(items) ? items : [];
@@ -38,9 +48,9 @@ function validateKittenShapes(items) {
         errors.push({ breederId: bid, field, reason: 'not a safe public URL segment' });
       }
     }
-    if (k.price !== undefined && k.price !== null && String(k.price).trim() !== '') {
-      if (!Number.isFinite(Number(k.price))) {
-        errors.push({ breederId: bid, field: 'price', reason: 'not numeric' });
+    if (!isBlankOptionalPrice(k.price)) {
+      if (!isPositiveIntegerPriceValue(k.price)) {
+        errors.push({ breederId: bid, field: 'price', reason: 'not a positive integer number or digit string' });
       }
     }
     if (k.status !== undefined && k.status !== null && k.status !== '') {
@@ -84,7 +94,7 @@ test('valid kittens (numeric price / enum status / string photos) pass', () => {
   assert.deepStrictEqual(validateKittenShapes(items), { ok: true });
 });
 
-// 2. Blank / missing price is allowed (site defaults to 0).
+// 2. Blank / missing price is allowed (site renders an inquiry state).
 test('blank or missing price is allowed', () => {
   const items = [
     { breederId: 'A', price: '', status: 'available' },
@@ -101,6 +111,19 @@ test('non-numeric price -> reject with breederId + field', () => {
   assert.strictEqual(r.errors.length, 1);
   assert.strictEqual(r.errors[0].breederId, '2601-00909');
   assert.strictEqual(r.errors[0].field, 'price');
+});
+
+test('coercible non-scalar and non-positive prices are rejected', () => {
+  const r = validateKittenShapes([
+    { breederId: 'BOOL', price: true, status: 'available' },
+    { breederId: 'ARRAY', price: [250000], status: 'available' },
+    { breederId: 'EMPTY-ARRAY', price: [], status: 'available' },
+    { breederId: 'OBJECT', price: {}, status: 'available' },
+    { breederId: 'ZERO', price: 0, status: 'available' },
+    { breederId: 'FRACTION', price: 1.5, status: 'available' },
+  ]);
+  assert.strictEqual(r.ok, false);
+  assert.deepStrictEqual(r.errors.map((error) => error.field), ['price', 'price', 'price', 'price', 'price', 'price']);
 });
 
 // 4. Unknown status is rejected.

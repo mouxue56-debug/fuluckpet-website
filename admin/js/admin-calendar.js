@@ -144,7 +144,11 @@
         return '<span class="cal-dot type-' + escAttr(e.type) + '"></span>';
       }).join('');
 
-      html += '<div class="' + cls + '" data-date="' + iso + '">'
+      var ariaLabel = iso + '、' + dayEvents.length + tt('件の予定', '项日程');
+
+      html += '<div class="' + cls + '" data-date="' + iso + '" role="button" tabindex="0"'
+        + ' aria-label="' + escAttr(ariaLabel) + '" aria-selected="' + (iso === selectedDate ? 'true' : 'false') + '"'
+        + (isToday ? ' aria-current="date"' : '') + '>'
         + '<div class="cal-date">' + d.getDate() + '</div>'
         + '<div class="cal-chips">' + chipsHtml + moreHtml + '</div>'
         + '<div class="cal-dots">' + dotsHtml + '</div>'
@@ -153,6 +157,11 @@
     $('calGrid').innerHTML = html;
     $('calGrid').querySelectorAll('.cal-cell').forEach(function(cell) {
       cell.addEventListener('click', function() { openDayPanel(cell.dataset.date); });
+      cell.addEventListener('keydown', function(e) {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        e.preventDefault();
+        openDayPanel(cell.dataset.date);
+      });
     });
   }
 

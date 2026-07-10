@@ -11,8 +11,12 @@
 // Outputs: /tmp/blog-merged.json (136 + new = 167 articles, with figures injected)
 
 import fs from 'node:fs';
+import path from 'node:path';
 
-const envPath = '/Users/lauralyu/projects/fuluckpet-website/.env';
+const ROOT = process.env.FULUCK_REPO_ROOT
+  ? path.resolve(process.env.FULUCK_REPO_ROOT)
+  : path.resolve(import.meta.dirname, '..');
+const envPath = process.env.FULUCK_ENV_FILE || path.join(ROOT, '.env');
 const envText = fs.readFileSync(envPath, 'utf-8');
 for (const line of envText.split('\n')) {
   const m = line.match(/^([A-Z_]+)=(.*)$/);

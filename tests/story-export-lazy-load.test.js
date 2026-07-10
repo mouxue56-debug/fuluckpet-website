@@ -15,7 +15,7 @@ test('story page does not fetch html2canvas before an export click', () => {
     STORY_SOURCE,
     /<script\b[^>]*\bsrc=["']https:\/\/html2canvas\.hertzen\.com\/dist\/html2canvas\.min\.js["'][^>]*><\/script>/i
   );
-  assert.match(STORY_SOURCE, /<script\s+src="\/story\/html2canvas-loader\.js\?v=20260710a"><\/script>/);
+  assert.match(STORY_SOURCE, /<script\s+src="\/story\/html2canvas-loader\.js\?v=20260710b"><\/script>/);
   assert.match(STORY_SOURCE, /FuluckStoryExport\.loadHtml2Canvas\(\)/);
 });
 

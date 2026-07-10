@@ -113,7 +113,7 @@ window._blogArticleI18n = ${safeJsonForHtmlScript(translations, 2)};
   // Insert before blog-i18n.js
   html = html.replace(
     /<script src="\/blog\/blog-i18n\.js(?:\?v=[^"]*)?"><\/script>/,
-    i18nScript + '  <script src="/blog/blog-i18n.js?v=20260710a"></script>'
+    i18nScript + '  <script src="/blog/blog-i18n.js?v=20260710b"></script>'
   );
 
   fs.writeFileSync(htmlPath, html, 'utf8');

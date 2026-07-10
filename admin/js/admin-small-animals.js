@@ -152,7 +152,7 @@ function renderSmallAnimals() {
     row.appendChild(smallAnimalCell([animal.gender, animal.color].filter(Boolean).join(' / ') || '--'));
     row.appendChild(smallAnimalCell(animal.birthday || '--'));
     var numericPrice = Number(animal.price);
-    row.appendChild(smallAnimalCell(animal.price !== '' && Number.isFinite(numericPrice) ? '¥' + numericPrice.toLocaleString('ja-JP') : '--'));
+    row.appendChild(smallAnimalCell(animal.price !== '' && Number.isSafeInteger(numericPrice) && numericPrice > 0 ? '¥' + numericPrice.toLocaleString('ja-JP') : '--'));
 
     var statusCell = document.createElement('td');
     var badge = document.createElement('span');
@@ -273,7 +273,7 @@ function readSmallAnimalForm() {
   if (['available', 'reserved', 'sold'].indexOf(status) < 0) throw new Error(t('ステータスが正しくありません', '状态无效'));
   var priceRaw = document.getElementById('sa_price').value.trim();
   var price = priceRaw === '' ? '' : Number(priceRaw);
-  if (price !== '' && (!Number.isFinite(price) || price < 0)) throw new Error(t('価格を正しく入力してください', '请输入正确价格'));
+  if (price !== '' && (!Number.isSafeInteger(price) || price <= 0)) throw new Error(t('価格は1円以上の整数で入力してください', '价格请输入大于0的整数'));
   var photos = parseSmallAnimalPhotoLines(document.getElementById('sa_photos').value);
   var coverNumber = parseInt(document.getElementById('sa_coverIndex').value, 10);
   if (!Number.isFinite(coverNumber) || coverNumber < 1) coverNumber = 1;
@@ -520,6 +520,25 @@ function smallAnimalSetGalleryCover(index) {
   return saveSmallAnimalPhotos(animal, animal.photos.slice(), index);
 }
 
+function isOwnedSmallAnimalUploadKey(key) {
+  return typeof key === 'string' && /^small-animals\/[0-9]+-[0-9a-f]{8}\.(?:jpg|jpeg|png|webp|gif|mp4)$/.test(key);
+}
+
+function cleanupNewSmallAnimalUploads(keys) {
+  if (!keys.length) return Promise.resolve(false);
+  if (typeof FuluckAPI === 'undefined' || typeof FuluckAPI.deleteUpload !== 'function') {
+    return Promise.resolve(true);
+  }
+  var cleanupFailed = false;
+  return Promise.all(keys.map(function(key) {
+    return Promise.resolve().then(function() {
+      return FuluckAPI.deleteUpload(key);
+    }).catch(function() {
+      cleanupFailed = true;
+    });
+  })).then(function() { return cleanupFailed; });
+}
+
 function smallAnimalUploadPhotosFromDevice() {
   if (!smallAnimalRequireReady()) return Promise.resolve(false);
   var animal = currentSmallAnimalPhotoItem();
@@ -542,10 +561,12 @@ function smallAnimalUploadPhotosFromDevice() {
     button.textContent = t('アップロード中…', '上传中…');
   }
   var uploadedUrls = [];
+  var uploadedKeys = [];
   var chain = Promise.resolve();
   files.forEach(function(file) {
     chain = chain.then(function() {
-      return FuluckAPI.uploadFile(file).then(function(result) {
+      return FuluckAPI.uploadFile(file, { prefix: 'small-animals' }).then(function(result) {
+        if (result && isOwnedSmallAnimalUploadKey(result.key)) uploadedKeys.push(result.key);
         if (!result || !isSafeSmallAnimalPhotoUrl(result.url)) throw new Error('Invalid upload response');
         uploadedUrls.push(result.url);
       });
@@ -567,9 +588,14 @@ function smallAnimalUploadPhotosFromDevice() {
       return true;
     });
   }).catch(function(err) {
-    lockSmallAnimalsAfterWriteFailure();
-    showToast(t('アップロード失敗: ', '上传失败: ') + err.message, 'error');
-    return false;
+    return cleanupNewSmallAnimalUploads(uploadedKeys).then(function(cleanupFailed) {
+      lockSmallAnimalsAfterWriteFailure();
+      var cleanupWarning = cleanupFailed
+        ? t('（新規アップロードの自動削除にも失敗しました）', '（新上传文件的自动清理也失败了）')
+        : '';
+      showToast(t('アップロード失敗: ', '上传失败: ') + err.message + cleanupWarning, 'error');
+      return false;
+    });
   }).finally(function() {
     if (button) {
       button.disabled = false;

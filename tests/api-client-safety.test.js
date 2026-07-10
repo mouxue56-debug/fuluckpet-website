@@ -153,6 +153,20 @@ test('uploads are attempted once and preserve upload response errors', async () 
   assert.equal(attempts, 1);
 });
 
+test('upload client sends only the dedicated small-animal namespace selector', async () => {
+  const requests = [];
+  const { api } = harness(function(_url, options) {
+    requests.push(options.body.entries);
+    return Promise.resolve(response({ value: { url: 'https://example.test/image.jpg' } }));
+  });
+
+  await api.uploadFile({ name: 'rabbit.jpg' }, { prefix: 'small-animals' });
+  await api.uploadFile({ name: 'cat.jpg' }, { prefix: '../unsafe' });
+  assert.deepEqual(requests[0].map(([name]) => name), ['file', 'prefix']);
+  assert.deepEqual(requests[0][1], ['prefix', 'small-animals']);
+  assert.deepEqual(requests[1].map(([name]) => name), ['file'], 'arbitrary namespaces are never forwarded');
+});
+
 test('a timed-out POST aborts once and is never replayed', async () => {
   let attempts = 0;
   let fetchOptions;

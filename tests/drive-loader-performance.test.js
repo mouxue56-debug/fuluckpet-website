@@ -125,7 +125,7 @@ test('every tracked Drive consumer uses the current request-cache version', () =
   }).trim().split('\n').filter(Boolean);
   const stale = files.filter((file) => {
     const source = fs.readFileSync(path.join(ROOT, file), 'utf8');
-    return /drive-loader\.js\?v=/.test(source) && !/drive-loader\.js\?v=20260710a/.test(source);
+    return /drive-loader\.js\?v=/.test(source) && !/drive-loader\.js\?v=20260710b/.test(source);
   });
   assert.deepEqual(stale, []);
 });

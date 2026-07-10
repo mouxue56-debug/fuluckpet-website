@@ -60,6 +60,7 @@ function runCardLoader(options = {}) {
 
   const document = {
     title: page === 'kittens' ? '子猫一覧' : 'Home',
+    documentElement: { lang: options.documentLang || options.lang || 'ja' },
     head: { appendChild(node) { schemas.push(node); } },
     getElementById(id) {
       if (id === 'kittensGrid' && page === 'index') return kittenGrid;
@@ -104,7 +105,7 @@ function runCardLoader(options = {}) {
   const context = vm.createContext({
     window,
     document,
-    localStorage: { getItem() { return options.lang || 'ja'; } },
+    localStorage: { getItem() { return options.savedLang === undefined ? (options.lang || 'ja') : options.savedLang; } },
     fetch(url) {
       const endpoint = String(url).split('/').pop();
       return Promise.resolve(payloads[endpoint] || response([]));
@@ -324,6 +325,40 @@ test('card loader keeps every static fallback when any homepage response is non-
   }
 });
 
+test('successful empty collections clear stale cards and publish localized honest empty states', async () => {
+  const home = runCardLoader({
+    lang: 'en',
+    payloads: {
+      kittens: response([]),
+      parents: response([]),
+      reviews: response([]),
+    },
+  });
+  await flushAsyncWork();
+  assert.match(home.kittenGrid.innerHTML, /There are currently no kittens listed/);
+  assert.match(home.parentGrid.innerHTML, /There are currently no parent cats listed/);
+  assert.match(home.reviewGrid.innerHTML, /There are currently no reviews listed/);
+  assert.doesNotMatch(home.kittenGrid.innerHTML + home.parentGrid.innerHTML + home.reviewGrid.innerHTML, /STATIC SEO FALLBACK/);
+  assert.equal(home.visibleCount.textContent, 0);
+
+  const pages = [
+    ['kittens', '目前没有在售幼猫'],
+    ['parents', '目前没有刊登中的父母猫'],
+    ['reviews', '目前没有刊登中的评价'],
+  ];
+  for (const [page, expected] of pages) {
+    const result = runCardLoader({ page, lang: 'zh', payloads: { [page]: response([]) } });
+    await flushAsyncWork();
+    const html = page === 'kittens'
+      ? result.kittenGrid.innerHTML
+      : page === 'parents'
+        ? result.parentGrids.map((grid) => grid.innerHTML).join('')
+        : result.reviewGrid.innerHTML;
+    assert.match(html, new RegExp(expected), `${page} must treat [] as an authoritative success`);
+    assert.doesNotMatch(html, /STATIC/, `${page} must not retain stale cards`);
+  }
+});
+
 test('card loader validates and escapes all API-backed card fields while preserving trusted icons', async () => {
   const marker = 'PAYLOAD_MARKER';
   const result = runCardLoader({
@@ -429,6 +464,31 @@ test('dynamic kitten cards link only to statuses that receive generated detail p
   }
   assert.match(result.kittenGrid.innerHTML, /class="kitten-card"[^>]*role="button"[^>]*tabindex="0"[^>]*aria-haspopup="dialog"[^>]*data-status="sold"[^>]*data-detail-url=""/);
   assert.doesNotMatch(result.kittenGrid.innerHTML, /data-detail-url="\/kittens\/kitten-sold\.html"/);
+  assert.equal(result.schemas.length, 0, 'the static generator is the only Product schema source');
+});
+
+test('dynamic kitten cards request a price instead of rendering an empty or zero-yen price', async () => {
+  for (const [lang, expected] of [['ja', '価格はお問い合わせください'], ['en', 'Please ask for the current price'], ['zh', '价格请咨询']]) {
+    const result = runCardLoader({
+      page: 'kittens',
+      lang,
+      payloads: {
+        kittens: response([{
+          breederId: `unpriced-${lang}`,
+          breed: 'サイベリアン',
+          color: 'ブルー',
+          gender: '♂',
+          birthday: '2026-05',
+          price: '',
+          status: 'available',
+          photos: ['https://images.example.test/cat.jpg'],
+        }]),
+      },
+    });
+    await flushAsyncWork();
+    assert.match(result.kittenGrid.innerHTML, new RegExp(expected));
+    assert.doesNotMatch(result.kittenGrid.innerHTML, /(?:¥|&yen;)0\b|class="tax">[^<]+<\/span>\s*<\/p>/);
+  }
 });
 
 test('dynamic cards use the generated breed catalogue before legacy fallbacks', async () => {
@@ -457,6 +517,54 @@ test('dynamic cards use the generated breed catalogue before legacy fallbacks', 
 
   assert.match(result.kittenGrid.innerHTML, /Siberian × British mix/);
   assert.doesNotMatch(result.kittenGrid.innerHTML, /<h3>サイベリアン×ブリティッシュ<\/h3>/);
+});
+
+test('direct localized pages render from the document language without a saved preference', async () => {
+  const result = runCardLoader({
+    page: 'kittens',
+    documentLang: 'en',
+    savedLang: null,
+    payloads: {
+      kittens: response([{
+        breederId: 'direct-en',
+        breed: 'サイベリアン',
+        color: 'ブルー',
+        gender: '♀',
+        birthday: '2026-05',
+        price: 100000,
+        status: 'available',
+        photos: ['https://images.example.test/cat.jpg'],
+      }]),
+    },
+  });
+  await flushAsyncWork();
+  assert.match(result.kittenGrid.innerHTML, /Available|Female|Born 2026\/5/);
+  assert.doesNotMatch(result.kittenGrid.innerHTML, /販売中|女の子|2026年5月生まれ/);
+  assert.match(result.kittenGrid.innerHTML, /data-detail-url="\/en\/kittens\/direct-en\.html"/);
+});
+
+test('Chinese API-backed cards keep visitors inside the localized detail route', async () => {
+  const result = runCardLoader({
+    page: 'kittens',
+    documentLang: 'zh',
+    savedLang: 'ja',
+    payloads: {
+      kittens: response([{
+        breederId: 'direct-zh',
+        breed: 'サイベリアン',
+        color: 'ブルー',
+        gender: '♀',
+        birthday: '2026-05',
+        price: 100000,
+        status: 'reserved',
+        photos: ['https://images.example.test/cat.jpg'],
+      }]),
+    },
+  });
+  await flushAsyncWork();
+  assert.match(result.kittenGrid.innerHTML, /data-detail-url="\/zh\/kittens\/direct-zh\.html"/);
+  assert.match(result.kittenGrid.innerHTML, /已预订|女孩|2026年5月出生/);
+  assert.doesNotMatch(result.kittenGrid.innerHTML, /data-detail-url="\/kittens\/direct-zh\.html"/);
 });
 
 test('dynamic parent cards expose modal button semantics', async () => {

@@ -3,6 +3,7 @@
  * Image migration: koneko-breeder.com → R2
  *
  * Usage:
+ *   node tools/migrate-images.js               # Show help (safe default)
  *   node tools/migrate-images.js scan          # Extract & dedupe URLs
  *   node tools/migrate-images.js download      # Download images to tools/tmp/
  *   node tools/migrate-images.js upload        # Upload to R2 via Worker API
@@ -207,9 +208,11 @@ function getMimeType(filename) {
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 // Main
-const cmd = process.argv[2] || 'all';
+const cmd = process.argv[2] || 'help';
 
-if (cmd === 'scan') {
+if (cmd === 'help' || cmd === '-h' || cmd === '--help') {
+  console.log('Usage: node tools/migrate-images.js [scan|download|upload|replace|all]');
+} else if (cmd === 'scan') {
   scan();
 } else if (cmd === 'download') {
   await download();
@@ -224,4 +227,5 @@ if (cmd === 'scan') {
   replace();
 } else {
   console.log('Usage: node tools/migrate-images.js [scan|download|upload|replace|all]');
+  process.exitCode = 64;
 }

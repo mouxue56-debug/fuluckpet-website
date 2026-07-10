@@ -24,12 +24,12 @@
   <link rel="stylesheet" href="/style.css?v=20260708a">
   <link rel="stylesheet" href="/nav.css?v=20260628a">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%235BC4A8'/><g fill='%23ffffff'><ellipse cx='11' cy='12' rx='2.3' ry='2.7'/><ellipse cx='21' cy='12' rx='2.3' ry='2.7'/><ellipse cx='7.5' cy='17.5' rx='2.1' ry='2.4'/><ellipse cx='24.5' cy='17.5' rx='2.1' ry='2.4'/><path d='M16 16.5c3.1 0 5.6 2.2 5.6 4.9 0 2.2-1.9 3.1-5.6 3.1s-5.6-.9-5.6-3.1c0-2.7 2.5-4.9 5.6-4.9z'/></g></svg>">
-  <script defer src="/nav.js?v=20260710a"></script>
+  <script defer src="/nav.js?v=20260710b"></script>
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
   <script type="application/ld+json">
-  {"@context":"https://schema.org","@type":"Product","name":"英国短毛猫 男孩 白色","description":"大阪福楽キャッテリー（繁育者：罗方远）的英国短毛猫幼猫。白色、男孩、2025年8月出生。","inLanguage":"zh","image":["https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_aad8b700cc92.jpg"],"brand":{"@type":"Brand","name":"福楽キャッテリー"},"offers":{"@type":"Offer","price":"160000","priceCurrency":"JPY","availability":"https://schema.org/InStock","url":"https://fuluckpet.com/zh/kittens/2510-01844.html","seller":{"@type":"Organization","name":"福楽キャッテリー"},"hasMerchantReturnPolicy":{"@type":"MerchantReturnPolicy","applicableCountry":"JP","returnPolicyCategory":"https://schema.org/MerchantReturnNotPermitted","merchantReturnLink":"https://fuluckpet.com/faq.html"},"shippingDetails":{"@type":"OfferShippingDetails","shippingRate":{"@type":"MonetaryAmount","value":"0","currency":"JPY"},"shippingDestination":{"@type":"DefinedRegion","addressCountry":"JP"},"deliveryTime":{"@type":"ShippingDeliveryTime","handlingTime":{"@type":"QuantitativeValue","minValue":0,"maxValue":3,"unitCode":"DAY"},"transitTime":{"@type":"QuantitativeValue","minValue":1,"maxValue":5,"unitCode":"DAY"}}}}}
+  {"@context":"https://schema.org","@type":"Product","name":"英国短毛猫 男孩 白色","description":"大阪福楽キャッテリー（繁育者：罗方远）的英国短毛猫幼猫。白色、男孩、2025年8月出生。","inLanguage":"zh","image":["https://www.koneko-breeder.com/breeder/data/d696506/child_img_1_thumb_mob_aad8b700cc92.jpg"],"brand":{"@type":"Brand","name":"福楽キャッテリー"},"offers":{"@type":"Offer","price":"160000","priceCurrency":"JPY","availability":"https://schema.org/InStock","url":"https://fuluckpet.com/zh/kittens/2510-01844.html","seller":{"@type":"Organization","name":"福楽キャッテリー"}}}
   </script>
   <script type="application/ld+json">
   {"@context":"https://schema.org","@type":"BreadcrumbList","inLanguage":"zh","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://fuluckpet.com/"},{"@type":"ListItem","position":2,"name":"幼猫一览","item":"https://fuluckpet.com/zh/kittens.html"},{"@type":"ListItem","position":3,"name":"英国短毛猫 男孩 白色","item":"https://fuluckpet.com/zh/kittens/2510-01844.html"}]}
@@ -66,15 +66,25 @@
   .kitten-detail-thumb {
     width: 72px;
     height: 72px;
-    object-fit: cover;
     border-radius: var(--radius-sm);
     cursor: pointer;
     opacity: 0.6;
     transition: opacity 0.2s, box-shadow 0.2s;
     flex-shrink: 0;
     border: 2px solid transparent;
+    padding: 0;
+    background: transparent;
+    overflow: hidden;
+  }
+  .kitten-detail-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+    display: block;
   }
   .kitten-detail-thumb:hover,
+  .kitten-detail-thumb:focus-visible,
   .kitten-detail-thumb.active {
     opacity: 1;
     border-color: var(--mint);
@@ -236,6 +246,8 @@
   </style>
 </head>
 <body>
+
+  <a class="skip-link" href="#main" data-i18n="a11y.skipToMain">跳至主要内容</a>
 
   <!-- Scroll Progress Bar -->
   <div class="scroll-progress"></div>
@@ -409,6 +421,8 @@
     </div>
   </section>
 
+  </main>
+
 <!-- ========== FOOTER ========== -->
   <footer class="footer" id="footer">
     <div class="container">
@@ -484,16 +498,21 @@
   document.querySelectorAll('.kitten-detail-thumb').forEach(function(thumb) {
     thumb.addEventListener('click', function() {
       var mainImg = document.getElementById('mainPhoto');
-      if (mainImg) mainImg.src = this.src;
-      document.querySelectorAll('.kitten-detail-thumb').forEach(function(t) { t.classList.remove('active'); });
+      var nextSrc = this.getAttribute('data-src');
+      if (mainImg && nextSrc) mainImg.src = nextSrc;
+      document.querySelectorAll('.kitten-detail-thumb').forEach(function(t) {
+        t.classList.remove('active');
+        t.setAttribute('aria-pressed', 'false');
+      });
       this.classList.add('active');
+      this.setAttribute('aria-pressed', 'true');
     });
   });
   </script>
-  <script src="/i18n.js?v=20260710a"></script>
-  <script src="/catalog-i18n.js?v=20260710a"></script>
-  <script src="/kitten-carousel.js?v=20260710a"></script>
-  <script src="/cta-widget.js?v=20260710a"></script>
-  <script src="/script.js?v=20260710a"></script>
+  <script src="/i18n.js?v=20260710b"></script>
+  <script src="/catalog-i18n.js?v=20260710b"></script>
+  <script src="/kitten-carousel.js?v=20260710b"></script>
+  <script src="/cta-widget.js?v=20260710b"></script>
+  <script src="/script.js?v=20260710b"></script>
 </body>
 </html>
