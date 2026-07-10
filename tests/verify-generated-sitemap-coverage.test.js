@@ -145,3 +145,23 @@ ${ALL_MARKERS}
   assert.equal(result.status, 1, `expected noindex leak failure, got stdout: ${result.stdout}`);
   assert.match(result.stderr, /noindex page has <loc>: https:\/\/fuluckpet\.com\/boarding\//);
 });
+
+test('verify-generated also rejects the explicit index.html URL for a noindex directory page', (t) => {
+  const siteDir = createVerifierSite(t);
+  write(siteDir, 'boarding/index.html', `<!doctype html>
+<meta name="robots" content="noindex,nofollow">
+<title>Owner-gated boarding</title>
+`);
+  write(siteDir, 'sitemap.xml', `<?xml version="1.0"?>
+<urlset>
+  <url><loc>https://fuluckpet.com/kittens.html</loc></url>
+  <url><loc>https://fuluckpet.com/boarding/index.html</loc></url>
+${ALL_MARKERS}
+</urlset>
+`);
+
+  const result = runVerifier(siteDir);
+
+  assert.equal(result.status, 1, `expected explicit-index noindex failure, got stdout: ${result.stdout}`);
+  assert.match(result.stderr, /noindex page has <loc>: https:\/\/fuluckpet\.com\/boarding\/index\.html/);
+});

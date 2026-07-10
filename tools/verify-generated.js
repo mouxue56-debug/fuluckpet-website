@@ -47,12 +47,17 @@ function listHtmlTree(absDir = SITE, relDir = '') {
   return pages;
 }
 
-function publicUrlForHtml(rel) {
-  if (rel === 'index.html') return 'https://fuluckpet.com/';
-  if (rel.endsWith('/index.html')) {
-    return `https://fuluckpet.com/${rel.slice(0, -'index.html'.length)}`;
+function publicUrlsForHtml(rel) {
+  if (rel === 'index.html') {
+    return ['https://fuluckpet.com/', 'https://fuluckpet.com/index.html'];
   }
-  return `https://fuluckpet.com/${rel}`;
+  if (rel.endsWith('/index.html')) {
+    return [
+      `https://fuluckpet.com/${rel.slice(0, -'index.html'.length)}`,
+      `https://fuluckpet.com/${rel}`,
+    ];
+  }
+  return [`https://fuluckpet.com/${rel}`];
 }
 
 // --- Collect the set of generated pages to check ---
@@ -170,8 +175,9 @@ if (sitemap) {
   for (const p of listHtmlTree()) {
     const html = read(p);
     if (!hasNoindexMeta(html)) continue;
-    const loc = publicUrlForHtml(p);
-    if (locSet.has(loc)) errors.push(`[sitemap] noindex page has <loc>: ${loc}`);
+    for (const loc of publicUrlsForHtml(p)) {
+      if (locSet.has(loc)) errors.push(`[sitemap] noindex page has <loc>: ${loc}`);
+    }
   }
 } else {
   errors.push('[sitemap] sitemap.xml missing');
