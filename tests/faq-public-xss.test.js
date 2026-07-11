@@ -7,6 +7,7 @@ const test = require('node:test');
 const vm = require('node:vm');
 
 const ROOT = path.resolve(__dirname, '..');
+const TRUST_SOURCE = fs.readFileSync(path.join(ROOT, 'faq-trust-copy.js'), 'utf8');
 const HOME_SOURCE = fs.readFileSync(path.join(ROOT, 'faq-loader.js'), 'utf8');
 const PAGE_SOURCE = fs.readFileSync(path.join(ROOT, 'faq-page-loader.js'), 'utf8');
 
@@ -154,6 +155,7 @@ function createHarness(source, items, surface) {
       return Promise.resolve({ json() { return Promise.resolve(items); } });
     },
   });
+  vm.runInContext(TRUST_SOURCE, context, { filename: 'faq-trust-copy.js' });
   vm.runInContext(source, context, { filename: surface === 'home' ? 'faq-loader.js' : 'faq-page-loader.js' });
   return { homeContainer, listContainer, filterContainer, htmlWrites, events, storage, window };
 }

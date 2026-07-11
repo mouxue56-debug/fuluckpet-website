@@ -17,6 +17,32 @@
     return obj[lang] || obj.ja || obj.en || '';
   }
 
+  function trustCopy() {
+    return window.FaqTrustCopy && typeof window.FaqTrustCopy.applyTrustOverrides === 'function'
+      ? window.FaqTrustCopy
+      : null;
+  }
+
+  function appendTrustLinks(answer, item) {
+    var trust = trustCopy();
+    if (!trust || typeof trust.linksFor !== 'function') return;
+    var links = trust.linksFor(item.id, getLang());
+    if (!links.length) return;
+    var actions = document.createElement('span');
+    actions.className = 'faq-trust-links';
+    links.forEach(function(link) {
+      var anchor = document.createElement('a');
+      anchor.href = link.href;
+      anchor.textContent = link.label;
+      if (/^https:\/\//.test(link.href)) {
+        anchor.target = '_blank';
+        anchor.rel = 'noopener';
+      }
+      actions.appendChild(anchor);
+    });
+    answer.appendChild(actions);
+  }
+
   function renderFaq(items) {
     if (!Array.isArray(items) || items.length === 0) return;
     var fragment = document.createDocumentFragment();
@@ -38,6 +64,7 @@
       var answer = document.createElement('p');
       answer.setAttribute('data-i18n', 'faq.dyn_a' + i);
       answer.textContent = a;
+      appendTrustLinks(answer, item);
       panel.appendChild(answer);
       button.setAttribute('aria-controls', panel.id);
       button.setAttribute('aria-expanded', 'false');
@@ -61,7 +88,8 @@
     .then(function(r) { return r.json(); })
     .then(function(data) {
       if (Array.isArray(data) && data.length > 0) {
-        renderFaq(data);
+        var trust = trustCopy();
+        if (trust) renderFaq(trust.applyTrustOverrides(data));
       }
     })
     .catch(function() {

@@ -60,7 +60,7 @@
       icon: 'paw-print',
       items: [
         { href: '/kittens.html', key: 'nav.kittens', icon: 'cat', match: ['/kittens.html', '/kittens/'] },
-        { href: '/diary/', key: 'nav.diary', icon: 'camera', featured: true, match: ['/diary/'] },
+        { href: '/diary/', key: 'nav.diary', icon: 'camera', match: ['/diary/'] },
         { href: '/gallery.html', key: 'nav.gallery', icon: 'image', match: ['/gallery.html'] }
       ]
     },
@@ -91,11 +91,9 @@
       labelKey: 'nav.group.cattery',
       icon: 'building-2',
       items: [
-        { href: '/about.html', key: 'nav.about', icon: 'house', match: ['/about.html'] },
-        { href: '/about.html#awards', key: 'nav.aboutPage', icon: 'trophy', match: ['/about.html#awards'] },
+        { href: '/#about', key: 'nav.about', icon: 'house', match: ['/#about'] },
+        { href: '/about.html', key: 'nav.aboutPage', icon: 'trophy', match: ['/about.html'] },
         { href: '/reviews.html', key: 'nav.reviews', icon: 'star', match: ['/reviews.html'] },
-        // お預かり：v1 は日本語のみ提供（D4）——jaOnly で en/zh のナビには出さない
-        { href: '/boarding/', key: 'nav.boarding', icon: 'bed', jaOnly: true, match: ['/boarding/'] },
         { href: '/blog.html', key: 'nav.blog', icon: 'library', match: ['/blog.html', '/blog/'] },
         { href: 'https://catnamegive.mouxue56.workers.dev', key: 'nav.naming', icon: 'square-pen', external: true }
       ]

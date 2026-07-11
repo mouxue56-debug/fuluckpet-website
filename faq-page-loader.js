@@ -26,6 +26,32 @@
     return obj[lang] || obj.ja || obj.en || '';
   }
 
+  function trustCopy() {
+    return window.FaqTrustCopy && typeof window.FaqTrustCopy.applyTrustOverrides === 'function'
+      ? window.FaqTrustCopy
+      : null;
+  }
+
+  function appendTrustLinks(answer, item) {
+    var trust = trustCopy();
+    if (!trust || typeof trust.linksFor !== 'function') return;
+    var links = trust.linksFor(item.id, getLang());
+    if (!links.length) return;
+    var actions = document.createElement('span');
+    actions.className = 'faq-trust-links';
+    links.forEach(function(link) {
+      var anchor = document.createElement('a');
+      anchor.href = link.href;
+      anchor.textContent = link.label;
+      if (/^https:\/\//.test(link.href)) {
+        anchor.target = '_blank';
+        anchor.rel = 'noopener';
+      }
+      actions.appendChild(anchor);
+    });
+    answer.appendChild(actions);
+  }
+
   function isKnownCategory(key) {
     return Object.prototype.hasOwnProperty.call(CATEGORIES, key);
   }
@@ -117,6 +143,7 @@
     button.setAttribute('aria-controls', panel.id);
     var answer = document.createElement('p');
     answer.textContent = txt(item.answer);
+    appendTrustLinks(answer, item);
     panel.appendChild(answer);
     button.addEventListener('click', function() {
       var isActive = faqItem.classList.contains('active');
@@ -182,7 +209,9 @@
     .then(function(r) { return r.json(); })
     .then(function(data) {
       if (!Array.isArray(data)) throw new Error('Invalid FAQ collection');
-      allFaq = data.filter(function(item) { return item && typeof item === 'object'; });
+      var trust = trustCopy();
+      if (!trust) return;
+      allFaq = trust.applyTrustOverrides(data).filter(function(item) { return item && typeof item === 'object'; });
       renderFilters();
       renderList();
     })

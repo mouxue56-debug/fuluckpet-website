@@ -14,6 +14,21 @@
     var footer = document.getElementById('footer');
     if (!bar) return;
 
+    function syncBarHeight() {
+      var height = Math.ceil(bar.getBoundingClientRect().height);
+      if (height > 0) {
+        document.documentElement.style.setProperty('--mobile-cta-height', height + 'px');
+      }
+    }
+
+    syncBarHeight();
+    window.addEventListener('resize', syncBarHeight, { passive: true });
+    window.addEventListener('orientationchange', syncBarHeight, { passive: true });
+    if ('ResizeObserver' in window) {
+      var barObserver = new ResizeObserver(syncBarHeight);
+      barObserver.observe(bar);
+    }
+
     // Hide bar when footer enters the viewport (so it doesn't overlap the footer CTA / law notice).
     if (footer && 'IntersectionObserver' in window) {
       var io = new IntersectionObserver(function (entries) {
