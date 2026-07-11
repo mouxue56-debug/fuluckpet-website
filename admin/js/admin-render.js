@@ -54,14 +54,19 @@ function adminPromotionPriorityValue(record) {
   return Number.isInteger(priority) && priority >= 0 && priority <= 999 ? priority : 0;
 }
 
-function adminPromotionTagLabel(tag) {
-  if (tag === 'featured') return t('おすすめ', '推荐');
-  if (tag === 'campaign') return t('キャンペーン', '活动');
-  return t('なし', '无');
+function adminPromotionSummaryForLanguage(tag, priority, language) {
+  var label;
+  if (tag === 'featured') label = language === 'zh' ? '推荐' : 'おすすめ';
+  else if (tag === 'campaign') label = language === 'zh' ? '活动' : 'キャンペーン';
+  else label = language === 'zh' ? '无' : 'なし';
+  return label + ' #' + priority;
 }
 
 function adminPromotionSummary(tag, priority) {
-  return adminPromotionTagLabel(tag) + ' #' + priority;
+  return t(
+    adminPromotionSummaryForLanguage(tag, priority, 'ja'),
+    adminPromotionSummaryForLanguage(tag, priority, 'zh')
+  );
 }
 
 function adminRenderPhotoCell(type, id, cover, fallbackEmoji) {
@@ -269,15 +274,19 @@ function renderKittens(filter) {
     }));
     var promotionTag = adminPromotionTagValue(k);
     if (promotionTag) {
+      var promotionPriority = adminPromotionPriorityValue(k);
       var promotionColors = promotionTag === 'campaign'
         ? { background: '#FFFAF0', color: '#C05621' }
         : { background: '#E6FFFA', color: '#285E61' };
-      statusCell.appendChild(adminRenderElement(
+      var promotionBadge = adminRenderElement(
         'span',
-        adminPromotionSummary(promotionTag, adminPromotionPriorityValue(k)),
+        adminPromotionSummary(promotionTag, promotionPriority),
         'status-badge',
         Object.assign({ display: 'inline-block', marginTop: '4px', fontSize: '10px' }, promotionColors)
-      ));
+      );
+      promotionBadge.setAttribute('data-adm-ja', adminPromotionSummaryForLanguage(promotionTag, promotionPriority, 'ja'));
+      promotionBadge.setAttribute('data-adm-zh', adminPromotionSummaryForLanguage(promotionTag, promotionPriority, 'zh'));
+      statusCell.appendChild(promotionBadge);
     }
     row.appendChild(statusCell);
     row.appendChild(adminRenderCell((k.papa || '--') + ' / ' + (k.mama || '--'), { fontSize: '12px', whiteSpace: 'nowrap' }));
@@ -369,15 +378,19 @@ function editKitten(id) {
 function saveKitten() {
   var editId = document.getElementById('kittenEditId').value;
   var promotionTag = document.getElementById('kf_promotionTag').value;
-  var promotionPriority = Number(document.getElementById('kf_promotionPriority').value || 0);
+  var promotionPriorityInput = document.getElementById('kf_promotionPriority');
+  var promotionPriorityRaw = promotionPriorityInput.value;
+  var promotionPriority = Number(promotionPriorityRaw);
   if (
+    promotionPriorityRaw === '' ||
+    !!(promotionPriorityInput.validity && promotionPriorityInput.validity.badInput) ||
     (promotionTag !== '' && promotionTag !== 'featured' && promotionTag !== 'campaign') ||
     !Number.isInteger(promotionPriority) ||
     promotionPriority < 0 ||
     promotionPriority > 999 ||
     (!promotionTag && promotionPriority > 0)
   ) {
-    showToast(t('促销排序设置不正确', '促销排序设置不正确'), 'error');
+    showToast(t('プロモーションの並び順設定が正しくありません', '促销排序设置不正确'), 'error');
     return;
   }
   var obj = {

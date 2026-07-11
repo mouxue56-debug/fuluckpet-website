@@ -7,6 +7,7 @@ const test = require('node:test');
 const vm = require('node:vm');
 
 const ROOT = path.resolve(__dirname, '..');
+const IMAGES_SOURCE = fs.readFileSync(path.join(ROOT, 'admin/js/admin-images.js'), 'utf8');
 const RENDER_SOURCE = fs.readFileSync(path.join(ROOT, 'admin/js/admin-render.js'), 'utf8');
 const PHOTOS_SOURCE = fs.readFileSync(path.join(ROOT, 'admin/js/admin-photos.js'), 'utf8');
 const DRIVE_SOURCE = fs.readFileSync(path.join(ROOT, 'admin/js/admin-drive.js'), 'utf8');
@@ -79,6 +80,8 @@ function element(tagName, id) {
         const wanted = selector.slice(1);
         return all.filter((child) => child.className.split(/\s+/).includes(wanted));
       }
+      const attribute = selector.match(/^\[([^\]]+)\]$/);
+      if (attribute) return all.filter((child) => child.getAttribute(attribute[1]) !== null);
       return all.filter((child) => child.tagName === selector.toUpperCase());
     },
     classList: {
@@ -144,11 +147,15 @@ function createDocument(ids) {
         return elements.get(id);
       },
       createElement(tagName) { return element(tagName); },
+      querySelector(selector) {
+        return this.querySelectorAll(selector)[0] || null;
+      },
       querySelectorAll(selector) {
         const all = [];
         elements.forEach((root) => all.push(...root.querySelectorAll(selector)));
         return all;
       },
+      addEventListener() {},
     },
   };
 }
@@ -223,9 +230,11 @@ function renderHarness() {
     confirm() { return true; },
     prompt() { return null; },
     getData() { return data; },
+    pageTitles: { dashboard: 'ダッシュボード' },
     loadImageConfig() {},
     applyAdminLang() {},
   });
+  vm.runInContext(IMAGES_SOURCE, context, { filename: 'admin-images.js' });
   vm.runInContext(RENDER_SOURCE, context, { filename: 'admin-render.js' });
   return { context, elements, data, marker, hostileId };
 }
@@ -263,6 +272,24 @@ test('catalogue rows, reviews, parent options, and change logs render hostile fi
   kittenButtons.find((button) => button.textContent === '編集').click();
   assert.equal(edited, hostileId, 'listener closes over the exact id without source-code interpolation');
   assert.equal(context.__adminRenderPwned, undefined);
+});
+
+test('promotion badge carries both translations and switches with applyAdminLang without HTML writes', () => {
+  const { context, elements } = renderHarness();
+  context.renderKittens('all');
+  const badge = descendants(elements.get('kittensTableBody')).find((node) => (
+    node.getAttribute('data-adm-ja') === 'キャンペーン #999'
+  ));
+
+  assert.ok(badge, 'promotion badge must expose its Japanese translation');
+  assert.equal(badge.getAttribute('data-adm-zh'), '活动 #999');
+  assert.equal(badge.textContent, 'キャンペーン #999');
+
+  context.admLang = 'zh';
+  context.applyAdminLang();
+
+  assert.equal(badge.textContent, '活动 #999');
+  assert.deepEqual(badge.htmlWrites, []);
 });
 
 function photosHarness() {

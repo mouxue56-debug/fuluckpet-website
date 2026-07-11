@@ -8,6 +8,7 @@ const test = require('node:test');
 
 const ROOT = path.resolve(__dirname, '..');
 const RELEASE = '20260710b';
+const ADMIN_RENDER_RELEASE = '20260711a';
 const PUBLIC_ASSETS = [
   'nav.js',
   'i18n.js',
@@ -46,9 +47,10 @@ test('tracked pages use the current release stamp for changed public JavaScript'
 test('admin pages version every local script so immutable caches cannot retain stale code', () => {
   for (const relative of trackedFiles('admin/*.html')) {
     const html = fs.readFileSync(path.join(ROOT, relative), 'utf8');
-    const references = [...html.matchAll(/src=["'](?:\.\/)?js\/[^"'?]+\.js(?:\?v=([^"']+))?["']/g)];
+    const references = [...html.matchAll(/src=["'](?:\.\/)?js\/([^"'?]+\.js)(?:\?v=([^"']+))?["']/g)];
     for (const reference of references) {
-      assert.equal(reference[1], RELEASE, `${relative}: local admin scripts must use ?v=${RELEASE}`);
+      const expected = reference[1] === 'admin-render.js' ? ADMIN_RENDER_RELEASE : RELEASE;
+      assert.equal(reference[2], expected, `${relative}: ${reference[1]} must use ?v=${expected}`);
     }
   }
 });

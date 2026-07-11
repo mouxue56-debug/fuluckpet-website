@@ -13,6 +13,8 @@ const RENDER_SOURCE = fs.readFileSync(path.join(ROOT, 'admin/js/admin-render.js'
 
 const PROMOTION_HINT_JA = '同じ販売ステータス内で、タグ付きが優先され、数値が大きいほど上に表示されます。同じ数値では若い子猫が先です。';
 const PROMOTION_HINT_ZH = '仅在相同销售状态内排序：带促销标签的优先，数值越大越靠前；权重相同则年幼猫咪优先。';
+const PROMOTION_ERROR_JA = 'プロモーションの並び順設定が正しくありません';
+const PROMOTION_ERROR_ZH = '促销排序设置不正确';
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -40,6 +42,7 @@ function element(id, tagName = 'div') {
     style: {},
     dataset: {},
     value: '',
+    validity: { badInput: false },
     textContent: '',
     innerHTML: '',
     disabled: false,
@@ -218,6 +221,7 @@ test('kitten form exposes the exact promotion controls and localized ordering ru
 
   assert.match(ADMIN_HTML, new RegExp('data-adm-ja="' + PROMOTION_HINT_JA + '"'));
   assert.match(ADMIN_HTML, new RegExp('data-adm-zh="' + PROMOTION_HINT_ZH + '"'));
+  assert.match(ADMIN_HTML, /<script src="js\/admin-render\.js\?v=20260711a"><\/script>/);
   assert.match(RENDER_SOURCE, /promotionTag/);
   assert.match(RENDER_SOURCE, /promotionPriority/);
 });
@@ -254,6 +258,8 @@ test('invalid promotion priority shows an error toast and performs zero saves', 
     { name: 'negative priority', tag: 'featured', priority: '-1' },
     { name: 'priority above 999', tag: 'campaign', priority: '1000' },
     { name: 'non-numeric priority', tag: 'campaign', priority: 'abc' },
+    { name: 'empty priority', tag: 'featured', priority: '' },
+    { name: 'native bad input', tag: 'featured', priority: '7', badInput: true },
   ];
 
   for (const invalid of cases) {
@@ -261,16 +267,30 @@ test('invalid promotion priority shows an error toast and performs zero saves', 
       const { context, elements, calls } = renderHarness();
       context.openKittenForm(context.data.kittens[0]);
       elements.get('kf_promotionTag').value = invalid.tag;
-      elements.get('kf_promotionPriority').value = invalid.priority;
+      const priorityInput = elements.get('kf_promotionPriority');
+      priorityInput.value = invalid.priority;
+      priorityInput.validity.badInput = Boolean(invalid.badInput);
 
       context.saveKitten();
 
       assert.equal(calls.saves.length, 0);
-      assert.deepEqual(calls.toasts.at(-1), { message: '促销排序设置不正确', type: 'error' });
+      assert.deepEqual(calls.toasts.at(-1), { message: PROMOTION_ERROR_JA, type: 'error' });
       assert.equal(context.data.kittens[0].promotionTag, undefined);
       assert.equal(context.data.kittens[0].promotionPriority, undefined);
     });
   }
+});
+
+test('promotion validation toast uses the Chinese Admin language', () => {
+  const { context, elements, calls } = renderHarness({ language: 'zh' });
+  context.openKittenForm(context.data.kittens[0]);
+  elements.get('kf_promotionTag').value = '';
+  elements.get('kf_promotionPriority').value = '1';
+
+  context.saveKitten();
+
+  assert.equal(calls.saves.length, 0);
+  assert.deepEqual(calls.toasts.at(-1), { message: PROMOTION_ERROR_ZH, type: 'error' });
 });
 
 test('promotion edit bulk-saves the authenticated full object without losing internalNote', async () => {
