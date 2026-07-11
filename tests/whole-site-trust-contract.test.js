@@ -17,9 +17,9 @@ const PRICE_COPY = {
 };
 
 const VISIT_COPY = {
-  ja: '見学は完全予約制です。ご希望の日時は予約ページまたはLINEからお知らせください。平日・土日いずれも対応可能です。見学時間は約1〜2時間を目安にしてください。',
-  en: 'Visits are by appointment only. Please share your preferred date and time through the booking page or LINE. Weekdays and weekends are available. Please allow about 1–2 hours for your visit.',
-  zh: '参观采用完全预约制。请通过预约页面或 LINE 告知希望的日期和时间。平日和周末均可，每次参观请预留约 1〜2 小时。',
+  ja: '見学は完全予約制です。ご希望の日時は予約ページまたはLINEからお知らせください。平日・土日いずれも対応可能です。見学時間は約30分〜1時間を目安にしてください。',
+  en: 'Visits are by appointment only. Please share your preferred date and time through the booking page or LINE. Weekdays and weekends are available. Please allow about 30 minutes to 1 hour for your visit.',
+  zh: '参观采用完全预约制。请通过预约页面或 LINE 告知希望的日期和时间。平日和周末均可，每次参观请预留约 30 分钟至 1 小时。',
 };
 
 test('public FAQ copy names real channels and contains no invented form or hardcoded range', () => {
@@ -35,6 +35,24 @@ test('public FAQ copy names real channels and contains no invented form or hardc
   assert.ok(faq.includes(PRICE_COPY.ja), 'static FAQ and FAQ JSON-LD use the reviewed Japanese price copy');
   assert.match(faq, /href=["']\/booking\.html["']/);
   assert.match(faq, /href=["']https:\/\/page\.line\.me\/915hnnlk/);
+});
+
+test('visit guidance uses one reviewed duration and real booking channels on static fallbacks', () => {
+  const faq = read('faq.html');
+  const home = read('index.html');
+  const i18n = read('i18n.js');
+  const trust = read('faq-trust-copy.js');
+
+  assert.ok(faq.includes(VISIT_COPY.ja), 'FAQ HTML and JSON-LD use the reviewed visit guidance');
+  assert.ok(home.includes(VISIT_COPY.ja), 'homepage static fallback uses the reviewed visit guidance');
+  for (const copy of Object.values(VISIT_COPY)) {
+    assert.ok(i18n.includes(copy), `i18n includes: ${copy}`);
+    assert.ok(trust.includes(copy), `trust override includes: ${copy}`);
+  }
+  const homeFaq = home.slice(home.indexOf('<!-- ========== FAQ ========== -->'), home.indexOf('<!-- ========== FAQ ========== -->') + 9000);
+  assert.match(homeFaq, /href=["']\/booking\.html["']/);
+  assert.match(homeFaq, /href=["']https:\/\/page\.line\.me\/915hnnlk/);
+  assert.doesNotMatch(`${faq}\n${trust}`, /見学時間は約1〜2時間|allow about 1–2 hours|预留约 1〜2 小时/);
 });
 
 test('runtime navigation exposes distinct truthful destinations without owner-gated boarding', () => {
@@ -74,6 +92,7 @@ test('boarding direct URLs are neutral trilingual noindex gates', () => {
     const source = read(file);
     const visible = (source.match(/<body\b[\s\S]*<\/body>/i) || [''])[0];
     assert.match(source, /<meta\s+name=["']robots["']\s+content=["'][^"']*noindex/i, file);
+    assert.match(source, /<link\s+rel=["']icon["']/i, `${file}: explicit icon prevents a console-visible favicon 404`);
     required.forEach((copy) => assert.ok(source.includes(copy), `${file}: ${copy}`));
     assert.doesNotMatch(visible, /[\u00a5円]\s*[0-9]|\b(?:estimate|calculator)\b|料金シミュレーター/i, file);
     assert.doesNotMatch(source, /<form\b|<input\b|<select\b|\/booking\.html|page\.line\.me|boarding-(?:config|calc|estimate)\.js/i, file);
