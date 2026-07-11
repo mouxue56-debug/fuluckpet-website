@@ -163,6 +163,13 @@
     return ' (' + n + '匹)';
   }
 
+  function catalogTitle() {
+    var lang = getLang();
+    if (lang === 'en') return 'All kittens';
+    if (lang === 'zh') return '全部幼猫';
+    return 'すべての子猫';
+  }
+
   // ===== Utility Functions =====
 
   function isRecord(value) {
@@ -428,58 +435,35 @@
     '</div>';
   }
 
-  // Render the kittens.html list: assign every kitten to its breed section grid
-  // (FIX 7 — breed-based, never group-based, so no inventory is dropped), rewrite each
-  // section header with ITS OWN grid's true count in the current language (FIX 8), and
-  // apply the shared merchandising order. One shared function for both the initial
-  // render and the langChanged re-render (was duplicated + drifting).
+  // Render the full kittens.html catalog into one globally ordered grid. Keeping legacy
+  // breed buckets would let an earlier breed's sold kitten outrank a later breed's
+  // available/promoted kitten. Breed remains visible on every card, so no information is
+  // lost. The same function owns initial and langChanged renders.
   function renderKittensPage(kittens) {
     var sections = document.querySelectorAll('.section');
-    // Collect the rendered breed sections: each carries one .kittens-grid + .sec-tag + .sec-title.
     var slots = [];
     for (var si = 0; si < sections.length; si++) {
       var grid = sections[si].querySelector('.kittens-grid');
       if (!grid) continue;
       var tagEl = sections[si].querySelector('.sec-tag');
       var title = sections[si].querySelector('.sec-title');
-      var breedJa = tagEl ? TAG_TO_BREED[tagEl.textContent.trim()] : null;
-      slots.push({ grid: grid, title: title, breedJa: breedJa });
+      slots.push({ section: sections[si], grid: grid, tag: tagEl, title: title });
     }
     if (slots.length === 0) return;
 
     var ordered = KittenCatalog.orderKittens(kittens);
-    if (ordered.length === 0) {
-      slots.forEach(function(slot, index) {
-        slot.grid.innerHTML = index === 0 ? emptyStateHTML('noKittens') : '';
-        if (slot.title && slot.breedJa) slot.title.textContent = sectionBreedName(slot.breedJa) + countLabel(0);
-      });
-      return;
-    }
-    // Bucket each kitten to the slot whose breed matches its breed-section; if no slot
-    // matches (a breed the page didn't bake a section for), append to the first slot so the
-    // kitten stays visible — never silently drop inventory (FIX 7).
-    var buckets = slots.map(function() { return []; });
-    var slotByBreed = {};
-    slots.forEach(function(s, idx) { if (s.breedJa) slotByBreed[s.breedJa] = idx; });
-    ordered.forEach(function(k) {
-      var breedJa = BREED_ORDER[breedSectionIndex(k.breed)];
-      var idx = slotByBreed[breedJa];
-      if (idx === undefined) idx = 0;
-      buckets[idx].push(k);
+    slots.forEach(function(slot, index) {
+      slot.section.hidden = index !== 0;
+      slot.grid.innerHTML = index === 0
+        ? (ordered.length > 0
+            ? ordered.map(function(k, cardIndex) {
+                return kittenCardHTML(k, { showImages: true, priority: cardIndex < 2 });
+              }).join('')
+            : emptyStateHTML('noKittens'))
+        : '';
     });
-
-    // Render each grid and rewrite its OWN header (breed name + count) in the current lang —
-    // per-section, so the ブリティッシュ substring collision that copied the BSH count onto
-    // the BLH header can't happen (FIX 8), and the count format matches the baked per-lang form.
-    slots.forEach(function(s, idx) {
-      var group = buckets[idx];
-      s.grid.innerHTML = group.map(function(k, i) {
-        return kittenCardHTML(k, { showImages: true, priority: idx === 0 && i < 2 });
-      }).join('');
-      if (s.title && s.breedJa) {
-        s.title.textContent = sectionBreedName(s.breedJa) + countLabel(group.length);
-      }
-    });
+    if (slots[0].tag) slots[0].tag.textContent = 'CATALOG';
+    if (slots[0].title) slots[0].title.textContent = catalogTitle() + countLabel(ordered.length);
   }
 
   // Render parents by the breed tag attached to each generated section. The page may

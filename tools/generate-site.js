@@ -700,9 +700,26 @@ function breedDesc(cfg, lang) {
 
 // List page hero subtitle (no i18n key on the list page → baked per lang).
 const HERO_SUB = {
-  ja: '新しいご家族を待っている子猫たちをご紹介します。価格帯: ¥140,000～¥290,000（税込）',
-  en: 'Meet the kittens waiting for their new families. Price range: ¥140,000–¥290,000 (tax incl.).',
-  zh: '为您介绍正在等待新家庭的猫咪们。价格区间：¥140,000～¥290,000（含税）。',
+  ja: '新しいご家族を待っている子猫たちをご紹介します。料金は各子猫ページでご確認ください。',
+  en: 'Meet the kittens waiting for their new families. Check each kitten page for current details.',
+  zh: '为您介绍正在等待新家庭的猫咪们。最新信息请查看每只猫咪页面。',
+};
+const KITTENS_CATALOG_SECTION = {
+  ja: {
+    tag: 'CATALOG',
+    title: 'すべての子猫',
+    desc: '販売状況・おすすめ・年齢順で、すべての子猫をご案内しています。',
+  },
+  en: {
+    tag: 'CATALOG',
+    title: 'All kittens',
+    desc: 'All kittens are shown in availability, featured and age order.',
+  },
+  zh: {
+    tag: 'CATALOG',
+    title: '全部幼猫',
+    desc: '所有猫咪按销售状态、推荐与年龄顺序展示。',
+  },
 };
 
 // Breadcrumb "Kittens" label (kitten.breadcrumb.kittens key mirror for baked list/detail).
@@ -864,7 +881,14 @@ function localizeKittensCta(html, lang) {
 //    absolutized for depth) — matches the established precedent,
 //  - localize the page-hero (breadcrumb + h1 + subtitle).
 function buildListHeader(jaHeader, lang) {
-  if (lang === 'ja') return jaHeader; // untouched → byte-identical
+  if (lang === 'ja') {
+    // The Japanese template is also an output file, so stale static hero copy cannot be
+    // trusted as a source of truth. Refresh the one reviewed subtitle on every run.
+    return jaHeader.replace(
+      /(<p\s+data-i18n="kittens\.heroSub">)[\s\S]*?(<\/p>)/,
+      `$1${escapeHtml(HERO_SUB.ja)}$2`,
+    );
+  }
   const headerMarker = '<!-- ========== HEADER ========== -->';
   const heroMarker = '<!-- ========== PAGE HERO ========== -->';
   const headerIdx = jaHeader.indexOf(headerMarker);
@@ -956,8 +980,9 @@ function generateKittens(kittens, lang = 'ja') {
   // This function is also imported by focused tooling/tests, so keep the write boundary
   // safe even when main() is bypassed.
   assertSafeKittenDetailIds(kittens);
-  // Apply the reviewed merchandising contract before grouping by breed. Each breed
-  // bucket preserves this order, and the same call is used by the runtime renderer.
+  // Apply the reviewed merchandising contract to the full page. Repartitioning this
+  // result into breed buckets would let a sold kitten outrank an available kitten in a
+  // later breed, and would prevent a promoted kitten from moving across breed boundaries.
   kittens = KittenCatalog.orderKittens(kittens);
   const filepath = path.join(SITE_DIR, 'kittens.html');
   const { header: jaHeader, tail } = extractTemplate(filepath);
@@ -969,53 +994,19 @@ function generateKittens(kittens, lang = 'ja') {
     fs.mkdirSync(path.dirname(outPath), { recursive: true });
   }
 
-  // Group kittens by breed
-  const breedGroups = new Map();
-  for (const cfg of BREED_CONFIG) {
-    breedGroups.set(cfg.key, []);
-  }
+  // A single ordered grid is intentional: breed remains visible on every card, while
+  // the business ordering contract remains global. Keep every safe, photographed kitten
+  // visible even when a future breed has not yet been added to BREED_CONFIG.
+  const group = kittens.filter(k => Array.isArray(k.photos) && k.photos.length > 0 && getCoverPhoto(k));
 
-  for (const k of kittens) {
-    if (!k.photos || k.photos.length === 0) continue; // skip kittens without photos
-    const photo = getCoverPhoto(k);
-    if (!photo) continue;
-
-    const breed = k.breed || '';
-    if (breedGroups.has(breed)) {
-      breedGroups.get(breed).push(k);
-    } else {
-      // Unknown breed - try to find a partial match
-      let matched = false;
-      for (const cfg of BREED_CONFIG) {
-        if (breed.includes(cfg.key) || cfg.key.includes(breed)) {
-          breedGroups.get(cfg.key).push(k);
-          matched = true;
-          break;
-        }
-      }
-      if (!matched) {
-        // Put in first group as fallback, or skip
-        console.log(`  [warn] Unknown breed "${breed}" for kitten ${k.id}, skipping`);
-      }
-    }
-  }
-
-  // Build sections
+  // Build the one global catalog section.
   let sections = '';
-  let sectionIdx = 0;
   // LCP: only the very first card image on the page gets eager/high-priority.
   // Every later card stays lazy so we don't make all images eager.
   let lcpImgEmitted = false;
-  for (const cfg of BREED_CONFIG) {
-    const group = breedGroups.get(cfg.key);
-    if (!group || group.length === 0) continue;
-
-    // Add wave divider between sections (not before first)
-    if (sectionIdx > 0) {
-      const nextBg = cfg.bgClass === 'sec-cream' ? 'cream' : 'white';
-      sections += waveDivider(nextBg);
-    }
-
+  if (group.length > 0) {
+    const cfg = BREED_CONFIG[0];
+    const catalogCopy = KITTENS_CATALOG_SECTION[lang] || KITTENS_CATALOG_SECTION.ja;
     const shapesHtml = cfg.shapes.map(s =>
       `      <div class="shape" style="width:${s.w}px;height:${s.h}px;background:${s.bg};${s.pos}"></div>`
     ).join('\n');
@@ -1089,31 +1080,27 @@ function generateKittens(kittens, lang = 'ja') {
         </div>`;
     }
 
-    const secTitle = lang === 'ja'
-      ? `${escapeHtml(cfg.key)} (${group.length}匹)`
-      : `${escapeHtml(breedLabel(cfg.key, lang))}${countLabel(group.length, lang)}`;
+    const secTitle = `${escapeHtml(catalogCopy.title)}${countLabel(group.length, lang)}`;
     sections += `
 
-  <!-- ========== ${cfg.tag.toUpperCase()} KITTENS ========== -->
-  <section class="section ${cfg.bgClass}" style="position:relative;">
+  <!-- ========== ORDERED KITTEN CATALOG ========== -->
+  <section class="section sec-white" data-catalog-order="global" style="position:relative;">
     <div class="parallax-bg">
 ${shapesHtml}
     </div>
     <div class="container" style="position:relative;z-index:1;">
       <div class="sec-header">
-        <span class="sec-tag">${escapeHtml(cfg.tag)}</span>
+        <span class="sec-tag">${escapeHtml(catalogCopy.tag)}</span>
         <h2 class="sec-title">${secTitle}</h2>
-        <p class="sec-desc">${escapeHtml(breedDesc(cfg, lang))}</p>
+        <p class="sec-desc">${escapeHtml(catalogCopy.desc)}</p>
       </div>
       <div class="kittens-grid" style="grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));">${cardsHtml}
       </div>
     </div>
   </section>`;
-
-    sectionIdx++;
   }
 
-  if (sectionIdx === 0) {
+  if (group.length === 0) {
     const empty = KITTENS_EMPTY_COPY[lang] || KITTENS_EMPTY_COPY.ja;
     sections = emptyCatalogSection(empty.message, empty.tag);
   }
@@ -1195,7 +1182,7 @@ ${shapesHtml}
   const output = header + '\n' + sections + '\n\n' + tailWithSchema;
   fs.writeFileSync(outPath, output, 'utf-8');
   const label = lang === 'ja' ? 'kittens.html' : `${lang}/kittens.html`;
-  console.log(`  ${label} -> ${kittens.length} kittens (${sectionIdx} breed sections), ${products.length} Product schemas`);
+  console.log(`  ${label} -> ${kittens.length} kittens (1 globally ordered catalog), ${products.length} Product schemas`);
 }
 
 // ── Generate Small Animals (owner-gated dark launch) ─────────

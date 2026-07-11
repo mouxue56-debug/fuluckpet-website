@@ -3534,7 +3534,7 @@ body.cta-hidden .mobile-cta-bar {
 
   .fuluck-chat-bubble,
   .fuluck-chat-panel {
-    bottom: calc(96px + env(safe-area-inset-bottom, 0px)) !important;
+    bottom: calc(var(--mobile-cta-height) + env(safe-area-inset-bottom, 0px) + 12px) !important;
   }
 
   .back-to-top {

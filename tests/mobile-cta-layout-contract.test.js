@@ -15,7 +15,9 @@ test('mobile fixed UI shares one CTA height and reserves content space', () => {
   assert.match(style, /--mobile-cta-height\s*:\s*\d+px\s*;/);
   assert.match(style, /body\.has-mobile-cta\s*\{[^}]*padding-bottom\s*:\s*calc\(var\(--mobile-cta-height\)\s*\+\s*env\(safe-area-inset-bottom(?:,\s*0px)?\)\)/s);
   assert.match(chat, /bottom\s*:\s*calc\(var\(--mobile-cta-height\)\s*\+\s*env\(safe-area-inset-bottom(?:,\s*0px)?\)\s*\+\s*\d+px\)/);
+  assert.match(style, /\.fuluck-chat-bubble,\s*\.fuluck-chat-panel\s*\{[^}]*bottom\s*:\s*calc\(var\(--mobile-cta-height\)\s*\+\s*env\(safe-area-inset-bottom(?:,\s*0px)?\)\s*\+\s*\d+px\)\s*!important/s);
   assert.doesNotMatch(style, /body\.has-mobile-cta\s*\{[^}]*padding-bottom\s*:\s*76px/s);
+  assert.doesNotMatch(style, /\.fuluck-chat-bubble,\s*\.fuluck-chat-panel\s*\{[^}]*bottom\s*:\s*calc\(\d+px\s*\+\s*env\(safe-area-inset-bottom/s);
 });
 
 test('mobile chat launcher and panel remain above the CTA at supported widths', () => {

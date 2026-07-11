@@ -9,9 +9,12 @@ const test = require('node:test');
 const ROOT = path.resolve(__dirname, '..');
 const RELEASE = '20260710b';
 const TRUST_RELEASE = '20260711b';
+const TRUTH_RELEASE = '20260711c';
 const CATALOG_RELEASE = '20260711a';
+const CARD_LOADER_RELEASE = '20260711d';
 const ADMIN_RENDER_RELEASE = '20260711a';
 const ADMIN_DIARY_RELEASE = '20260711a';
+const ADMIN_FAQ_RELEASE = TRUTH_RELEASE;
 const PUBLIC_ASSETS = {
   'style.css': TRUST_RELEASE,
   'nav.js': TRUST_RELEASE,
@@ -20,7 +23,7 @@ const PUBLIC_ASSETS = {
   'blog-listing-i18n.js': RELEASE,
   'catalog-i18n.js': RELEASE,
   'kitten-catalog.js': CATALOG_RELEASE,
-  'card-loader.js': CATALOG_RELEASE,
+  'card-loader.js': CARD_LOADER_RELEASE,
   'faq-trust-copy.js': TRUST_RELEASE,
   'faq-loader.js': TRUST_RELEASE,
   'faq-page-loader.js': TRUST_RELEASE,
@@ -29,7 +32,7 @@ const PUBLIC_ASSETS = {
   'script.js': TRUST_RELEASE,
   'mobile-cta.js': TRUST_RELEASE,
   'assets/chat/widget.css': TRUST_RELEASE,
-  'assets/chat/widget.js': RELEASE,
+  'assets/chat/widget.js': TRUTH_RELEASE,
 };
 
 function trackedFiles(glob) {
@@ -61,6 +64,8 @@ test('admin pages version every local script so immutable caches cannot retain s
         ? ADMIN_RENDER_RELEASE
         : reference[1] === 'admin-diary-editor.js'
           ? ADMIN_DIARY_RELEASE
+          : reference[1] === 'admin-faq.js'
+            ? ADMIN_FAQ_RELEASE
           : RELEASE;
       assert.equal(reference[2], expected, `${relative}: ${reference[1]} must use ?v=${expected}`);
     }

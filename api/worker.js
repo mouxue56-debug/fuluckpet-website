@@ -3170,7 +3170,11 @@ export default {
       const bulkMatch = path.match(/^\/api\/admin\/(kittens|parents|reviews)\/bulk$/);
       if (bulkMatch && method === 'POST') {
         const type = bulkMatch[1];
-        const items = await request.json();
+        const parsed = await parseJsonWriteBody(request);
+        if (!parsed.ok) {
+          return addCors(json({ error: 'Invalid JSON body', details: parsed.details }, 400));
+        }
+        const items = parsed.value;
         if (!Array.isArray(items)) return addCors(json({ error: 'Expected array' }, 400));
         // D3-B: the admin panel saves the whole kittens catalogue through this
         // endpoint (admin/js/admin-core.js saveData -> bulkImport). Enforce breederId
@@ -3201,7 +3205,11 @@ export default {
       }
 
       if (path === '/api/admin/kittens' && method === 'POST') {
-        const body = await request.json();
+        const parsed = await parseJsonWriteBody(request);
+        if (!parsed.ok) {
+          return addCors(json({ error: 'Invalid JSON body', details: parsed.details }, 400));
+        }
+        const body = parsed.value;
         if (!isPlainObject(body)) return addCors(json({ error: 'Invalid kitten item' }, 400));
         const kittens = (await env.DATA.get('kittens', 'json')) || [];
         body.id = crypto.randomUUID();
@@ -3221,7 +3229,11 @@ export default {
 
       if (path.startsWith('/api/admin/kittens/') && method === 'PUT') {
         const id = path.split('/').pop();
-        const body = await request.json();
+        const parsed = await parseJsonWriteBody(request);
+        if (!parsed.ok) {
+          return addCors(json({ error: 'Invalid JSON body', details: parsed.details }, 400));
+        }
+        const body = parsed.value;
         if (!isPlainObject(body)) return addCors(json({ error: 'Invalid kitten patch' }, 400));
         let kittens = (await env.DATA.get('kittens', 'json')) || [];
         const idx = kittens.findIndex(k => k.id === id);

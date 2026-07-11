@@ -127,17 +127,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // ===== Kitten filter tabs =====
   const filterBtns = document.querySelectorAll('.filter-btn');
 
-  filterBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      filterBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const filter = btn.dataset.filter;
-      // Use live DOM query so dynamically loaded cards are included
-      const liveCards = document.querySelectorAll('.kitten-card');
+  function applyKittenFilter(filter, animate) {
+    // Use a live DOM query so cards rebuilt by card-loader are included.
+    const liveCards = document.querySelectorAll('.kitten-card');
 
-      liveCards.forEach((card, i) => {
-        if (filter === 'all' || card.dataset.status === filter) {
-          card.classList.remove('hidden');
+    liveCards.forEach((card, i) => {
+      if (filter === 'all' || card.dataset.status === filter) {
+        card.classList.remove('hidden');
+        if (animate) {
           card.style.opacity = '0';
           card.style.transform = 'translateY(20px)';
           setTimeout(() => {
@@ -145,11 +142,20 @@ document.addEventListener('DOMContentLoaded', () => {
             card.style.opacity = '1';
             card.style.transform = 'translateY(0)';
           }, i * 80);
-        } else {
-          card.classList.add('hidden');
         }
-      });
-      setTimeout(updateKittenCount, 100);
+      } else {
+        card.classList.add('hidden');
+      }
+    });
+    if (animate) setTimeout(updateKittenCount, 100);
+    else updateKittenCount();
+  }
+
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      applyKittenFilter(btn.dataset.filter, true);
     });
   });
 
@@ -197,6 +203,16 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    function activeControlValue(buttons, dataKey, fallback) {
+      const active = Array.from(buttons).find(button => button.classList.contains('active'));
+      return active?.dataset[dataKey] || fallback;
+    }
+
+    function refreshKittenCatalogControls() {
+      renderSortedCards(activeControlValue(sortBtns, 'sort', 'default'), false);
+      applyKittenFilter(activeControlValue(filterBtns, 'filter', 'all'), false);
+    }
+
     // Keep the static fallback in the same default order as generated/runtime data.
     renderSortedCards('default', false);
 
@@ -208,6 +224,11 @@ document.addEventListener('DOMContentLoaded', () => {
         renderSortedCards(sortType, true);
       });
     });
+
+    // card-loader replaces the grid after API and language refreshes. Reapply the
+    // still-active controls once, without dispatching another event or re-animating.
+    window.refreshKittenCatalogControls = refreshKittenCatalogControls;
+    window.addEventListener('cardsLoaded', refreshKittenCatalogControls);
   }
 
   // ===== Modal a11y helpers (dialog semantics + focus trap) =====
@@ -853,7 +874,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const canLink = (status === 'available' || status === 'reserved')
       && /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/.test(id);
     const row = createModalNode(canLink ? 'a' : 'span', 'child-chip');
-    if (canLink) row.setAttribute('href', '/kittens/' + encodeURIComponent(id) + '.html');
+    if (canLink) {
+      const lang = String(document.documentElement?.lang || 'ja').toLowerCase();
+      const localePrefix = lang.startsWith('en') ? '/en' : lang.startsWith('zh') ? '/zh' : '';
+      row.setAttribute('href', localePrefix + '/kittens/' + encodeURIComponent(id) + '.html');
+    }
 
     const facts = [];
     const breed = typeof kitten?.breed === 'string' ? kitten.breed.trim() : '';
@@ -938,12 +963,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (childrenContainer) {
       const renderToken = ++parentOffspringRenderToken;
-      const field = gender === '♂' ? 'papa' : 'mama';
+      const field = gender === '♂' ? 'papa' : gender === '♀' ? 'mama' : '';
       try {
         const kittens = await getSharedParentKittens();
         if (renderToken !== parentOffspringRenderToken) return;
         const children = window.FuluckKittenCatalog.orderKittens(kittens)
-          .filter(kitten => kitten && kitten[field] === name);
+          .filter(kitten => kitten && (field
+            ? kitten[field] === name
+            : kitten.papa === name || kitten.mama === name));
         childrenContainer.replaceChildren();
         children.forEach(child => appendParentOffspring(childrenContainer, child, copy));
         if (children.length === 0) {

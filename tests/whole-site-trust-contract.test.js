@@ -22,6 +22,12 @@ const VISIT_COPY = {
   zh: '参观采用完全预约制。请通过预约页面或 LINE 告知希望的日期和时间。平日和周末均可，每次参观请预留约 30 分钟至 1 小时。',
 };
 
+const KITTEN_HERO_COPY = {
+  ja: '新しいご家族を待っている子猫たちをご紹介します。料金は各子猫ページでご確認ください。',
+  en: 'Meet the kittens waiting for their new families. Check each kitten page for current details.',
+  zh: '为您介绍正在等待新家庭的猫咪们。最新信息请查看每只猫咪页面。',
+};
+
 test('public FAQ copy names real channels and contains no invented form or hardcoded range', () => {
   for (const file of ['faq.html', 'index.html', 'i18n.js']) {
     const source = read(file);
@@ -53,6 +59,33 @@ test('visit guidance uses one reviewed duration and real booking channels on sta
   assert.match(homeFaq, /href=["']\/booking\.html["']/);
   assert.match(homeFaq, /href=["']https:\/\/page\.line\.me\/915hnnlk/);
   assert.doesNotMatch(`${faq}\n${trust}`, /見学時間は約1〜2時間|allow about 1–2 hours|预留约 1〜2 小时/);
+});
+
+test('catalogue, AI and future-generation surfaces never publish a global kitten price band', () => {
+  const listPages = [
+    ['kittens.html', KITTEN_HERO_COPY.ja],
+    ['en/kittens.html', KITTEN_HERO_COPY.en],
+    ['zh/kittens.html', KITTEN_HERO_COPY.zh],
+  ];
+  for (const [file, copy] of listPages) assert.ok(read(file).includes(copy), `${file}: reviewed hero copy`);
+
+  const sources = [
+    ...listPages.map(([file]) => file),
+    'tools/generate-site.js',
+    'assets/chat/widget.js',
+    'admin/js/admin-faq.js',
+    'tools/seed-kb.js',
+    'tools/build_pages.py',
+    'tools/gen-blog-wave-c.mjs',
+    'llms.txt',
+    'llms-full.txt',
+  ];
+  const bannedRange = /(?:140,000|160,000)\s*(?:〜|～|〜|–|\-|to)\s*(?:¥)?290,000|16万円\s*(?:〜|～|〜|–|\-)〜?\s*29万円/i;
+  for (const file of sources) assert.doesNotMatch(read(file), bannedRange, file);
+
+  const machineCopy = `${read('llms.txt')}\n${read('llms-full.txt')}`;
+  assert.doesNotMatch(machineCopy, /お問い合わせフォーム|見学時間は約1〜2時間/);
+  assert.ok(read('assets/chat/widget.js').includes(PRICE_COPY.ja), 'offline chat price answer uses the reviewed truth');
 });
 
 test('runtime navigation exposes distinct truthful destinations without owner-gated boarding', () => {

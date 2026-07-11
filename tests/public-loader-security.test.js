@@ -26,19 +26,27 @@ function response(data, options = {}) {
 function runCardLoader(options = {}) {
   const page = options.page || 'index';
   const initial = '<article class="static-fallback">STATIC SEO FALLBACK</article>';
-  const kittenGrid = { innerHTML: initial };
+  const kittenSectionConfig = options.kittenSectionConfig || [
+    ['Siberian', 'サイベリアン'],
+  ];
+  const kittenGrids = kittenSectionConfig.map(([, breed], index) => ({
+    innerHTML: index === 0 ? initial : `<article class="static-fallback">STATIC ${breed}</article>`,
+  }));
+  const kittenGrid = kittenGrids[0];
   const parentGrid = { innerHTML: initial };
   const reviewGrid = { innerHTML: initial };
   const visibleCount = { textContent: 'static' };
-  const sectionTitle = { textContent: 'Siberian (static)' };
-  const section = {
+  const sectionTitles = kittenSectionConfig.map(([tag]) => ({ textContent: `${tag} (static)` }));
+  const sectionTitle = sectionTitles[0];
+  const kittenSections = kittenSectionConfig.map(([tag], index) => ({
+    hidden: false,
     querySelector(selector) {
-      if (selector === '.kittens-grid') return kittenGrid;
-      if (selector === '.sec-tag') return { textContent: 'Siberian' };
-      if (selector === '.sec-title') return sectionTitle;
+      if (selector === '.kittens-grid') return kittenGrids[index];
+      if (selector === '.sec-tag') return { textContent: tag };
+      if (selector === '.sec-title') return sectionTitles[index];
       return null;
     }
-  };
+  }));
   const parentSectionConfig = [
     ['Siberian', 'サイベリアン'],
     ['British Shorthair', 'ブリティッシュショートヘア'],
@@ -77,11 +85,11 @@ function runCardLoader(options = {}) {
     },
     querySelectorAll(selector) {
       if (selector === '.section') {
-        if (page === 'kittens') return [section];
+        if (page === 'kittens') return kittenSections;
         if (page === 'parents') return parentSections;
         return [];
       }
-      if (selector === '.kittens-grid') return page === 'kittens' ? [kittenGrid] : [];
+      if (selector === '.kittens-grid') return page === 'kittens' ? kittenGrids : [];
       if (selector === '.parents-grid') return page === 'parents' ? parentGrids : [];
       return [];
     },
@@ -121,6 +129,8 @@ function runCardLoader(options = {}) {
   vm.runInContext(CARD_SOURCE, context, { filename: 'card-loader.js' });
   return {
     kittenGrid,
+    kittenGrids,
+    kittenSections,
     parentGrid,
     parentGrids,
     reviewGrid,
@@ -502,6 +512,59 @@ test('dynamic kitten cards normalize unknown status and link only to generated d
   assert.match(result.kittenGrid.innerHTML, /class="kitten-card"[^>]*role="button"[^>]*tabindex="0"[^>]*aria-haspopup="dialog"[^>]*data-status="sold"[^>]*data-breeder-id="kitten-pending"[^>]*data-detail-url=""/);
   assert.doesNotMatch(result.kittenGrid.innerHTML, /data-detail-url="\/kittens\/kitten-pending\.html"|st-pending|>pending<\/span>/);
   assert.equal(result.schemas.length, 0, 'the static generator is the only Product schema source');
+});
+
+test('dynamic full catalog keeps one global merchandising order across baked breed sections', async () => {
+  const kittens = [
+    {
+      breederId: 'sold-siberian',
+      breed: 'サイベリアン',
+      color: 'ブルー',
+      gender: '♂',
+      birthday: '2026-06-01',
+      price: 100000,
+      status: 'sold',
+      photos: ['https://images.example.test/sold-siberian.jpg'],
+    },
+    {
+      breederId: 'available-british-promoted',
+      breed: 'ブリティッシュショートヘア',
+      color: 'ブルー',
+      gender: '♀',
+      birthday: '2026-04-01',
+      price: 100000,
+      status: 'available',
+      promotionTag: 'featured',
+      promotionPriority: 999,
+      photos: ['https://images.example.test/available-british-promoted.jpg'],
+    },
+    {
+      breederId: 'available-siberian-young',
+      breed: 'サイベリアン',
+      color: 'ブルー',
+      gender: '♀',
+      birthday: '2026-07-01',
+      price: 100000,
+      status: 'available',
+      photos: ['https://images.example.test/available-siberian-young.jpg'],
+    },
+  ];
+  const result = runCardLoader({
+    page: 'kittens',
+    kittenSectionConfig: [
+      ['Siberian', 'サイベリアン'],
+      ['British Shorthair', 'ブリティッシュショートヘア'],
+    ],
+    payloads: { kittens: response(kittens) },
+  });
+  await flushAsyncWork();
+
+  const rendered = result.kittenGrids.map((grid) => grid.innerHTML).join('');
+  const actual = Array.from(rendered.matchAll(/data-breeder-id="([^"]+)"/g), (match) => match[1]);
+  const expected = KittenCatalog.orderKittens(kittens).map((kitten) => kitten.breederId);
+  assert.deepEqual(actual, expected);
+  assert.equal(result.kittenSections[0].hidden, false);
+  assert.equal(result.kittenSections[1].hidden, true, 'legacy breed sections must not break full-page order');
 });
 
 test('dynamic kitten cards apply the strict sale-price contract', async () => {

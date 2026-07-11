@@ -125,12 +125,10 @@ test('tracked static catalog grids are already in shared default order', () => {
       /<div\b[^>]*(?:id="kittensGrid"|class="[^"]*\bkittens-grid\b[^"]*")[^>]*>/i,
     );
     assert.ok(grids.length > 0, `${file}: expected a catalog grid`);
-    for (const grid of grids) {
-      const records = kittenRecords(grid);
-      if (records.length < 2) continue;
-      const actual = records.map((record) => record.breederId);
-      const expected = catalog.orderKittens(records).map((record) => record.breederId);
-      assert.deepEqual(actual, expected, file);
-    }
+    const records = grids.flatMap(kittenRecords);
+    if (records.length < 2) continue;
+    const actual = records.map((record) => record.breederId);
+    const expected = catalog.orderKittens(records).map((record) => record.breederId);
+    assert.deepEqual(actual, expected, `${file}: full-page order must cross breed boundaries`);
   }
 });

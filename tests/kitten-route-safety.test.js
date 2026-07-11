@@ -55,6 +55,18 @@ function request(path, method, body) {
   });
 }
 
+function malformedJsonRequest(path, method) {
+  return new Request(`https://fuluck-api.example.test${path}`, {
+    method,
+    headers: {
+      Origin: ORIGIN,
+      Authorization: `Bearer ${PASSWORD}`,
+      'Content-Type': 'application/json',
+    },
+    body: '{"broken":',
+  });
+}
+
 async function fetchWorker(env, req) {
   return worker.fetch(req, env, { waitUntil() {} });
 }
@@ -113,4 +125,36 @@ test('kitten write routes reject coercible non-scalar and non-positive prices', 
     assert.equal(puts.some((entry) => entry.key === 'kittens'), false);
     assert.deepEqual(JSON.parse(store.get('kittens')), original);
   }
+});
+
+async function assertMalformedJsonRejected(path, method) {
+  const original = [{
+    id: 'safe-row-id',
+    breederId: '2607-00594',
+    status: 'available',
+    photos: [],
+  }];
+  const { env, puts, store } = await makeEnv(original);
+
+  const response = await fetchWorker(env, malformedJsonRequest(path, method));
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), {
+    error: 'Invalid JSON body',
+    details: [{ breederId: '#request', field: '(body)', reason: 'malformed JSON' }],
+  });
+  assert.deepEqual(puts, []);
+  assert.deepEqual(JSON.parse(store.get('kittens')), original);
+}
+
+test('kitten bulk rejects malformed JSON with a structured 400 and no catalogue put', async () => {
+  await assertMalformedJsonRejected('/api/admin/kittens/bulk', 'POST');
+});
+
+test('kitten POST rejects malformed JSON with a structured 400 and no catalogue put', async () => {
+  await assertMalformedJsonRejected('/api/admin/kittens', 'POST');
+});
+
+test('kitten PUT rejects malformed JSON with a structured 400 and no catalogue put', async () => {
+  await assertMalformedJsonRejected('/api/admin/kittens/safe-row-id', 'PUT');
 });

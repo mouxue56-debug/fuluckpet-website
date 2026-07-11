@@ -215,11 +215,14 @@ function runParentPage(options = {}) {
   const htmlWrites = [];
   const parentModal = makeParentModal(htmlWrites);
   const parentCard = element('article', htmlWrites, 'parent-card');
+  const parentGender = Object.prototype.hasOwnProperty.call(options, 'parentGender')
+    ? options.parentGender
+    : '♂';
   parentCard.dataset = {
     name: options.parentName || 'Father-01',
     breed: 'サイベリアン',
-    gender: options.parentGender || '♂',
-    role: options.parentGender === '♀' ? 'ママ猫' : 'パパ猫',
+    gender: parentGender,
+    role: parentGender === '♀' ? 'ママ猫' : 'パパ猫',
     age: '3歳',
     color: 'ホワイト',
     tested: 'true',
@@ -351,6 +354,41 @@ test('parent modal reuses the shared kittens promise, then dedupes, matches and 
     'only safe available/reserved identities receive real detail links',
   );
   assert.equal(rows[4].tagName, 'SPAN', 'sold offspring remains a non-clickable pedigree record');
+});
+
+test('a parent card without gender matches exact papa or mama names instead of defaulting to mama', async () => {
+  const page = runParentPage({
+    parentGender: '',
+    parentName: 'Parent-01',
+    kittens: [
+      { breederId: 'father-child', papa: 'Parent-01', mama: 'Mother-02', breed: '父猫子代', status: 'available' },
+      { breederId: 'mother-child', papa: 'Father-02', mama: 'Parent-01', breed: '母猫子代', status: 'available' },
+      { breederId: 'near-match', papa: 'Parent-01 ', mama: '', breed: '近似名字', status: 'available' },
+    ],
+  });
+
+  await page.window.openParentModal(page.parentCard);
+  const children = page.parentModal.querySelector('.children-chips');
+  assert.equal(children.children.length, 2);
+  assert.match(children.textContent, /父猫子代/);
+  assert.match(children.textContent, /母猫子代/);
+  assert.doesNotMatch(children.textContent, /近似名字/);
+});
+
+test('offspring detail links preserve the active English or Chinese route', async () => {
+  for (const { lang, href } of [
+    { lang: 'en', href: '/en/kittens/child-01.html' },
+    { lang: 'zh-CN', href: '/zh/kittens/child-01.html' },
+  ]) {
+    const page = runParentPage({
+      lang,
+      kittens: [{ breederId: 'child-01', papa: 'Father-01', breed: 'Kitten', status: 'available' }],
+    });
+
+    await page.window.openParentModal(page.parentCard);
+    const child = page.parentModal.querySelector('.children-chips').children[0];
+    assert.equal(child.getAttribute('href'), href, `${lang} remains in the detail route`);
+  }
 });
 
 test('opening parent modals repeatedly issues one kittens request and localizes empty success', async () => {
