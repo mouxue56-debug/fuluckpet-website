@@ -102,7 +102,7 @@ test('birthday ranking accepts YYYY-MM and real YYYY-MM-DD but rejects impossibl
     { breederId: 'full-day', status: 'available', birthday: '2026-05-31' },
     { breederId: 'bad-format', status: 'available', birthday: '2026-5' },
   ]).map((item) => item.breederId);
-  assert.deepEqual(actual, ['full-day', 'month', 'leap-day', 'bad-nonleap', 'bad-day', 'bad-format']);
+  assert.deepEqual(actual, ['full-day', 'month', 'leap-day', 'bad-day', 'bad-format', 'bad-nonleap']);
 });
 
 test('all secondary modes retain merchandising priority and use birthday as their tiebreak', () => {
@@ -149,17 +149,17 @@ test('invalid and missing prices stay last in both price directions', () => {
   for (const secondary of ['price-asc', 'price-desc']) {
     assert.deepEqual(
       catalog.orderKittens(rows, { secondary }).map((item) => item.breederId),
-      ['valid', 'blank', 'zero', 'boolean', 'overflow'],
+      ['valid', 'blank', 'boolean', 'overflow', 'zero'],
     );
   }
 });
 
-test('ties compare equal and orderKittens preserves their original order', () => {
+test('identity breaks metric ties before source order', () => {
   const a = { breederId: 'A', status: 'available', birthday: '2026-05', price: 100 };
   const b = { breederId: 'B', status: 'available', birthday: '2026-05', price: 100 };
-  assert.equal(catalog.compareKittens(a, b, { secondary: 'price-asc' }), 0);
-  assert.equal(catalog.compareKittens(b, a, { secondary: 'price-asc' }), 0);
-  assert.deepEqual(catalog.orderKittens([a, b], { secondary: 'price-asc' }), [a, b]);
+  assert.ok(catalog.compareKittens(a, b, { secondary: 'price-asc' }) < 0);
+  assert.ok(catalog.compareKittens(b, a, { secondary: 'price-asc' }) > 0);
+  assert.deepEqual(catalog.orderKittens([b, a], { secondary: 'price-asc' }), [a, b]);
 });
 
 test('ordering is non-mutating and identical across consecutive calls', () => {

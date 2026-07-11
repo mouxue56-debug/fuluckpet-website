@@ -135,7 +135,13 @@
       if (priceDifference) return priceDifference;
     }
 
-    return compareBirthday(left, right);
+    var birthdayDifference = compareBirthday(left, right);
+    if (birthdayDifference) return birthdayDifference;
+
+    var leftIdentity = identityOf(left, 0);
+    var rightIdentity = identityOf(right, 0);
+    if (leftIdentity === rightIdentity) return 0;
+    return leftIdentity < rightIdentity ? -1 : 1;
   }
 
   function orderKittens(items, options) {
