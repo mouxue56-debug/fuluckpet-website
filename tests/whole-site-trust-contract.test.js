@@ -86,6 +86,18 @@ test('catalogue, AI and future-generation surfaces never publish a global kitten
   const machineCopy = `${read('llms.txt')}\n${read('llms-full.txt')}`;
   assert.doesNotMatch(machineCopy, /お問い合わせフォーム|見学時間は約1〜2時間/);
   assert.ok(read('assets/chat/widget.js').includes(PRICE_COPY.ja), 'offline chat price answer uses the reviewed truth');
+
+  const homeJsonLd = Array.from(
+    read('index.html').matchAll(/<script\s+type="application\/ld\+json">\s*([\s\S]*?)\s*<\/script>/g),
+    (match) => JSON.parse(match[1]),
+  );
+  const localBusiness = homeJsonLd.find((document) => document['@type'] === 'LocalBusiness');
+  assert.ok(localBusiness, 'homepage keeps its LocalBusiness identity');
+  assert.equal(
+    localBusiness.hasOfferCatalog,
+    undefined,
+    'homepage must not publish a synthetic generic kitten price or AggregateOffer band',
+  );
 });
 
 test('runtime navigation exposes distinct truthful destinations without owner-gated boarding', () => {
