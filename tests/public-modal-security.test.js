@@ -307,6 +307,18 @@ function runMainScript(options = {}) {
     images: options.parentImages || '',
     driveFolder: '',
   };
+  const defaultOffspring = (options.papa === parentCard.dataset.name || options.mama === parentCard.dataset.name)
+    ? [{
+        breederId: options.breederId || '',
+        papa: options.papa || '',
+        mama: options.mama || '',
+        breed: options.breed || 'サイベリアン',
+        color: options.meta || '',
+        birthday: options.birthday || '',
+        status: options.kittenStatus || 'available',
+      }]
+    : [];
+  const offspring = options.apiKittens === undefined ? defaultOffspring : options.apiKittens;
 
   const events = Object.create(null);
   const querySelectors = [];
@@ -341,6 +353,13 @@ function runMainScript(options = {}) {
     },
   };
   const window = {
+    FULUCK_API_BASE: 'https://api.example.test',
+    FuluckKittenCatalog: KittenCatalog,
+    FuluckPublicData: {
+      kittenRequests: {
+        'https://api.example.test/api/kittens': Promise.resolve(offspring),
+      },
+    },
     location: { pathname: options.pathname || '/index.html', hash: options.hash || '', href: '' },
     scrollY: 0,
     innerWidth: 1024,

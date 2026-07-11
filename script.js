@@ -547,7 +547,7 @@ document.addEventListener('DOMContentLoaded', () => {
       birthday: '誕生日', listingId: '掲載ID', parents: '両親', dad: 'パパ', mom: 'ママ',
       previous: '前', next: '次', previousTitle: '前の子猫', nextTitle: '次の子猫',
       parentFather: 'パパ猫', parentMother: 'ママ猫', parentFallback: '親猫', photosLoading: '読み込み中...', photosPreparing: '写真準備中',
-      age: '年齢', testInfo: '検査情報', testRecorded: '検査情報あり', testMissing: '検査情報の掲載なし', noChildren: '現在表示中の子猫はいません',
+      age: '年齢', testInfo: '検査情報', testRecorded: '検査情報あり', testMissing: '検査情報の掲載なし', noChildren: '現在表示中の子猫はいません', childrenLoading: '子猫情報を読み込んでいます…', childrenError: '子猫情報を読み込めませんでした',
       male: '♂ 男の子', female: '♀ 女の子',
       lawTitle: '動物愛護管理法に基づく対面販売',
       lawText: '法律の規定により、ご購入前に必ずキャッテリーにお越しいただき、子猫と対面していただく必要がございます。',
@@ -559,7 +559,7 @@ document.addEventListener('DOMContentLoaded', () => {
       birthday: 'Birthday', listingId: 'Listing ID', parents: 'Parents', dad: 'Dad', mom: 'Mom',
       previous: 'Previous', next: 'Next', previousTitle: 'Previous kitten', nextTitle: 'Next kitten',
       parentFather: 'Father', parentMother: 'Mother', parentFallback: 'Parent cat', photosLoading: 'Loading photos...', photosPreparing: 'Photos are being prepared',
-      age: 'Age', testInfo: 'Test information', testRecorded: 'Test information recorded', testMissing: 'No test information listed', noChildren: 'No kittens are currently displayed',
+      age: 'Age', testInfo: 'Test information', testRecorded: 'Test information recorded', testMissing: 'No test information listed', noChildren: 'No kittens are currently displayed', childrenLoading: 'Loading kitten information…', childrenError: 'Unable to load kitten information',
       male: 'Male', female: 'Female',
       lawTitle: 'In-Person Sales under the Animal Protection Law',
       lawText: 'Japanese law requires an in-person meeting to see the kitten and receive an explanation before purchase. Please arrange a visit to the cattery.',
@@ -571,7 +571,7 @@ document.addEventListener('DOMContentLoaded', () => {
       birthday: '生日', listingId: '刊登ID', parents: '父母猫', dad: '爸爸', mom: '妈妈',
       previous: '上一只', next: '下一只', previousTitle: '上一只幼猫', nextTitle: '下一只幼猫',
       parentFather: '父猫', parentMother: '母猫', parentFallback: '父母猫', photosLoading: '照片加载中...', photosPreparing: '照片准备中',
-      age: '年龄', testInfo: '检测信息', testRecorded: '已登记检测信息', testMissing: '未刊登检测信息', noChildren: '目前没有显示中的幼猫',
+      age: '年龄', testInfo: '检测信息', testRecorded: '已登记检测信息', testMissing: '未刊登检测信息', noChildren: '目前没有显示中的幼猫', childrenLoading: '正在加载幼猫信息…', childrenError: '幼猫信息加载失败',
       male: '男孩', female: '女孩',
       lawTitle: '依据《动物爱护管理法》的面对面销售',
       lawText: '根据日本法律，购买前必须到访猫舍，与幼猫见面并听取相关说明。请提前预约参观。',
@@ -821,6 +821,51 @@ document.addEventListener('DOMContentLoaded', () => {
   // ===== Parent Detail Modal =====
   const parentModal = document.getElementById('parentModal');
   const parentModalClose = document.getElementById('parentModalClose');
+  let parentOffspringRenderToken = 0;
+
+  function getSharedParentKittens() {
+    const api = window.FULUCK_API_BASE || 'https://fuluck-api.mouxue56.workers.dev';
+    const store = window.FuluckPublicData || (window.FuluckPublicData = {});
+    const requests = store.kittenRequests || (store.kittenRequests = Object.create(null));
+    const url = api + '/api/kittens';
+    if (!requests[url]) {
+      const request = fetch(url)
+        .then(response => {
+          if (!response || response.ok !== true) throw new Error('Parent offspring request failed');
+          return response.json();
+        })
+        .then(data => {
+          if (!Array.isArray(data)) throw new Error('Parent offspring payload must be an array');
+          return data;
+        });
+      requests[url] = request;
+      request.catch(() => {
+        if (requests[url] === request) delete requests[url];
+      });
+    }
+    return requests[url];
+  }
+
+  function appendParentOffspring(container, kitten, copy) {
+    const status = window.FuluckKittenCatalog.normalizeStatus(kitten && kitten.status);
+    const breederId = typeof kitten?.breederId === 'string' ? kitten.breederId : '';
+    const id = breederId || (typeof kitten?.id === 'string' ? kitten.id : '');
+    const canLink = (status === 'available' || status === 'reserved')
+      && /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/.test(id);
+    const row = createModalNode(canLink ? 'a' : 'span', 'child-chip');
+    if (canLink) row.setAttribute('href', '/kittens/' + encodeURIComponent(id) + '.html');
+
+    const facts = [];
+    const breed = typeof kitten?.breed === 'string' ? kitten.breed.trim() : '';
+    const color = typeof kitten?.color === 'string' ? kitten.color.trim() : '';
+    const birthday = typeof kitten?.birthday === 'string' ? kitten.birthday.trim() : '';
+    if (breed) facts.push(breed);
+    if (color) facts.push(color);
+    if (birthday) facts.push(birthday);
+    const statusLabel = copy.status[status] || copy.status.sold;
+    row.textContent = (facts.join(' ・ ') || id || copy.parentFallback) + ' (' + statusLabel + ')';
+    container.appendChild(row);
+  }
 
   window.openParentModal = async function(card) {
     if (!parentModal) return;
@@ -876,29 +921,48 @@ document.addEventListener('DOMContentLoaded', () => {
       appendModalDetail(details, copy.testInfo, tested ? copy.testRecorded : copy.testMissing, tested ? { icon: 'ico-circle-check' } : {});
     }
 
-    // Find children kittens
+    // Resolve offspring from the same authenticated-safe public snapshot used by
+    // the catalogue widgets. DOM cards are only a static fallback and can be
+    // incomplete, so they must not decide whether a parent has offspring.
     const childrenContainer = parentModal.querySelector('.children-chips');
     if (childrenContainer) {
-      const parentName = name;
-      const field = gender === '♂' ? 'papa' : 'mama';
-      const children = Array.from(document.querySelectorAll('.kitten-card')).filter((child) => child.dataset[field] === parentName);
       childrenContainer.replaceChildren();
-      children.forEach(child => {
-        const childName = child.querySelector('h3')?.textContent || '';
-        const childMeta = child.querySelector('.kit-meta')?.textContent || '';
-        const childStatus = child.dataset.status || '';
-        const statusLabel = copy.status[childStatus] || '';
-        childrenContainer.appendChild(createModalNode('span', 'child-chip', childName + ' ' + childMeta + (statusLabel ? ' (' + statusLabel + ')' : '')));
-      });
-      if (children.length === 0) {
-        const empty = createModalNode('span', '', copy.noChildren);
-        empty.style.color = 'var(--text-note)';
-        empty.style.fontSize = '13px';
-        childrenContainer.appendChild(empty);
-      }
+      childrenContainer.setAttribute('aria-busy', 'true');
+      const loading = createModalNode('span', 'parent-offspring-state', copy.childrenLoading);
+      loading.style.color = 'var(--text-note)';
+      loading.style.fontSize = '13px';
+      childrenContainer.appendChild(loading);
     }
 
     openModalA11y(parentModal);
+
+    if (childrenContainer) {
+      const renderToken = ++parentOffspringRenderToken;
+      const field = gender === '♂' ? 'papa' : 'mama';
+      try {
+        const kittens = await getSharedParentKittens();
+        if (renderToken !== parentOffspringRenderToken) return;
+        const children = window.FuluckKittenCatalog.orderKittens(kittens)
+          .filter(kitten => kitten && kitten[field] === name);
+        childrenContainer.replaceChildren();
+        children.forEach(child => appendParentOffspring(childrenContainer, child, copy));
+        if (children.length === 0) {
+          const empty = createModalNode('span', 'parent-offspring-state', copy.noChildren);
+          empty.style.color = 'var(--text-note)';
+          empty.style.fontSize = '13px';
+          childrenContainer.appendChild(empty);
+        }
+        childrenContainer.setAttribute('aria-busy', 'false');
+      } catch (error) {
+        if (renderToken !== parentOffspringRenderToken) return;
+        childrenContainer.replaceChildren();
+        const failed = createModalNode('span', 'parent-offspring-state', copy.childrenError);
+        failed.style.color = 'var(--text-note)';
+        failed.style.fontSize = '13px';
+        childrenContainer.appendChild(failed);
+        childrenContainer.setAttribute('aria-busy', 'false');
+      }
+    }
   };
 
   function parentCardFromLocationHash() {
