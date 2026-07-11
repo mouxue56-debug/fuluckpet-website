@@ -2623,7 +2623,11 @@ function generateKittenDetailPages(kittens, parents, lang = 'ja') {
   for (const k of detailKittens) {
     const fileId = k.breederId || k.id;
     const outputPath = kittenDetailOutputPath(kittensDir, fileId);
-    const html = buildKittenDetailHtml(k, headerHtml, footerHtml, lang);
+    // Optional template fragments intentionally carry indentation around their
+    // interpolation slots. Strip line-end spaces at the final write boundary so
+    // every generated locale is byte-stable and passes repository diff hygiene.
+    const html = buildKittenDetailHtml(k, headerHtml, footerHtml, lang)
+      .replace(/[ \t]+$/gm, '');
     fs.writeFileSync(outputPath, html, 'utf-8');
     generatedCount++;
   }

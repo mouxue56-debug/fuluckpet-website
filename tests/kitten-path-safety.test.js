@@ -238,3 +238,24 @@ test('generated kitten lists contain no trailing whitespace', (t) => {
   const listing = fs.readFileSync(path.join(siteDir, 'kittens.html'), 'utf8');
   assert.doesNotMatch(listing, /[ \t]+$/m);
 });
+
+test('generated kitten detail pages contain no trailing whitespace', (t) => {
+  const { siteDir, generator } = loadGenerator(t);
+  generator.generateKittenDetailPages([{
+    breederId: 'detail-no-trailing-space',
+    status: 'available',
+    breed: 'サイベリアン',
+    gender: '♂',
+    color: 'ブルー',
+    birthday: '2026-05-01',
+    price: 100000,
+    photos: ['https://images.example.test/cat.jpg'],
+    papa: 'Parent-01',
+  }], []);
+
+  const detail = fs.readFileSync(
+    path.join(siteDir, 'kittens', 'detail-no-trailing-space.html'),
+    'utf8',
+  );
+  assert.doesNotMatch(detail, /[ \t]+$/m);
+});
