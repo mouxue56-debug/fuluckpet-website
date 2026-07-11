@@ -444,7 +444,7 @@
   function loadCatData() {
     if (typeof FuluckAPI === 'undefined') return Promise.resolve(catData);
     return Promise.all([
-      FuluckAPI.get('/api/kittens').catch(function() { return []; }),
+      FuluckAPI.get('/api/admin/kittens').catch(function() { return []; }),
       FuluckAPI.get('/api/parents').catch(function() { return []; }),
     ]).then(function(results) {
       catData.kittens = normalizeApiList(results[0], 'kittens');

@@ -64,6 +64,29 @@ test('normalizers fail closed and promotion priority accepts only tagged integer
   assert.equal(catalog.normalizePromotionPriority(null), 0);
 });
 
+test('sale prices accept only positive safe integers and canonical digit strings', () => {
+  assert.equal(catalog.normalizeSalePrice(220000), 220000);
+  assert.equal(catalog.normalizeSalePrice('220000'), 220000);
+  for (const value of [
+    0,
+    -1,
+    1.5,
+    '1e3',
+    '1,000',
+    '',
+    '0001',
+    null,
+    false,
+    NaN,
+    Infinity,
+    {},
+    [],
+    '9007199254740992',
+  ]) {
+    assert.equal(catalog.normalizeSalePrice(value), null, String(value));
+  }
+});
+
 test('promotion labels are exact in ja, en, and zh with safe fallbacks', () => {
   assert.equal(catalog.promotionLabel('featured', 'ja'), 'おすすめ');
   assert.equal(catalog.promotionLabel('featured', 'en'), 'Featured');
@@ -189,6 +212,7 @@ test('UMD module exposes the complete browser global without dependencies', () =
       'identityOf',
       'normalizePromotionPriority',
       'normalizePromotionTag',
+      'normalizeSalePrice',
       'normalizeStatus',
       'orderKittens',
       'promotionLabel',

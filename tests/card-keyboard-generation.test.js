@@ -9,7 +9,8 @@ const ROOT = path.resolve(__dirname, '..');
 const GENERATOR_SOURCE = fs.readFileSync(path.join(ROOT, 'tools/generate-site.js'), 'utf8');
 
 test('kitten listing generator emits keyboard semantics without linking sold cards', () => {
-  assert.match(GENERATOR_SOURCE, /const\s+detailEligible\s*=\s*k\.status\s*===\s*'available'\s*\|\|\s*k\.status\s*===\s*'reserved'/);
+  assert.match(GENERATOR_SOURCE, /const\s+effectiveStatus\s*=\s*KittenCatalog\.normalizeStatus\(k\.status\)/);
+  assert.match(GENERATOR_SOURCE, /const\s+detailEligible\s*=\s*effectiveStatus\s*===\s*'available'\s*\|\|\s*effectiveStatus\s*===\s*'reserved'/);
   assert.match(GENERATOR_SOURCE, /const\s+cardRole\s*=\s*detailEligible\s*\?\s*'link'\s*:\s*'button'/);
   assert.match(GENERATOR_SOURCE, /role="\$\{cardRole\}"\s+tabindex="0"\$\{modalSemantics\}/);
   assert.match(GENERATOR_SOURCE, /data-detail-url="\$\{escapeHtml\(detailUrl\)\}"/);

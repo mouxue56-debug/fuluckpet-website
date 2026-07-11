@@ -361,6 +361,39 @@ test('successful empty collections clear stale cards and publish localized hones
   }
 });
 
+test('card loader declares one shared nine-card homepage limit', () => {
+  const declarations = CARD_SOURCE.match(/\b(?:var|const|let)\s+HOME_KITTEN_LIMIT\s*=\s*9\s*;/g) || [];
+  const capApplications = CARD_SOURCE.match(/\.slice\(0,\s*HOME_KITTEN_LIMIT\)/g) || [];
+  assert.equal(declarations.length, 1);
+  assert.equal(capApplications.length, 1, 'one shared homepage selector must own the cap');
+});
+
+test('homepage initial render and language rerender share the nine-card cap', async () => {
+  const kittens = Array.from({ length: 12 }, (_, index) => ({
+    breederId: `homepage-cap-${index}`,
+    breed: 'サイベリアン',
+    color: 'ブルー',
+    gender: index % 2 ? '♀' : '♂',
+    birthday: `2026-${String((index % 9) + 1).padStart(2, '0')}-01`,
+    price: 180000 + index,
+    status: 'available',
+    photos: [`https://images.example.test/homepage-cap-${index}.jpg`],
+  }));
+  const result = runCardLoader({ payloads: { kittens: response(kittens) } });
+
+  function assertCapped(stage) {
+    assert.equal((result.kittenGrid.innerHTML.match(/class="kitten-card"/g) || []).length, 9, stage);
+    assert.equal(result.visibleCount.textContent, 9, stage);
+  }
+
+  await flushAsyncWork();
+  assertCapped('initial render');
+
+  result.listeners.langChanged();
+  await flushAsyncWork();
+  assertCapped('language rerender');
+});
+
 test('card loader validates and escapes all API-backed card fields while preserving trusted icons', async () => {
   const marker = 'PAYLOAD_MARKER';
   const result = runCardLoader({
@@ -444,8 +477,8 @@ test('card loader keeps a static list when a page response is non-OK or not an a
   }
 });
 
-test('dynamic kitten cards link only to statuses that receive generated detail pages', async () => {
-  const kittens = ['available', 'reserved', 'sold'].map((status) => ({
+test('dynamic kitten cards normalize unknown status and link only to generated details', async () => {
+  const kittens = ['available', 'reserved', 'sold', 'pending'].map((status) => ({
     breederId: `kitten-${status}`,
     breed: 'サイベリアン',
     color: 'ブルー',
@@ -466,30 +499,44 @@ test('dynamic kitten cards link only to statuses that receive generated detail p
   }
   assert.match(result.kittenGrid.innerHTML, /class="kitten-card"[^>]*role="button"[^>]*tabindex="0"[^>]*aria-haspopup="dialog"[^>]*data-status="sold"[^>]*data-detail-url=""/);
   assert.doesNotMatch(result.kittenGrid.innerHTML, /data-detail-url="\/kittens\/kitten-sold\.html"/);
+  assert.match(result.kittenGrid.innerHTML, /class="kitten-card"[^>]*role="button"[^>]*tabindex="0"[^>]*aria-haspopup="dialog"[^>]*data-status="sold"[^>]*data-breeder-id="kitten-pending"[^>]*data-detail-url=""/);
+  assert.doesNotMatch(result.kittenGrid.innerHTML, /data-detail-url="\/kittens\/kitten-pending\.html"|st-pending|>pending<\/span>/);
   assert.equal(result.schemas.length, 0, 'the static generator is the only Product schema source');
 });
 
-test('dynamic kitten cards request a price instead of rendering an empty or zero-yen price', async () => {
+test('dynamic kitten cards apply the strict sale-price contract', async () => {
+  const invalidPrices = [0, -1, 1.5, '1e3', '1,000', '', null, false, NaN, Infinity, {}, []];
   for (const [lang, expected] of [['ja', '価格はお問い合わせください'], ['en', 'Please ask for the current price'], ['zh', '价格请咨询']]) {
     const result = runCardLoader({
       page: 'kittens',
       lang,
       payloads: {
-        kittens: response([{
-          breederId: `unpriced-${lang}`,
+        kittens: response(invalidPrices.map((price, index) => ({
+          breederId: `unpriced-${lang}-${index}`,
           breed: 'サイベリアン',
           color: 'ブルー',
           gender: '♂',
           birthday: '2026-05',
-          price: '',
+          price,
           status: 'available',
           photos: ['https://images.example.test/cat.jpg'],
-        }]),
+        })).concat({
+          breederId: `priced-${lang}`,
+          breed: 'サイベリアン',
+          color: 'ブルー',
+          gender: '♀',
+          birthday: '2026-05',
+          price: '220000',
+          status: 'available',
+          photos: ['https://images.example.test/priced.jpg'],
+        })),
       },
     });
     await flushAsyncWork();
-    assert.match(result.kittenGrid.innerHTML, new RegExp(expected));
-    assert.doesNotMatch(result.kittenGrid.innerHTML, /(?:¥|&yen;)0\b|class="tax">[^<]+<\/span>\s*<\/p>/);
+    assert.equal((result.kittenGrid.innerHTML.match(new RegExp(expected, 'g')) || []).length, invalidPrices.length);
+    assert.match(result.kittenGrid.innerHTML, /data-price="220000"/);
+    assert.match(result.kittenGrid.innerHTML, /¥220,000/);
+    assert.doesNotMatch(result.kittenGrid.innerHTML, /(?:¥|&yen;)(?:0|-1|1\.5|1,?000)\b/);
   }
 });
 

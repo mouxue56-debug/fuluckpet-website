@@ -83,7 +83,7 @@
     return year * 10000 + month * 100 + day;
   }
 
-  function priceRank(value) {
+  function normalizeSalePrice(value) {
     if (typeof value === 'number') {
       return Number.isSafeInteger(value) && value > 0 ? value : null;
     }
@@ -128,8 +128,8 @@
     var secondary = secondaryOf(options);
     if (secondary === 'price-asc' || secondary === 'price-desc') {
       var priceDifference = compareMissingLast(
-        priceRank(left && left.price),
-        priceRank(right && right.price),
+        normalizeSalePrice(left && left.price),
+        normalizeSalePrice(right && right.price),
         secondary === 'price-desc',
       );
       if (priceDifference) return priceDifference;
@@ -162,6 +162,7 @@
     dedupeKittens: dedupeKittens,
     compareKittens: compareKittens,
     normalizeStatus: normalizeStatus,
+    normalizeSalePrice: normalizeSalePrice,
     normalizePromotionTag: normalizePromotionTag,
     normalizePromotionPriority: normalizePromotionPriority,
     promotionLabel: promotionLabel,

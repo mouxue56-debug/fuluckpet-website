@@ -188,11 +188,11 @@ test('every tracked CTA consumer uses the current shared-data cache version', ()
   const stale = [];
   for (const file of files) {
     const source = fs.readFileSync(path.join(ROOT, file), 'utf8');
-    if (/cta-widget\.js\?v=/.test(source) && !/cta-widget\.js\?v=20260710b/.test(source)) {
+    if (/cta-widget\.js\?v=/.test(source) && !/cta-widget\.js\?v=20260711a/.test(source)) {
       stale.push(file);
     }
   }
   assert.deepEqual(stale, []);
   const generator = fs.readFileSync(path.join(ROOT, 'tools/generate-site.js'), 'utf8');
-  assert.match(generator, /verAsset\('cta-widget\.js', '20260710b'\)/);
+  assert.match(generator, /verAsset\('cta-widget\.js', '20260711a'\)/);
 });

@@ -978,7 +978,7 @@ ${chrome.footerHtml}
   <script src="/i18n.js?v=${ver('i18n.js', '20260710b')}"></script>
   <script>window._diaryArticleI18n = ${safeJsonForHtmlScript(i18n)}; window._blogArticleI18n = window._diaryArticleI18n;</script>
   <script src="/blog/blog-i18n.js?v=${ver('blog/blog-i18n.js', '20260710b')}"></script>
-  <script src="/script.js?v=${ver('script.js', '20260710b')}"></script>
+  <script src="/script.js?v=${ver('script.js', '20260711a')}"></script>
 
   <div class="mobile-cta-bar" role="navigation" aria-label="クイック連絡">
     <div class="mobile-cta-bar-inner">
@@ -1144,7 +1144,7 @@ ${chrome.headerHtml}
 ${chrome.footerHtml}
 
   <script src="/i18n.js?v=${ver('i18n.js', '20260710b')}"></script>
-  <script src="/script.js?v=${ver('script.js', '20260710b')}"></script>
+  <script src="/script.js?v=${ver('script.js', '20260711a')}"></script>
 
   <div class="mobile-cta-bar" role="navigation" aria-label="クイック連絡">
     <div class="mobile-cta-bar-inner">

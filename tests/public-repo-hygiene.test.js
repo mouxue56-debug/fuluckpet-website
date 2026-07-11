@@ -41,3 +41,15 @@ test('gitignore blocks internal root manuals while keeping README publishable', 
   assert.equal(internal.status, 0, 'internal root manuals must be ignored');
   assert.equal(readme.status, 1, 'README.md must remain publishable');
 });
+
+test('public repository tracks no local superpowers review artifacts', () => {
+  const tracked = git(['ls-files', '.superpowers/**'])
+    .split('\n')
+    .filter(Boolean);
+
+  assert.deepEqual(
+    tracked,
+    [],
+    `local .superpowers artifacts would be published by Pages: ${tracked.join(', ')}`,
+  );
+});

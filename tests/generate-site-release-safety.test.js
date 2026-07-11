@@ -55,6 +55,7 @@ function createRunnableLastGoodSite(t, kittenMode) {
     'tools/safe-json-for-html.js',
     'kitten-catalog.js',
     'small-animals-launch.json',
+    'index.html',
     'kittens.html',
     'en/kittens.html',
     'zh/kittens.html',
@@ -184,6 +185,7 @@ test('successful empty collections replace stale catalogue artifacts with honest
 
   assert.equal(result.status, 0, `empty snapshot is authoritative; stdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
   const expectedEmptyCopy = {
+    'index.html': '現在、掲載中の子猫はいません。',
     'kittens.html': '現在、掲載中の子猫はいません。',
     'en/kittens.html': 'There are currently no kittens listed.',
     'zh/kittens.html': '目前没有在售幼猫。',
@@ -194,6 +196,11 @@ test('successful empty collections replace stale catalogue artifacts with honest
     const html = fs.readFileSync(path.join(siteDir, rel), 'utf8');
     assert.match(html, new RegExp(copy.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `${rel} must publish an honest empty state`);
   }
+  assert.match(
+    fs.readFileSync(path.join(siteDir, 'index.html'), 'utf8'),
+    /<span\b[^>]*\bid=["']visibleCount["'][^>]*>0<\/span>/i,
+    'homepage empty state must report zero visible kittens',
+  );
 
   for (const rel of ['kittens', 'en/kittens', 'zh/kittens']) {
     const detailFiles = fs.readdirSync(path.join(siteDir, rel)).filter((name) => name.endsWith('.html') && name !== 'index.html');
@@ -202,6 +209,50 @@ test('successful empty collections replace stale catalogue artifacts with honest
   const sitemap = fs.readFileSync(path.join(siteDir, 'sitemap.xml'), 'utf8');
   assert.doesNotMatch(sitemap, /\/kittens\/[^<]+\.html/, 'sitemap and detail output must describe the same empty inventory');
 });
+
+for (const scenario of [
+  {
+    label: 'missing owned marker',
+    mutate: (html) => html.replace('<!-- BEGIN GENERATED HOMEPAGE KITTENS -->', ''),
+  },
+  {
+    label: 'missing visible count target',
+    mutate: (html) => html.replace('id="visibleCount"', 'id="missingVisibleCount"'),
+  },
+  {
+    label: 'duplicate visible count target',
+    mutate: (html) => html.replace(
+      /<span\b[^>]*\bid=["']visibleCount["'][^>]*>[^<]*<\/span>/i,
+      (target) => target + target,
+    ),
+  },
+]) {
+  test(`homepage ${scenario.label} fails before changing any last-good artifact`, (t) => {
+    const { siteDir, preloadPath } = createRunnableLastGoodSite(t, 'empty');
+    const indexPath = path.join(siteDir, 'index.html');
+    fs.writeFileSync(indexPath, scenario.mutate(fs.readFileSync(indexPath, 'utf8')), 'utf8');
+    const before = artifactSnapshot(siteDir);
+    const result = childProcess.spawnSync(
+      process.execPath,
+      ['--require', preloadPath, path.join(siteDir, 'tools/generate-site.js')],
+      {
+        cwd: siteDir,
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          SMALL_ANIMALS_DARK_SLUG: '',
+          FULUCK_ADMIN_PASS: '',
+        },
+      },
+    );
+    const after = artifactSnapshot(siteDir);
+
+    assert.notEqual(result.status, 0);
+    assert.match(`${result.stdout}\n${result.stderr}`, /homepage|marker|kittensGrid|visibleCount|count target|owned/i);
+    assert.deepEqual([...after.keys()], [...before.keys()]);
+    for (const [rel, bytes] of before) assert.deepEqual(after.get(rel), bytes, rel);
+  });
+}
 
 function loadGeneratorForSite(t, siteDir) {
   let source = fs.readFileSync(GENERATOR, 'utf8').replace(

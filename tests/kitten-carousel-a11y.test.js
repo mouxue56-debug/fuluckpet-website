@@ -331,3 +331,32 @@ test('carousel dedupes before status filtering, excludes the detail kitten, orde
   assert.ok(!hrefs.includes('/en/kittens/current.html'));
   assert.ok(!hrefs.includes('/en/kittens/duplicate.html'));
 });
+
+test('carousel uses localized price inquiry for every invalid sale price', async () => {
+  const invalidPrices = [0, -1, 1.5, '1e3', '1,000', '', null, false, NaN, Infinity, {}, []];
+  for (const [lang, inquiry] of [
+    ['ja', '価格はお問い合わせください'],
+    ['en', 'Please ask for the current price'],
+    ['zh', '价格请咨询'],
+  ]) {
+    for (let index = 0; index < invalidPrices.length; index += 1) {
+      const page = createPage({
+        lang,
+        pathname: `/${lang}/blog/price.html`,
+        items: [kitten({ breederId: `invalid-${index}`, price: invalidPrices[index] })],
+      });
+      await flushAsyncWork();
+      const price = page.mount.querySelector('.kc-price');
+      assert.equal(price.textContent, inquiry, `${lang}: ${String(invalidPrices[index])}`);
+      assert.doesNotMatch(price.textContent, /¥/);
+    }
+
+    const valid = createPage({
+      lang,
+      pathname: `/${lang}/blog/price.html`,
+      items: [kitten({ price: '220000' })],
+    });
+    await flushAsyncWork();
+    assert.equal(valid.mount.querySelector('.kc-price').textContent, '¥220,000');
+  }
+});

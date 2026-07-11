@@ -146,3 +146,95 @@ test('latest sold duplicate suppresses an older available detail page and sitema
   const sitemap = fs.readFileSync(path.join(siteDir, 'sitemap.xml'), 'utf8');
   assert.doesNotMatch(sitemap, new RegExp(`/kittens/${breederId}\\.html`));
 });
+
+test('unknown read status renders as sold and never receives a detail page or sitemap URL', (t) => {
+  const { siteDir, generator } = loadGenerator(t);
+  const breederId = 'pending-status-fixture';
+  const kitten = {
+    breederId,
+    status: 'pending',
+    breed: 'サイベリアン',
+    gender: '♂',
+    color: 'ブルー',
+    birthday: '2026-05-01',
+    price: 100000,
+    photos: ['https://images.example.test/pending.jpg'],
+  };
+
+  generator.generateKittens([kitten]);
+  const listing = fs.readFileSync(path.join(siteDir, 'kittens.html'), 'utf8');
+  const card = listing.match(new RegExp(`<div class="kitten-card"[^>]*data-breeder-id="${breederId}"[^>]*>[\\s\\S]*?<\\/div>\\s*<\\/div>`));
+  assert.ok(card, 'fixture card should render in the static list');
+  assert.match(card[0], /data-status="sold"/);
+  assert.match(card[0], /class="kit-status st-sold"[^>]*>sold<\/span>/);
+  assert.match(card[0], /data-detail-url=""/);
+  assert.doesNotMatch(listing, new RegExp(`/kittens/${breederId}\\.html`));
+
+  const generated = generator.generateKittenDetailPages([kitten], []);
+  assert.deepEqual(generated, []);
+  assert.equal(fs.existsSync(path.join(siteDir, 'kittens', `${breederId}.html`)), false);
+
+  const store = { lastmodForUrl: () => '2026-07-11', save: () => {} };
+  generator.updateSitemap([], generated, store);
+  const sitemap = fs.readFileSync(path.join(siteDir, 'sitemap.xml'), 'utf8');
+  assert.doesNotMatch(sitemap, new RegExp(`/kittens/${breederId}\\.html`));
+});
+
+test('static cards and Product data share the strict sale-price contract', (t) => {
+  const { siteDir, generator } = loadGenerator(t);
+  const invalidPrices = [0, -1, 1.5, '1e3', '1,000', '', null, false, NaN, Infinity, {}, []];
+  const kittens = invalidPrices.map((price, index) => ({
+    breederId: `invalid-price-${index}`,
+    status: 'available',
+    breed: 'サイベリアン',
+    gender: '♂',
+    color: 'ブルー',
+    birthday: '2026-05-01',
+    price,
+    photos: [`https://images.example.test/invalid-${index}.jpg`],
+  }));
+  kittens.push({
+    breederId: 'valid-string-price',
+    status: 'available',
+    breed: 'サイベリアン',
+    gender: '♀',
+    color: 'ブルー',
+    birthday: '2026-05-01',
+    price: '220000',
+    photos: ['https://images.example.test/valid.jpg'],
+  });
+
+  generator.generateKittens(kittens);
+  const listing = fs.readFileSync(path.join(siteDir, 'kittens.html'), 'utf8');
+  for (let index = 0; index < invalidPrices.length; index += 1) {
+    const breederId = `invalid-price-${index}`;
+    const card = listing.match(new RegExp(`<div class="kitten-card"[^>]*data-breeder-id="${breederId}"[^>]*>[\\s\\S]*?<\\/div>\\s*<\\/div>`));
+    assert.ok(card, breederId);
+    assert.match(card[0], /data-price=""/, breederId);
+    assert.match(card[0], /価格はお問い合わせください/, breederId);
+    assert.doesNotMatch(listing, new RegExp(`kittens\\.html#${breederId}`), breederId);
+  }
+
+  const validCard = listing.match(/<div class="kitten-card"[^>]*data-breeder-id="valid-string-price"[^>]*>[\s\S]*?<\/div>\s*<\/div>/);
+  assert.ok(validCard);
+  assert.match(validCard[0], /data-price="220000"/);
+  assert.match(validCard[0], /&yen;220,000/);
+  assert.match(listing, /kittens\.html#valid-string-price/);
+});
+
+test('generated kitten lists contain no trailing whitespace', (t) => {
+  const { siteDir, generator } = loadGenerator(t);
+  generator.generateKittens([{
+    breederId: 'no-trailing-space',
+    status: 'available',
+    breed: 'サイベリアン',
+    gender: '♂',
+    color: 'ブルー',
+    birthday: '2026-05-01',
+    price: 100000,
+    photos: ['https://images.example.test/cat.jpg'],
+  }]);
+
+  const listing = fs.readFileSync(path.join(siteDir, 'kittens.html'), 'utf8');
+  assert.doesNotMatch(listing, /[ \t]+$/m);
+});

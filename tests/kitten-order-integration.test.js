@@ -65,6 +65,20 @@ test('every catalog consumer imports the shared contract', () => {
   }
 });
 
+test('every kitten price surface delegates to the shared sale-price normalizer', () => {
+  const generator = read('tools/generate-site.js');
+  const cards = read('card-loader.js');
+  const carousel = read('kitten-carousel.js');
+  const runtime = read('script.js');
+
+  assert.match(generator, /KittenCatalog\.normalizeSalePrice\(/);
+  assert.doesNotMatch(generator, /function\s+validSalePrice\b/);
+  assert.match(cards, /KittenCatalog\.normalizeSalePrice\(k\.price\)/);
+  assert.doesNotMatch(cards, /function\s+safePrice\b/);
+  assert.match(carousel, /KittenCatalog\.normalizeSalePrice\(p\)/);
+  assert.match(runtime, /price:\s*catalog\.normalizeSalePrice\(card\.dataset\.price\)/);
+});
+
 test('carousel dedupes, excludes the current kitten and orders before slice', () => {
   const source = read('kitten-carousel.js');
   assert.match(source, /orderKittens\(/);

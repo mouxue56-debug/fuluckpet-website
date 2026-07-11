@@ -125,6 +125,41 @@ test('public route projects rows while authenticated Admin reads the complete co
   assert.deepEqual(puts, []);
 });
 
+test('public kittens cache fallback applies the same projection as the primary route', async () => {
+  const privateRow = privateKitten();
+  const { env, store } = await makeEnv([]);
+  store.set('cache:fallback:kittens', JSON.stringify([privateRow]));
+  const get = env.DATA.get.bind(env.DATA);
+  env.DATA.get = async function(key, type) {
+    if (key === 'kittens') throw new Error('primary kittens unavailable');
+    return get(key, type);
+  };
+
+  const response = await fetchWorker(env, request('/api/kittens'));
+
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('X-Fallback'), 'cache');
+  assert.deepEqual(await response.json(), [publicKitten()]);
+});
+
+test('public kittens cache fallback rejects malformed and non-array JSON', async () => {
+  for (const fallback of ['{malformed', JSON.stringify({ kittens: [privateKitten()] })]) {
+    const { env, store } = await makeEnv([]);
+    store.set('cache:fallback:kittens', fallback);
+    const get = env.DATA.get.bind(env.DATA);
+    env.DATA.get = async function(key, type) {
+      if (key === 'kittens') throw new Error('primary kittens unavailable');
+      return get(key, type);
+    };
+
+    const response = await fetchWorker(env, request('/api/kittens'));
+
+    assert.equal(response.status, 503, fallback);
+    assert.equal(response.headers.get('X-Fallback'), null, fallback);
+    assert.equal((await response.json()).error, 'Service unavailable', fallback);
+  }
+});
+
 test('invalid promotion bulk requests return 400 before any KV put', async () => {
   const invalidPromotions = [
     { promotionTag: 'sale' },

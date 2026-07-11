@@ -162,6 +162,7 @@
       available: '募集中',
       reserved: '予約済',
       price: '¥{p}',
+      askPrice: '価格はお問い合わせください',
       viewAll: 'すべての子猫を見る →',
       lineBtn: 'LINEで見学予約',
       bookBtn: '<i class="ico ico-calendar-check" aria-hidden="true"></i> 見学を予約する',
@@ -178,6 +179,7 @@
       available: 'Available',
       reserved: 'Reserved',
       price: '¥{p}',
+      askPrice: 'Please ask for the current price',
       viewAll: 'View All Kittens →',
       lineBtn: 'Book a Visit on LINE',
       bookBtn: '<i class="ico ico-calendar-check" aria-hidden="true"></i> Book a Visit',
@@ -194,6 +196,7 @@
       available: '可预约',
       reserved: '已预约',
       price: '¥{p}',
+      askPrice: '价格请咨询',
       viewAll: '查看所有幼猫 →',
       lineBtn: 'LINE预约参观',
       bookBtn: '<i class="ico ico-calendar-check" aria-hidden="true"></i> 预约见学',
@@ -213,8 +216,8 @@
   }
 
   function formatPrice(p) {
-    var amount = Number(p);
-    if (!Number.isFinite(amount) || amount < 0) return '';
+    var amount = KittenCatalog.normalizeSalePrice(p);
+    if (amount === null) return t('askPrice');
     return t('price').replace('{p}', amount.toLocaleString());
   }
 

@@ -265,7 +265,7 @@ ${body}
 
   <script src="/i18n.js?v=20260710b"></script>
   <script src="/blog/blog-i18n.js?v=20260710b"></script>
-  <script src="/script.js?v=20260710b"></script>
+  <script src="/script.js?v=20260711a"></script>
 
 </body>
 </html>

@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
           status: card.dataset.status,
           promotionTag: card.dataset.promotionTag,
           promotionPriority: Number.isInteger(promotionPriority) ? promotionPriority : 0,
-          price: card.dataset.price,
+          price: catalog.normalizeSalePrice(card.dataset.price),
           birthday: card.dataset.birthday,
           card: card,
         };

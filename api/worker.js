@@ -3943,7 +3943,13 @@ export default {
         try {
           const fallback = await env.DATA.get(PUBLIC_FALLBACK_MAP[path]);
           if (fallback) {
-            return addCors(new Response(fallback, {
+            let responseBody = fallback;
+            if (path === '/api/kittens') {
+              const parsed = JSON.parse(fallback);
+              if (!Array.isArray(parsed)) throw new TypeError('Invalid kittens fallback');
+              responseBody = JSON.stringify(visibleKittens(parsed));
+            }
+            return addCors(new Response(responseBody, {
               status: 200,
               headers: {
                 'Content-Type': 'application/json',

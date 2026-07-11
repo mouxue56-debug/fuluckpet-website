@@ -18,6 +18,9 @@ const BASE_URL = 'https://fuluckpet.com';
 const PUBLIC_CATALOG_ID_RE = /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/;
 const HTTP_TIMEOUT_MS = 15000;
 const MAX_JSON_RESPONSE_BYTES = 5 * 1024 * 1024;
+const HOMEPAGE_KITTENS_START = '<!-- BEGIN GENERATED HOMEPAGE KITTENS -->';
+const HOMEPAGE_KITTENS_END = '<!-- END GENERATED HOMEPAGE KITTENS -->';
+const HOMEPAGE_KITTEN_LIMIT = 9;
 const FAVICON_HREF = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%235BC4A8'/><g fill='%23ffffff'><ellipse cx='11' cy='12' rx='2.3' ry='2.7'/><ellipse cx='21' cy='12' rx='2.3' ry='2.7'/><ellipse cx='7.5' cy='17.5' rx='2.1' ry='2.4'/><ellipse cx='24.5' cy='17.5' rx='2.1' ry='2.4'/><path d='M16 16.5c3.1 0 5.6 2.2 5.6 4.9 0 2.2-1.9 3.1-5.6 3.1s-5.6-.9-5.6-3.1c0-2.7 2.5-4.9 5.6-4.9z'/></g></svg>";
 
 // Asset cache-version map, read from the live kittens.html template so detail
@@ -237,14 +240,6 @@ function formatPrice(price) {
   return Number(price).toLocaleString('ja-JP');
 }
 
-function validSalePrice(price) {
-  if (typeof price === 'string' && price.trim() === '') return null;
-  if (typeof price === 'number') return Number.isSafeInteger(price) && price > 0 ? price : null;
-  if (typeof price !== 'string' || !/^[1-9][0-9]*$/.test(price)) return null;
-  const numeric = Number(price);
-  return Number.isSafeInteger(numeric) ? numeric : null;
-}
-
 function priceInquiryText(lang) {
   if (lang === 'en') return 'Please ask for the current price';
   if (lang === 'zh') return '价格请咨询';
@@ -305,6 +300,173 @@ function getCoverPhoto(item) {
   if (!item.photos || item.photos.length === 0) return null;
   const idx = item.coverIndex || 0;
   return item.photos[idx] || item.photos[0];
+}
+
+function safeHomepagePhoto(value) {
+  if (typeof value !== 'string' || !value || value.length > 2048 || /[\u0000-\u0020"'<>`\\]/.test(value)) return '';
+  try {
+    if (value.startsWith('/') && !value.startsWith('//')) {
+      const local = new URL(value, BASE_URL);
+      return local.pathname + local.search;
+    }
+    const parsed = new URL(value);
+    return parsed.protocol === 'https:' ? parsed.href : '';
+  } catch (_error) {
+    return '';
+  }
+}
+
+function homepageIdentity(kitten) {
+  if (!kitten || typeof kitten !== 'object' || Array.isArray(kitten)) return '';
+  if (PUBLIC_CATALOG_ID_RE.test(kitten.breederId || '')) return kitten.breederId;
+  if (PUBLIC_CATALOG_ID_RE.test(kitten.id || '')) return kitten.id;
+  return '';
+}
+
+function homepageBreedIndex(value) {
+  const breed = typeof value === 'string' ? value : '';
+  const exact = BREED_CONFIG.findIndex((config) => config.key === breed);
+  if (exact !== -1) return exact;
+  const partial = BREED_CONFIG.findIndex((config) => breed.includes(config.key) || config.key.includes(breed));
+  return partial === -1 ? 0 : partial;
+}
+
+function closingDivStart(html, openingIndex) {
+  const tags = /<div\b[^>]*>|<\/div>/gi;
+  tags.lastIndex = openingIndex;
+  let depth = 0;
+  let tag;
+  while ((tag = tags.exec(html))) {
+    if (/^<div\b/i.test(tag[0])) depth += 1;
+    else depth -= 1;
+    if (depth === 0) return tag.index;
+  }
+  return -1;
+}
+
+function validateHomepageKittensMarkers() {
+  const filepath = path.join(SITE_DIR, 'index.html');
+  const html = fs.readFileSync(filepath, 'utf8');
+  const start = html.indexOf(HOMEPAGE_KITTENS_START);
+  const end = html.indexOf(HOMEPAGE_KITTENS_END);
+  if (
+    start === -1 ||
+    end === -1 ||
+    start !== html.lastIndexOf(HOMEPAGE_KITTENS_START) ||
+    end !== html.lastIndexOf(HOMEPAGE_KITTENS_END) ||
+    start >= end
+  ) {
+    throw new Error('Homepage kittens owned markers must exist exactly once in start/end order');
+  }
+
+  const gridPattern = /<div\b[^>]*\bid=["']kittensGrid["'][^>]*>/gi;
+  const grids = [...html.matchAll(gridPattern)];
+  if (grids.length !== 1) throw new Error('Homepage kittensGrid must exist exactly once');
+  const gridOpenEnd = grids[0].index + grids[0][0].length;
+  const gridCloseStart = closingDivStart(html, grids[0].index);
+  if (
+    gridCloseStart === -1 ||
+    start < gridOpenEnd ||
+    end + HOMEPAGE_KITTENS_END.length > gridCloseStart
+  ) {
+    throw new Error('Homepage kittens owned markers must stay inside #kittensGrid');
+  }
+
+  const countTargetPattern = /<([A-Za-z][\w:-]*)\b[^>]*\s+id\s*=\s*["']visibleCount["'][^>]*>/gi;
+  const countTargets = [...html.matchAll(countTargetPattern)];
+  if (countTargets.length !== 1) {
+    throw new Error('Homepage visibleCount target must exist exactly once');
+  }
+  const countTarget = countTargets[0];
+  const countTextStart = countTarget.index + countTarget[0].length;
+  const closingTargetPattern = new RegExp(`</${countTarget[1]}\\s*>`, 'gi');
+  closingTargetPattern.lastIndex = countTextStart;
+  const closingTarget = closingTargetPattern.exec(html);
+  if (!closingTarget || html.slice(countTextStart, closingTarget.index).includes('<')) {
+    throw new Error('Homepage visibleCount target must contain plain text');
+  }
+  const countTextEnd = closingTarget.index;
+  const ownedBodyStart = start + HOMEPAGE_KITTENS_START.length;
+  if (!(countTextEnd <= ownedBodyStart || countTextStart >= end)) {
+    throw new Error('Homepage visibleCount target must not overlap the owned kittens block');
+  }
+  return { filepath, html, start, end, countTextStart, countTextEnd };
+}
+
+function homepageKittenCard(kitten, effectiveStatus, identity, photo) {
+  const salePrice = KittenCatalog.normalizeSalePrice(kitten.price);
+  const birthday = typeof kitten.birthday === 'string' ? kitten.birthday : '';
+  const gender = kitten.gender === '♂' || kitten.gender === '♀' ? kitten.gender : '';
+  const genderLabel = genderText(gender);
+  const genderIcon = gender === '♂'
+    ? '<i class="ico ico-mars" aria-hidden="true"></i> '
+    : gender === '♀'
+      ? '<i class="ico ico-venus" aria-hidden="true"></i> '
+      : '';
+  const promotionTag = KittenCatalog.normalizePromotionTag(kitten.promotionTag);
+  const promotionPriority = KittenCatalog.normalizePromotionPriority(kitten);
+  const promotionChip = promotionTag
+    ? `\n            <span class="kitten-promotion-chip usp-chip usp-chip--card" data-promotion-tag="${promotionTag}">${escapeHtml(KittenCatalog.promotionLabel(promotionTag, 'ja'))}</span>`
+    : '';
+  const newBadge = kitten.isNew === true ? '\n            <span class="kit-badge-new">NEW</span>' : '';
+  const breed = typeof kitten.breed === 'string' ? kitten.breed : '';
+  const color = typeof kitten.color === 'string' ? kitten.color : '';
+  const detailUrl = `/kittens/${encodeURIComponent(identity)}.html`;
+  return `
+        <div class="kitten-card" role="button" tabindex="0" aria-haspopup="dialog" data-status="${effectiveStatus}" data-promotion-tag="${promotionTag}" data-promotion-priority="${promotionPriority}" data-price="${salePrice === null ? '' : salePrice}" data-birthday="${escapeHtml(birthday)}" data-images="" data-video="" data-papa="${escapeHtml(kitten.papa)}" data-mama="${escapeHtml(kitten.mama)}" data-new="${kitten.isNew === true ? 'true' : 'false'}" data-name="" data-breeder-id="${identity}" data-detail-url="${detailUrl}">
+          <div class="kitten-img">
+            <img src="${escapeHtml(photo)}" alt="${escapeHtml(`${breed}の子猫 ${color} ${genderLabel}・個体番号${identity}`.replace(/\s+/g, ' ').trim())}" loading="lazy" style="width:100%;height:100%;object-fit:cover;" width="640" height="480">
+            <span class="kit-status st-${effectiveStatus}"${statusI18nKey(effectiveStatus) ? ` data-i18n="${statusI18nKey(effectiveStatus)}"` : ''}>${escapeHtml(statusText(effectiveStatus))}</span>${newBadge}
+          </div>
+          <div class="kitten-body">
+            <h3>${escapeHtml(breed)}</h3>${promotionChip}
+            <p class="kit-meta">${genderIcon}${escapeHtml(genderLabel)}${color ? ` ・ ${escapeHtml(color)}` : ''}</p>
+            <p class="kit-meta">${birthday ? `${escapeHtml(formatBirthday(birthday))}生まれ` : ''}</p>
+            <p class="kit-price">${salePrice === null ? escapeHtml(priceInquiryText('ja')) : `&yen;${formatPrice(salePrice)} <span class="tax">${taxIncl('ja')}</span>`}</p>
+          </div>
+        </div>`;
+}
+
+function generateHomepageKittens(kittens) {
+  const owned = validateHomepageKittensMarkers();
+  const selected = [];
+  for (const kitten of KittenCatalog.orderKittens(kittens)) {
+    if (!kitten || typeof kitten !== 'object' || Array.isArray(kitten)) continue;
+    const effectiveStatus = KittenCatalog.normalizeStatus(kitten.status);
+    if (effectiveStatus === 'sold' || homepageBreedIndex(kitten.breed) !== 0) continue;
+    const identity = homepageIdentity(kitten);
+    const photo = safeHomepagePhoto(getCoverPhoto(kitten));
+    if (!identity || !photo) continue;
+    selected.push({ kitten, effectiveStatus, identity, photo });
+    if (selected.length === HOMEPAGE_KITTEN_LIMIT) break;
+  }
+
+  const body = selected.length
+    ? selected.map((entry) => homepageKittenCard(entry.kitten, entry.effectiveStatus, entry.identity, entry.photo)).join('') + '\n      '
+    : `
+        <div class="catalog-empty" role="status" data-generated-empty="true" style="grid-column:1/-1;text-align:center;">
+          <p class="sec-desc">${KITTENS_EMPTY_COPY.ja.message}</p>
+        </div>
+      `;
+  const replacements = [
+    {
+      start: owned.start + HOMEPAGE_KITTENS_START.length,
+      end: owned.end,
+      value: body,
+    },
+    {
+      start: owned.countTextStart,
+      end: owned.countTextEnd,
+      value: String(selected.length),
+    },
+  ].sort((left, right) => right.start - left.start);
+  let output = owned.html;
+  for (const replacement of replacements) {
+    output = output.slice(0, replacement.start) + replacement.value + output.slice(replacement.end);
+  }
+  if (output !== owned.html) fs.writeFileSync(owned.filepath, output, 'utf8');
+  console.log(`  index.html homepage fallback -> ${selected.length} kittens`);
+  return selected.map((entry) => entry.kitten);
 }
 
 function todayISO() {
@@ -861,15 +1023,16 @@ function generateKittens(kittens, lang = 'ja') {
     let cardsHtml = '';
     for (const k of group) {
       const photo = getCoverPhoto(k);
+      const effectiveStatus = KittenCatalog.normalizeStatus(k.status);
       // First card on the page = LCP candidate: eager + high priority. Rest stay lazy.
       const imgLoadAttrs = lcpImgEmitted
         ? 'loading="lazy"'
         : 'loading="eager" fetchpriority="high"';
       lcpImgEmitted = true;
-      const st = statusText(k.status);
+      const st = statusText(effectiveStatus);
       const gt = genderText(k.gender);
       const bd = formatBirthday(k.birthday);
-      const salePrice = validSalePrice(k.price);
+      const salePrice = KittenCatalog.normalizeSalePrice(k.price);
       const pr = salePrice === null ? '' : formatPrice(salePrice);
       const isNewBadge = k.isNew ? '\n            <span class="kit-badge-new">NEW</span>' : '';
       const promotionTag = KittenCatalog.normalizePromotionTag(k.promotionTag);
@@ -877,10 +1040,13 @@ function generateKittens(kittens, lang = 'ja') {
       const promotionChip = promotionTag
         ? `\n            <span class="kitten-promotion-chip usp-chip usp-chip--card" data-promotion-tag="${escapeHtml(promotionTag)}">${escapeHtml(KittenCatalog.promotionLabel(promotionTag, lang))}</span>`
         : '';
+      const noteHtml = k.note
+        ? `\n            <p class="kit-meta" style="font-size:11px;color:var(--text-note);">${escapeHtml(k.note)}</p>`
+        : '';
 
       // Localized baked strings (ja passthrough → byte-identical). The card has no
       // data-i18n, so every visible value is emitted in-language here.
-      const stL = lang === 'ja' ? st : statusTextL(k.status, lang);
+      const stL = lang === 'ja' ? st : statusTextL(effectiveStatus, lang);
       const breedCard = lang === 'ja' ? k.breed : breedLabel(k.breed, lang);
       const colorCard = lang === 'ja' ? k.color : colorLabel(k.color, lang);
       const genderCard = lang === 'ja' ? k.gender : genderTextL(k.gender, lang); // en/zh: no ♂/♀ symbol
@@ -902,23 +1068,22 @@ function generateKittens(kittens, lang = 'ja') {
       const hypoChip = k.breed === 'サイベリアン'
         ? `\n            <span class="usp-chip usp-chip--card" data-i18n="chip.hypoallergenic">${escapeHtml(hypoChipText(lang))}</span>`
         : '';
-      const detailEligible = k.status === 'available' || k.status === 'reserved';
+      const detailEligible = effectiveStatus === 'available' || effectiveStatus === 'reserved';
       const detailUrl = detailEligible
         ? `/${langDir(lang)}kittens/${encodeURIComponent(k.breederId)}.html`
         : '';
       const cardRole = detailEligible ? 'link' : 'button';
       const modalSemantics = detailEligible ? '' : ' aria-haspopup="dialog"';
       cardsHtml += `
-        <div class="kitten-card" role="${cardRole}" tabindex="0"${modalSemantics} data-status="${escapeHtml(k.status)}" data-promotion-tag="${escapeHtml(promotionTag)}" data-promotion-priority="${promotionPriority}" data-price="${k.price || ''}" data-birthday="${escapeHtml(k.birthday)}" data-images="${escapeHtml(photo)}" data-video="" data-papa="${escapeHtml(k.papa)}" data-mama="${escapeHtml(k.mama)}" data-new="${k.isNew ? 'true' : 'false'}" data-name="" data-breeder-id="${escapeHtml(k.breederId)}" data-detail-url="${escapeHtml(detailUrl)}">
+        <div class="kitten-card" role="${cardRole}" tabindex="0"${modalSemantics} data-status="${effectiveStatus}" data-promotion-tag="${escapeHtml(promotionTag)}" data-promotion-priority="${promotionPriority}" data-price="${salePrice === null ? '' : salePrice}" data-birthday="${escapeHtml(k.birthday)}" data-images="${escapeHtml(photo)}" data-video="" data-papa="${escapeHtml(k.papa)}" data-mama="${escapeHtml(k.mama)}" data-new="${k.isNew ? 'true' : 'false'}" data-name="" data-breeder-id="${escapeHtml(k.breederId)}" data-detail-url="${escapeHtml(detailUrl)}">
           <div class="kitten-img">
             <img src="${escapeHtml(photo)}" alt="${escapeHtml(cardAlt)}" ${imgLoadAttrs} width="360" height="360" style="width:100%;height:100%;object-fit:cover;aspect-ratio:1/1;">
-            <span class="kit-status st-${escapeHtml(k.status)}"${statusI18nKey(k.status) ? ` data-i18n="${statusI18nKey(k.status)}"` : ''}>${escapeHtml(stL)}</span>${isNewBadge}
+            <span class="kit-status st-${effectiveStatus}"${statusI18nKey(effectiveStatus) ? ` data-i18n="${statusI18nKey(effectiveStatus)}"` : ''}>${escapeHtml(stL)}</span>${isNewBadge}
           </div>
           <div class="kitten-body">
             <h3>${escapeHtml(breedCard)}</h3>${promotionChip}${hypoChip}
             <p class="kit-meta">${metaLine}</p>
-            <p class="kit-meta">${bornCard}</p>
-            ${k.note ? `<p class="kit-meta" style="font-size:11px;color:var(--text-note);">${escapeHtml(k.note)}</p>` : ''}
+            <p class="kit-meta">${bornCard}</p>${noteHtml}
             <p class="kit-price">${salePrice === null ? escapeHtml(priceInquiryText(lang)) : `&yen;${pr} <span class="tax">${taxIncl(lang)}</span>`}</p>
           </div>
         </div>`;
@@ -958,12 +1123,13 @@ ${shapesHtml}
   const products = [];
   const listPageUrl = `${BASE_URL}/${langDir(lang)}kittens.html`;
   for (const k of kittens) {
+    const effectiveStatus = KittenCatalog.normalizeStatus(k.status);
     // Sold inventory deliberately has no static detail page. Omitting Product markup is
     // more truthful than advertising an Offer URL that the generator removes.
-    if (k.status !== 'available' && k.status !== 'reserved') continue;
+    if (effectiveStatus !== 'available' && effectiveStatus !== 'reserved') continue;
     const photo = getCoverPhoto(k);
     if (!photo) continue;
-    const salePrice = validSalePrice(k.price);
+    const salePrice = KittenCatalog.normalizeSalePrice(k.price);
     if (salePrice === null) continue;
     const gt = genderText(k.gender);
     const fileId = k.breederId || k.id;
@@ -1000,7 +1166,7 @@ ${shapesHtml}
         "url": `${BASE_URL}/${langDir(lang)}kittens/${fileId}.html`,
         "priceCurrency": "JPY",
         "price": String(salePrice),
-        "availability": `https://schema.org/${availMap[k.status] || 'InStock'}`,
+        "availability": `https://schema.org/${availMap[effectiveStatus]}`,
         "seller": { "@type": "Organization", "name": "福楽キャッテリー" }
       }
       // No per-kitten aggregateRating: the business-wide 5.0/113 belongs on the
@@ -1196,7 +1362,7 @@ function smallAnimalPriceHtml(price, lang, className = 'kit-price') {
 }
 
 function validSmallAnimalSalePrice(price) {
-  return validSalePrice(price);
+  return KittenCatalog.normalizeSalePrice(price);
 }
 
 function smallAnimalHead({ lang, detailId = '', title, description }) {
@@ -1330,7 +1496,7 @@ ${sections}
 ${footerHtml}
 
   <script src="/i18n.js?v=${verAsset('i18n.js', '20260710b')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20260710b')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20260711a')}"></script>
 </body>
 </html>`;
 }
@@ -1474,7 +1640,7 @@ ${footerHtml}
   });
   </script>
   <script src="/i18n.js?v=${verAsset('i18n.js', '20260710b')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20260710b')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20260711a')}"></script>
 </body>
 </html>`;
 }
@@ -1783,11 +1949,12 @@ function extractYouTubeId(video) {
 function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja') {
   headerHtml = injectSmallAnimalNavigation(headerHtml, lang);
   const fileId = kitten.breederId || kitten.id;
+  const effectiveStatus = KittenCatalog.normalizeStatus(kitten.status);
   const gt = genderText(kitten.gender);
   const genderFull = kitten.gender ? `${kitten.gender} ${gt}` : '';
-  const st = statusText(kitten.status);
+  const st = statusText(effectiveStatus);
   const bd = formatBirthday(kitten.birthday);
-  const salePrice = validSalePrice(kitten.price);
+  const salePrice = KittenCatalog.normalizeSalePrice(kitten.price);
   const pr = salePrice === null ? '' : formatPrice(salePrice);
   const coverPhoto = getCoverPhoto(kitten);
   const photos = kitten.photos || [];
@@ -1801,7 +1968,7 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja') {
   const genderL = genderTextL(kitten.gender, lang);
   const genderFullL = lang === 'ja' ? genderFull : genderL; // en/zh drop the ♂/♀ symbol (matches i18n keys)
   const bornL = bornPhrase(kitten.birthday, lang);
-  const stL = statusTextL(kitten.status, lang);
+  const stL = statusTextL(effectiveStatus, lang);
 
   // titleText: ja keeps the exact legacy form (byte-identity contract); en/zh collapse
   // whitespace so a missing field (empty color / no gender) doesn't leave a double space.
@@ -1811,12 +1978,12 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja') {
   let pageTitle, metaDesc, ldName, ldDesc;
   if (lang === 'en') {
     pageTitle = `${titleText} | Kitten Detail | Fuluck Cattery`;
-    metaDesc = `${breedL} kitten at Fuluck Cattery in Osaka. ${colorL || ''}, ${genderFullL}${bornL ? ', ' + bornL : ''}. ${salePrice === null ? priceInquiryText(lang) : `¥${pr} (tax incl.)`} ${statusTextL(kitten.status, 'en')}.`.replace(/\s+/g, ' ').trim();
+    metaDesc = `${breedL} kitten at Fuluck Cattery in Osaka. ${colorL || ''}, ${genderFullL}${bornL ? ', ' + bornL : ''}. ${salePrice === null ? priceInquiryText(lang) : `¥${pr} (tax incl.)`} ${statusTextL(effectiveStatus, 'en')}.`.replace(/\s+/g, ' ').trim();
     ldName = titleText;
     ldDesc = `${breedL} kitten from Fuluck Cattery (breeder: Ra Hoen) in Osaka. ${colorL || ''}, ${genderFullL}${bornL ? ', ' + bornL : ''}.`.replace(/\s+/g, ' ').trim();
   } else if (lang === 'zh') {
     pageTitle = `${titleText}｜幼猫详情｜福楽キャッテリー`;
-    metaDesc = `大阪福楽キャッテリー的${breedL}幼猫。${colorL || ''}、${genderFullL}${bornL ? '、' + bornL : ''}。${salePrice === null ? priceInquiryText(lang) : `¥${pr}（含税）`}${statusTextL(kitten.status, 'zh')}。`;
+    metaDesc = `大阪福楽キャッテリー的${breedL}幼猫。${colorL || ''}、${genderFullL}${bornL ? '、' + bornL : ''}。${salePrice === null ? priceInquiryText(lang) : `¥${pr}（含税）`}${statusTextL(effectiveStatus, 'zh')}。`;
     ldName = titleText;
     ldDesc = `大阪福楽キャッテリー（繁育者：罗方远）的${breedL}幼猫。${colorL || ''}、${genderFullL}${bornL ? '、' + bornL : ''}。`;
   } else {
@@ -1833,7 +2000,7 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja') {
     : 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap';
 
   // Schema availability
-  const schemaAvailability = kitten.status === 'available'
+  const schemaAvailability = effectiveStatus === 'available'
     ? 'https://schema.org/InStock'
     : 'https://schema.org/LimitedAvailability';
 
@@ -2214,7 +2381,7 @@ ${headerHtml}
 
       <!-- Status + New badge -->
       <div class="kitten-detail-status">
-        <span class="kit-status st-${escapeHtml(kitten.status)}"${statusI18nKey(kitten.status) ? ` data-i18n="${statusI18nKey(kitten.status)}"` : ''}>${escapeHtml(stL)}</span>${newBadge}
+        <span class="kit-status st-${effectiveStatus}"${statusI18nKey(effectiveStatus) ? ` data-i18n="${statusI18nKey(effectiveStatus)}"` : ''}>${escapeHtml(stL)}</span>${newBadge}
       </div>
 
       <!-- Price -->
@@ -2226,7 +2393,7 @@ ${headerHtml}
         <tr><th data-i18n="kitten.sex">性別</th><td${genderI18nKey(kitten.gender) ? ` data-i18n="${genderI18nKey(kitten.gender)}"` : ''}>${escapeHtml(genderFullL)}</td></tr>
         <tr><th data-i18n="kitten.color">毛色</th><td>${escapeHtml(colorL || '')}</td></tr>
         <tr><th data-i18n="kitten.birthday">誕生日</th><td${kitten.birthday ? ` data-i18n-birthday="${escapeHtml(kitten.birthday)}"` : ''}>${escapeHtml(bornL)}</td></tr>
-        <tr><th data-i18n="kitten.status">状態</th><td${statusI18nKey(kitten.status) ? ` data-i18n="${statusI18nKey(kitten.status)}"` : ''}>${escapeHtml(stL)}</td></tr>
+        <tr><th data-i18n="kitten.status">状態</th><td${statusI18nKey(effectiveStatus) ? ` data-i18n="${statusI18nKey(effectiveStatus)}"` : ''}>${escapeHtml(stL)}</td></tr>
         ${noteRow}
       </table>
 
@@ -2276,12 +2443,12 @@ ${footerHtml}
     });
   });
   </script>
-  <script src="/kitten-catalog.js?v=${verAsset('kitten-catalog.js', '20260710b')}"></script>
+  <script src="/kitten-catalog.js?v=${verAsset('kitten-catalog.js', '20260711a')}"></script>
   <script src="/i18n.js?v=${verAsset('i18n.js', '20260710b')}"></script>
   <script src="/catalog-i18n.js?v=${verAsset('catalog-i18n.js', '20260710b')}"></script>
-  <script src="/kitten-carousel.js?v=${verAsset('kitten-carousel.js', '20260710b')}"></script>
-  <script src="/cta-widget.js?v=${verAsset('cta-widget.js', '20260710b')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20260710b')}"></script>
+  <script src="/kitten-carousel.js?v=${verAsset('kitten-carousel.js', '20260711a')}"></script>
+  <script src="/cta-widget.js?v=${verAsset('cta-widget.js', '20260711a')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20260711a')}"></script>
 </body>
 </html>`;
 }
@@ -2364,8 +2531,9 @@ function assertSafeKittenDetailIds(kittens) {
         throw new Error(`Unsafe kitten ${field} at row ${index}: expected one public URL segment`);
       }
     }
+    const effectiveStatus = KittenCatalog.normalizeStatus(kitten && kitten.status);
     const eligible = kitten &&
-      (kitten.status === 'available' || kitten.status === 'reserved') &&
+      (effectiveStatus === 'available' || effectiveStatus === 'reserved') &&
       kitten.photos && kitten.photos.length > 0;
     if (eligible && !PUBLIC_CATALOG_ID_RE.test(kitten.breederId || kitten.id || '')) {
       throw new Error(`Unsafe kitten detail identity at row ${index}: breederId or id is required`);
@@ -2404,10 +2572,11 @@ function generateKittenDetailPages(kittens, parents, lang = 'ja') {
   }
 
   // 2. Filter eligible kittens: available or reserved, with at least 1 photo
-  const eligible = orderedKittens.filter(k =>
-    (k.status === 'available' || k.status === 'reserved') &&
-    k.photos && k.photos.length > 0
-  );
+  const eligible = orderedKittens.filter(k => {
+    const effectiveStatus = KittenCatalog.normalizeStatus(k.status);
+    return (effectiveStatus === 'available' || effectiveStatus === 'reserved') &&
+      k.photos && k.photos.length > 0;
+  });
 
   // 3. Build set of expected filenames
   const expectedFiles = new Set();
@@ -2885,6 +3054,10 @@ async function main() {
   // Validate the complete API snapshot before Drive enrichment or the first filesystem
   // write. One hostile row must leave the entire last-good static release untouched.
   assertSafeKittenDetailIds(kittens);
+  // The homepage generator owns only one explicitly marked grid block. Validate that
+  // boundary before Drive enrichment or any filesystem write so a damaged template
+  // cannot leave a partially regenerated release behind.
+  validateHomepageKittensMarkers();
 
   console.log(`  Fetched: ${kittens.length} kittens, ${smallAnimals === null ? 'unavailable' : smallAnimals.length} small animals, ${parents.length} parents, ${reviews.length} reviews, ${articles === null ? 'unavailable' : articles.length} articles, ${faq.length} FAQ`);
   console.log('');
@@ -2903,6 +3076,7 @@ async function main() {
   generateCatalogI18n();
 
   generateKittens(kittens, 'ja');
+  generateHomepageKittens(kittens);
 
   // Generate kitten detail pages (individual pages per kitten), ja then en + zh.
   let kittenDetailPages = [];

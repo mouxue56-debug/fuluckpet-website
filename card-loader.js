@@ -5,6 +5,7 @@
 
 (function() {
   var API = window.FULUCK_API_BASE || 'https://fuluck-api.mouxue56.workers.dev';
+  var HOME_KITTEN_LIMIT = 9;
   var KittenCatalog = window.FuluckKittenCatalog;
   if (!KittenCatalog) {
     console.warn('card-loader: kitten-catalog.js must load before card-loader.js');
@@ -192,14 +193,6 @@
     return value === true;
   }
 
-  function safePrice(value) {
-    if (typeof value === 'string' && !/^\d+$/.test(value)) return null;
-    if (typeof value !== 'number' && typeof value !== 'string') return null;
-    var number = Number(value);
-    if (!Number.isFinite(number) || number <= 0 || !Number.isInteger(number)) return null;
-    return number;
-  }
-
   function safeBirthday(value) {
     value = safeString(value, 10);
     var match = /^(\d{4})-(0[1-9]|1[0-2])(?:-(0[1-9]|[12]\d|3[01]))?$/.exec(value);
@@ -321,7 +314,6 @@
 
   function fmtPrice(price) {
     // 200000 → "¥200,000"
-    price = safePrice(price);
     if (price === null) return '';
     return '¥' + price.toLocaleString('ja-JP');
   }
@@ -349,7 +341,7 @@
     var genderFull = gender === '♂' ? ct('male') : gender === '♀' ? ct('female') : '';
     var dataImages = opts && opts.showImages && cover ? escAttr(cover) : '';
     var bdayText = fmtBday(k.birthday);
-    var price = safePrice(k.price);
+    var price = KittenCatalog.normalizeSalePrice(k.price);
     var priceText = fmtPrice(price);
     var isNew = safeBoolean(k.isNew);
     var promotionTag = KittenCatalog.normalizePromotionTag(k.promotionTag);
@@ -531,6 +523,12 @@
     });
   }
 
+  function selectHomepageKittens(kittens) {
+    return KittenCatalog.orderKittens(kittens).filter(function(k) {
+      return breedSectionIndex(k.breed) === 0 && KittenCatalog.normalizeStatus(k.status) !== 'sold';
+    }).slice(0, HOME_KITTEN_LIMIT);
+  }
+
   // ===== Page Detection =====
 
   var kittensGrid = document.getElementById('kittensGrid');   // index.html
@@ -555,7 +553,7 @@
       // Kittens: only Siberian group, not sold
       // Homepage Siberian subset: select by BREED (folds the mix into Siberian), not by
       // platform group — empty-group Siberian records were being dropped here too (FIX 7).
-      var sib = KittenCatalog.orderKittens(kittens).filter(function(k) { return breedSectionIndex(k.breed) === 0 && KittenCatalog.normalizeStatus(k.status) !== 'sold'; });
+      var sib = selectHomepageKittens(kittens);
       if (kittensGrid) {
         kittensGrid.innerHTML = sib.length > 0
           ? sib.map(function(k) { return kittenCardHTML(k, {showImages: false}); }).join('')
@@ -659,7 +657,7 @@
         var kittens = results[0] || [];
         var parents = results[1] || [];
         var reviews = results[2] || [];
-        var sib = KittenCatalog.orderKittens(kittens).filter(function(k) { return breedSectionIndex(k.breed) === 0 && KittenCatalog.normalizeStatus(k.status) !== 'sold'; });
+        var sib = selectHomepageKittens(kittens);
         if (kittensGrid) {
           kittensGrid.innerHTML = sib.length > 0
             ? sib.map(function(k) { return kittenCardHTML(k, {showImages: false}); }).join('')
