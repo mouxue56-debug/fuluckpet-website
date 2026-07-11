@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 const vm = require('node:vm');
+const KittenCatalog = require('../kitten-catalog.js');
 
 const ROOT = path.resolve(__dirname, '..');
 const SOURCE = fs.readFileSync(path.join(ROOT, 'kitten-carousel.js'), 'utf8');
@@ -133,7 +134,7 @@ function kitten(overrides = {}) {
   };
 }
 
-function createPage({ lang = 'en', reducedMotion = false, items = [kitten()], catalog = null } = {}) {
+function createPage({ lang = 'en', reducedMotion = false, items = [kitten()], catalog = null, pathname = '/en/blog/carousel.html' } = {}) {
   const mount = new FakeElement('div');
   mount.className = 'kitten-carousel-mount';
   const windowListeners = Object.create(null);
@@ -164,7 +165,8 @@ function createPage({ lang = 'en', reducedMotion = false, items = [kitten()], ca
   const window = {
     FULUCK_API_BASE: 'https://api.example.test',
     FULUCK_CATALOG_I18N: catalog,
-    location: { pathname: '/en/blog/carousel.html' },
+    FuluckKittenCatalog: KittenCatalog,
+    location: { pathname },
     matchMedia(query) {
       assert.equal(query, '(prefers-reduced-motion: reduce)');
       return { matches: reducedMotion };
@@ -219,8 +221,8 @@ test('catalog breed translations win, including mixed breeds, with legacy and ra
   await flushAsyncWork();
 
   assert.deepEqual(
-    page.mount.querySelectorAll('.kc-breed').map((node) => node.textContent),
-    ['Catalog Siberian', 'Siberian × British mix', 'British Longhair', '未登録猫種']
+    page.mount.querySelectorAll('.kc-breed').map((node) => node.textContent).sort(),
+    ['Catalog Siberian', 'Siberian × British mix', 'British Longhair', '未登録猫種'].sort()
   );
 });
 
@@ -298,4 +300,34 @@ test('language re-render clears the old interval and preserves an explicit pause
   assert.equal(page.activeIntervals.size, 1);
   assert.equal(replacement.getAttribute('aria-pressed'), 'false');
   assert.equal(replacement.textContent, 'Pause auto-scroll');
+});
+
+test('carousel dedupes before status filtering, excludes the detail kitten, orders, then slices', async () => {
+  const plain = Array.from({ length: 12 }, (_, index) => kitten({
+    breederId: 'plain-' + String(index).padStart(2, '0'),
+    birthday: '2026-05',
+  }));
+  const page = createPage({
+    pathname: '/en/kittens/current.html',
+    items: [
+      kitten({ breederId: 'duplicate', status: 'available', birthday: '2026-07' }),
+      ...plain,
+      kitten({ breederId: 'current', status: 'available' }),
+      kitten({
+        breederId: 'promoted',
+        status: 'available',
+        promotionTag: 'campaign',
+        promotionPriority: 999,
+        birthday: '2025-01',
+      }),
+      kitten({ breederId: 'duplicate', status: 'sold', birthday: '2026-07' }),
+    ],
+  });
+  await flushAsyncWork();
+
+  const hrefs = page.mount.querySelectorAll('.kc-card').map((node) => node.getAttribute('href'));
+  assert.equal(hrefs.length, 12);
+  assert.equal(hrefs[0], '/en/kittens/promoted.html');
+  assert.ok(!hrefs.includes('/en/kittens/current.html'));
+  assert.ok(!hrefs.includes('/en/kittens/duplicate.html'));
 });

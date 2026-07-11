@@ -8,6 +8,7 @@ const vm = require('node:vm');
 const childProcess = require('node:child_process');
 
 const ROOT = path.resolve(__dirname, '..');
+const CATALOG_SOURCE = fs.readFileSync(path.join(ROOT, 'kitten-catalog.js'), 'utf8');
 const CAROUSEL_SOURCE = fs.readFileSync(path.join(ROOT, 'kitten-carousel.js'), 'utf8');
 const CTA_SOURCE = fs.readFileSync(path.join(ROOT, 'cta-widget.js'), 'utf8');
 const CARD_SOURCE = fs.readFileSync(path.join(ROOT, 'card-loader.js'), 'utf8');
@@ -16,6 +17,11 @@ function flushAsyncWork() {
   return new Promise((resolve) => setImmediate(resolve)).then(
     () => new Promise((resolve) => setImmediate(resolve))
   );
+}
+
+function installCatalog(context) {
+  vm.runInContext(CATALOG_SOURCE, context, { filename: 'kitten-catalog.js' });
+  context.window.FuluckKittenCatalog = context.FuluckKittenCatalog;
 }
 
 function createPage(fetchImpl) {
@@ -76,6 +82,7 @@ test('carousel and CTA share one in-flight kittens request on the same page', as
     });
   });
 
+  installCatalog(page.context);
   vm.runInContext(CAROUSEL_SOURCE, page.context, { filename: 'kitten-carousel.js' });
   vm.runInContext(CTA_SOURCE, page.context, { filename: 'cta-widget.js' });
   await flushAsyncWork();
@@ -91,6 +98,7 @@ test('a shared kittens failure keeps both consumers fail-safe', async () => {
     return Promise.reject(new Error('offline'));
   });
 
+  installCatalog(page.context);
   vm.runInContext(CAROUSEL_SOURCE, page.context, { filename: 'kitten-carousel.js' });
   vm.runInContext(CTA_SOURCE, page.context, { filename: 'cta-widget.js' });
   await flushAsyncWork();
@@ -145,6 +153,7 @@ test('homepage card re-render reuses its first kittens result', async () => {
     console: { log() {}, warn() {} },
   });
 
+  installCatalog(context);
   vm.runInContext(CARD_SOURCE, context, { filename: 'card-loader.js' });
   await flushAsyncWork();
   for (const listener of listeners.langChanged || []) listener();
@@ -152,6 +161,23 @@ test('homepage card re-render reuses its first kittens result', async () => {
 
   const kittenRequests = requests.filter((url) => url.endsWith('/api/kittens'));
   assert.equal(kittenRequests.length, 1);
+});
+
+test('CTA count follows shared last-write-wins dedupe semantics', async () => {
+  const page = createPage(() => Promise.resolve({
+    ok: true,
+    json: async () => [
+      { breederId: 'duplicate', status: 'available' },
+      { breederId: 'visible', status: 'available' },
+      { breederId: 'duplicate', status: 'sold' },
+    ],
+  }));
+
+  installCatalog(page.context);
+  vm.runInContext(CTA_SOURCE, page.context, { filename: 'cta-widget.js' });
+  await flushAsyncWork();
+
+  assert.match(page.appended[0].innerHTML, /子猫募集中 1匹/);
 });
 
 test('every tracked CTA consumer uses the current shared-data cache version', () => {

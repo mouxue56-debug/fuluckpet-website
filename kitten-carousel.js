@@ -6,6 +6,11 @@
   var API = window.FULUCK_API_BASE || 'https://fuluck-api.mouxue56.workers.dev';
   var LINE_URL = 'https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true';
   var BOOKING_URL = '/booking.html';
+  var KittenCatalog = window.FuluckKittenCatalog;
+  if (!KittenCatalog) {
+    console.warn('Kitten carousel: kitten-catalog.js must load before kitten-carousel.js');
+    return;
+  }
 
   // Share the in-flight/result promise with other public widgets (notably
   // cta-widget.js) so one page view issues at most one kittens request. Failed
@@ -55,6 +60,10 @@
   function currentKittenId() {
     var m = (window.location.pathname || '').match(/\/kittens\/([^\/]+)\.html$/);
     return m ? m[1] : '';
+  }
+
+  function excludeBreederId() {
+    return safePathSegment(currentKittenId());
   }
 
   // Append ?kitten=<id> to a booking URL when we have a kitten context. Only rewrites
@@ -335,10 +344,16 @@
     var records = Array.isArray(kittens) ? kittens.filter(function(k) {
       return k && typeof k === 'object' && !Array.isArray(k);
     }) : [];
-    var available = records.filter(function(k) { return k.status === 'available'; });
-    var reserved = records.filter(function(k) { return k.status === 'reserved'; });
-    // Show available first, then reserved, max 12
-    var display = available.concat(reserved).slice(0, 12);
+    var deduped = KittenCatalog.dedupeKittens(records);
+    var excludedId = excludeBreederId();
+    var eligible = deduped.filter(function(k, index) {
+      var status = KittenCatalog.normalizeStatus(k.status);
+      return (status === 'available' || status === 'reserved') &&
+        (!excludedId || KittenCatalog.identityOf(k, index) !== excludedId);
+    });
+    // Shared order also applies last-write-wins dedupe. Exclude the detail kitten
+    // before ordering, then slice, so promoted rows outside the old first 12 can win.
+    var display = KittenCatalog.orderKittens(eligible).slice(0, 12);
     if (display.length === 0) {
       container.replaceChildren();
       return;
@@ -371,6 +386,8 @@
       var statusText = k.status === 'available' ? t('available') : t('reserved');
       var statusClass = k.status === 'available' ? 'kc-badge-available' : 'kc-badge-reserved';
       var isNew = k.isNew === true;
+      var promotionTag = KittenCatalog.normalizePromotionTag(k.promotionTag);
+      var promotionPriority = KittenCatalog.normalizePromotionPriority(k);
       // Link to individual kitten detail page; prefix with /en or /zh on those static pages
       // so the visitor stays in-language (FIX 3). ja pages emit the unprefixed path.
       var detailId = safePathSegment(k.breederId) || safePathSegment(k.id);
@@ -378,6 +395,8 @@
 
       var card = createNode('a', 'kc-card');
       card.setAttribute('href', kittenUrl);
+      card.setAttribute('data-promotion-tag', promotionTag);
+      card.setAttribute('data-promotion-priority', String(promotionPriority));
       var imageWrap = createNode('div', 'kc-img');
       var image = createNode('img');
       image.setAttribute('src', img);
@@ -390,6 +409,15 @@
 
       var info = createNode('div', 'kc-info');
       info.appendChild(createNode('p', 'kc-breed', breedName));
+      if (promotionTag) {
+        var promotionChip = createNode(
+          'span',
+          'kitten-promotion-chip usp-chip usp-chip--card',
+          KittenCatalog.promotionLabel(promotionTag, lang)
+        );
+        promotionChip.setAttribute('data-promotion-tag', promotionTag);
+        info.appendChild(promotionChip);
+      }
       var meta = createNode('p', 'kc-meta');
       appendIcon(meta, female ? 'ico-venus' : 'ico-mars');
       meta.appendChild(document.createTextNode(' ' + sexLabel + (color ? ' ・ ' + color : '')));

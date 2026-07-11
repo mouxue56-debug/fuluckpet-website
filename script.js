@@ -158,36 +158,54 @@ document.addEventListener('DOMContentLoaded', () => {
   const kittensGridEl = document.getElementById('kittensGrid');
 
   if (kittensGridEl) {
-    sortBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        sortBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const sortType = btn.dataset.sort;
-        const cards = Array.from(kittensGridEl.querySelectorAll('.kitten-card'));
+    const catalog = window.FuluckKittenCatalog;
 
-        cards.sort((a, b) => {
-          switch (sortType) {
-            case 'price-asc':
-              return parseInt(a.dataset.price || 0) - parseInt(b.dataset.price || 0);
-            case 'price-desc':
-              return parseInt(b.dataset.price || 0) - parseInt(a.dataset.price || 0);
-            case 'newest':
-              return (b.dataset.birthday || '').localeCompare(a.dataset.birthday || '');
-            default:
-              return 0;
-          }
-        });
+    function orderCards(selectedSort) {
+      const cards = Array.from(kittensGridEl.querySelectorAll('.kitten-card'));
+      if (!catalog) return cards;
+      const records = cards.map((card) => {
+        const promotionPriority = Number(card.dataset.promotionPriority);
+        return {
+          breederId: card.dataset.breederId,
+          status: card.dataset.status,
+          promotionTag: card.dataset.promotionTag,
+          promotionPriority: Number.isInteger(promotionPriority) ? promotionPriority : 0,
+          price: card.dataset.price,
+          birthday: card.dataset.birthday,
+          card: card,
+        };
+      });
+      return catalog.orderKittens(records, { secondary: selectedSort || 'default' })
+        .map((record) => record.card);
+    }
 
-        cards.forEach((card, i) => {
+    function renderSortedCards(selectedSort, animate) {
+      const cards = orderCards(selectedSort);
+      cards.forEach((card, i) => {
+        if (animate) {
           card.style.opacity = '0';
           card.style.transform = 'translateY(20px)';
-          kittensGridEl.appendChild(card);
+        }
+        kittensGridEl.appendChild(card);
+        if (animate) {
           setTimeout(() => {
             card.style.transition = 'all 0.4s ease';
             card.style.opacity = '1';
             card.style.transform = 'translateY(0)';
           }, i * 60);
-        });
+        }
+      });
+    }
+
+    // Keep the static fallback in the same default order as generated/runtime data.
+    renderSortedCards('default', false);
+
+    sortBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        sortBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const sortType = btn.dataset.sort;
+        renderSortedCards(sortType, true);
       });
     });
   }

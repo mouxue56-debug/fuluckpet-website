@@ -14,6 +14,7 @@ const PUBLIC_ASSETS = [
   'blog/blog-i18n.js',
   'blog-listing-i18n.js',
   'catalog-i18n.js',
+  'kitten-catalog.js',
   'card-loader.js',
   'faq-page-loader.js',
   'kitten-carousel.js',

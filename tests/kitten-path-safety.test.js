@@ -15,6 +15,7 @@ function loadGenerator(t) {
   fs.copyFileSync(path.join(PROJECT, 'tools/lastmod-store.js'), path.join(toolsDir, 'lastmod-store.js'));
   fs.copyFileSync(path.join(PROJECT, 'tools/robots-meta.js'), path.join(toolsDir, 'robots-meta.js'));
   fs.copyFileSync(path.join(PROJECT, 'tools/safe-json-for-html.js'), path.join(toolsDir, 'safe-json-for-html.js'));
+  fs.copyFileSync(path.join(PROJECT, 'kitten-catalog.js'), path.join(siteDir, 'kitten-catalog.js'));
   fs.copyFileSync(path.join(PROJECT, 'small-animals-launch.json'), path.join(siteDir, 'small-animals-launch.json'));
   fs.copyFileSync(path.join(PROJECT, 'kittens.html'), path.join(siteDir, 'kittens.html'));
   fs.copyFileSync(path.join(PROJECT, 'sitemap.xml'), path.join(siteDir, 'sitemap.xml'));

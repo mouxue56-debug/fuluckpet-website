@@ -5,6 +5,11 @@
 
 (function() {
   var API = window.FULUCK_API_BASE || 'https://fuluck-api.mouxue56.workers.dev';
+  var KittenCatalog = window.FuluckKittenCatalog;
+  if (!KittenCatalog) {
+    console.warn('card-loader: kitten-catalog.js must load before card-loader.js');
+    return;
+  }
 
   // ===== i18n for card-loader =====
   function getLang() {
@@ -157,22 +162,6 @@
     return ' (' + n + '匹)';
   }
 
-  // FIX 9 — display-consistency dedupe (NOT a data fix). A few breederIds have two API
-  // records; the detail-page generator collapses them last-write-wins. Mirror that here so
-  // a listing card's price matches its surviving detail page. Keep the LAST record per
-  // fileId (breederId||id) in array order. Interim measure pending owner data cleanup —
-  // we are NOT choosing which record is "true" (owner decision, flagged separately).
-  function dedupeByFileId(kittens) {
-    var order = [];
-    var byId = Object.create(null);
-    kittens.forEach(function(k, index) {
-      var id = safeString(k.breederId) || safeString(k.id) || '__row_' + index;
-      if (!Object.prototype.hasOwnProperty.call(byId, id)) order.push(id);
-      byId[id] = k; // last write wins
-    });
-    return order.map(function(id) { return byId[id]; });
-  }
-
   // ===== Utility Functions =====
 
   function isRecord(value) {
@@ -215,10 +204,6 @@
     value = safeString(value, 10);
     var match = /^(\d{4})-(0[1-9]|1[0-2])(?:-(0[1-9]|[12]\d|3[01]))?$/.exec(value);
     return match ? value : '';
-  }
-
-  function safeStatus(value) {
-    return value === 'available' || value === 'reserved' || value === 'sold' ? value : 'sold';
   }
 
   function safeGender(value) {
@@ -357,7 +342,7 @@
     var cover = getCoverPhoto(k);
     var breed = safeEmbeddedText(k.breed);
     var color = safeEmbeddedText(k.color);
-    var status = safeStatus(k.status);
+    var status = KittenCatalog.normalizeStatus(k.status);
     var statusClass = status === 'available' ? 'st-available' : status === 'reserved' ? 'st-reserved' : 'st-sold';
     var statusText = status === 'available' ? ct('available') : status === 'reserved' ? ct('reserved') : ct('sold');
     var gender = safeGender(k.gender);
@@ -367,6 +352,11 @@
     var price = safePrice(k.price);
     var priceText = fmtPrice(price);
     var isNew = safeBoolean(k.isNew);
+    var promotionTag = KittenCatalog.normalizePromotionTag(k.promotionTag);
+    var promotionPriority = KittenCatalog.normalizePromotionPriority(k);
+    var promotionChip = promotionTag
+      ? '<span class="kitten-promotion-chip usp-chip usp-chip--card" data-promotion-tag="' + escAttr(promotionTag) + '">' + escAttr(KittenCatalog.promotionLabel(promotionTag, getLang())) + '</span>'
+      : '';
     var breederId = safePathSegment(k.breederId);
     var detailId = breederId || safePathSegment(k.id);
     var video = safeVideoUrl(k.video);
@@ -389,7 +379,7 @@
     var hypoChip = k.breed === 'サイベリアン'
       ? '<span class="usp-chip usp-chip--card" data-i18n="chip.hypoallergenic">' + ct('hypoallergenic') + '</span>'
       : '';
-    return '<div class="kitten-card" role="' + cardRole + '" tabindex="0"' + modalSemantics + ' data-status="' + status + '" data-price="' + (price === null ? '' : price) + '" data-birthday="' + escAttr(fmtBdayAttr(k.birthday)) + '" data-images="' + dataImages + '" data-video="' + escAttr(video) + '" data-papa="' + escAttr(safeEmbeddedText(k.papa)) + '" data-mama="' + escAttr(safeEmbeddedText(k.mama)) + '" data-new="' + isNew + '" data-name="" data-breeder-id="' + escAttr(breederId) + '" data-detail-url="' + escAttr(detailUrl) + '">' +
+    return '<div class="kitten-card" role="' + cardRole + '" tabindex="0"' + modalSemantics + ' data-status="' + status + '" data-promotion-tag="' + escAttr(promotionTag) + '" data-promotion-priority="' + promotionPriority + '" data-price="' + (price === null ? '' : price) + '" data-birthday="' + escAttr(fmtBdayAttr(k.birthday)) + '" data-images="' + dataImages + '" data-video="' + escAttr(video) + '" data-papa="' + escAttr(safeEmbeddedText(k.papa)) + '" data-mama="' + escAttr(safeEmbeddedText(k.mama)) + '" data-new="' + isNew + '" data-name="" data-breeder-id="' + escAttr(breederId) + '" data-detail-url="' + escAttr(detailUrl) + '">' +
       '<div class="kitten-img">' +
         (cover ? '<img src="' + escAttr(cover) + '" alt="' + escAttr(ct('photoAlt')) + '" ' + imgLoad + ' style="width:100%;height:100%;object-fit:cover;">' : '<div class="img-placeholder"><span><i class="ico ico-cat" aria-hidden="true"></i></span></div>') +
         '<span class="kit-status ' + statusClass + '">' + statusText + '</span>' +
@@ -397,6 +387,7 @@
       '</div>' +
       '<div class="kitten-body">' +
         '<h3>' + escAttr(ctBreed(breed)) + '</h3>' +
+        promotionChip +
         hypoChip +
         '<p class="kit-meta">' + genderFull + ' ・ ' + escAttr(ctColor(color)) + '</p>' +
         '<p class="kit-meta">' + bdayText + '</p>' +
@@ -448,8 +439,8 @@
   // Render the kittens.html list: assign every kitten to its breed section grid
   // (FIX 7 — breed-based, never group-based, so no inventory is dropped), rewrite each
   // section header with ITS OWN grid's true count in the current language (FIX 8), and
-  // dedupe listing cards by fileId keeping the last record (FIX 9). One shared function
-  // for both the initial render and the langChanged re-render (was duplicated + drifting).
+  // apply the shared merchandising order. One shared function for both the initial
+  // render and the langChanged re-render (was duplicated + drifting).
   function renderKittensPage(kittens) {
     var sections = document.querySelectorAll('.section');
     // Collect the rendered breed sections: each carries one .kittens-grid + .sec-tag + .sec-title.
@@ -464,8 +455,8 @@
     }
     if (slots.length === 0) return;
 
-    var deduped = dedupeByFileId(kittens);
-    if (deduped.length === 0) {
+    var ordered = KittenCatalog.orderKittens(kittens);
+    if (ordered.length === 0) {
       slots.forEach(function(slot, index) {
         slot.grid.innerHTML = index === 0 ? emptyStateHTML('noKittens') : '';
         if (slot.title && slot.breedJa) slot.title.textContent = sectionBreedName(slot.breedJa) + countLabel(0);
@@ -478,7 +469,7 @@
     var buckets = slots.map(function() { return []; });
     var slotByBreed = {};
     slots.forEach(function(s, idx) { if (s.breedJa) slotByBreed[s.breedJa] = idx; });
-    deduped.forEach(function(k) {
+    ordered.forEach(function(k) {
       var breedJa = BREED_ORDER[breedSectionIndex(k.breed)];
       var idx = slotByBreed[breedJa];
       if (idx === undefined) idx = 0;
@@ -564,7 +555,7 @@
       // Kittens: only Siberian group, not sold
       // Homepage Siberian subset: select by BREED (folds the mix into Siberian), not by
       // platform group — empty-group Siberian records were being dropped here too (FIX 7).
-      var sib = dedupeByFileId(kittens).filter(function(k) { return breedSectionIndex(k.breed) === 0 && safeStatus(k.status) !== 'sold'; });
+      var sib = KittenCatalog.orderKittens(kittens).filter(function(k) { return breedSectionIndex(k.breed) === 0 && KittenCatalog.normalizeStatus(k.status) !== 'sold'; });
       if (kittensGrid) {
         kittensGrid.innerHTML = sib.length > 0
           ? sib.map(function(k) { return kittenCardHTML(k, {showImages: false}); }).join('')
@@ -668,7 +659,7 @@
         var kittens = results[0] || [];
         var parents = results[1] || [];
         var reviews = results[2] || [];
-        var sib = dedupeByFileId(kittens).filter(function(k) { return breedSectionIndex(k.breed) === 0 && safeStatus(k.status) !== 'sold'; });
+        var sib = KittenCatalog.orderKittens(kittens).filter(function(k) { return breedSectionIndex(k.breed) === 0 && KittenCatalog.normalizeStatus(k.status) !== 'sold'; });
         if (kittensGrid) {
           kittensGrid.innerHTML = sib.length > 0
             ? sib.map(function(k) { return kittenCardHTML(k, {showImages: false}); }).join('')

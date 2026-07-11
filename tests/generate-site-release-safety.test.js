@@ -53,6 +53,7 @@ function createRunnableLastGoodSite(t, kittenMode) {
     'tools/lastmod-store.js',
     'tools/robots-meta.js',
     'tools/safe-json-for-html.js',
+    'kitten-catalog.js',
     'small-animals-launch.json',
     'kittens.html',
     'en/kittens.html',

@@ -10,6 +10,7 @@ const { createLastmodStore } = require('./lastmod-store');
 const { hasNoindexMeta } = require('./robots-meta');
 const { safeJsonForHtmlScript: jsonForHtmlScript } = require('./safe-json-for-html');
 const launchConfig = require('../small-animals-launch.json');
+const KittenCatalog = require('../kitten-catalog.js');
 
 const API_BASE = 'https://fuluck-api.mouxue56.workers.dev';
 const SITE_DIR = path.resolve(__dirname, '..');
@@ -304,23 +305,6 @@ function getCoverPhoto(item) {
   if (!item.photos || item.photos.length === 0) return null;
   const idx = item.coverIndex || 0;
   return item.photos[idx] || item.photos[0];
-}
-
-// FIX 9 — display-consistency dedupe (NOT a data fix). A few breederIds have two API
-// records; the kitten DETAIL page already collapses them last-write-wins (later record
-// overwrites the earlier file). Mirror that exact semantics in the LISTINGS so a listing
-// card's price matches its surviving detail page. Keep the LAST record per fileId
-// (breederId||id) in array order. Interim measure pending the owner's data cleanup — we
-// are NOT deciding which duplicate is "true" (owner decision; flagged separately).
-function dedupeByFileId(kittens) {
-  const order = [];
-  const byId = new Map();
-  for (const k of kittens) {
-    const id = k.breederId || k.id;
-    if (!byId.has(id)) order.push(id);
-    byId.set(id, k); // last write wins
-  }
-  return order.map((id) => byId.get(id));
 }
 
 function todayISO() {
@@ -810,9 +794,9 @@ function generateKittens(kittens, lang = 'ja') {
   // This function is also imported by focused tooling/tests, so keep the write boundary
   // safe even when main() is bypassed.
   assertSafeKittenDetailIds(kittens);
-  // FIX 9: dedupe listing records by fileId (keep-last) so baked cards + per-kitten
-  // Product schema match the surviving detail page. Mirrors card-loader.js.
-  kittens = dedupeByFileId(kittens);
+  // Apply the reviewed merchandising contract before grouping by breed. Each breed
+  // bucket preserves this order, and the same call is used by the runtime renderer.
+  kittens = KittenCatalog.orderKittens(kittens);
   const filepath = path.join(SITE_DIR, 'kittens.html');
   const { header: jaHeader, tail } = extractTemplate(filepath);
   const header = injectSmallAnimalNavigation(buildListHeader(jaHeader, lang), lang);
@@ -888,6 +872,11 @@ function generateKittens(kittens, lang = 'ja') {
       const salePrice = validSalePrice(k.price);
       const pr = salePrice === null ? '' : formatPrice(salePrice);
       const isNewBadge = k.isNew ? '\n            <span class="kit-badge-new">NEW</span>' : '';
+      const promotionTag = KittenCatalog.normalizePromotionTag(k.promotionTag);
+      const promotionPriority = KittenCatalog.normalizePromotionPriority(k);
+      const promotionChip = promotionTag
+        ? `\n            <span class="kitten-promotion-chip usp-chip usp-chip--card" data-promotion-tag="${escapeHtml(promotionTag)}">${escapeHtml(KittenCatalog.promotionLabel(promotionTag, lang))}</span>`
+        : '';
 
       // Localized baked strings (ja passthrough → byte-identical). The card has no
       // data-i18n, so every visible value is emitted in-language here.
@@ -920,13 +909,13 @@ function generateKittens(kittens, lang = 'ja') {
       const cardRole = detailEligible ? 'link' : 'button';
       const modalSemantics = detailEligible ? '' : ' aria-haspopup="dialog"';
       cardsHtml += `
-        <div class="kitten-card" role="${cardRole}" tabindex="0"${modalSemantics} data-status="${escapeHtml(k.status)}" data-price="${k.price || ''}" data-birthday="${escapeHtml(k.birthday)}" data-images="${escapeHtml(photo)}" data-video="" data-papa="${escapeHtml(k.papa)}" data-mama="${escapeHtml(k.mama)}" data-new="${k.isNew ? 'true' : 'false'}" data-name="" data-breeder-id="${escapeHtml(k.breederId)}" data-detail-url="${escapeHtml(detailUrl)}">
+        <div class="kitten-card" role="${cardRole}" tabindex="0"${modalSemantics} data-status="${escapeHtml(k.status)}" data-promotion-tag="${escapeHtml(promotionTag)}" data-promotion-priority="${promotionPriority}" data-price="${k.price || ''}" data-birthday="${escapeHtml(k.birthday)}" data-images="${escapeHtml(photo)}" data-video="" data-papa="${escapeHtml(k.papa)}" data-mama="${escapeHtml(k.mama)}" data-new="${k.isNew ? 'true' : 'false'}" data-name="" data-breeder-id="${escapeHtml(k.breederId)}" data-detail-url="${escapeHtml(detailUrl)}">
           <div class="kitten-img">
             <img src="${escapeHtml(photo)}" alt="${escapeHtml(cardAlt)}" ${imgLoadAttrs} width="360" height="360" style="width:100%;height:100%;object-fit:cover;aspect-ratio:1/1;">
             <span class="kit-status st-${escapeHtml(k.status)}"${statusI18nKey(k.status) ? ` data-i18n="${statusI18nKey(k.status)}"` : ''}>${escapeHtml(stL)}</span>${isNewBadge}
           </div>
           <div class="kitten-body">
-            <h3>${escapeHtml(breedCard)}</h3>${hypoChip}
+            <h3>${escapeHtml(breedCard)}</h3>${promotionChip}${hypoChip}
             <p class="kit-meta">${metaLine}</p>
             <p class="kit-meta">${bornCard}</p>
             ${k.note ? `<p class="kit-meta" style="font-size:11px;color:var(--text-note);">${escapeHtml(k.note)}</p>` : ''}
@@ -2287,6 +2276,7 @@ ${footerHtml}
     });
   });
   </script>
+  <script src="/kitten-catalog.js?v=${verAsset('kitten-catalog.js', '20260710b')}"></script>
   <script src="/i18n.js?v=${verAsset('i18n.js', '20260710b')}"></script>
   <script src="/catalog-i18n.js?v=${verAsset('catalog-i18n.js', '20260710b')}"></script>
   <script src="/kitten-carousel.js?v=${verAsset('kitten-carousel.js', '20260710b')}"></script>
@@ -2457,7 +2447,7 @@ function generateKittenDetailPages(kittens, parents, lang = 'ja') {
   // Generate the same keep-last record exposed by the listing. This makes the
   // overwrite rule explicit, avoids redundant writes, and reports the real number
   // of unique detail URLs while legacy duplicate rows await owner cleanup.
-  const detailKittens = dedupeByFileId(eligible);
+  const detailKittens = KittenCatalog.orderKittens(eligible);
   let generatedCount = 0;
   for (const k of detailKittens) {
     const fileId = k.breederId || k.id;

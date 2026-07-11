@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 const vm = require('node:vm');
+const KittenCatalog = require('../kitten-catalog.js');
 
 const ROOT = path.resolve(__dirname, '..');
 const CAROUSEL_SOURCE = fs.readFileSync(path.join(ROOT, 'kitten-carousel.js'), 'utf8');
@@ -238,6 +239,7 @@ function runKittenCarousel(items) {
     window: {
       FULUCK_API_BASE: 'https://api.example.test',
       FULUCK_CATALOG_I18N: null,
+      FuluckKittenCatalog: KittenCatalog,
       location: { pathname: '/blog/security.html' },
       addEventListener(type, listener) { listeners[type] = listener; },
     },

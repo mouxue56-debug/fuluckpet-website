@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+const KittenCatalog = require('../kitten-catalog.js');
 
 const ROOT = path.join(__dirname, '..');
 const CARD_SOURCE = fs.readFileSync(path.join(ROOT, 'card-loader.js'), 'utf8');
@@ -97,6 +98,7 @@ function runCardLoader(options = {}) {
   const window = {
     FULUCK_API_BASE: 'https://api.example.test',
     FULUCK_CATALOG_I18N: options.catalog,
+    FuluckKittenCatalog: KittenCatalog,
     location: { pathname: page === 'index' ? '/index.html' : '/' + page + '.html' },
     addEventListener(type, fn) { listeners[type] = fn; },
     dispatchEvent() {},
