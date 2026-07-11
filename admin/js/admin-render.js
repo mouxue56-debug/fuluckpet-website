@@ -44,6 +44,26 @@ function adminRenderSafePhotoUrl(value) {
   return '';
 }
 
+function adminPromotionTagValue(record) {
+  var tag = record && record.promotionTag;
+  return tag === 'featured' || tag === 'campaign' ? tag : '';
+}
+
+function adminPromotionPriorityValue(record) {
+  var priority = record && record.promotionPriority;
+  return Number.isInteger(priority) && priority >= 0 && priority <= 999 ? priority : 0;
+}
+
+function adminPromotionTagLabel(tag) {
+  if (tag === 'featured') return t('おすすめ', '推荐');
+  if (tag === 'campaign') return t('キャンペーン', '活动');
+  return t('なし', '无');
+}
+
+function adminPromotionSummary(tag, priority) {
+  return adminPromotionTagLabel(tag) + ' #' + priority;
+}
+
 function adminRenderPhotoCell(type, id, cover, fallbackEmoji) {
   var cell = document.createElement('td');
   cell.className = 'thumb-cell';
@@ -247,6 +267,18 @@ function renderKittens(filter) {
     if (k.isNew) statusCell.appendChild(adminRenderElement('span', ' NEW', '', {
       background: 'var(--mint)', color: 'white', fontSize: '10px', padding: '1px 6px', borderRadius: '4px'
     }));
+    var promotionTag = adminPromotionTagValue(k);
+    if (promotionTag) {
+      var promotionColors = promotionTag === 'campaign'
+        ? { background: '#FFFAF0', color: '#C05621' }
+        : { background: '#E6FFFA', color: '#285E61' };
+      statusCell.appendChild(adminRenderElement(
+        'span',
+        adminPromotionSummary(promotionTag, adminPromotionPriorityValue(k)),
+        'status-badge',
+        Object.assign({ display: 'inline-block', marginTop: '4px', fontSize: '10px' }, promotionColors)
+      ));
+    }
     row.appendChild(statusCell);
     row.appendChild(adminRenderCell((k.papa || '--') + ' / ' + (k.mama || '--'), { fontSize: '12px', whiteSpace: 'nowrap' }));
 
@@ -316,6 +348,8 @@ function openKittenForm(kitten) {
   document.getElementById('kf_price').value = kitten ? kitten.price : '';
   document.getElementById('kf_status').value = kitten ? kitten.status : 'available';
   document.getElementById('kf_isNew').value = kitten ? String(kitten.isNew) : 'true';
+  document.getElementById('kf_promotionTag').value = adminPromotionTagValue(kitten);
+  document.getElementById('kf_promotionPriority').value = adminPromotionPriorityValue(kitten);
   document.getElementById('kf_note').value = kitten ? (kitten.note||'') : '';
   document.getElementById('kf_video').value = kitten ? (kitten.video||'') : '';
 
@@ -334,6 +368,18 @@ function editKitten(id) {
 
 function saveKitten() {
   var editId = document.getElementById('kittenEditId').value;
+  var promotionTag = document.getElementById('kf_promotionTag').value;
+  var promotionPriority = Number(document.getElementById('kf_promotionPriority').value || 0);
+  if (
+    (promotionTag !== '' && promotionTag !== 'featured' && promotionTag !== 'campaign') ||
+    !Number.isInteger(promotionPriority) ||
+    promotionPriority < 0 ||
+    promotionPriority > 999 ||
+    (!promotionTag && promotionPriority > 0)
+  ) {
+    showToast(t('促销排序设置不正确', '促销排序设置不正确'), 'error');
+    return;
+  }
   var obj = {
     breederId: document.getElementById('kf_breederId').value.trim(),
     breed: document.getElementById('kf_breed').value,
@@ -343,6 +389,8 @@ function saveKitten() {
     price: parseInt(document.getElementById('kf_price').value) || 0,
     status: document.getElementById('kf_status').value,
     isNew: document.getElementById('kf_isNew').value === 'true',
+    promotionTag: promotionTag,
+    promotionPriority: promotionPriority,
     papa: document.getElementById('kf_papa').value,
     mama: document.getElementById('kf_mama').value,
     note: document.getElementById('kf_note').value.trim(),
@@ -353,7 +401,18 @@ function saveKitten() {
 
   if (editId) {
     var idx = data.kittens.findIndex(function(k) { return k.id === editId; });
-    if (idx >= 0) { Object.assign(data.kittens[idx], obj); addLog(t('子猫 ' + obj.breederId + ' を編集しました','编辑了子猫 ' + obj.breederId)); }
+    if (idx >= 0) {
+      var previousTag = adminPromotionTagValue(data.kittens[idx]);
+      var previousPriority = adminPromotionPriorityValue(data.kittens[idx]);
+      Object.assign(data.kittens[idx], obj);
+      addLog(t('子猫 ' + obj.breederId + ' を編集しました','编辑了子猫 ' + obj.breederId));
+      if (previousTag !== promotionTag || previousPriority !== promotionPriority) {
+        addLog(t(
+          '子猫 ' + obj.breederId + ' のプロモーションを「' + adminPromotionSummary(previousTag, previousPriority) + '」から「' + adminPromotionSummary(promotionTag, promotionPriority) + '」に変更しました',
+          '子猫 ' + obj.breederId + ' 促销设置由「' + adminPromotionSummary(previousTag, previousPriority) + '」改为「' + adminPromotionSummary(promotionTag, promotionPriority) + '」'
+        ));
+      }
+    }
   } else {
     obj.id = 'k' + Date.now();
     obj.group = '';

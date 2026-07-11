@@ -174,6 +174,8 @@ function renderHarness() {
       price: 123000,
       status: 'available',
       isNew: true,
+      promotionTag: 'campaign',
+      promotionPriority: 999,
       papa: '<iframe srcdoc="<script>' + marker + '</script>">Papa',
       mama: 'Mama & Co',
       photos: ['javascript:' + marker],
@@ -245,6 +247,7 @@ test('catalogue rows, reviews, parent options, and change logs render hostile fi
   assert.match(combinedText, /<img src=x onerror=/, 'hostile-looking values remain visible as literal text');
   assert.match(combinedText, /<svg onload=/);
   assert.match(combinedText, /<script>/);
+  assert.match(visibleText(elements.get('kittensTableBody')), /キャンペーン #999/);
   assert.equal(context.__adminRenderPwned, undefined);
 
   const tableImages = ['kittensTableBody', 'parentsTableBody']
