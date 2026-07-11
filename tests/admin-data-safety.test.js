@@ -111,6 +111,10 @@ function json(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+function adminCollectionPath(type) {
+  return type === 'kittens' ? '/api/admin/kittens' : '/api/' + type;
+}
+
 test('admin bundle contains no hard-coded catalogue fallback collections', () => {
   assert.doesNotMatch(CORE, /DEFAULT_(?:KITTENS|PARENTS|REVIEWS)/);
 });
@@ -150,9 +154,24 @@ test('three successful empty collections are authoritative remote truth', async 
   assert.deepEqual(json(context.data), { kittens: [], parents: [], reviews: [] });
 });
 
+test('primary kitten sync reads the authenticated full collection, never the public projection', async () => {
+  const remote = {
+    '/api/admin/kittens': [{ id: 'k1', internalOnly: 'must survive admin round trips' }],
+    '/api/parents': [],
+    '/api/reviews': [],
+  };
+  const { context, calls } = harness({ get: (pathname) => Promise.resolve(remote[pathname]) });
+
+  await context.syncFromAPI();
+
+  assert.deepEqual(calls.get, ['/api/admin/kittens', '/api/parents', '/api/reviews']);
+  assert.equal(calls.get.includes('/api/kittens'), false);
+  assert.equal(json(context.data).kittens[0].internalOnly, 'must survive admin round trips');
+});
+
 test('save writes only changed collections and a second no-op save writes nothing', async () => {
   const remote = {
-    '/api/kittens': [{ id: 'k1', status: 'available' }],
+    '/api/admin/kittens': [{ id: 'k1', status: 'available' }],
     '/api/parents': [{ id: 'p1', name: 'Parent' }],
     '/api/reviews': [{ id: 'r1', body: 'Review' }],
   };
@@ -169,7 +188,7 @@ test('save writes only changed collections and a second no-op save writes nothin
 
 test('overlapping saves are serialized so an older request cannot finish last', async () => {
   const remote = {
-    '/api/kittens': [{ id: 'k1', status: 'available' }],
+    '/api/admin/kittens': [{ id: 'k1', status: 'available' }],
     '/api/parents': [],
     '/api/reviews': [],
   };
@@ -199,7 +218,7 @@ test('overlapping saves are serialized so an older request cannot finish last', 
 
 test('remote refresh waits for an in-flight save before reading KV again', async () => {
   const remote = {
-    '/api/kittens': [{ id: 'k1', status: 'available' }],
+    '/api/admin/kittens': [{ id: 'k1', status: 'available' }],
     '/api/parents': [],
     '/api/reviews': [],
   };
@@ -208,7 +227,7 @@ test('remote refresh waits for an in-flight save before reading KV again', async
     get: (pathname) => Promise.resolve(remote[pathname]),
     bulkImport: (type, items) => new Promise((resolve) => {
       finishWrite = function() {
-        remote['/api/' + type] = json(items);
+        remote[adminCollectionPath(type)] = json(items);
         resolve({ success: true });
       };
     }),
@@ -230,7 +249,7 @@ test('remote refresh waits for an in-flight save before reading KV again', async
 
 test('partial multi-collection success updates per-collection snapshot before the next save', async () => {
   const remote = {
-    '/api/kittens': [{ id: 'k1', status: 'available' }],
+    '/api/admin/kittens': [{ id: 'k1', status: 'available' }],
     '/api/parents': [{ id: 'p1', name: 'Original' }],
     '/api/reviews': [],
   };
@@ -239,7 +258,7 @@ test('partial multi-collection success updates per-collection snapshot before th
     get: (pathname) => Promise.resolve(json(remote[pathname])),
     bulkImport(type, items) {
       if (type === 'parents' && failParents) return Promise.reject(new Error('parents unavailable'));
-      remote['/api/' + type] = json(items);
+      remote[adminCollectionPath(type)] = json(items);
       return Promise.resolve({ success: true });
     },
   });
@@ -257,7 +276,7 @@ test('partial multi-collection success updates per-collection snapshot before th
   failParents = false;
   await revert;
 
-  assert.equal(remote['/api/kittens'][0].status, 'available');
+  assert.equal(remote['/api/admin/kittens'][0].status, 'available');
   assert.equal(remote['/api/parents'][0].name, 'Original');
   assert.equal(json(context.remoteDataSnapshot).kittens[0].status, 'available');
   assert.deepEqual(
@@ -268,7 +287,7 @@ test('partial multi-collection success updates per-collection snapshot before th
 
 test('bulk failure remains rejected and blocks publish', async () => {
   const remote = {
-    '/api/kittens': [{ id: 'k1', status: 'available' }],
+    '/api/admin/kittens': [{ id: 'k1', status: 'available' }],
     '/api/parents': [],
     '/api/reviews': [],
   };
@@ -285,7 +304,7 @@ test('bulk failure remains rejected and blocks publish', async () => {
 
 test('UI save wrapper reports failure without an unhandled rejection or false publish', async () => {
   const remote = {
-    '/api/kittens': [{ id: 'k1', status: 'available' }],
+    '/api/admin/kittens': [{ id: 'k1', status: 'available' }],
     '/api/parents': [],
     '/api/reviews': [],
   };
@@ -319,7 +338,7 @@ test('reset clears local cache and delegates to remote sync instead of defaults'
 
 test('legacy migration cannot bypass the guarded changed-collection save path', async () => {
   const remote = {
-    '/api/kittens': [{ id: 'k1', status: 'available' }],
+    '/api/admin/kittens': [{ id: 'k1', status: 'available' }],
     '/api/parents': [],
     '/api/reviews': [],
   };
@@ -338,7 +357,7 @@ test('legacy migration cannot bypass the guarded changed-collection save path', 
 
 test('failed import remains the active working copy and retry converges UI and snapshot', async () => {
   const remote = {
-    '/api/kittens': [{ id: 'old', status: 'available' }],
+    '/api/admin/kittens': [{ id: 'old', status: 'available' }],
     '/api/parents': [],
     '/api/reviews': [],
   };

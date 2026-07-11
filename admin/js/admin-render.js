@@ -111,7 +111,7 @@ function syncFromAPI() {
       throw new Error('Remote sync API is unavailable.');
     }
     return Promise.all([
-      FuluckAPI.get('/api/kittens'),
+      FuluckAPI.get('/api/admin/kittens'),
       FuluckAPI.get('/api/parents'),
       FuluckAPI.get('/api/reviews')
     ]);

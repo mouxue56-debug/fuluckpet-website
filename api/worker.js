@@ -30,10 +30,29 @@
 
 import launchConfig from '../small-animals-launch.json' with { type: 'json' };
 
+const PUBLIC_KITTEN_FIELDS = Object.freeze([
+  'id', 'breederId', 'breed', 'color', 'gender', 'price', 'status', 'birthday',
+  'photos', 'coverIndex', 'video', 'isNew', 'papa', 'mama', 'note',
+  'promotionTag', 'promotionPriority',
+]);
+
 const PUBLIC_SMALL_ANIMAL_FIELDS = Object.freeze([
   'breederId', 'species', 'breed', 'color', 'gender', 'price', 'status',
   'birthday', 'photos', 'coverIndex', 'video', 'isNew',
 ]);
+
+function projectFields(record, fields) {
+  const visible = {};
+  for (const field of fields) {
+    if (Object.prototype.hasOwnProperty.call(record, field)) visible[field] = record[field];
+  }
+  return visible;
+}
+
+function visibleKittens(data) {
+  if (!Array.isArray(data)) return [];
+  return data.filter(isPlainObject).map((kitten) => projectFields(kitten, PUBLIC_KITTEN_FIELDS));
+}
 
 function visibleSmallAnimals(data, isPublic = launchConfig.public === true) {
   if (!isPublic || !Array.isArray(data)) return [];
@@ -1190,8 +1209,12 @@ function validateBreederIdUniqueness(currentList, incomingList) {
 //   * status  — if present, must be one of the known enum the site/generator understand
 //               (statusText / statusI18nKey: available | reserved | sold).
 //   * photos  — if present, must be an array of strings (the gallery maps over it).
+//   * promotionTag — if present, must be empty, featured, or campaign.
+//   * promotionPriority — if present, must be an integer number from 0 through 999;
+//                         a positive priority requires a non-empty promotion tag.
 // A non-object item is rejected outright.
 const KITTEN_STATUS_ENUM = ['available', 'reserved', 'sold'];
+const KITTEN_PROMOTION_TAG_ENUM = ['', 'featured', 'campaign'];
 const PUBLIC_CATALOG_ID_RE = /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/;
 
 function isSafePublicCatalogId(value) {
@@ -1246,6 +1269,30 @@ function validateKittenShapes(items) {
       if (!Array.isArray(k.photos) || !k.photos.every((p) => typeof p === 'string')) {
         errors.push({ breederId: bid, field: 'photos', reason: 'not an array of strings' });
       }
+    }
+    const hasPromotionTag = Object.prototype.hasOwnProperty.call(k, 'promotionTag');
+    const hasPromotionPriority = Object.prototype.hasOwnProperty.call(k, 'promotionPriority');
+    if (hasPromotionTag && !KITTEN_PROMOTION_TAG_ENUM.includes(k.promotionTag)) {
+      errors.push({
+        breederId: bid,
+        field: 'promotionTag',
+        reason: `not in [${KITTEN_PROMOTION_TAG_ENUM.join(', ')}]`,
+      });
+    }
+    if (
+      hasPromotionPriority &&
+      (typeof k.promotionPriority !== 'number' ||
+        !Number.isInteger(k.promotionPriority) ||
+        k.promotionPriority < 0 ||
+        k.promotionPriority > 999)
+    ) {
+      errors.push({ breederId: bid, field: 'promotionPriority', reason: 'not an integer number from 0 through 999' });
+    } else if (
+      hasPromotionPriority &&
+      k.promotionPriority > 0 &&
+      (!hasPromotionTag || k.promotionTag === '')
+    ) {
+      errors.push({ breederId: bid, field: 'promotionPriority', reason: 'positive priority requires a promotion tag' });
     }
   }
   if (errors.length) return { ok: false, errors };
@@ -2288,7 +2335,7 @@ export default {
       // GET /api/kittens — 公開：子猫一覧
       if (path === '/api/kittens' && method === 'GET') {
         const data = await env.DATA.get('kittens', 'json');
-        return addCors(json(data || [], 200, 'no-store'));
+        return addCors(json(visibleKittens(data), 200, 'no-store'));
       }
 
       // GET /api/parents — 公開：親猫一覧
@@ -3918,4 +3965,4 @@ export default {
 // Named exports for unit testing (ignored by the Workers runtime, which only reads
 // the default export). tests/validate-breederid.test.js keeps a synced copy because
 // this project has no package.json / module toolchain to import ESM from plain Node.
-export { validateBreederIdUniqueness, dupCounts, validateKittenShapes, isSafePublicCatalogId, validateSmallAnimalShape, visibleSmallAnimals, validateCalendarEvent, rangeOverlap, icsEscape, buildIcs, bookingStatusToEventStatus, applyBookingCalendarSync };
+export { validateBreederIdUniqueness, dupCounts, validateKittenShapes, isSafePublicCatalogId, visibleKittens, validateSmallAnimalShape, visibleSmallAnimals, validateCalendarEvent, rangeOverlap, icsEscape, buildIcs, bookingStatusToEventStatus, applyBookingCalendarSync };

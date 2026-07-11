@@ -2,7 +2,7 @@
  * Unit tests for B3 bulk-save kitten field-shape validation.
  *
  * SYNC NOTE: the function below is a byte-for-byte copy of `validateKittenShapes`
- * (and its KITTEN_STATUS_ENUM) in ../api/worker.js. This project has no
+ * (and its kitten enums) in ../api/worker.js. This project has no
  * package.json / module toolchain, so importing the ESM worker from plain Node is
  * not set up; duplicating the pure logic here (with this note) mirrors the
  * validate-breederid.test.js precedent. If you change the rule in worker.js,
@@ -16,6 +16,7 @@ const assert = require('assert');
 
 // ---- copy of api/worker.js pure logic (keep in sync) ----
 const KITTEN_STATUS_ENUM = ['available', 'reserved', 'sold'];
+const KITTEN_PROMOTION_TAG_ENUM = ['', 'featured', 'campaign'];
 const PUBLIC_CATALOG_ID_RE = /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/;
 
 function isSafePublicCatalogId(value) {
@@ -62,6 +63,30 @@ function validateKittenShapes(items) {
       if (!Array.isArray(k.photos) || !k.photos.every((p) => typeof p === 'string')) {
         errors.push({ breederId: bid, field: 'photos', reason: 'not an array of strings' });
       }
+    }
+    const hasPromotionTag = Object.prototype.hasOwnProperty.call(k, 'promotionTag');
+    const hasPromotionPriority = Object.prototype.hasOwnProperty.call(k, 'promotionPriority');
+    if (hasPromotionTag && !KITTEN_PROMOTION_TAG_ENUM.includes(k.promotionTag)) {
+      errors.push({
+        breederId: bid,
+        field: 'promotionTag',
+        reason: `not in [${KITTEN_PROMOTION_TAG_ENUM.join(', ')}]`,
+      });
+    }
+    if (
+      hasPromotionPriority &&
+      (typeof k.promotionPriority !== 'number' ||
+        !Number.isInteger(k.promotionPriority) ||
+        k.promotionPriority < 0 ||
+        k.promotionPriority > 999)
+    ) {
+      errors.push({ breederId: bid, field: 'promotionPriority', reason: 'not an integer number from 0 through 999' });
+    } else if (
+      hasPromotionPriority &&
+      k.promotionPriority > 0 &&
+      (!hasPromotionTag || k.promotionTag === '')
+    ) {
+      errors.push({ breederId: bid, field: 'promotionPriority', reason: 'positive priority requires a promotion tag' });
     }
   }
   if (errors.length) return { ok: false, errors };
@@ -206,6 +231,28 @@ test('production-style ids and an empty draft breederId remain valid', () => {
     { breederId: '2607-00594', id: '54c902a8-1419-4d17-bb9d-03a08bada302', status: 'available' },
     { breederId: '', id: 'draft_01', status: 'reserved' },
   ]), { ok: true });
+});
+
+test('promotion boundaries pass', () => {
+  assert.deepStrictEqual(validateKittenShapes([
+    { breederId: 'A', status: 'available', birthday: '2026-07', promotionTag: 'featured', promotionPriority: 0 },
+    { breederId: 'B', status: 'reserved', birthday: '2026-07-01', promotionTag: 'campaign', promotionPriority: 999 },
+    { breederId: 'C', promotionTag: '', promotionPriority: 0 },
+  ]), { ok: true });
+});
+
+test('invalid promotion writes are rejected', () => {
+  for (const item of [
+    { promotionTag: 'sale' },
+    { promotionTag: 'featured', promotionPriority: -1 },
+    { promotionTag: 'featured', promotionPriority: 1.5 },
+    { promotionTag: 'featured', promotionPriority: 1000 },
+    { promotionTag: 'featured', promotionPriority: '1' },
+    { promotionTag: '', promotionPriority: 1 },
+    { promotionPriority: 1 },
+  ]) {
+    assert.strictEqual(validateKittenShapes([{ breederId: 'A', ...item }]).ok, false, JSON.stringify(item));
+  }
 });
 
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
