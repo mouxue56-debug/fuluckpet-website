@@ -4,6 +4,7 @@
 name = "fuluck-api"
 main = "worker.js"
 compatibility_date = "2024-09-23"
+workers_dev = true
 
 # 環境変数 (本番では Workers Settings > Variables で設定)
 [vars]
@@ -39,10 +40,12 @@ binding = "DATA"
 id = "d319e99874ef40d5b5836587edfee243"
 # preview_id = "YOUR_KV_PREVIEW_ID_HERE"  # ローカル開発用
 
-# カスタムドメイン (オプション)
-# routes = [
-#   { pattern = "api.fuluckpet.com/*", zone_name = "fuluckpet.com" }
-# ]
+# Exact tombstone for a legacy owner-gated pricing asset that was once published
+# with an immutable one-year cache policy. The source file is deleted; this route
+# makes the bare cached URL fail closed without widening the Worker over the site.
+[[routes]]
+pattern = "fuluckpet.com/boarding-config.js"
+zone_name = "fuluckpet.com"
 
 # デプロイ手順:
 # 1. npm install -g wrangler

@@ -65,3 +65,14 @@ test('public guide pricing has no owner-gated boarding quote', () => {
     assert.doesNotMatch(source, boardingQuote, relative);
   }
 });
+
+test('the cached legacy pricing URL is tombstoned by one exact Worker route', () => {
+  const config = fs.readFileSync(path.join(ROOT, 'api/wrangler.toml'), 'utf8');
+  assert.match(config, /^workers_dev\s*=\s*true\s*$/m, 'the API workers.dev endpoint must remain enabled');
+  assert.match(
+    config,
+    /\[\[routes\]\][\s\S]*?pattern\s*=\s*"fuluckpet\.com\/boarding-config\.js"[\s\S]*?zone_name\s*=\s*"fuluckpet\.com"/,
+    'one exact route must override the immutable legacy cache entry',
+  );
+  assert.doesNotMatch(config, /pattern\s*=\s*"(?:\*\.)?fuluckpet\.com\/\*"/);
+});

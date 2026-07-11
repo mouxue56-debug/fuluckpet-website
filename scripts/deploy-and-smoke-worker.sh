@@ -264,6 +264,16 @@ else
   fail "/api/kittens -> HTTP $code, count=$count (expected 200 / non-empty array)"
 fi
 
+# A deleted owner-gated price file was previously cached as immutable. The exact
+# Worker route must override that legacy object while leaving the rest of the site
+# on its existing origin.
+code="$(curl -s -o /dev/null -w '%{http_code}' "$SITE_ORIGIN/boarding-config.js")"
+if [ "$code" = "404" ]; then
+  pass "legacy boarding pricing URL -> 404 tombstone"
+else
+  fail "legacy boarding pricing URL -> $code (expected 404 tombstone)"
+fi
+
 # ---------------------------------------------------------------------------
 # 3. Small-animal dark-launch API: public empty/list response + private gates
 # ---------------------------------------------------------------------------
