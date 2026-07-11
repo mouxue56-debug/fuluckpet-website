@@ -37,3 +37,6 @@ docs/
 
 # Local-only generated previews (may contain secret launch slugs)
 .private-preview/
+
+# Isolated Codex implementation worktrees
+.worktrees/
