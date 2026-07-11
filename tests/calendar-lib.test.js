@@ -26,7 +26,7 @@ function isRealDate(s) {
 
 const CAL_EVENT_TYPES = ['visit', 'boarding', 'block', 'note'];
 const CAL_STATUSES = ['pending', 'confirmed', 'done', 'cancelled'];
-const CAL_PET_TYPES = ['cat', 'small_dog', 'medium_dog', 'large_dog'];
+const CAL_PET_TYPES = ['cat', 'rabbit', 'hamster', 'other_small_animal'];
 const CAL_SOURCES = ['booking-form', 'admin', 'ai'];
 const CAL_TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
@@ -246,10 +246,10 @@ function buildIcs(events, nowStamp) {
 test('valid create — full event passes, unknown fields absent from data', () => {
   const { errors, data } = validateCalendarEvent({
     type: 'boarding',
-    title: 'ポチ お預かり',
+    title: 'うさぎ お預かり',
     start: '2026-08-10',
     end: '2026-08-12',
-    petType: 'small_dog',
+    petType: 'rabbit',
     status: 'confirmed',
     notes: 'ワクチン済',
     source: 'admin',
@@ -257,10 +257,10 @@ test('valid create — full event passes, unknown fields absent from data', () =
   }, { partial: false });
   assert.deepEqual(errors, []);
   assert.equal(data.type, 'boarding');
-  assert.equal(data.title, 'ポチ お預かり');
+  assert.equal(data.title, 'うさぎ お預かり');
   assert.equal(data.start, '2026-08-10');
   assert.equal(data.end, '2026-08-12');
-  assert.equal(data.petType, 'small_dog');
+  assert.equal(data.petType, 'rabbit');
   assert.equal(data.status, 'confirmed');
 });
 
@@ -285,9 +285,15 @@ test('rejects bad status enum', () => {
   assert.ok(errors.some((e) => e.startsWith('status must be one of')));
 });
 
-test('rejects bad petType enum', () => {
-  const { errors } = validateCalendarEvent({ type: 'boarding', title: 'x', start: '2026-01-01', end: '2026-01-01', petType: 'hamster' });
-  assert.ok(errors.some((e) => e.startsWith('petType must be one of')));
+test('calendar accepts licensed boarding types and rejects legacy dog writes', () => {
+  for (const petType of ['cat', 'rabbit', 'hamster', 'other_small_animal']) {
+    const { errors } = validateCalendarEvent({ type: 'boarding', title: 'x', start: '2026-01-01', end: '2026-01-01', petType });
+    assert.deepEqual(errors, [], petType);
+  }
+  for (const petType of ['small_dog', 'medium_dog', 'large_dog']) {
+    const { errors } = validateCalendarEvent({ type: 'boarding', title: 'x', start: '2026-01-01', end: '2026-01-01', petType });
+    assert.ok(errors.some((e) => e.startsWith('petType must be one of')), petType);
+  }
 });
 
 test('rejects bad source enum', () => {

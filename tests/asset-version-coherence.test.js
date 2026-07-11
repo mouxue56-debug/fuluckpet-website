@@ -9,16 +9,24 @@ const test = require('node:test');
 const ROOT = path.resolve(__dirname, '..');
 const RELEASE = '20260710b';
 const TRUST_RELEASE = '20260711b';
+const STYLE_RELEASE = '20260711c';
+const SCRIPT_RELEASE = '20260711c';
 const TRUTH_RELEASE = '20260711c';
-const CATALOG_RELEASE = '20260711a';
+const CATALOG_RELEASE = '20260711b';
 const CARD_LOADER_RELEASE = '20260711d';
 const ADMIN_RENDER_RELEASE = '20260711a';
 const ADMIN_DIARY_RELEASE = '20260711a';
 const ADMIN_FAQ_RELEASE = TRUTH_RELEASE;
+const ADMIN_CALENDAR_RELEASE = '20260711a';
+const NAV_RELEASE = '20260711g';
+const I18N_RELEASE = '20260711f';
+const NAV_STYLE_RELEASE = '20260711c';
+const SERVICE_RELEASE = '20260711c';
 const PUBLIC_ASSETS = {
-  'style.css': TRUST_RELEASE,
-  'nav.js': TRUST_RELEASE,
-  'i18n.js': TRUST_RELEASE,
+  'style.css': STYLE_RELEASE,
+  'nav.css': NAV_STYLE_RELEASE,
+  'nav.js': NAV_RELEASE,
+  'i18n.js': I18N_RELEASE,
   'blog/blog-i18n.js': RELEASE,
   'blog-listing-i18n.js': RELEASE,
   'catalog-i18n.js': RELEASE,
@@ -29,10 +37,14 @@ const PUBLIC_ASSETS = {
   'faq-page-loader.js': TRUST_RELEASE,
   'kitten-carousel.js': CATALOG_RELEASE,
   'cta-widget.js': CATALOG_RELEASE,
-  'script.js': TRUST_RELEASE,
+  'script.js': SCRIPT_RELEASE,
   'mobile-cta.js': TRUST_RELEASE,
   'assets/chat/widget.css': TRUST_RELEASE,
   'assets/chat/widget.js': TRUTH_RELEASE,
+  'services.css': SERVICE_RELEASE,
+  'boarding-public-config.js': SERVICE_RELEASE,
+  'boarding-public-calc.js': SERVICE_RELEASE,
+  'boarding/boarding-public-estimate.js': SERVICE_RELEASE,
 };
 
 function trackedFiles(glob) {
@@ -66,6 +78,8 @@ test('admin pages version every local script so immutable caches cannot retain s
           ? ADMIN_DIARY_RELEASE
           : reference[1] === 'admin-faq.js'
             ? ADMIN_FAQ_RELEASE
+            : reference[1] === 'admin-calendar.js'
+              ? ADMIN_CALENDAR_RELEASE
           : RELEASE;
       assert.equal(reference[2], expected, `${relative}: ${reference[1]} must use ?v=${expected}`);
     }

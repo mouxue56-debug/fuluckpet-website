@@ -3,11 +3,6 @@
 
   var LINE_URL = 'https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true';
   var LANGS = ['ja', 'en', 'zh'];
-  var CLOSE_LABEL = {
-    ja: 'メニューを閉じる',
-    en: 'Close menu',
-    zh: '关闭菜单'
-  };
 
   // Root (ja) paths that have real static /en/ + /zh/ sibling files on disk. When the lang
   // switch is clicked on one of these, NAVIGATE to the sibling instead of translating the ja
@@ -55,13 +50,33 @@
 
   var NAV_GROUPS = [
     {
-      id: 'kittens',
-      labelKey: 'nav.group.kittens',
+      id: 'pets',
+      labelKey: 'nav.group.pets',
       icon: 'paw-print',
       items: [
         { href: '/kittens.html', key: 'nav.kittens', icon: 'cat', match: ['/kittens.html', '/kittens/'] },
         { href: '/diary/', key: 'nav.diary', icon: 'camera', match: ['/diary/'] },
         { href: '/gallery.html', key: 'nav.gallery', icon: 'image', match: ['/gallery.html'] }
+      ]
+    },
+    {
+      id: 'services',
+      labelKey: 'nav.group.services',
+      icon: 'hand-heart',
+      items: [
+        { href: '/boarding/', key: 'nav.boarding', icon: 'bed', jaOnly: true, featured: true, match: ['/boarding/'] },
+        { href: '/grooming/', key: 'nav.grooming', icon: 'bath', jaOnly: true, featured: true, match: ['/grooming/'] }
+      ]
+    },
+    {
+      id: 'adoption',
+      labelKey: 'nav.group.adoption',
+      icon: 'calendar-check',
+      items: [
+        { href: '/booking.html', key: 'nav.booking', icon: 'calendar-check', match: ['/booking.html'] },
+        { href: '/waitlist.html', key: 'nav.waitlist', icon: 'clipboard-list', match: ['/waitlist.html'] },
+        { href: '/guide/', key: 'nav.guide', icon: 'book-open', match: ['/guide/'] },
+        { href: '/faq.html', key: 'nav.faq', icon: 'circle-help', match: ['/faq.html'] }
       ]
     },
     {
@@ -72,18 +87,6 @@
         { href: '/siberian.html', key: 'nav.siberian', icon: 'sparkles', match: ['/siberian.html'] },
         { href: '/parents.html', key: 'nav.parents', icon: 'users', match: ['/parents.html'] },
         { href: '/siberian-allergy.html', key: 'nav.allergy', icon: 'leaf', match: ['/siberian-allergy.html'] }
-      ]
-    },
-    {
-      id: 'adoption',
-      labelKey: 'nav.group.adoption',
-      icon: 'hand-heart',
-      items: [
-        { href: '/booking.html', key: 'nav.booking', icon: 'calendar-check', match: ['/booking.html'] },
-        { href: '/guide/', key: 'nav.guide', icon: 'book-open', match: ['/guide/'] },
-        { href: '/waitlist.html', key: 'nav.waitlist', icon: 'clipboard-list', match: ['/waitlist.html'] },
-        { href: '/siberian-breeder-osaka.html', key: 'nav.osakaAdoption', icon: 'map-pin', match: ['/siberian-breeder-osaka.html'] },
-        { href: '/faq.html', key: 'nav.faq', icon: 'circle-help', match: ['/faq.html'] }
       ]
     },
     {
@@ -100,8 +103,17 @@
     }
   ];
 
+  function groupById(id) {
+    for (var index = 0; index < NAV_GROUPS.length; index += 1) {
+      if (NAV_GROUPS[index].id === id) return NAV_GROUPS[index];
+    }
+    return null;
+  }
+
   function resetSmallAnimalLaunchForTest() {
-    NAV_GROUPS[0].items = NAV_GROUPS[0].items.filter(function (item) {
+    var pets = groupById('pets');
+    if (!pets) return;
+    pets.items = pets.items.filter(function (item) {
       return item.key !== 'nav.smallAnimals';
     });
     if (smallAnimalListPath) delete STATIC_SIBLINGS[smallAnimalListPath];
@@ -118,7 +130,9 @@
     smallAnimalListPath = '/' + slug + '.html';
     STATIC_SIBLINGS[smallAnimalListPath] = true;
     SMALL_ANIMAL_DETAIL_RE = new RegExp('^/' + slug + '/[^/]+\\.html$');
-    NAV_GROUPS[0].items.push({
+    var pets = groupById('pets');
+    if (!pets) return;
+    pets.items.push({
       href: smallAnimalListPath,
       key: 'nav.smallAnimals',
       icon: 'paw-print',
@@ -178,6 +192,10 @@
   }
 
   function currentLang() {
+    if (typeof document !== 'undefined' && document.body) {
+      var forced = document.body.getAttribute('data-nav-language');
+      if (LANGS.indexOf(forced) !== -1) return forced;
+    }
     var path = window.location.pathname || '/';
     if (path.indexOf('/en/') === 0) return 'en';
     if (path.indexOf('/zh/') === 0) return 'zh';
@@ -239,10 +257,16 @@
   }
 
   // jaOnly 項目は日本語表示時のみナビに出す（対応できる言語でだけ告知する）
-  function visibleItems(group) {
-    var lang = currentLang();
+  function visibleItems(group, lang) {
+    var activeLang = lang || currentLang();
     return group.items.filter(function (item) {
-      return !item.jaOnly || lang === 'ja';
+      return !item.jaOnly || activeLang === 'ja';
+    });
+  }
+
+  function visibleNavGroups(lang) {
+    return NAV_GROUPS.filter(function (group) {
+      return visibleItems(group, lang).length > 0;
     });
   }
 
@@ -265,7 +289,7 @@
   }
 
   function renderDesktopNav(route) {
-    var groups = NAV_GROUPS.map(function (group) {
+    var groups = visibleNavGroups().map(function (group) {
       var active = groupIsActive(group, route);
       var items = visibleItems(group).map(function (item) {
         var current = itemIsCurrent(item, route);
@@ -288,7 +312,7 @@
             '<span data-i18n="' + group.labelKey + '"></span>' +
             '<span class="nav-caret" aria-hidden="true"></span>' +
           '</button>' +
-          '<div class="nav-dropdown-panel" id="nav-panel-' + group.id + '" role="menu">' + items + '</div>' +
+          '<div class="nav-dropdown-panel" id="nav-panel-' + group.id + '">' + items + '</div>' +
         '</div>'
       );
     }).join('');
@@ -310,7 +334,7 @@
   }
 
   function renderMobileNav(route) {
-    var sections = NAV_GROUPS.map(function (group) {
+    var sections = visibleNavGroups().map(function (group) {
       var active = groupIsActive(group, route);
       var items = visibleItems(group).map(function (item) {
         var current = itemIsCurrent(item, route);
@@ -338,8 +362,8 @@
       '<div class="nav-mobile-shell">' +
         '<div class="nav-mobile-top">' +
           langSwitchMarkup('mobile-lang') +
-          '<button class="nav-mobile-close" type="button" aria-label="' + CLOSE_LABEL.ja + '">' +
-            '<span aria-hidden="true">&times;</span><span class="sr-only" data-i18n="nav.close"></span>' +
+          '<button class="nav-mobile-close" type="button" aria-label="メニューを閉じる / Close navigation">' +
+            icon('x') +
           '</button>' +
         '</div>' +
         '<div class="nav-mobile-ctas">' +
@@ -364,9 +388,6 @@
       btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
 
-    document.querySelectorAll('.nav-mobile-close').forEach(function (btn) {
-      btn.setAttribute('aria-label', CLOSE_LABEL[lang] || CLOSE_LABEL.ja);
-    });
   }
 
   function applyCurrentLanguage() {
@@ -489,18 +510,112 @@
       });
     });
 
-    document.addEventListener('click', function (e) {
-      if (!nav.contains(e.target)) closeDesktopGroups(nav);
-    });
+    if (!nav.__fuluckDesktopGlobalBound) {
+      nav.__fuluckDesktopGlobalBound = true;
+      document.addEventListener('click', function (e) {
+        if (!nav.contains(e.target)) closeDesktopGroups(nav);
+      });
 
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') closeDesktopGroups(nav);
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeDesktopGroups(nav);
+      });
+    }
+  }
+
+  function setMobileBackgroundInert(mobileNav, shouldInert) {
+    if (shouldInert) {
+      if (mobileNav.__fuluckInertNodes) return;
+      var targets = [];
+
+      Array.prototype.forEach.call(document.body.children, function (child) {
+        if (child === mobileNav) return;
+        targets.push(child);
+      });
+
+      mobileNav.__fuluckInertNodes = targets.filter(function (element, index) {
+        return element && targets.indexOf(element) === index;
+      }).map(function (element) {
+        var hadInert = element.hasAttribute('inert');
+        if (!hadInert) element.setAttribute('inert', '');
+        return { element: element, hadInert: hadInert };
+      });
+      return;
+    }
+
+    var records = mobileNav.__fuluckInertNodes || [];
+    records.forEach(function (record) {
+      if (!record.hadInert) record.element.removeAttribute('inert');
     });
+    mobileNav.__fuluckInertNodes = null;
+  }
+
+  function isVisibleControl(element) {
+    if (!element || element.disabled || element.getAttribute('aria-hidden') === 'true') return false;
+    if (typeof element.getClientRects === 'function' && element.getClientRects().length === 0) return false;
+    return true;
+  }
+
+  function mobileFocusables(mobileNav) {
+    return Array.prototype.slice.call(mobileNav.querySelectorAll(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )).filter(isVisibleControl);
+  }
+
+  function focusFirstMobileControl(mobileNav) {
+    var frames = 0;
+    function focusWhenVisible() {
+      if (!mobileNav.classList.contains('active')) return;
+      // Resolve on each frame: the async launch config may replace the static
+      // fallback drawer between the opening click and the first painted frame.
+      var first = mobileNav.querySelector('.nav-mobile-close') ||
+        mobileNav.querySelector('.nav-mobile-cta') ||
+        mobileNav.querySelector('.nav-mobile-link') ||
+        mobileNav.querySelector('.lang-btn');
+      if (!first) return;
+      var visible = typeof window.getComputedStyle !== 'function' ||
+        window.getComputedStyle(mobileNav).visibility === 'visible';
+      var focusable = isVisibleControl(first);
+      if (visible && focusable) {
+        first.focus();
+        return;
+      }
+      frames += 1;
+      if (frames < 60 && typeof window.requestAnimationFrame === 'function') {
+        window.requestAnimationFrame(focusWhenVisible);
+      }
+    }
+
+    if (typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(focusWhenVisible);
+    } else {
+      focusWhenVisible();
+    }
+  }
+
+  function restoreMobileFocus(mobileNav) {
+    var target = mobileNav.__fuluckPreviousFocus || document.getElementById('hamburger');
+    mobileNav.__fuluckPreviousFocus = null;
+    if (target && typeof target.focus === 'function') {
+      target.focus();
+    }
   }
 
   function syncMobileOpenState(mobileNav) {
     var open = mobileNav.classList.contains('active');
+    var wasOpen = mobileNav.__fuluckWasOpen === true;
     document.body.classList.toggle('mobile-nav-open', open);
+    document.body.style.overflow = open ? 'hidden' : '';
+    mobileNav.setAttribute('aria-hidden', open ? 'false' : 'true');
+
+    if (open && !wasOpen) {
+      mobileNav.__fuluckPreviousFocus = document.activeElement;
+      setMobileBackgroundInert(mobileNav, true);
+      focusFirstMobileControl(mobileNav);
+    } else if (!open && wasOpen) {
+      setMobileBackgroundInert(mobileNav, false);
+      restoreMobileFocus(mobileNav);
+    }
+    mobileNav.__fuluckWasOpen = open;
   }
 
   function setMobileOpen(mobileNav, open) {
@@ -511,6 +626,7 @@
     if (hamburger) {
       hamburger.classList.toggle('active', open);
       hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      hamburger.setAttribute('aria-label', open ? 'メニューを閉じる / Close navigation' : 'メニュー / Navigation');
     }
     if (navFab) {
       navFab.classList.toggle('active', open);
@@ -520,23 +636,69 @@
     syncMobileOpenState(mobileNav);
   }
 
-  function bindMobile(mobileNav) {
-    var closeBtn = mobileNav.querySelector('.nav-mobile-close');
+  function claimMobileTrigger() {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return false;
+    var mobileNav = document.getElementById('mobileNav');
+    var hamburger = document.getElementById('hamburger');
+    var navFab = document.getElementById('mobileNavFab');
+    if (!mobileNav || (!hamburger && !navFab)) return false;
+    if (mobileNav.__fuluckTriggerClaimed) return true;
 
-    if (closeBtn) {
-      closeBtn.addEventListener('click', function () {
-        setMobileOpen(mobileNav, false);
+    window.__fuluckNavOwnsMobile = true;
+    mobileNav.__fuluckTriggerClaimed = true;
+    if (hamburger) {
+      hamburger.addEventListener('click', function (event) {
+        event.preventDefault();
+        setMobileOpen(mobileNav, !mobileNav.classList.contains('active'));
       });
     }
+    if (navFab) {
+      navFab.addEventListener('click', function () {
+        setMobileOpen(mobileNav, !mobileNav.classList.contains('active'));
+      });
+    }
+    return true;
+  }
+
+  function bindMobile(mobileNav) {
+    mobileNav.setAttribute('role', 'dialog');
+    mobileNav.setAttribute('aria-modal', 'true');
+    mobileNav.setAttribute('aria-label', 'メニュー / Navigation');
+    if (mobileNav.__fuluckMobileBound) {
+      syncMobileOpenState(mobileNav);
+      return;
+    }
+    mobileNav.__fuluckMobileBound = true;
 
     mobileNav.addEventListener('click', function (e) {
+      var close = e.target && e.target.closest ? e.target.closest('.nav-mobile-close') : null;
+      if (close) {
+        setMobileOpen(mobileNav, false);
+        return;
+      }
       var link = e.target && e.target.closest ? e.target.closest('a.mobile-nav-link, a.nav-mobile-cta') : null;
       if (link) setMobileOpen(mobileNav, false);
     });
 
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && mobileNav.classList.contains('active')) {
+        e.preventDefault();
         setMobileOpen(mobileNav, false);
+      } else if (e.key === 'Tab' && mobileNav.classList.contains('active')) {
+        var controls = mobileFocusables(mobileNav);
+        if (!controls.length) return;
+        var first = controls[0];
+        var last = controls[controls.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        } else if (controls.indexOf(document.activeElement) === -1) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     });
 
@@ -559,6 +721,7 @@
     var originalMobile = mobileNav.innerHTML;
 
     try {
+      if (mobileNav.classList.contains('active')) setMobileOpen(mobileNav, false);
       var route = currentRoute();
       nav.innerHTML = renderDesktopNav(route);
       mobileNav.innerHTML = renderMobileNav(route);
@@ -570,10 +733,13 @@
       // Claim sole ownership of language-switch clicks (i18n.js checks this flag and stands
       // down, so the two don't double-fire on the same button — one unified mechanism).
       window.__fuluckNavLangSwitch = true;
-      document.addEventListener('click', handleLanguageClick);
-      window.addEventListener('langChanged', function (e) {
-        syncLangButtons(e && e.detail && e.detail.lang ? e.detail.lang : currentLang());
-      });
+      if (!document.__fuluckNavLangBound) {
+        document.__fuluckNavLangBound = true;
+        document.addEventListener('click', handleLanguageClick);
+        window.addEventListener('langChanged', function (e) {
+          syncLangButtons(e && e.detail && e.detail.lang ? e.detail.lang : currentLang());
+        });
+      }
 
       applyCurrentLanguage();
       window.setTimeout(applyCurrentLanguage, 0);
@@ -589,11 +755,16 @@
   }
 
   function initNav() {
+    claimMobileTrigger();
+    // Core navigation is useful without the optional launch flag, so render it
+    // immediately. If a future public small-animal flag arrives, rerender once.
+    enhanceNav();
     loadSmallAnimalLaunch().then(function (config) {
       applySmallAnimalLaunch(config);
+      if (config && config.public === true) enhanceNav();
     }, function () {
       applySmallAnimalLaunch(null);
-    }).then(enhanceNav);
+    });
   }
 
   if (typeof module !== 'undefined' && module.exports) {
@@ -604,12 +775,16 @@
       localizedItemHref: localizedItemHref,
       loadSmallAnimalLaunch: loadSmallAnimalLaunch,
       smallAnimalLaunchConfigUrl: smallAnimalLaunchConfigUrl,
+      visibleNavGroups: visibleNavGroups,
       navGroups: function () { return NAV_GROUPS; }
     };
   }
 
   if (typeof document !== 'undefined') {
     try {
+      // nav.js is deferred, so the parsed header exists before DOMContentLoaded.
+      // Claim the mobile trigger now; legacy script.js sees the flag and stands down.
+      claimMobileTrigger();
       ready(initNav);
     } catch (err) {
       if (window.console && typeof window.console.warn === 'function') {

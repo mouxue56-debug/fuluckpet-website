@@ -16,6 +16,15 @@
   var editingId = null; // event id being edited in the form, or null = create mode
   var typeFilters = { visit: true, boarding: true, block: true, note: true };
   var statusFilter = 'all';
+  var NEW_BOARDING_PET_TYPES = ['cat', 'rabbit', 'hamster', 'other_small_animal'];
+  // Historical dog events predate the current 220012B scope. They stay readable
+  // and may retain their stored value while another field is edited, but the UI
+  // never offers them for a new event and the API rejects new legacy writes.
+  var LEGACY_PET_TYPES = {
+    small_dog: ['小型犬（履歴・受付対象外）', '小型犬（历史·不再受理）'],
+    medium_dog: ['中型犬（履歴・受付対象外）', '中型犬（历史·不再受理）'],
+    large_dog: ['大型犬（履歴・受付対象外）', '大型犬（历史·不再受理）']
+  };
 
   function $(id) { return document.getElementById(id); }
   function tt(ja, zh) { return (window.admLang === 'zh') ? zh : ja; }
@@ -228,12 +237,20 @@
   function petTypeLabel(pt) {
     var map = {
       cat: ['猫', '猫'],
-      small_dog: ['小型犬', '小型犬'],
-      medium_dog: ['中型犬', '中型犬'],
-      large_dog: ['大型犬', '大型犬']
+      rabbit: ['うさぎ', '兔'],
+      hamster: ['ハムスター', '仓鼠'],
+      other_small_animal: ['その他の登録対象小動物', '其他已登记小动物']
     };
-    var l = map[pt] || [pt, pt];
+    var l = map[pt] || LEGACY_PET_TYPES[pt] || [pt, pt];
     return tt(l[0], l[1]);
+  }
+
+  function clearLegacyPetTypeOption() {
+    var select = $('evtPetType');
+    if (!select) return;
+    Array.prototype.slice.call(select.querySelectorAll('option[data-legacy-pet-type]')).forEach(function(option) {
+      option.remove();
+    });
   }
 
   function startEdit(id) {
@@ -246,6 +263,15 @@
     $('evtStart').value = e.start;
     $('evtEnd').value = e.end;
     $('evtTime').value = e.time || '';
+    clearLegacyPetTypeOption();
+    if (LEGACY_PET_TYPES[e.petType]) {
+      var legacyOption = document.createElement('option');
+      legacyOption.value = e.petType;
+      legacyOption.textContent = petTypeLabel(e.petType);
+      legacyOption.disabled = true;
+      legacyOption.dataset.legacyPetType = 'true';
+      $('evtPetType').appendChild(legacyOption);
+    }
     $('evtPetType').value = e.petType || 'cat';
     $('evtStatus').value = e.status || 'pending';
     $('evtNotes').value = e.notes || '';
@@ -257,6 +283,7 @@
 
   function resetForm() {
     editingId = null;
+    clearLegacyPetTypeOption();
     $('eventForm').reset();
     $('evtId').value = '';
     $('evtType').value = 'visit';
@@ -283,7 +310,10 @@
       status: $('evtStatus').value,
       notes: $('evtNotes').value || undefined
     };
-    if (payload.type === 'boarding') payload.petType = $('evtPetType').value;
+    if (payload.type === 'boarding') {
+      var petType = $('evtPetType').value;
+      if (NEW_BOARDING_PET_TYPES.indexOf(petType) !== -1) payload.petType = petType;
+    }
 
     var req = editingId
       ? FuluckAPI.put('/api/admin/calendar?id=' + encodeURIComponent(editingId), payload)

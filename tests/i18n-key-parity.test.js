@@ -44,3 +44,13 @@ test('home allergy FAQ does not promise an unsupported trial period', () => {
     );
   }
 });
+
+test('public diary and consultation labels use concise natural language', () => {
+  const translations = loadTranslations();
+  assert.equal(translations.ja['nav.diary'], '猫舎日記');
+  assert.equal(translations.en['nav.diary'], 'Cattery Journal');
+  assert.equal(translations.zh['nav.diary'], '猫舍日常');
+  assert.equal(translations.ja['nav.group.adoption'], 'ご相談・予約');
+  assert.equal(translations.en['nav.group.adoption'], 'Plan & Book');
+  assert.equal(translations.zh['nav.group.adoption'], '咨询与预约');
+});

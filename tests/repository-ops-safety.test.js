@@ -169,6 +169,7 @@ test('production data tooling pins Wrangler 4.70.0 instead of following latest',
   assert.match(uploadSource, /WRANGLER=\(npx --yes ["']wrangler@\$WRANGLER_VERSION["']\)/);
   assert.doesNotMatch(uploadSource, /\bnpx\s+wrangler\b/);
   assert.match(seedKb, /npx --yes wrangler@4\.70\.0 kv key put/);
+  assert.match(seedKb, /kv key put --binding=DATA --remote/);
   assert.doesNotMatch(seedKb, /wrangler kv:key put/);
 });
 

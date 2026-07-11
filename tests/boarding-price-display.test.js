@@ -1,6 +1,3 @@
-/* boarding-price-display.test.js — owner-gated boarding must fail closed publicly.
- * Pricing math remains covered by boarding-calc.test.js; direct public URLs must not
- * expose those internal values or load the estimator before registration is supplied. */
 'use strict';
 
 const assert = require('node:assert/strict');
@@ -10,69 +7,58 @@ const path = require('node:path');
 const test = require('node:test');
 
 const ROOT = path.resolve(__dirname, '..');
-const pages = ['boarding/index.html', 'boarding/estimate.html'];
+const read = (relative) => fs.readFileSync(path.join(ROOT, relative), 'utf8');
+const yen = (value) => `¥${Number(value).toLocaleString('en-US')}`;
 
-test('owner-gated boarding pages expose no prices, estimator controls, or offer schema', () => {
-  for (const relative of pages) {
-    const html = fs.readFileSync(path.join(ROOT, relative), 'utf8');
-    const body = (html.match(/<body\b[\s\S]*<\/body>/i) || [''])[0];
-    assert.match(html, /<meta\s+name="robots"\s+content="[^"]*noindex/i, relative);
-    assert.doesNotMatch(body, /[\u00a5円]\s*[0-9]|<form\b|<input\b|<select\b/i, relative);
-    assert.doesNotMatch(html, /"@type"\s*:\s*"(?:Service|Offer)"/i, relative);
-  }
+test('public boarding prices come from a tracked licensed-scope config', () => {
+  const configPath = path.join(ROOT, 'boarding-public-config.js');
+  assert.equal(fs.existsSync(configPath), true, 'boarding-public-config.js must exist');
+  const { CONFIG } = require(configPath);
+  const source = read('boarding-public-config.js');
+
+  assert.deepEqual(Object.keys(CONFIG.boardingBasePrice), ['cat']);
+  assert.doesNotMatch(source, /small_dog|medium_dog|large_dog|dogCarePrice/);
+  assert.equal(CONFIG.boardingBasePrice.cat, 4800);
+  assert.deepEqual(CONFIG.catGroomingBasePrice, { short: 4000, long: 6000 });
 });
 
-test('owner-gated direct pages do not load internal pricing or estimator code', () => {
-  for (const relative of pages) {
-    const html = fs.readFileSync(path.join(ROOT, relative), 'utf8');
-    assert.doesNotMatch(html, /boarding-(?:config|calc|estimate)\.js/i, relative);
-    assert.doesNotMatch(html, /\/booking\.html|page\.line\.me/i, relative);
+test('static service prices stay equal to the public config', () => {
+  const { CONFIG } = require(path.join(ROOT, 'boarding-public-config.js'));
+  const boarding = read('boarding/index.html');
+  const grooming = read('grooming/index.html');
+
+  assert.ok(boarding.includes(yen(CONFIG.boardingBasePrice.cat)), 'cat boarding price');
+  for (const kind of ['rabbit_cage', 'hamster_cage']) {
+    for (const tier of CONFIG.smallPetBoarding[kind].tiers) {
+      assert.ok(boarding.includes(yen(tier.perNight)), `${kind} ${tier.minNights} nights`);
+    }
   }
+  assert.ok(grooming.includes(yen(CONFIG.catGroomingBasePrice.short)), 'short-hair care price');
+  assert.ok(grooming.includes(yen(CONFIG.catGroomingBasePrice.long)), 'long-hair care price');
 });
 
-test('owner-gated pricing runtime is absent from the tracked public tree', () => {
-  const internalPricingPaths = [
-    'boarding-config.js',
-    'boarding-calc.js',
-    'boarding/boarding-estimate.js',
-    'tests/boarding-calc.test.js',
-  ];
-  const trackedFiles = new Set(execFileSync('git', ['ls-files'], {
-    cwd: ROOT,
-    encoding: 'utf8',
-  }).trim().split('\n'));
-  const deletedFiles = new Set(execFileSync('git', ['ls-files', '--deleted'], {
-    cwd: ROOT,
-    encoding: 'utf8',
-  }).trim().split('\n'));
-
-  for (const relative of internalPricingPaths) {
-    assert.equal(
-      trackedFiles.has(relative) && !deletedFiles.has(relative),
-      false,
-      `${relative} must not remain tracked in the public working tree`,
-    );
-    assert.equal(fs.existsSync(path.join(ROOT, relative)), false, `${relative} must not remain public`);
-  }
+test('public estimator loads only the projected config and calculator', () => {
+  const html = read('boarding/estimate.html');
+  assert.match(html, /\/boarding-public-config\.js\?v=/);
+  assert.match(html, /\/boarding-public-calc\.js\?v=/);
+  assert.match(html, /\/boarding\/boarding-public-estimate\.js\?v=/);
+  assert.doesNotMatch(html, /(?:^|\/)boarding-(?:config|calc|estimate)\.js/i);
 });
 
-test('public guide pricing has no owner-gated boarding quote', () => {
-  const guideFiles = ['guide/price.html', 'guide/i18n-guide-body.js'];
+test('legacy full pricing config stays absent and exactly tombstoned', () => {
+  const tracked = new Set(execFileSync('git', ['ls-files'], { cwd: ROOT, encoding: 'utf8' }).trim().split('\n'));
+  assert.equal(tracked.has('boarding-config.js'), false);
+  assert.equal(fs.existsSync(path.join(ROOT, 'boarding-config.js')), false);
+
+  const wrangler = read('api/wrangler.toml');
+  assert.match(wrangler, /^workers_dev\s*=\s*true\s*$/m);
+  assert.match(wrangler, /pattern\s*=\s*"fuluckpet\.com\/boarding-config\.js"/);
+  assert.doesNotMatch(wrangler, /pattern\s*=\s*"(?:\*\.)?fuluckpet\.com\/\*"/);
+});
+
+test('unrelated public guide pricing has no boarding quote', () => {
   const boardingQuote = /長期お預かり|Extended Boarding|长期寄养|1,500\s*(?:円|yen|日元)\s*(?:\/|per|／)?\s*(?:日|day|天)/i;
-
-  for (const relative of guideFiles) {
-    const source = fs.readFileSync(path.join(ROOT, relative), 'utf8');
-    assert.doesNotMatch(source, boardingQuote, relative);
+  for (const relative of ['guide/price.html', 'guide/i18n-guide-body.js']) {
+    assert.doesNotMatch(read(relative), boardingQuote, relative);
   }
-});
-
-test('the cached legacy pricing URL is tombstoned by one exact Worker route', () => {
-  const config = fs.readFileSync(path.join(ROOT, 'api/wrangler.toml'), 'utf8');
-  assert.match(config, /^workers_dev\s*=\s*true\s*$/m, 'the API workers.dev endpoint must remain enabled');
-  assert.match(
-    config,
-    /\[\[routes\]\][\s\S]*?pattern\s*=\s*"fuluckpet\.com\/boarding-config\.js"[\s\S]*?zone_name\s*=\s*"fuluckpet\.com"/,
-    'one exact route must override the immutable legacy cache entry',
-  );
-  assert.doesNotMatch(config, /pattern\s*=\s*"(?:\*\.)?fuluckpet\.com\/\*"/);
 });

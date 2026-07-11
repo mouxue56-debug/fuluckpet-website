@@ -3,6 +3,7 @@
    nav.js adds body.nav-enhanced. */
 
 body.nav-enhanced .header-inner {
+  max-width: 1380px;
   gap: 22px;
 }
 
@@ -244,12 +245,14 @@ body.nav-enhanced .mobile-nav {
   background: rgba(255, 252, 240, 0.98);
   overflow-y: auto;
   overscroll-behavior: contain;
+  transition: opacity .28s var(--ease-out), transform .28s var(--ease-out), visibility 0s linear .28s;
 }
 
 body.nav-enhanced .mobile-nav.active {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
+  transition-delay: 0s;
 }
 
 body.nav-enhanced .nav-mobile-shell {
@@ -266,7 +269,7 @@ body.nav-enhanced .nav-mobile-top {
   z-index: 2;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 12px;
   margin: -16px -16px 0;
   padding: 14px 16px;
@@ -277,23 +280,39 @@ body.nav-enhanced .nav-mobile-top {
 }
 
 body.nav-enhanced .nav-mobile-close {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  position: absolute;
+  right: 16px;
+  top: 50%;
   width: 44px;
   height: 44px;
-  border: 1px solid rgba(125, 211, 192, 0.24);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.7);
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(125, 211, 192, 0.34);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.86);
   color: var(--text-heading);
-  font-size: 28px;
-  line-height: 1;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+body.nav-enhanced .nav-mobile-close .ico {
+  width: 22px;
+  height: 22px;
 }
 
 body.nav-enhanced .nav-mobile-close:hover,
 body.nav-enhanced .nav-mobile-close:focus-visible {
+  border-color: var(--mint-dark);
   color: var(--mint-dark);
-  background: var(--mint-milk);
+  outline: 3px solid rgba(91, 196, 168, 0.2);
+  outline-offset: 2px;
+}
+
+body.mobile-nav-open .hamburger {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 body.nav-enhanced .nav-mobile-ctas {
@@ -426,7 +445,7 @@ body.nav-enhanced .sr-only {
   border: 0;
 }
 
-@media (max-width: 1120px) {
+@media (max-width: 1280px) {
   body.nav-enhanced .nav-group-toggle {
     padding: 0 9px;
     font-size: 13px;
@@ -437,7 +456,7 @@ body.nav-enhanced .sr-only {
   }
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1360px) {
   body.nav-enhanced .nav {
     display: none;
   }

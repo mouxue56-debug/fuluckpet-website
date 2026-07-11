@@ -45,13 +45,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.style.overflow = open ? 'hidden' : '';
   }
 
-  if (hamburger && mobileNav) {
+  if (!window.__fuluckNavOwnsMobile && hamburger && mobileNav) {
     hamburger.addEventListener('click', () => {
       setMobileNavOpen(!mobileNav.classList.contains('active'));
     });
   }
 
-  if (navFab && mobileNav) {
+  if (!window.__fuluckNavOwnsMobile && navFab && mobileNav) {
     navFab.addEventListener('click', () => {
       setMobileNavOpen(!mobileNav.classList.contains('active'));
     });
@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (mobileNav) {
+  if (!window.__fuluckNavOwnsMobile && mobileNav) {
     document.querySelectorAll('.mobile-nav-link').forEach(link => {
       link.addEventListener('click', () => setMobileNavOpen(false));
     });

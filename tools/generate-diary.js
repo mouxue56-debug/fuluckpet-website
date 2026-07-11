@@ -716,12 +716,12 @@ function buildHead({ title, description, pageUrl, image, jsonLd, ogType = 'artic
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
-  <link rel="stylesheet" href="/style.css?v=${ver('style.css', '20260711b')}">
-  <link rel="stylesheet" href="/nav.css?v=${ver('nav.css', '20260628a')}">
+  <link rel="stylesheet" href="/style.css?v=${ver('style.css', '20260711c')}">
+  <link rel="stylesheet" href="/nav.css?v=${ver('nav.css', '20260711c')}">
   <link rel="stylesheet" href="/guide/guide.css?v=${ver('guide/guide.css', '20260706a')}">
   <link rel="stylesheet" href="/blog.css?v=${ver('blog.css', '20260706a')}">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
-  <script defer src="/nav.js?v=${ver('nav.js', '20260711b')}"></script>
+  <script defer src="/nav.js?v=${ver('nav.js', '20260711g')}"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
 ${jsonLd.join('\n')}
@@ -910,7 +910,7 @@ function buildEntryJsonLd(entry, title, excerpt, coverImage, bodyJa) {
 
 function buildDiaryEntryHtml(entry, context) {
   const { chrome, groupedEntries, maps } = context;
-  const titleJa = localizedField(entry.title, 'ja', '子猫成長日記');
+  const titleJa = localizedField(entry.title, 'ja', '猫舎日記');
   const excerptJa = localizedField(entry.excerpt, 'ja', '');
   // Sanitize API-authored rich text before either HTML injection or JSON/script embedding.
   // Recognized YouTube wrappers become the trusted lazy facade inside this boundary;
@@ -918,8 +918,8 @@ function buildDiaryEntryHtml(entry, context) {
   const bodyJa = sanitizeDiaryHtml(localizedField(entry.body, 'ja', '<p>本文は準備中です。</p>'));
   const coverImage = normalizeAssetUrl(entry.coverImage);
   const pageUrl = pageUrlForEntry(entry);
-  const pageTitle = `${titleJa}｜子猫成長日記｜福楽キャッテリー`;
-  const description = excerptJa || `${titleJa}。福楽キャッテリーの子猫成長日記です。`;
+  const pageTitle = `${titleJa}｜猫舎日記｜福楽キャッテリー`;
+  const description = excerptJa || `${titleJa}。福楽キャッテリーの日々の記録です。`;
   const date = entryDate(entry);
   const dateLabel = displayDate(date);
   const stage = stageText(entry.stage);
@@ -948,7 +948,7 @@ function buildDiaryEntryHtml(entry, context) {
 ${chrome.headerHtml}
 
   <nav class="guide-breadcrumb" aria-label="パンくずリスト">
-    <a href="/">ホーム</a> &gt; <a href="/diary/">成長日記</a> &gt; <span>${escapeHtml(titleJa)}</span>
+    <a href="/">ホーム</a> &gt; <a href="/diary/">猫舎日記</a> &gt; <span>${escapeHtml(titleJa)}</span>
   </nav>
 
   <article class="blog-article">
@@ -967,7 +967,7 @@ ${bodyJa}
     ${diaryCtaBox()}
 
     <div class="blog-nav-bottom">
-      <a href="/diary/" class="blog-nav-link"><i class="ico ico-library" aria-hidden="true"></i> 成長日記一覧へ戻る</a>
+      <a href="/diary/" class="blog-nav-link"><i class="ico ico-library" aria-hidden="true"></i> 猫舎日記一覧へ戻る</a>
       <a href="/kittens.html" class="blog-nav-link"><i class="ico ico-cat" aria-hidden="true"></i> 子猫を見る</a>
       <a href="/guide/" class="blog-nav-link"><i class="ico ico-book-open" aria-hidden="true"></i> お迎えガイド</a>
     </div>
@@ -975,10 +975,10 @@ ${bodyJa}
 
 ${chrome.footerHtml}
 
-  <script src="/i18n.js?v=${ver('i18n.js', '20260711b')}"></script>
+  <script src="/i18n.js?v=${ver('i18n.js', '20260711f')}"></script>
   <script>window._diaryArticleI18n = ${safeJsonForHtmlScript(i18n)}; window._blogArticleI18n = window._diaryArticleI18n;</script>
   <script src="/blog/blog-i18n.js?v=${ver('blog/blog-i18n.js', '20260710b')}"></script>
-  <script src="/script.js?v=${ver('script.js', '20260711b')}"></script>
+  <script src="/script.js?v=${ver('script.js', '20260711c')}"></script>
 
   <div class="mobile-cta-bar" role="navigation" aria-label="クイック連絡">
     <div class="mobile-cta-bar-inner">
@@ -1020,7 +1020,7 @@ function litterName(groupId, entries, parents, parentsById) {
   const names = resolvedParents.map((parent) => parent.name).filter(Boolean);
   if (names.length >= 2) return `${names[0]} × ${names[1]}`;
   if (names.length === 1) return names[0];
-  return groupId && !groupId.startsWith('entry:') ? groupId : localizedField(entries[0].title, 'ja', '成長日記');
+  return groupId && !groupId.startsWith('entry:') ? groupId : localizedField(entries[0].title, 'ja', '猫舎日記');
 }
 
 function litterCover(entries, maps) {
@@ -1051,14 +1051,14 @@ function litterCover(entries, maps) {
 function buildDiaryIndexHtml(entries, context) {
   const { chrome, maps, parents } = context;
   const pageUrl = `${BASE_URL}/diary/`;
-  const title = '子猫成長日記｜福楽キャッテリー';
+  const title = '猫舎日記｜福楽キャッテリー';
   const description = '福楽キャッテリーで生まれた子猫たちの妊娠、出産、成長の記録をきょうだいごとにまとめています。';
   const jsonLd = [
     jsonLdScript({
       "@context": "https://schema.org",
       "@type": "CollectionPage",
       "@id": `${BASE_URL}/diary/#collection`,
-      "name": "子猫成長日記",
+      "name": "猫舎日記",
       "description": description,
       "url": pageUrl,
       "inLanguage": "ja",
@@ -1074,7 +1074,7 @@ function buildDiaryIndexHtml(entries, context) {
       "@type": "BreadcrumbList",
       "itemListElement": [
         { "@type": "ListItem", "position": 1, "name": "ホーム", "item": `${BASE_URL}/` },
-        { "@type": "ListItem", "position": 2, "name": "成長日記", "item": pageUrl }
+        { "@type": "ListItem", "position": 2, "name": "猫舎日記", "item": pageUrl }
       ]
     })
   ];
@@ -1129,13 +1129,13 @@ function buildDiaryIndexHtml(entries, context) {
 ${chrome.headerHtml}
 
   <nav class="guide-breadcrumb" aria-label="パンくずリスト">
-    <a href="/">ホーム</a> &gt; <span>成長日記</span>
+    <a href="/">ホーム</a> &gt; <span>猫舎日記</span>
   </nav>
 
   <main class="diary-index">
     <section class="diary-index-hero">
       <span class="sec-tag">Kitten Diary</span>
-      <h1 data-i18n="diary.title">子猫成長日記</h1>
+      <h1 data-i18n="diary.title">猫舎日記</h1>
       <p data-i18n="diary.heroSub">妊娠から出産、週ごとの成長まで。福楽キャッテリーで生まれた子猫たちの記録を、きょうだいごとのタイムラインでまとめています。</p>
     </section>
     ${listingHtml}
@@ -1143,8 +1143,8 @@ ${chrome.headerHtml}
 
 ${chrome.footerHtml}
 
-  <script src="/i18n.js?v=${ver('i18n.js', '20260711b')}"></script>
-  <script src="/script.js?v=${ver('script.js', '20260711b')}"></script>
+  <script src="/i18n.js?v=${ver('i18n.js', '20260711f')}"></script>
+  <script src="/script.js?v=${ver('script.js', '20260711c')}"></script>
 
   <div class="mobile-cta-bar" role="navigation" aria-label="クイック連絡">
     <div class="mobile-cta-bar-inner">
@@ -1242,7 +1242,7 @@ function ensureHomepageDiscoverability() {
 
   if (!html.includes('href="diary/" class="nav-link"')) {
     const from = '        <a href="blog.html" class="nav-link" data-i18n="nav.blog">知識ライブラリ</a>';
-    const to = `${from}\n        <a href="diary/" class="nav-link">成長日記</a>`;
+    const to = `${from}\n        <a href="diary/" class="nav-link">猫舎日記</a>`;
     if (html.includes(from)) {
       html = html.replace(from, to);
       changed = true;
@@ -1251,16 +1251,16 @@ function ensureHomepageDiscoverability() {
 
   if (!html.includes('href="diary/" class="mobile-nav-link"')) {
     const from = '      <a href="blog.html" class="mobile-nav-link" data-i18n="nav.blog">知識ライブラリ</a>';
-    const to = `${from}\n      <a href="diary/" class="mobile-nav-link">成長日記</a>`;
+    const to = `${from}\n      <a href="diary/" class="mobile-nav-link">猫舎日記</a>`;
     if (html.includes(from)) {
       html = html.replace(from, to);
       changed = true;
     }
   }
 
-  if (!html.includes('href="diary/">成長日記</a>')) {
+  if (!html.includes('href="diary/">猫舎日記</a>')) {
     const from = '          <a href="blog.html" data-i18n="nav.blog">知識ライブラリ</a>';
-    const to = `${from}\n          <a href="diary/">成長日記</a>`;
+    const to = `${from}\n          <a href="diary/">猫舎日記</a>`;
     if (html.includes(from)) {
       html = html.replace(from, to);
       changed = true;
@@ -1269,9 +1269,9 @@ function ensureHomepageDiscoverability() {
 
   if (changed) {
     fs.writeFileSync(filepath, html, 'utf-8');
-    console.log('  index.html -> 成長日記 nav/footer links added');
+    console.log('  index.html -> 猫舎日記 nav/footer links added');
   } else {
-    console.log('  index.html -> 成長日記 links already present');
+    console.log('  index.html -> 猫舎日記 links already present');
   }
 }
 

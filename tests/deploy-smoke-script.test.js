@@ -25,9 +25,13 @@ test('worker smoke covers the small-animal public and private contracts', () => 
   assert.match(SCRIPT, /dark launch.*empty|expected 200 \/ empty/i);
 });
 
-test('worker smoke proves the legacy boarding price URL stays tombstoned', () => {
+test('release smoke proves the stale config stays tombstoned and public services are reachable', () => {
   assert.match(SCRIPT, /boarding-config\.js/);
   assert.match(SCRIPT, /legacy boarding pricing.*404|404.*legacy boarding pricing/i);
+  assert.match(SCRIPT, /boarding-public-config\.js/);
+  assert.match(SCRIPT, /boarding\/|grooming\//);
+  assert.match(SCRIPT, /public boarding config.*200|200.*public boarding config/i);
+  assert.match(SCRIPT, /boarding.*grooming.*200|public services.*200/i);
 });
 
 test('destructive rate-limit saturation is opt-in and catalogue count is not hard-coded', () => {

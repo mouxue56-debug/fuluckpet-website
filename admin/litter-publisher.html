@@ -270,7 +270,7 @@ function ytDesc(ks,title){
   return title+'｜福楽キャッテリー（大阪・サイベリアン専門ブリーダー）\n\n'+ks[0].papa+'×'+ks[0].mama+'の子猫'+ks.length+'匹の成長の様子です。低アレルゲンで穏やかな性格のサイベリアン。\n\n▼ 子猫一覧 '+SITE+'/kittens.html\n▼ 見学予約 '+SITE+'/booking.html\n▼ LINEで相談 '+LINE+'\n\n大阪・関西でサイベリアンの子猫をお探しの方へ。5.0★×113件・みんなの子猫ブリーダー全国1位。\n\n'+hashtags(ks);
 }
 function lineBroadcast(ks,title){
-  return '【福楽キャッテリーより】新しい子猫のお知らせ🐾\n\n'+ks[0].papa+'×'+ks[0].mama+'の子猫が'+ks.length+'匹誕生しました。\n毛色：'+uniq(colorsList(ks)).join('・')+'\n価格：'+fmtPrice(Math.min.apply(null,ks.map(function(k){return k.price||0;})))+'〜\n\nご予約・お迎えのご相談はこのままご返信ください。先着でご案内します。\n見学（対面・ビデオ通話）も承っております😊';
+  return '【福楽キャッテリーより】新しい子猫のお知らせ🐾\n\n'+ks[0].papa+'×'+ks[0].mama+'の子猫が'+ks.length+'匹誕生しました。\n毛色：'+uniq(colorsList(ks)).join('・')+'\n価格：'+fmtPrice(Math.min.apply(null,ks.map(function(k){return k.price||0;})))+'〜\n\nご予約・お迎えのご相談はこのままご返信ください。先着でご案内します。\nLINEビデオ通話での事前相談・オンライン見学も承ります。ご契約前には登録事業所での現物確認と対面説明が必要です😊';
 }
 function marketplaceFields(ks){
   return ks.map(function(k,i){

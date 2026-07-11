@@ -597,7 +597,8 @@ async function loadChatSystemPrompt(env) {
 // Sources (all stored in the same Cloudflare KV namespace `DATA`):
 //   * dynamic JSON: kittens, parents, faq, reviews
 //   * static text:  kb:siberian / kb:about / kb:visit / kb:pricing /
-//                   kb:health / kb:aftercare / kb:legal  (seeded by tools/seed-kb.js)
+//                   kb:health / kb:aftercare / kb:legal / kb:boarding
+//                   (seeded by tools/seed-kb.js)
 //
 // No embeddings — keyword scoring is sufficient for the small corpus and keeps
 // cold-start latency negligible.
@@ -1638,7 +1639,7 @@ function validateBooking(body) {
 
 const CAL_EVENT_TYPES = ['visit', 'boarding', 'block', 'note'];
 const CAL_STATUSES = ['pending', 'confirmed', 'done', 'cancelled'];
-const CAL_PET_TYPES = ['cat', 'small_dog', 'medium_dog', 'large_dog'];
+const CAL_PET_TYPES = ['cat', 'rabbit', 'hamster', 'other_small_animal'];
 const CAL_SOURCES = ['booking-form', 'admin', 'ai'];
 // HH:MM, 00:00–23:59 only. The old /^\d{2}:\d{2}$/ accepted junk like 29:99 / 24:00.
 const CAL_TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;

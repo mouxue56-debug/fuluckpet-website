@@ -64,7 +64,7 @@ function buildPage(art) {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css?v=20260711b">
+  <link rel="stylesheet" href="/style.css?v=20260711c">
   <link rel="stylesheet" href="/guide/guide.css?v=20260706a">
   <link rel="stylesheet" href="/blog.css?v=20260706a">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
@@ -205,9 +205,9 @@ ${body}
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 15l-6-6-6 6"/></svg>
   </button>
 
-  <script src="/i18n.js?v=20260711b"></script>
+  <script src="/i18n.js?v=20260711f"></script>
   <script src="/blog/blog-i18n.js?v=20260710b"></script>
-  <script src="/script.js?v=20260711b"></script>
+  <script src="/script.js?v=20260711c"></script>
 
 </body>
 </html>

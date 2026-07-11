@@ -274,6 +274,30 @@ else
   fail "legacy boarding pricing URL -> $code (expected 404 tombstone)"
 fi
 
+# The public service pages use a deliberately projected config that contains
+# only licensed, owner-approved offers. Prove the new asset is reachable while
+# the broader legacy config remains tombstoned above.
+code="$(curl -s -o /dev/null -w '%{http_code}' "$SITE_ORIGIN/boarding-public-config.js")"
+if [ "$code" = "200" ]; then
+  pass "public boarding config -> 200"
+else
+  fail "public boarding config -> $code (expected 200)"
+fi
+
+public_services_ok=1
+for service_path in boarding/ grooming/; do
+  body="$(curl -s -w $'\n%{http_code}' "$SITE_ORIGIN/$service_path")"
+  code="$(printf '%s' "$body" | tail -n1)"
+  html="$(printf '%s' "$body" | sed '$d')"
+  if [ "$code" != "200" ] || printf '%s' "$html" | grep -Eiq '<meta[^>]+noindex'; then
+    public_services_ok=0
+    fail "$service_path public service -> HTTP $code or noindex"
+  fi
+done
+if [ "$public_services_ok" = "1" ]; then
+  pass "public services boarding and grooming -> 200/indexable"
+fi
+
 # ---------------------------------------------------------------------------
 # 3. Small-animal dark-launch API: public empty/list response + private gates
 # ---------------------------------------------------------------------------
