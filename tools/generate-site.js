@@ -2389,6 +2389,10 @@ function generateKittenDetailPages(kittens, parents, lang = 'ja') {
   // Validate every identity before mkdir, cleanup, template reads, or writes. A bad KV
   // row must stop the cron without mutating the last-good static site.
   assertSafeKittenDetailIds(kittens);
+  // Resolve last-write-wins identity on the complete snapshot before status/photo
+  // eligibility. Otherwise a latest sold row can be filtered out and revive an older
+  // available duplicate as a detail page and sitemap URL.
+  const orderedKittens = KittenCatalog.orderKittens(kittens);
   // ja → <root>/kittens/, en → <root>/en/kittens/, zh → <root>/zh/kittens/
   const kittensDir = lang === 'ja'
     ? path.join(SITE_DIR, 'kittens')
@@ -2400,7 +2404,7 @@ function generateKittenDetailPages(kittens, parents, lang = 'ja') {
   }
 
   // 2. Filter eligible kittens: available or reserved, with at least 1 photo
-  const eligible = kittens.filter(k =>
+  const eligible = orderedKittens.filter(k =>
     (k.status === 'available' || k.status === 'reserved') &&
     k.photos && k.photos.length > 0
   );
@@ -2433,7 +2437,7 @@ function generateKittenDetailPages(kittens, parents, lang = 'ja') {
   // Kept as a warning for now because ~3 known dupes exist; a hard fail would break the cron.
   const seenFileIds = new Set();
   const collisions = new Set();
-  for (const k of eligible) {
+  for (const k of kittens) {
     const fileId = k.breederId || k.id;
     if (seenFileIds.has(fileId)) collisions.add(fileId);
     seenFileIds.add(fileId);
@@ -2444,10 +2448,8 @@ function generateKittenDetailPages(kittens, parents, lang = 'ja') {
     console.warn(`  [COLLISION] ${collisions.size} duplicate breederId(s): ${[...collisions].join(', ')} — each collapses multiple kittens into ONE detail page (data must be deduped in admin).`);
   }
 
-  // Generate the same keep-last record exposed by the listing. This makes the
-  // overwrite rule explicit, avoids redundant writes, and reports the real number
-  // of unique detail URLs while legacy duplicate rows await owner cleanup.
-  const detailKittens = KittenCatalog.orderKittens(eligible);
+  // The full snapshot was already deduped and ordered before eligibility filtering.
+  const detailKittens = eligible;
   let generatedCount = 0;
   for (const k of detailKittens) {
     const fileId = k.breederId || k.id;

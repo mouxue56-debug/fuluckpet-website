@@ -113,3 +113,36 @@ test('duplicate detail identities generate once with the listing keep-last seman
   assert.equal(fs.readdirSync(path.join(siteDir, 'kittens')).filter((file) => file.endsWith('.html')).length, 1);
   assert.equal(fs.existsSync(path.join(siteDir, 'kittens', '2607-duplicate.html')), true);
 });
+
+test('latest sold duplicate suppresses an older available detail page and sitemap URL', (t) => {
+  const { siteDir, generator } = loadGenerator(t);
+  const breederId = 'task2-cross-status';
+  const kittensDir = path.join(siteDir, 'kittens');
+  fs.mkdirSync(kittensDir, { recursive: true });
+  fs.writeFileSync(path.join(kittensDir, `${breederId}.html`), 'STALE DETAIL', 'utf8');
+  const generated = generator.generateKittenDetailPages([
+    {
+      breederId,
+      status: 'available',
+      breed: 'サイベリアン',
+      gender: '♂',
+      color: 'ブルー',
+      birthday: '2026-05-01',
+      price: 100000,
+      photos: ['https://images.example.test/old-available.jpg'],
+    },
+    {
+      breederId,
+      status: 'sold',
+      photos: [],
+    },
+  ], []);
+
+  assert.deepEqual(generated, []);
+  assert.equal(fs.existsSync(path.join(siteDir, 'kittens', `${breederId}.html`)), false);
+
+  const store = { lastmodForUrl: () => '2026-07-11', save: () => {} };
+  generator.updateSitemap([], generated, store);
+  const sitemap = fs.readFileSync(path.join(siteDir, 'sitemap.xml'), 'utf8');
+  assert.doesNotMatch(sitemap, new RegExp(`/kittens/${breederId}\\.html`));
+});
