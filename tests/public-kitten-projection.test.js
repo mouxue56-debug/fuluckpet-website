@@ -23,15 +23,15 @@ async function passwordHash(password, salt) {
   return bytesToHex(await crypto.subtle.digest('SHA-256', input));
 }
 
-async function makeEnv(kittens) {
-  const store = new Map([
-    ['pw:salt', SALT],
-    ['pw:hash', await passwordHash(PASSWORD, SALT)],
-    ['kittens', JSON.stringify(kittens)],
-  ]);
+async function makeEnv(kittens, { legacyPassword = false } = {}) {
+  const credentials = legacyPassword
+    ? [['admin_password', PASSWORD]]
+    : [['pw:salt', SALT], ['pw:hash', await passwordHash(PASSWORD, SALT)]];
+  const store = new Map([...credentials, ['kittens', JSON.stringify(kittens)]]);
   const puts = [];
   return {
     puts,
+    store,
     env: {
       DATA: {
         async get(key, type) {
@@ -41,6 +41,9 @@ async function makeEnv(kittens) {
         async put(key, value, options) {
           puts.push({ key, value, options });
           store.set(key, value);
+        },
+        async delete(key) {
+          store.delete(key);
         },
       },
     },
@@ -146,4 +149,19 @@ test('invalid promotion bulk requests return 400 before any KV put', async () =>
     assert.equal(response.status, 400, JSON.stringify(promotion));
     assert.deepEqual(puts, [], JSON.stringify(promotion));
   }
+});
+
+test('legacy admin_password migration never writes an invalid promotion catalog', async () => {
+  const { env, puts, store } = await makeEnv([], { legacyPassword: true });
+  const response = await fetchWorker(env, request('/api/admin/kittens/bulk', {
+    method: 'POST',
+    auth: true,
+    body: [{ breederId: 'A', promotionTag: 'sale' }],
+  }));
+
+  assert.equal(response.status, 400);
+  const putKeys = puts.map((entry) => entry.key);
+  assert.deepEqual(new Set(putKeys), new Set(['pw:salt', 'pw:hash']));
+  assert.equal(putKeys.includes('kittens'), false);
+  assert.equal(store.has('admin_password'), false);
 });
