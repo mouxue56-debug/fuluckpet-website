@@ -156,3 +156,40 @@ test('the single config flip enables correct dog boarding and undiscounted care 
     CONFIG.dogServices.public = originalPublic;
   }
 });
+
+test('member and seven-night dog discounts use the lower rate without stacking', () => {
+  const { CONFIG } = require(configPath);
+  const calc = require(calcPath);
+  const originalPublic = CONFIG.dogServices.public;
+
+  CONFIG.dogServices.public = true;
+  try {
+    const result = calc.calculateDogBoarding({
+      size: 'small',
+      checkInDate: '2026-06-01',
+      checkOutDate: '2026-06-08',
+      isMember: true,
+    });
+    const weekendNights = result.nightlyBreakdown.filter((night) => night.dateCategory === 'weekend_or_holiday');
+    const surchargeTotal = result.nightlyBreakdown.reduce((sum, night) => sum + night.dateSurcharge, 0);
+
+    assert.deepEqual(
+      {
+        rate: result.rate,
+        discountedBase: result.discountedBasePerNight,
+        weekendNights: weekendNights.length,
+        surchargeTotal,
+        total: result.boardingTotal,
+      },
+      {
+        rate: 0.80,
+        discountedBase: 5900,
+        weekendNights: 2,
+        surchargeTotal: 1100,
+        total: 42400,
+      },
+    );
+  } finally {
+    CONFIG.dogServices.public = originalPublic;
+  }
+});
