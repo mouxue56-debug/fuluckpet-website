@@ -41,6 +41,12 @@ const LEGAL_VISIT_COPY = {
   zh: 'LINE 视频通话可用于前期咨询和线上看猫，但签约前仍须到登记营业场所现场确认幼猫实物并接受面对面说明。',
 };
 
+const BREEDER_VISIT_COPY = {
+  ja: '予約ページまたはLINEからご相談ください。LINEビデオ通話は事前相談・オンライン見学に利用できますが、契約前には登録事業所で子猫の現物確認と対面説明が必要です。現地見学は完全予約制です。',
+  en: 'Start by contacting us through LINE or the booking form. A LINE video call is available for preliminary consultation and online viewing, but before any contract you must visit the registered premises to see the kitten and receive an in-person explanation.',
+  zh: '请先通过 LINE 或预约表单咨询。LINE 视频通话仅用于前期咨询和线上看猫；签约前仍须到登记营业场所现场确认幼猫实物并接受面对面说明。',
+};
+
 const HOMEPAGE_AWARD_COPY = {
   ja: '2025年上半期 全国サイベリアンブリーダー お客様評価第1位',
   en: 'H1 2025: No. 1 nationwide for customer ratings among Siberian breeders',
@@ -120,6 +126,35 @@ test('video calls stay preliminary and never replace the legally required on-sit
   for (const file of ['gallery.html', 'reviews.html', 'siberian-allergy.html', 'waitlist.html']) {
     assert.ok(visibleHtml(file).includes(LEGAL_VISIT_COPY.ja), `${file}: reviewed legal visit copy`);
   }
+});
+
+for (const [file, parallelCopy] of [
+  ['index.html', /対面見学\s*・\s*LINEビデオ通話対応/],
+  ['siberian-allergy.html', /相性チェック<\/b>のお時間を長めに確保（対面・ビデオ通話）/],
+  ['zh/siberian-breeder-osaka.html', /当面或\s*LINE\s*视频通话/],
+]) {
+  test(`${file} never presents LINE video alongside the legally required on-site visit`, () => {
+    assert.doesNotMatch(read(file), parallelCopy, file);
+  });
+}
+
+test('parsed breeder FAQ JSON-LD keeps the on-site contract duty in JA EN ZH', () => {
+  for (const [file, lang] of [
+    ['siberian-breeder-osaka.html', 'ja'],
+    ['en/siberian-breeder-osaka.html', 'en'],
+    ['zh/siberian-breeder-osaka.html', 'zh'],
+  ]) {
+    const faq = jsonLd(file).find((document) => document['@type'] === 'FAQPage');
+    const visitAnswer = faq.mainEntity.find((entry) => /迎える|welcome|迎接/i.test(entry.name));
+    assert.ok(visitAnswer, `${file}: visit FAQ remains present`);
+    assert.equal(visitAnswer.acceptedAnswer.text, BREEDER_VISIT_COPY[lang], `${file}: parsed visit answer`);
+  }
+});
+
+test('future Osaka landing generation keeps LINE video preliminary to the on-site duty', () => {
+  const source = read('tools/build_pages.py');
+  const landingFaq = source.slice(source.indexOf('LANDING_FAQ'), source.indexOf('LANDING_BODY'));
+  assert.ok(landingFaq.includes(LEGAL_VISIT_COPY.ja));
 });
 
 test('Osaka breeder pages use per-kitten current pricing in visible copy and parsed JSON-LD', () => {
