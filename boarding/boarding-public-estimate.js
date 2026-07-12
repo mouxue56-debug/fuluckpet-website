@@ -152,7 +152,11 @@
         isGraduatedCat: elements.isGraduatedCat.checked,
         boardingNights: nights,
       });
-      lines.push({ label: '猫のシャンプー・基本ケア', detail: elements.catCare.value === 'long' ? '長毛猫' : '短毛猫', value: '+' + money(care.subtotal) });
+      var careDetail = elements.catCare.value === 'long' ? '長毛猫' : '短毛猫';
+      if (elements.isGraduatedCat.checked && care.appliedDiscountRate === Config.catGroomingDiscount.graduatedCat) {
+        careDetail += '・福楽卒業猫 30%OFF';
+      }
+      lines.push({ label: '猫のシャンプー・基本ケア', detail: careDetail, value: '+' + money(care.subtotal) });
       total += care.subtotal;
     }
     render(type, checkIn, checkOut, nights, lines, total, boarding.needsReview);

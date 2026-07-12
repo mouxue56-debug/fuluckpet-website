@@ -133,3 +133,32 @@ test('service CTAs use defined icons and estimate-only controls respect hidden s
   assert.match(serviceCss, /\.estimate-main\s+\[hidden\]\s*\{[^}]*display:\s*none\s*!important/);
   assert.match(read('boarding/boarding-public-estimate.js'), /discountCard\.hidden\s*=\s*!type\s*\|\|\s*isSmall/);
 });
+
+test('graduated-cat 30% care benefit is visible, accessible and mobile-safe', () => {
+  const grooming = read('grooming/index.html');
+  const estimate = read('boarding/estimate.html');
+  const estimateUi = read('boarding/boarding-public-estimate.js');
+  const serviceCss = read('services.css');
+
+  assert.match(grooming, /福楽卒業猫/);
+  assert.match(grooming, /30%OFF/);
+  assert.match(grooming, /¥2,800/);
+  assert.match(grooming, /¥4,200/);
+  assert.doesNotMatch(grooming, /class=["'][^"']*\bservice-price-grid\b[^"']*["'][^>]*\bstyle=/);
+
+  assert.match(
+    estimate,
+    /<label\b[^>]*\bfor=["']isGraduatedCat["'][^>]*>[\s\S]*?福楽卒業猫[\s\S]*?30%OFF[\s\S]*?<\/label>/,
+  );
+  assert.match(estimate, /<section\b[^>]*\baria-live=["']polite["'][^>]*>/);
+  assert.match(estimateUi, /福楽卒業猫 30%OFF/);
+
+  assert.match(
+    serviceCss,
+    /@media\s*\(max-width:\s*800px\)[\s\S]*?\.service-price-grid,[\s\S]*?grid-template-columns:\s*1fr/,
+  );
+  assert.match(
+    serviceCss,
+    /@media\s*\(max-width:\s*600px\)[\s\S]*?\.estimate-types,[\s\S]*?\.estimate-fields,[\s\S]*?\.estimate-result-actions[\s\S]*?grid-template-columns:\s*1fr/,
+  );
+});

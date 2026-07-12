@@ -22,6 +22,7 @@ const NAV_RELEASE = '20260711g';
 const I18N_RELEASE = '20260711f';
 const NAV_STYLE_RELEASE = '20260711c';
 const SERVICE_RELEASE = '20260711c';
+const ESTIMATE_RELEASE = '20260712a';
 const PUBLIC_ASSETS = {
   'style.css': STYLE_RELEASE,
   'nav.css': NAV_STYLE_RELEASE,
@@ -44,7 +45,7 @@ const PUBLIC_ASSETS = {
   'services.css': SERVICE_RELEASE,
   'boarding-public-config.js': SERVICE_RELEASE,
   'boarding-public-calc.js': SERVICE_RELEASE,
-  'boarding/boarding-public-estimate.js': SERVICE_RELEASE,
+  'boarding/boarding-public-estimate.js': ESTIMATE_RELEASE,
 };
 
 function trackedFiles(glob) {

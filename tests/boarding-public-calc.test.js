@@ -47,10 +47,29 @@ test('small-animal tiers keep the owner-approved per-night values', () => {
   assert.deepEqual({ nights: hamster.nights, perNight: hamster.perNight, total: hamster.boardingTotal }, { nights: 30, perNight: 400, total: 12000 });
 });
 
-test('cat care keeps approved prices and best non-stacking discount', () => {
+test('cat care keeps approved prices and gives graduated cats one non-stacking 30% discount', () => {
   const calc = require(calcPath);
   assert.equal(calc.calculateCatGrooming('short', {}).subtotal, 4000);
-  assert.equal(calc.calculateCatGrooming('long', { isGraduatedCat: true, boardingNights: 14 }).subtotal, 4200);
+
+  const short = calc.calculateCatGrooming('short', {
+    isMember: true,
+    isGraduatedCat: true,
+    boardingNights: 14,
+  });
+  const long = calc.calculateCatGrooming('long', {
+    isMember: true,
+    isGraduatedCat: true,
+    boardingNights: 14,
+  });
+
+  assert.deepEqual(
+    { rate: short.appliedDiscountRate, subtotal: short.subtotal },
+    { rate: 0.70, subtotal: 2800 },
+  );
+  assert.deepEqual(
+    { rate: long.appliedDiscountRate, subtotal: long.subtotal },
+    { rate: 0.70, subtotal: 4200 },
+  );
 });
 
 test('invalid and unknown service inputs fail closed', () => {
