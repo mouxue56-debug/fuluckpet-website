@@ -41,6 +41,31 @@ function contrastRatio(foreground, background) {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
+function cssHexVariables(css) {
+  const variables = new Map();
+  for (const match of css.matchAll(/--([a-z0-9-]+)\s*:\s*(#[0-9a-f]{6})\s*;/gi)) {
+    variables.set(match[1], match[2]);
+  }
+  return variables;
+}
+
+function inlineStyleProperty(tag, property) {
+  const style = tag.match(/\bstyle=["']([^"']*)["']/i);
+  assert.ok(style, 'CTA exposes an inline style declaration');
+  const value = style[1].match(new RegExp(`(?:^|;)\\s*${property}\\s*:\\s*([^;]+)`, 'i'));
+  assert.ok(value, `CTA inline style defines ${property}`);
+  return value[1].trim();
+}
+
+function resolveCssHex(value, variables) {
+  if (/^#[0-9a-f]{6}$/i.test(value)) return value;
+  const variable = value.match(/^var\(--([a-z0-9-]+)\)$/i);
+  assert.ok(variable, `expected a hex color or one CSS variable, received ${value}`);
+  const resolved = variables.get(variable[1]);
+  assert.ok(resolved, `CSS variable --${variable[1]} resolves to a hex color`);
+  return resolved;
+}
+
 function createElement(attributes = {}, text = '') {
   const attrs = { ...attributes };
   const listeners = new Map();
@@ -160,6 +185,7 @@ test('white-text LINE controls share the accessible dark green token', () => {
     'tools/generate-site.js',
     'tools/generate-diary.js',
     'tools/gen-blog-edu-pages.mjs',
+    'tools/gen-blog-static-pages.mjs',
   ]) {
     assert.doesNotMatch(read(relative), /#(?:06c755|05a648|05b34c)\b/i, `${relative}: generated LINE controls cannot restore a low-contrast green`);
   }
@@ -172,12 +198,16 @@ test('white-text LINE controls share the accessible dark green token', () => {
 
 test('homepage guide entrance keeps its mint fill with dark text', () => {
   const html = read('index.html');
+  const style = read('style.css');
   const tag = html.match(/<a\b(?=[^>]*data-i18n=["']guide\.entrance\.btn["'])[^>]*>/);
 
   assert.ok(tag, 'guide entrance CTA exists');
   assert.match(tag[0], /background\s*:\s*var\(--mint\)/);
-  assert.match(tag[0], /color\s*:\s*var\(--text-heading\)/);
-  assert.doesNotMatch(tag[0], /color\s*:\s*(?:#fff(?:fff)?|white)\b/i);
+  const variables = cssHexVariables(style);
+  const background = resolveCssHex(inlineStyleProperty(tag[0], 'background'), variables);
+  const foreground = resolveCssHex(inlineStyleProperty(tag[0], 'color'), variables);
+  const ratio = contrastRatio(foreground, background);
+  assert.ok(ratio >= 4.5, `guide CTA contrast is ${ratio.toFixed(2)}:1 (${foreground} on ${background})`);
 });
 
 test('mobile estimator title breaks only at the natural phrase boundary', () => {

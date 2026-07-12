@@ -162,8 +162,8 @@ function buildPage(art, lang = 'ja') {
     .blog-cta-btn { display:inline-flex; align-items:center; gap:6px; padding:12px 24px; border-radius:30px; font-weight:600; font-size:0.92rem; text-decoration:none; transition:all 0.2s; }
     .blog-cta-btn-primary { background:var(--mint); color:#fff; }
     .blog-cta-btn-primary:hover { background:var(--mint-dark); transform:translateY(-1px); }
-    .blog-cta-btn-line { background:#06C755; color:#fff; }
-    .blog-cta-btn-line:hover { background:#05a648; transform:translateY(-1px); }
+    .blog-cta-btn-line { background:#07843F; color:#fff; }
+    .blog-cta-btn-line:hover { background:#066C35; transform:translateY(-1px); }
     .blog-nav-bottom { display:flex; gap:16px; justify-content:space-between; margin:40px 0 0; padding:20px 0; border-top:1px solid #eee; flex-wrap:wrap; }
     .blog-nav-link { color:var(--mint-dark); text-decoration:none; font-size:0.92rem; }
     .blog-nav-link:hover { text-decoration:underline; }
