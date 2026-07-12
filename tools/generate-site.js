@@ -898,7 +898,7 @@ function buildListHeader(jaHeader, lang) {
 
   const styleV = verAsset('style.css', '20260711c');
   const navCssV = verAsset('nav.css', '20260711c');
-  const navJsV = verAsset('nav.js', '20260711g');
+  const navJsV = verAsset('nav.js', '20260712b');
   const relPath = 'kittens.html';
   const selfUrl = `${BASE_URL}/${langDir(lang)}kittens.html`;
   const kittensLabel = KITTENS_LABEL[lang];
@@ -1380,7 +1380,7 @@ ${smallAnimalHreflangBlock(detailId)}
   <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260711c')}">
   <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20260711c')}">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
-  <script defer src="/nav.js?v=${verAsset('nav.js', '20260711g')}"></script>`;
+  <script defer src="/nav.js?v=${verAsset('nav.js', '20260712b')}"></script>`;
 }
 
 function buildSmallAnimalListHtml(animals, headerHtml, footerHtml, lang = 'ja') {
@@ -1482,7 +1482,7 @@ ${sections}
 
 ${footerHtml}
 
-  <script src="/i18n.js?v=${verAsset('i18n.js', '20260711f')}"></script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20260712b')}"></script>
   <script src="/script.js?v=${verAsset('script.js', '20260711c')}"></script>
 </body>
 </html>`;
@@ -1626,7 +1626,7 @@ ${footerHtml}
     });
   });
   </script>
-  <script src="/i18n.js?v=${verAsset('i18n.js', '20260711f')}"></script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20260712b')}"></script>
   <script src="/script.js?v=${verAsset('script.js', '20260711c')}"></script>
 </body>
 </html>`;
@@ -2113,7 +2113,7 @@ ${hreflangBlock(`kittens/${fileId}.html`)}
   <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260711c')}">
   <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20260711c')}">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
-  <script defer src="/nav.js?v=${verAsset('nav.js', '20260711g')}"></script>
+  <script defer src="/nav.js?v=${verAsset('nav.js', '20260712b')}"></script>
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
@@ -2431,7 +2431,7 @@ ${footerHtml}
   });
   </script>
   <script src="/kitten-catalog.js?v=${verAsset('kitten-catalog.js', '20260711b')}"></script>
-  <script src="/i18n.js?v=${verAsset('i18n.js', '20260711f')}"></script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20260712b')}"></script>
   <script src="/catalog-i18n.js?v=${verAsset('catalog-i18n.js', '20260710b')}"></script>
   <script src="/kitten-carousel.js?v=${verAsset('kitten-carousel.js', '20260711b')}"></script>
   <script src="/cta-widget.js?v=${verAsset('cta-widget.js', '20260711b')}"></script>

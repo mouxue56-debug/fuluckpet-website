@@ -65,7 +65,8 @@
       icon: 'hand-heart',
       items: [
         { href: '/boarding/', key: 'nav.boarding', icon: 'bed', jaOnly: true, featured: true, match: ['/boarding/'] },
-        { href: '/grooming/', key: 'nav.grooming', icon: 'bath', jaOnly: true, featured: true, match: ['/grooming/'] }
+        { href: '/grooming/', key: 'nav.grooming', icon: 'bath', jaOnly: true, featured: true, match: ['/grooming/'] },
+        { href: 'https://fukurakupet.stores.jp/', key: 'nav.shop', icon: 'shopping-cart', external: true }
       ]
     },
     {

@@ -141,12 +141,13 @@ test('runtime navigation exposes distinct truthful destinations and a dedicated 
   assert.equal(items.find((item) => item.key === 'nav.aboutPage').href, '/about.html');
   assert.equal(items.find((item) => item.key === 'nav.diary').featured, undefined);
   assert.deepEqual(groups.map((group) => group.id), ['pets', 'services', 'adoption', 'breed', 'cattery']);
-  assert.deepEqual(groups.find((group) => group.id === 'services').items.map((item) => item.key), ['nav.boarding', 'nav.grooming']);
+  assert.deepEqual(groups.find((group) => group.id === 'services').items.map((item) => item.key), ['nav.boarding', 'nav.grooming', 'nav.shop']);
   assert.equal(items.find((item) => item.key === 'nav.boarding').href, '/boarding/');
   assert.equal(items.find((item) => item.key === 'nav.grooming').href, '/grooming/');
   assert.equal(items.find((item) => item.key === 'nav.boarding').jaOnly, true);
   assert.equal(items.find((item) => item.key === 'nav.grooming').jaOnly, true);
-  assert.equal(items.some((item) => item.key === 'nav.shop'), false, 'shop stays gated until its target is browser-verified');
+  assert.equal(items.find((item) => item.key === 'nav.shop').href, 'https://fukurakupet.stores.jp/');
+  assert.equal(items.find((item) => item.key === 'nav.shop').external, true);
   const navCss = read('nav.css');
   assert.match(navCss, /body\.nav-enhanced \.header-inner\s*\{[^}]*max-width:\s*1380px/s);
   assert.match(navCss, /@media \(max-width:\s*1360px\)[\s\S]*body\.nav-enhanced \.nav\s*\{\s*display:\s*none/);

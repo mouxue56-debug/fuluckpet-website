@@ -55,8 +55,8 @@ test('runtime launch config fetch has a deadline so navigation enhancement canno
 
 test('language filtering removes empty service groups instead of rendering dead menus', () => {
   assert.deepEqual(nav.visibleNavGroups('ja').map((group) => group.id), ['pets', 'services', 'adoption', 'breed', 'cattery']);
-  assert.deepEqual(nav.visibleNavGroups('en').map((group) => group.id), ['pets', 'adoption', 'breed', 'cattery']);
-  assert.deepEqual(nav.visibleNavGroups('zh').map((group) => group.id), ['pets', 'adoption', 'breed', 'cattery']);
+  assert.deepEqual(nav.visibleNavGroups('en').map((group) => group.id), ['pets', 'services', 'adoption', 'breed', 'cattery']);
+  assert.deepEqual(nav.visibleNavGroups('zh').map((group) => group.id), ['pets', 'services', 'adoption', 'breed', 'cattery']);
 });
 
 test('consultation menu stays concise and avoids overlapping adoption destinations', () => {
