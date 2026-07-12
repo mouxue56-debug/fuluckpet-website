@@ -44,7 +44,7 @@ def cta_section(title="子猫のお迎えをご検討の方へ"):
     return (f'<section style="padding:48px 0"><div class="container" style="max-width:720px;text-align:center;'
             f'background:linear-gradient(135deg,#f0faf7,#fef6f0);border:1px solid #e8f5f0;border-radius:24px;padding:40px 28px">'
             f'<h2 style="border:none">{title}</h2>'
-            f'<p style="color:var(--text-note);margin:12px 0 24px">完全予約制。LINEビデオ通話は事前相談・オンライン見学にご利用いただけます。契約前には登録事業所での現物確認と対面説明が必要です。</p>'
+            f'<p style="color:var(--text-note);margin:12px 0 24px">LINEビデオ通話は事前相談・オンライン見学として利用できますが、契約前には登録事業所で子猫の現物確認と対面説明が必要です。</p>'
             f'<div class="hero-buttons" style="justify-content:center">'
             f'<a href="/booking.html" class="btn btn-primary"><i class="ico ico-calendar-check" aria-hidden="true"></i> 見学を予約する</a>'
             f'<a href="{LINE}" class="btn btn-line" target="_blank" rel="noopener"><i class="ico ico-message-circle" aria-hidden="true"></i> LINEで相談する</a></div>'
@@ -63,7 +63,7 @@ def faq_jsonld(qa):
 # ============ PAGE 1: commercial landing (geo + breed) ============
 LANDING_FAQ = [
  ("大阪・関西でサイベリアンの子猫を迎えるには？", "予約ページまたはLINEからご相談ください。LINEビデオ通話は事前相談・オンライン見学に利用できますが、契約前には登録事業所で子猫の現物確認と対面説明が必要です。現地見学は完全予約制で、約30分〜1時間です。"),
- ("子猫の最新の料金はどこで確認できますか？", "料金は子猫ごとに異なります。子猫一覧から各子猫ページの最新情報をご確認いただくか、LINEでお問い合わせください。"),
+ ("子猫の最新の料金はどこで確認できますか？", "料金は子猫ごとに異なります。各子猫ページの最新情報をご確認いただくか、LINEでお問い合わせください。"),
  ("猫アレルギーですが大丈夫ですか？", "サイベリアンはアレルゲン（Fel d1）が他の猫種より少ないとされますが個人差があります。見学時にアレルギーの相性チェックのお時間を長めにお取りすることが可能です。"),
 ]
 LANDING_BODY = (hero(
@@ -82,7 +82,7 @@ LANDING_BODY = (hero(
   '<h2>対応エリア</h2>'
   '<p>大阪府を拠点に、<b>兵庫・京都・奈良・和歌山・滋賀</b>など関西全域へ。空輸・陸送による<b>全国へのお届け</b>、直接のお迎えにも対応しています。完全予約制です。</p>'
   '<h2 style="margin-top:28px">子猫ごとの最新情報</h2>'
-  '<p>料金やお迎え条件は子猫ごとに異なります。<a href="/kittens.html">子猫一覧</a>から各子猫ページの最新情報をご確認ください。'
+  '<p>料金は子猫ごとに異なります。各子猫ページの最新情報をご確認いただくか、LINEでお問い合わせください。<a href="/kittens.html">子猫一覧</a>から現在の子猫をご覧いただけます。'
   '<span style="color:var(--text-note)">総額や内訳について確認したい点は、<a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" target="_blank" rel="noopener" style="color:#5BC4A8;font-weight:600">LINE</a>でお気軽にご相談いただけます。</span></p>'
   '<h2 style="margin-top:28px">お迎えまでの流れ</h2>'
   '<p>① <a href="/booking.html">予約ページ</a>／LINEでご相談（ビデオ通話は事前相談・オンライン見学） → ② 登録事業所で現物確認・対面説明（約30分〜1時間）＋相性チェック → ③ ご契約 → ④ お迎え。'

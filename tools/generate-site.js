@@ -1482,7 +1482,7 @@ ${sections}
 
 ${footerHtml}
 
-  <script src="/i18n.js?v=${verAsset('i18n.js', '20260712b')}"></script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20260712c')}"></script>
   <script src="/script.js?v=${verAsset('script.js', '20260711c')}"></script>
 </body>
 </html>`;
@@ -1626,7 +1626,7 @@ ${footerHtml}
     });
   });
   </script>
-  <script src="/i18n.js?v=${verAsset('i18n.js', '20260712b')}"></script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20260712c')}"></script>
   <script src="/script.js?v=${verAsset('script.js', '20260711c')}"></script>
 </body>
 </html>`;
@@ -2431,7 +2431,7 @@ ${footerHtml}
   });
   </script>
   <script src="/kitten-catalog.js?v=${verAsset('kitten-catalog.js', '20260711b')}"></script>
-  <script src="/i18n.js?v=${verAsset('i18n.js', '20260712b')}"></script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20260712c')}"></script>
   <script src="/catalog-i18n.js?v=${verAsset('catalog-i18n.js', '20260710b')}"></script>
   <script src="/kitten-carousel.js?v=${verAsset('kitten-carousel.js', '20260711b')}"></script>
   <script src="/cta-widget.js?v=${verAsset('cta-widget.js', '20260711b')}"></script>

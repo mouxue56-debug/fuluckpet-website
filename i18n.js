@@ -46,7 +46,7 @@ const translations = {
 
     // Hero
     'hero.award': '2025年 ブリーダーアワード受賞',
-    'hero.no1': '全国満足度 No.1',
+    'hero.no1': '2025年上半期 全国サイベリアンブリーダー お客様評価第1位',
     'hero.title1': '家族になる、',
     'hero.title2': 'しあわせな出会い。',
     'hero.subtitle': '大阪のサイベリアン専門キャッテリー。<br>低アレルゲンで、家庭に馴染む穏やかな性格の子猫をお届けします。',
@@ -585,7 +585,7 @@ const translations = {
 
     // Hero
     'hero.award': '2025 Breeder Award Winner',
-    'hero.no1': 'No.1 Customer Satisfaction Nationwide',
+    'hero.no1': 'H1 2025: No. 1 nationwide for customer ratings among Siberian breeders',
     'hero.title1': 'Becoming Family,',
     'hero.title2': 'A Joyful Encounter.',
     'hero.subtitle': 'A Siberian cat specialty cattery in Osaka.<br>We deliver gentle, low-allergen kittens that blend perfectly into your home.',
@@ -1124,7 +1124,7 @@ const translations = {
 
     // Hero
     'hero.award': '2025年 繁殖人大奖获得者',
-    'hero.no1': '全国客户满意度 No.1',
+    'hero.no1': '2025年上半年 全国西伯利亚猫繁育者 客户评价第1名',
     'hero.title1': '成为家人，',
     'hero.title2': '幸福的相遇。',
     'hero.subtitle': '大阪西伯利亚猫专业猫舍。<br>为您送上低致敏、性格温顺、适合家庭饲养的幼猫。',
