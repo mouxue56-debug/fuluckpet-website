@@ -217,3 +217,21 @@ test('mobile estimator title breaks only at the natural phrase boundary', () => 
   assert.match(html, /<h1>お預かり料金<wbr\s*\/?>(?:\s*)シミュレーター<\/h1>/);
   assert.match(style, /@media\s*\(max-width:\s*600px\)\s*\{[\s\S]*?\.estimate-intro h1\s*\{[^}]*word-break\s*:\s*keep-all\s*;/, 'mobile title honors only the explicit break opportunity');
 });
+
+test('every deployed Admin HTML page opts out of indexing and link following', () => {
+  const missing = [];
+
+  for (const relative of trackedFiles('admin/*.html')) {
+    const html = read(relative);
+    const head = html.match(/<head\b[^>]*>([\s\S]*?)<\/head>/i);
+    assert.ok(head, `${relative}: head exists`);
+
+    const robotsTag = [...head[1].matchAll(/<meta\b[^>]*>/gi)]
+      .find((match) => /\bname=["']robots["']/i.test(match[0]));
+    const content = robotsTag && robotsTag[0].match(/\bcontent=["']([^"']*)["']/i);
+    const directives = new Set((content ? content[1] : '').toLowerCase().split(',').map((value) => value.trim()).filter(Boolean));
+    if (!directives.has('noindex') || !directives.has('nofollow')) missing.push(relative);
+  }
+
+  assert.deepEqual(missing, [], 'every tracked Admin HTML head declares both noindex and nofollow');
+});
