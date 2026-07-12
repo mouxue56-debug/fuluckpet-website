@@ -58,7 +58,7 @@
       labelKey: 'nav.group.pets',
       icon: 'paw-print',
       items: [
-        { href: '/kittens.html', key: 'nav.kittens', icon: 'cat', match: ['/kittens.html', '/kittens/'] },
+        { href: '/kittens.html', key: 'nav.kittens', icon: 'cat', localized: true, match: ['/kittens.html', '/kittens/'] },
         { href: '/diary/', key: 'nav.diary', icon: 'camera', match: ['/diary/'] },
         { href: '/gallery.html', key: 'nav.gallery', icon: 'image', match: ['/gallery.html'] }
       ]
@@ -79,7 +79,7 @@
       icon: 'calendar-check',
       items: [
         { href: '/booking.html', key: 'nav.booking', icon: 'calendar-check', match: ['/booking.html'] },
-        { href: '/waitlist.html', key: 'nav.waitlist', icon: 'clipboard-list', match: ['/waitlist.html'] },
+        { href: '/waitlist.html', key: 'nav.waitlist', icon: 'clipboard-list', localized: true, match: ['/waitlist.html'] },
         { href: '/guide/', key: 'nav.guide', icon: 'book-open', match: ['/guide/'] },
         { href: '/faq.html', key: 'nav.faq', icon: 'circle-help', match: ['/faq.html'] }
       ]
@@ -91,7 +91,7 @@
       items: [
         { href: '/siberian.html', key: 'nav.siberian', icon: 'sparkles', match: ['/siberian.html'] },
         { href: '/parents.html', key: 'nav.parents', icon: 'users', match: ['/parents.html'] },
-        { href: '/siberian-allergy.html', key: 'nav.allergy', icon: 'leaf', match: ['/siberian-allergy.html'] }
+        { href: '/siberian-allergy.html', key: 'nav.allergy', icon: 'leaf', localized: true, match: ['/siberian-allergy.html'] }
       ]
     },
     {

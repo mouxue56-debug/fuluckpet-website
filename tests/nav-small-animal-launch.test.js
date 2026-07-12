@@ -30,6 +30,28 @@ test('public launch config adds one runtime nav item and trilingual sibling rout
   assert.equal(nav.hasStaticSibling('/small-animals/RB-001.html'), true);
 });
 
+test('real localized navigation items preserve the active English or Chinese locale', () => {
+  const items = new Map(
+    nav.navGroups().flatMap((group) => group.items).map((item) => [item.key, item]),
+  );
+
+  assert.deepEqual([
+    nav.localizedItemHref(items.get('nav.kittens'), 'en'),
+    nav.localizedItemHref(items.get('nav.kittens'), 'zh'),
+    nav.localizedItemHref(items.get('nav.waitlist'), 'en'),
+    nav.localizedItemHref(items.get('nav.waitlist'), 'zh'),
+    nav.localizedItemHref(items.get('nav.allergy'), 'en'),
+    nav.localizedItemHref(items.get('nav.allergy'), 'zh'),
+  ], [
+    '/en/kittens.html',
+    '/zh/kittens.html',
+    '/en/waitlist.html',
+    '/zh/waitlist.html',
+    '/en/siberian-allergy.html',
+    '/zh/siberian-allergy.html',
+  ]);
+});
+
 test('runtime launch config rejects unsafe public slugs', () => {
   nav.resetSmallAnimalLaunchForTest();
   nav.applySmallAnimalLaunch({ public: true, slugPublic: '../secret' });
