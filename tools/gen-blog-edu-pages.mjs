@@ -64,7 +64,7 @@ function buildPage(art) {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css?v=20260711c">
+  <link rel="stylesheet" href="/style.css?v=20260712e">
   <link rel="stylesheet" href="/guide/guide.css?v=20260706a">
   <link rel="stylesheet" href="/blog.css?v=20260706a">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
@@ -111,8 +111,8 @@ function buildPage(art) {
     .blog-cta-btn { display:inline-flex; align-items:center; gap:6px; padding:12px 24px; border-radius:30px; font-weight:600; font-size:0.92rem; text-decoration:none; transition:all 0.2s; }
     .blog-cta-btn-primary { background:var(--mint); color:#fff; }
     .blog-cta-btn-primary:hover { background:var(--mint-dark); transform:translateY(-1px); }
-    .blog-cta-btn-line { background:#06C755; color:#fff; }
-    .blog-cta-btn-line:hover { background:#05a648; transform:translateY(-1px); }
+    .blog-cta-btn-line { background:#07843F; color:#fff; }
+    .blog-cta-btn-line:hover { background:#066C35; transform:translateY(-1px); }
     .blog-nav-bottom { display:flex; gap:16px; justify-content:space-between; margin:40px 0 0; padding:20px 0; border-top:1px solid #eee; flex-wrap:wrap; }
     .blog-nav-link { color:var(--mint-dark); text-decoration:none; font-size:0.92rem; }
     .blog-nav-link:hover { text-decoration:underline; }
@@ -205,9 +205,9 @@ ${body}
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 15l-6-6-6 6"/></svg>
   </button>
 
-  <script src="/i18n.js?v=20260712d"></script>
+  <script src="/i18n.js?v=20260712e"></script>
   <script src="/blog/blog-i18n.js?v=20260710b"></script>
-  <script src="/script.js?v=20260711c"></script>
+  <script src="/script.js?v=20260712e"></script>
 
 </body>
 </html>

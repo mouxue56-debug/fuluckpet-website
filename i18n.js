@@ -1632,6 +1632,13 @@ const htmlKeys = new Set([
   'story.shareHint'
 ]);
 
+function syncCtaAccessibleNames() {
+  document.querySelectorAll('[data-cta]').forEach(function (cta) {
+    var visibleText = (cta.textContent || '').replace(/\s+/g, ' ').trim();
+    if (visibleText) cta.setAttribute('aria-label', visibleText);
+  });
+}
+
 /**
  * Apply translations to all elements with data-i18n attribute
  */
@@ -1703,6 +1710,8 @@ function setLanguage(lang) {
 
   document.documentElement.lang = lang;
 
+  syncCtaAccessibleNames();
+
   try {
     localStorage.setItem('fuluckpet-lang', lang);
   } catch (e) {}
@@ -1772,6 +1781,8 @@ function initI18n() {
   var activeLang = pathLang || ((urlLang && translations[urlLang]) ? urlLang : savedLang);
   if (activeLang && translations[activeLang]) {
     setLanguage(activeLang);
+  } else {
+    syncCtaAccessibleNames();
   }
 }
 

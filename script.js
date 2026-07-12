@@ -680,7 +680,7 @@ document.addEventListener('DOMContentLoaded', () => {
     line.setAttribute('href', 'https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true');
     line.setAttribute('target', '_blank');
     line.setAttribute('rel', 'noopener');
-    line.style.background = '#06C755';
+    line.style.background = '#07843F';
     line.style.borderRadius = '12px';
     line.style.color = '#fff';
     line.style.fontSize = '16px';

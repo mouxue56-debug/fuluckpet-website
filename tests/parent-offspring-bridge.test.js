@@ -445,5 +445,5 @@ test('API offspring text stays literal and cannot create unsafe links or markup'
 test('parents modal exposes a live offspring region and cache-busts the bridge script', () => {
   assert.match(PARENTS_SOURCE, /class="parent-offspring-heading"/);
   assert.match(PARENTS_SOURCE, /class="children-chips"[^>]*aria-live="polite"[^>]*aria-busy="false"/);
-  assert.match(PARENTS_SOURCE, /script\.js\?v=20260711c/);
+  assert.match(PARENTS_SOURCE, /script\.js\?v=20260712e/);
 });

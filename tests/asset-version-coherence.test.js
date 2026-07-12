@@ -9,18 +9,21 @@ const test = require('node:test');
 const ROOT = path.resolve(__dirname, '..');
 const RELEASE = '20260710b';
 const TRUST_RELEASE = '20260711b';
-const STYLE_RELEASE = '20260711c';
-const SCRIPT_RELEASE = '20260711c';
+const STYLE_RELEASE = '20260712e';
+const SCRIPT_RELEASE = '20260712e';
 const TRUTH_RELEASE = '20260711c';
 const CATALOG_RELEASE = '20260711b';
+const KITTEN_CAROUSEL_RELEASE = '20260712e';
 const CARD_LOADER_RELEASE = '20260711d';
 const ADMIN_RENDER_RELEASE = '20260711a';
 const ADMIN_DIARY_RELEASE = '20260711a';
 const ADMIN_FAQ_RELEASE = TRUTH_RELEASE;
 const ADMIN_CALENDAR_RELEASE = '20260711a';
 const NAV_RELEASE = '20260712d';
-const I18N_RELEASE = '20260712d';
+const I18N_RELEASE = '20260712e';
 const NAV_STYLE_RELEASE = '20260711c';
+const CHAT_STYLE_RELEASE = '20260712e';
+const SERVICE_STYLE_RELEASE = '20260712e';
 const SERVICE_RELEASE = '20260712d';
 const ESTIMATE_RELEASE = '20260712b';
 const PUBLIC_ASSETS = {
@@ -36,13 +39,13 @@ const PUBLIC_ASSETS = {
   'faq-trust-copy.js': TRUST_RELEASE,
   'faq-loader.js': TRUST_RELEASE,
   'faq-page-loader.js': TRUST_RELEASE,
-  'kitten-carousel.js': CATALOG_RELEASE,
+  'kitten-carousel.js': KITTEN_CAROUSEL_RELEASE,
   'cta-widget.js': CATALOG_RELEASE,
   'script.js': SCRIPT_RELEASE,
   'mobile-cta.js': TRUST_RELEASE,
-  'assets/chat/widget.css': TRUST_RELEASE,
+  'assets/chat/widget.css': CHAT_STYLE_RELEASE,
   'assets/chat/widget.js': TRUTH_RELEASE,
-  'services.css': SERVICE_RELEASE,
+  'services.css': SERVICE_STYLE_RELEASE,
   'boarding-public-config.js': SERVICE_RELEASE,
   'boarding-public-calc.js': SERVICE_RELEASE,
   'dog-services-projection.js': SERVICE_RELEASE,

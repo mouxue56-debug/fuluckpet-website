@@ -31,7 +31,7 @@
   /* Functional */
   --bg-white: #FFFFFF;
   --bg-cream: #FFFCF0;
-  --line-green: #06C755;
+  --line-green: #07843F;
 
   /* Shadows */
   --shadow-soft: 0 2px 20px rgba(90, 122, 122, 0.06);
@@ -1514,7 +1514,7 @@ button { font-family: inherit; cursor: pointer; }
   display: flex;
   align-items: center;
   gap: 12px;
-  background: linear-gradient(135deg, #06C755 0%, #04B34A 100%);
+  background: var(--line-green);
   color: var(--text-white);
   padding: 16px 28px;
   border-radius: 20px;
@@ -1556,9 +1556,7 @@ button { font-family: inherit; cursor: pointer; }
 .fixed-line-label {
   font-size: 13px;
   font-weight: 500;
-  /* On LINE green gradient (#06C755 → #04B34A) — explicit rgba beats opacity:0.9
-     for contrast accounting. rgba(255,255,255,0.95) on #06C755 ≈ 4.69:1 (AA pass). */
-  color: rgba(255, 255, 255, 0.95);
+  color: #fff;
 }
 .fixed-line-cta {
   font-size: 15px;
@@ -2502,7 +2500,7 @@ button { font-family: inherit; cursor: pointer; }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: linear-gradient(135deg, #06C755, #04B34A);
+  background: var(--line-green);
   color: white;
   padding: 10px 22px;
   border-radius: 100px;

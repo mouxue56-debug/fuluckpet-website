@@ -313,8 +313,8 @@
     '.kc-btn { display:inline-flex; align-items:center; gap:6px; padding:12px 24px; border-radius:30px; font-weight:600; font-size:0.92rem; text-decoration:none; transition:all 0.2s; }' +
     '.kc-btn-primary { background:var(--mint,#7DD3C0); color:#fff; }' +
     '.kc-btn-primary:hover { background:var(--mint-dark,#4db8a4); transform:translateY(-1px); }' +
-    '.kc-btn-line { background:#06C755; color:#fff; }' +
-    '.kc-btn-line:hover { background:#05a648; transform:translateY(-1px); }' +
+    '.kc-btn-line { background:#07843F; color:#fff; }' +
+    '.kc-btn-line:hover { background:#066C35; transform:translateY(-1px); }' +
     '.kc-btn-book { background:var(--strawberry,#F4A896); color:#fff; }' +
     '.kc-btn-book:hover { background:#e8917a; transform:translateY(-1px); }' +
     '.kc-arrows { display:flex; gap:8px; justify-content:center; margin-top:12px; }' +

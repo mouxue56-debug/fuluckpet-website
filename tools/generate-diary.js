@@ -660,8 +660,8 @@ function diaryStyles() {
  .blog-cta-btn { display:inline-flex; align-items:center; gap:6px; padding:12px 24px; border-radius:30px; font-weight:600; font-size:0.92rem; text-decoration:none; transition:all 0.2s; }
  .blog-cta-btn-primary { background:var(--mint); color:#fff; }
  .blog-cta-btn-primary:hover { background:var(--mint-dark); transform:translateY(-1px); }
- .blog-cta-btn-line { background:#06C755; color:#fff; }
- .blog-cta-btn-line:hover { background:#05a648; transform:translateY(-1px); }
+ .blog-cta-btn-line { background:#07843F; color:#fff; }
+ .blog-cta-btn-line:hover { background:#066C35; transform:translateY(-1px); }
  .blog-nav-bottom { display:flex; gap:16px; justify-content:space-between; margin:40px 0 0; padding:20px 0; border-top:1px solid #eee; flex-wrap:wrap; }
  .blog-nav-link { color:var(--mint-dark); text-decoration:none; font-size:0.92rem; }
  .blog-nav-link:hover { text-decoration:underline; }
@@ -716,7 +716,7 @@ function buildHead({ title, description, pageUrl, image, jsonLd, ogType = 'artic
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
-  <link rel="stylesheet" href="/style.css?v=${ver('style.css', '20260711c')}">
+  <link rel="stylesheet" href="/style.css?v=${ver('style.css', '20260712e')}">
   <link rel="stylesheet" href="/nav.css?v=${ver('nav.css', '20260711c')}">
   <link rel="stylesheet" href="/guide/guide.css?v=${ver('guide/guide.css', '20260706a')}">
   <link rel="stylesheet" href="/blog.css?v=${ver('blog.css', '20260706a')}">
@@ -975,10 +975,10 @@ ${bodyJa}
 
 ${chrome.footerHtml}
 
-  <script src="/i18n.js?v=${ver('i18n.js', '20260712d')}"></script>
+  <script src="/i18n.js?v=${ver('i18n.js', '20260712e')}"></script>
   <script>window._diaryArticleI18n = ${safeJsonForHtmlScript(i18n)}; window._blogArticleI18n = window._diaryArticleI18n;</script>
   <script src="/blog/blog-i18n.js?v=${ver('blog/blog-i18n.js', '20260710b')}"></script>
-  <script src="/script.js?v=${ver('script.js', '20260711c')}"></script>
+  <script src="/script.js?v=${ver('script.js', '20260712e')}"></script>
 
   <div class="mobile-cta-bar" role="navigation" aria-label="クイック連絡">
     <div class="mobile-cta-bar-inner">
@@ -1126,13 +1126,15 @@ function buildDiaryIndexHtml(entries, context) {
   return `${buildHead({ title, description, pageUrl, image: '/images/ogp.jpg', jsonLd, ogType: 'website' })}
 <body ${chrome.bodyAttrs}>
 
+  <a class="skip-link" href="#main" data-i18n="a11y.skipToMain">メインコンテンツへスキップ</a>
+
 ${chrome.headerHtml}
 
   <nav class="guide-breadcrumb" aria-label="パンくずリスト">
     <a href="/">ホーム</a> &gt; <span>猫舎日記</span>
   </nav>
 
-  <main class="diary-index">
+  <main class="diary-index" id="main">
     <section class="diary-index-hero">
       <span class="sec-tag">Kitten Diary</span>
       <h1 data-i18n="diary.title">猫舎日記</h1>
@@ -1143,8 +1145,8 @@ ${chrome.headerHtml}
 
 ${chrome.footerHtml}
 
-  <script src="/i18n.js?v=${ver('i18n.js', '20260712d')}"></script>
-  <script src="/script.js?v=${ver('script.js', '20260711c')}"></script>
+  <script src="/i18n.js?v=${ver('i18n.js', '20260712e')}"></script>
+  <script src="/script.js?v=${ver('script.js', '20260712e')}"></script>
 
   <div class="mobile-cta-bar" role="navigation" aria-label="クイック連絡">
     <div class="mobile-cta-bar-inner">
