@@ -3,6 +3,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const http = require('node:http');
+const os = require('node:os');
 const path = require('node:path');
 const { once } = require('node:events');
 const test = require('node:test');
@@ -28,8 +29,8 @@ function expectedPreviewProjection() {
   });
 }
 
-async function startPreview(t) {
-  const server = createPreviewServer({ root: ROOT, host: '127.0.0.1', port: 0 });
+async function startPreview(t, root = ROOT) {
+  const server = createPreviewServer({ root, host: '127.0.0.1', port: 0 });
   t.after(async () => {
     if (!server.listening) return;
     await new Promise((resolve, reject) => {
@@ -38,6 +39,15 @@ async function startPreview(t) {
   });
   await once(server, 'listening');
   return server;
+}
+
+async function createInternalTreeFixture(t) {
+  const fixtureRoot = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'dog-services-preview-'));
+  const siteRoot = path.join(fixtureRoot, 'site');
+  await fs.promises.mkdir(path.join(siteRoot, 'docs'), { recursive: true });
+  await fs.promises.writeFile(path.join(siteRoot, 'docs', 'internal-plan.md'), 'internal only\n');
+  t.after(() => fs.promises.rm(fixtureRoot, { recursive: true, force: true }));
+  return { fixtureRoot, siteRoot };
 }
 
 function request(server, pathname, method = 'GET') {
@@ -134,6 +144,34 @@ test('preview denies internal repository trees', async (t) => {
     const response = await request(server, pathname);
     assert.equal(response.status, 403, pathname);
   }
+});
+
+test('preview denies direct access to the docs tree', async (t) => {
+  const { siteRoot } = await createInternalTreeFixture(t);
+  const server = await startPreview(t, siteRoot);
+  const response = await request(server, '/docs/internal-plan.md');
+
+  assert.equal(response.status, 403);
+});
+
+test('preview denies an in-root symlink alias to an internal tree', async (t) => {
+  const { siteRoot } = await createInternalTreeFixture(t);
+  await fs.promises.symlink('docs', path.join(siteRoot, 'public-alias'), 'dir');
+  const server = await startPreview(t, siteRoot);
+  const response = await request(server, '/public-alias/internal-plan.md');
+
+  assert.equal(response.status, 403);
+});
+
+test('preview denies a symlink escape outside the selected root', async (t) => {
+  const { fixtureRoot, siteRoot } = await createInternalTreeFixture(t);
+  const outsideFile = path.join(fixtureRoot, 'outside-secret.txt');
+  await fs.promises.writeFile(outsideFile, 'outside root\n');
+  await fs.promises.symlink(outsideFile, path.join(siteRoot, 'outside-alias.txt'), 'file');
+  const server = await startPreview(t, siteRoot);
+  const response = await request(server, '/outside-alias.txt');
+
+  assert.equal(response.status, 403);
 });
 
 test('preview rejects plain, encoded, and repeatedly encoded traversal', async (t) => {

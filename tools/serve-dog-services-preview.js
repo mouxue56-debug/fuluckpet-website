@@ -12,6 +12,7 @@ const INTERNAL_TREES = new Set([
   '.superpowers',
   'admin',
   'api',
+  'docs',
   'node_modules',
   'scripts',
   'tests',
@@ -67,6 +68,13 @@ function sendResponse(req, res, status, value, headers = {}) {
   res.end(req.method === 'HEAD' ? undefined : body);
 }
 
+function hasDeniedSegment(segments) {
+  return segments.some((segment) => {
+    const lower = segment.toLowerCase();
+    return lower.startsWith('.') || INTERNAL_TREES.has(lower);
+  });
+}
+
 function decodeRequestPath(requestUrl) {
   const rawUrl = typeof requestUrl === 'string' ? requestUrl : '';
   const queryIndex = rawUrl.indexOf('?');
@@ -92,10 +100,7 @@ function decodeRequestPath(requestUrl) {
 
   const segments = decoded.split('/').filter(Boolean);
   if (segments.some((segment) => segment === '.' || segment === '..')) return { status: 403 };
-  if (segments.some((segment) => {
-    const lower = segment.toLowerCase();
-    return lower.startsWith('.') || INTERNAL_TREES.has(lower);
-  })) return { status: 403 };
+  if (hasDeniedSegment(segments)) return { status: 403 };
 
   return {
     pathname: `/${segments.join('/')}${decoded.endsWith('/') && segments.length ? '/' : ''}`,
@@ -123,6 +128,12 @@ async function readStaticFile(root, pathname) {
   const realCandidate = await fs.promises.realpath(candidate);
   if (!insideRoot(root, realCandidate)) {
     const error = new Error('symlink escapes preview root');
+    error.status = 403;
+    throw error;
+  }
+  const realSegments = path.relative(root, realCandidate).split(path.sep).filter(Boolean);
+  if (hasDeniedSegment(realSegments)) {
+    const error = new Error('resolved path enters an internal tree');
     error.status = 403;
     throw error;
   }
