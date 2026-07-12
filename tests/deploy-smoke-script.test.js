@@ -32,6 +32,8 @@ test('release smoke proves the stale config stays tombstoned and public services
   assert.match(SCRIPT, /boarding\/|grooming\//);
   assert.match(SCRIPT, /public boarding config.*200|200.*public boarding config/i);
   assert.match(SCRIPT, /boarding.*grooming.*200|public services.*200/i);
+  assert.match(SCRIPT, /dog-services-launch\.json/);
+  assert.match(SCRIPT, /dog service projection.*matches|matches.*dog service projection/i);
 });
 
 test('destructive rate-limit saturation is opt-in and catalogue count is not hard-coded', () => {

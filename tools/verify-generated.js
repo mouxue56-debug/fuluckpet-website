@@ -18,6 +18,26 @@ const SITE = path.resolve(__dirname, '..');
 const errors = [];
 const SHARED_ASSETS = ['style.css', 'i18n.js', 'nav.js', 'nav.css'];
 
+// --- Check 0: generated dog-service launch projection freshness ---
+// A config flip must never leave nav/UI reading an older generated public state.
+const dogProjectionFiles = [
+  'boarding-public-config.js', 'dog-services-projection.js', 'dog-services-launch.json',
+];
+const dogProjectionPresence = dogProjectionFiles.map(rel => fs.existsSync(path.join(SITE, rel)));
+if (dogProjectionPresence.some(Boolean)) {
+  if (!dogProjectionPresence.every(Boolean)) {
+    errors.push('[dog-services] projection inputs/output are incomplete; run node tools/generate-site.js');
+  } else {
+    const BoardingConfig = require('../boarding-public-config.js');
+    const DogServicesProjection = require('../dog-services-projection.js');
+    const dogProjectionActual = read('dog-services-launch.json');
+    const dogProjectionExpected = DogServicesProjection.serializeDogServicesProjection(BoardingConfig);
+    if (dogProjectionActual !== dogProjectionExpected) {
+      errors.push('[dog-services] dog-services-launch.json is stale; run node tools/generate-site.js');
+    }
+  }
+}
+
 function read(rel) {
   try { return fs.readFileSync(path.join(SITE, rel), 'utf8'); } catch { return null; }
 }

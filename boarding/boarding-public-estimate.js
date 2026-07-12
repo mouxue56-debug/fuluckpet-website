@@ -4,6 +4,7 @@
 
   var Calc = window.BoardingCalc;
   var Config = (window.BOARDING_CONFIG || {}).CONFIG;
+  var DogProjection = window.DogServicesProjection;
   if (!Calc || !Config) return;
 
   var labels = {
@@ -11,6 +12,7 @@
     rabbit_cage: 'うさぎ・小動物',
     hamster_cage: 'ハムスター等',
   };
+  var dogProjection = null;
   var surchargeLabels = {
     weekend_or_holiday: '土日祝加算',
     school_vacation: '学校休暇加算',
@@ -41,8 +43,10 @@
     lineButton: byId('lineButton'),
     copyButton: byId('copyButton'),
     copyMessage: byId('copyMessage'),
+    dogBasicCare: null,
   };
   var quoteText = '';
+  var requestedType = '';
 
   function setEmpty(message) {
     elements.resultEmpty.textContent = message;
@@ -93,6 +97,8 @@
     var checkOut = elements.checkOut.value;
     var isCat = type === 'cat';
     var isSmall = Calc.isSmallPetType(type);
+    var dogMatch = /^dog_(small|medium|large)$/.exec(type);
+    var isDog = !!dogMatch;
 
     elements.discountCard.hidden = !type || isSmall;
     elements.graduatedWrap.hidden = !isCat;
@@ -102,6 +108,7 @@
       elements.catCare.value = '';
     }
     if (isSmall) elements.isMember.checked = false;
+    if (!isDog && elements.dogBasicCare) elements.dogBasicCare.checked = false;
 
     if (!type || !checkIn || !checkOut) {
       setEmpty('上の1〜2を選ぶと、概算がここに表示されます。');
@@ -122,6 +129,48 @@
       var small = Calc.calculateSmallPetBoarding({ animalType: type, checkInDate: checkIn, checkOutDate: checkOut });
       var smallLines = [{ label: '基本料金', detail: money(small.perNight) + ' × ' + nights + '泊', value: money(small.boardingTotal) }];
       render(type, checkIn, checkOut, nights, smallLines, small.boardingTotal, false);
+      return;
+    }
+
+    if (isDog) {
+      var dogSize = dogMatch[1];
+      var dogBoarding = Calc.calculateDogBoarding({
+        size: dogSize,
+        checkInDate: checkIn,
+        checkOutDate: checkOut,
+        isMember: elements.isMember.checked,
+      }, dogProjection);
+      if (!dogBoarding || dogBoarding.available !== true || dogBoarding.error) {
+        setEmpty('犬の料金情報を確認できませんでした。LINEで直接お問い合わせください。');
+        return;
+      }
+      var dogLines = [{
+        label: '犬のお預かり',
+        detail: money(dogBoarding.discountedBasePerNight) + ' × ' + nights + '泊',
+        value: money(dogBoarding.discountedBasePerNight * nights),
+      }];
+      var dogGroups = {};
+      dogBoarding.nightlyBreakdown.forEach(function (night) {
+        if (!night.dateSurcharge) return;
+        dogGroups[night.dateCategory] = dogGroups[night.dateCategory] || { price: night.dateSurcharge, count: 0 };
+        dogGroups[night.dateCategory].count += 1;
+      });
+      Object.keys(surchargeLabels).forEach(function (category) {
+        if (!dogGroups[category]) return;
+        var surcharge = dogGroups[category];
+        dogLines.push({ label: surchargeLabels[category], detail: money(surcharge.price) + ' × ' + surcharge.count + '泊', value: '+' + money(surcharge.price * surcharge.count) });
+      });
+      var dogTotal = dogBoarding.boardingTotal;
+      if (elements.dogBasicCare && elements.dogBasicCare.checked) {
+        var dogCare = Calc.calculateDogBasicCare({ size: dogSize }, dogProjection);
+        if (!dogCare || dogCare.available !== true || dogCare.error) {
+          setEmpty('犬の基本ケア料金を確認できませんでした。LINEで直接お問い合わせください。');
+          return;
+        }
+        dogLines.push({ label: '犬の基本ケア', detail: '爪切り・耳掃除・肛門腺', value: '+' + money(dogCare.subtotal) });
+        dogTotal += dogCare.subtotal;
+      }
+      render(type, checkIn, checkOut, nights, dogLines, dogTotal, dogBoarding.needsReview);
       return;
     }
 
@@ -177,7 +226,15 @@
     return copied ? Promise.resolve() : Promise.reject(new Error('copy failed'));
   }
 
-  document.querySelectorAll('input[name="petType"]').forEach(function (input) { input.addEventListener('change', compute); });
+  function bindPetTypeInputs() {
+    document.querySelectorAll('input[name="petType"]').forEach(function (input) {
+      if (input.__fuluckEstimateBound) return;
+      input.__fuluckEstimateBound = true;
+      input.addEventListener('change', compute);
+    });
+  }
+
+  bindPetTypeInputs();
   [elements.checkIn, elements.checkOut, elements.isMember, elements.isGraduatedCat, elements.catCare].forEach(function (input) { input.addEventListener('change', compute); });
   elements.copyButton.addEventListener('click', function () {
     copyQuote().then(function () { elements.copyMessage.textContent = '見積もり内容をコピーしました。'; }, function () { elements.copyMessage.textContent = 'コピーできませんでした。画面の内容をLINEでお知らせください。'; });
@@ -192,9 +249,31 @@
   elements.checkIn.min = todayString;
   elements.checkOut.min = todayString;
   try {
-    var queryType = new URLSearchParams(window.location.search).get('type');
-    var initial = document.querySelector('input[name="petType"][value="' + queryType + '"]');
+    requestedType = new URLSearchParams(window.location.search).get('type') || '';
+    var initial = document.querySelector('input[name="petType"][value="' + requestedType + '"]');
     if (initial) initial.checked = true;
   } catch (error) {}
+
+  function enableDogServices(projection) {
+    if (!DogProjection || !DogProjection.validateDogServicesProjection(projection) || projection.public !== true) return false;
+    dogProjection = projection;
+    DogProjection.SIZE_KEYS.forEach(function (size) {
+      labels['dog_' + size] = projection.sizes[size].label;
+    });
+    elements.dogBasicCare = byId('dogBasicCare');
+    if (elements.dogBasicCare && !elements.dogBasicCare.__fuluckEstimateBound) {
+      elements.dogBasicCare.__fuluckEstimateBound = true;
+      elements.dogBasicCare.addEventListener('change', compute);
+    }
+    bindPetTypeInputs();
+    if (requestedType) {
+      var initialDog = document.querySelector('input[name="petType"][value="' + requestedType + '"]');
+      if (initialDog) initialDog.checked = true;
+    }
+    compute();
+    return true;
+  }
+
+  window.BoardingEstimate = { enableDogServices: enableDogServices };
   compute();
 })();

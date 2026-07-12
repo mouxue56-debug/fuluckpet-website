@@ -284,6 +284,26 @@ else
   fail "public boarding config -> $code (expected 200)"
 fi
 
+# The generated dog-service projection is the only browser launch payload. Use the
+# same minute-bucketed URL as nav/UI and require the deployed JSON to match this commit.
+dog_bucket="$(($(date +%s) / 60))"
+body="$(curl -s -w $'\n%{http_code}' "$SITE_ORIGIN/dog-services-launch.json?v=$dog_bucket")"
+code="$(printf '%s' "$body" | tail -n1)"
+json="$(printf '%s' "$body" | sed '$d')"
+dog_remote="$(printf '%s' "$json" | node -e '
+  let text = "";
+  process.stdin.on("data", chunk => { text += chunk; });
+  process.stdin.on("end", () => {
+    try { process.stdout.write(JSON.stringify(JSON.parse(text))); } catch { process.exit(2); }
+  });
+' 2>/dev/null || echo invalid)"
+dog_expected="$(node -p "JSON.stringify(require('$REPO_ROOT/dog-services-launch.json'))")"
+if [ "$code" = "200" ] && [ "$dog_remote" = "$dog_expected" ]; then
+  pass "dog service projection matches tracked generation -> 200"
+else
+  fail "dog service projection -> HTTP $code value=$dog_remote (expected tracked $dog_expected)"
+fi
+
 public_services_ok=1
 for service_path in boarding/ grooming/; do
   body="$(curl -s -w $'\n%{http_code}' "$SITE_ORIGIN/$service_path")"

@@ -8,7 +8,18 @@ const test = require('node:test');
 const ROOT = path.resolve(__dirname, '..');
 const configPath = path.join(ROOT, 'boarding-public-config.js');
 const calcPath = path.join(ROOT, 'boarding-public-calc.js');
+const projectionPath = path.join(ROOT, 'dog-services-projection.js');
 const read = (relative) => fs.readFileSync(path.join(ROOT, relative), 'utf8');
+
+function publicProjection() {
+  const source = require(configPath);
+  const configApi = {
+    CONFIG: { ...source.CONFIG, dogServices: { ...source.CONFIG.dogServices, public: true } },
+    HOLIDAYS_2026: source.HOLIDAYS_2026.slice(),
+    SPECIAL_DATE_RANGES: source.SPECIAL_DATE_RANGES.map((range) => ({ ...range })),
+  };
+  return require(projectionPath).buildDogServicesProjection(configApi);
+}
 
 test('historical dog prices stay behind one disabled public gate', () => {
   const { CONFIG } = require(configPath);
@@ -67,21 +78,16 @@ test('dog calculators fail closed while the public gate is false', () => {
   );
 });
 
-test('the single config flip enables correct dog boarding and undiscounted care math', () => {
-  const { CONFIG } = require(configPath);
+test('the single config flip projects correct dog boarding and undiscounted care math', () => {
   const calc = require(calcPath);
-  assert.ok(CONFIG.dogServices, 'dogServices config is required');
   assert.equal(typeof calc.calculateDogBoarding, 'function');
   assert.equal(typeof calc.calculateDogBasicCare, 'function');
-  const originalPublic = CONFIG.dogServices.public;
-
-  CONFIG.dogServices.public = true;
-  try {
+  const projection = publicProjection();
     const normal = calc.calculateDogBoarding({
       size: 'small',
       checkInDate: '2026-06-01',
       checkOutDate: '2026-06-02',
-    });
+    }, projection);
     assert.deepEqual(
       {
         available: normal.available,
@@ -98,7 +104,7 @@ test('the single config flip enables correct dog boarding and undiscounted care 
       checkInDate: '2026-06-01',
       checkOutDate: '2026-06-02',
       isMember: true,
-    });
+    }, projection);
     assert.deepEqual(
       { rate: member.rate, discountedBase: member.discountedBasePerNight, total: member.boardingTotal },
       { rate: 0.90, discountedBase: 6700, total: 6700 },
@@ -108,17 +114,17 @@ test('the single config flip enables correct dog boarding and undiscounted care 
       size: 'small',
       checkInDate: '2026-06-06',
       checkOutDate: '2026-06-07',
-    });
+    }, projection);
     const schoolVacation = calc.calculateDogBoarding({
       size: 'medium',
       checkInDate: '2026-07-20',
       checkOutDate: '2026-07-21',
-    });
+    }, projection);
     const highSeason = calc.calculateDogBoarding({
       size: 'large',
       checkInDate: '2026-08-08',
       checkOutDate: '2026-08-09',
-    });
+    }, projection);
     assert.deepEqual(
       [weekend.boardingTotal, schoolVacation.boardingTotal, highSeason.boardingTotal],
       [7950, 9850, 12200],
@@ -136,7 +142,7 @@ test('the single config flip enables correct dog boarding and undiscounted care 
         size,
         checkInDate: '2026-02-01',
         checkOutDate,
-      });
+      }, projection);
       assert.equal(result.rate, rate, `${size} ${nights} nights rate`);
       assert.equal(result.discountedBasePerNight, discountedBase, `${size} ${nights} nights base`);
     }
@@ -148,28 +154,21 @@ test('the single config flip enables correct dog boarding and undiscounted care 
           isMember: true,
           isGraduatedCat: true,
           boardingNights: 30,
-        }),
+        }, projection),
         { available: true, size, basePrice: subtotal, appliedDiscountRate: 1, subtotal },
       );
     }
-  } finally {
-    CONFIG.dogServices.public = originalPublic;
-  }
 });
 
 test('member and seven-night dog discounts use the lower rate without stacking', () => {
-  const { CONFIG } = require(configPath);
   const calc = require(calcPath);
-  const originalPublic = CONFIG.dogServices.public;
-
-  CONFIG.dogServices.public = true;
-  try {
+  const projection = publicProjection();
     const result = calc.calculateDogBoarding({
       size: 'small',
       checkInDate: '2026-06-01',
       checkOutDate: '2026-06-08',
       isMember: true,
-    });
+    }, projection);
     const weekendNights = result.nightlyBreakdown.filter((night) => night.dateCategory === 'weekend_or_holiday');
     const surchargeTotal = result.nightlyBreakdown.reduce((sum, night) => sum + night.dateSurcharge, 0);
 
@@ -189,7 +188,4 @@ test('member and seven-night dog discounts use the lower rate without stacking',
         total: 42400,
       },
     );
-  } finally {
-    CONFIG.dogServices.public = originalPublic;
-  }
 });

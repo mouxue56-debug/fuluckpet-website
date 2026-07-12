@@ -13,6 +13,20 @@
   display: none !important;
 }
 
+[data-dog-private-only][hidden] {
+  display: none !important;
+}
+
+[data-dog-services-surface="estimate"] {
+  display: contents;
+}
+
+[data-dog-services-surface="estimate-care"]:not(:empty) {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
 .service-main {
   padding-top: var(--header-height);
 }

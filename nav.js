@@ -3,6 +3,10 @@
 
   var LINE_URL = 'https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true';
   var LANGS = ['ja', 'en', 'zh'];
+  var dogProjectionApi = (typeof module !== 'undefined' && module.exports && typeof require !== 'undefined')
+    ? require('./dog-services-projection.js')
+    : null;
+  var dogProjectionApiPromise = null;
 
   // Root (ja) paths that have real static /en/ + /zh/ sibling files on disk. When the lang
   // switch is clicked on one of these, NAVIGATE to the sibling instead of translating the ja
@@ -142,9 +146,73 @@
     });
   }
 
+  function resetDogServicesLaunchForTest() {
+    var services = groupById('services');
+    if (!services) return;
+    services.items = services.items.filter(function (item) {
+      return item.key !== 'nav.dogServices';
+    });
+  }
+
+  function strictDogProjection(config) {
+    var api = dogProjectionApi || (typeof window !== 'undefined' && window.DogServicesProjection);
+    return !!(api && typeof api.validateDogServicesProjection === 'function' &&
+      api.validateDogServicesProjection(config));
+  }
+
+  function applyDogServicesLaunch(config) {
+    resetDogServicesLaunchForTest();
+    if (!strictDogProjection(config) || config.public !== true) return;
+    var services = groupById('services');
+    if (!services) return;
+    var shopIndex = services.items.findIndex(function (item) { return item.key === 'nav.shop'; });
+    if (shopIndex === -1) shopIndex = services.items.length;
+    services.items.splice(shopIndex, 0, {
+      href: '/boarding/#dog-services',
+      key: 'nav.dogServices',
+      icon: 'dog',
+      featured: true,
+      match: ['/boarding/#dog-services', '/grooming/#dog-basic-care']
+    });
+  }
+
   function smallAnimalLaunchConfigUrl(now) {
     var timestamp = typeof now === 'number' ? now : Date.now();
     return '/small-animals-launch.json?v=' + Math.floor(timestamp / 60000);
+  }
+
+  function dogServicesProjectionUrl(now) {
+    var timestamp = typeof now === 'number' ? now : Date.now();
+    return '/dog-services-launch.json?v=' + Math.floor(timestamp / 60000);
+  }
+
+  function loadDogProjectionApi(timeoutMs) {
+    if (dogProjectionApi) return Promise.resolve(dogProjectionApi);
+    if (typeof window !== 'undefined' && window.DogServicesProjection) {
+      dogProjectionApi = window.DogServicesProjection;
+      return Promise.resolve(dogProjectionApi);
+    }
+    if (dogProjectionApiPromise) return dogProjectionApiPromise;
+    if (typeof document === 'undefined' || !document.head) return Promise.resolve(null);
+
+    dogProjectionApiPromise = new Promise(function (resolve) {
+      var settled = false;
+      var script = document.createElement('script');
+      var timer = setTimeout(function () { finish(null); }, timeoutMs);
+      function finish(value) {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        if (value) dogProjectionApi = value;
+        resolve(value);
+      }
+      script.src = '/dog-services-projection.js?v=20260712d';
+      script.async = true;
+      script.onload = function () { finish(window.DogServicesProjection || null); };
+      script.onerror = function () { finish(null); };
+      document.head.appendChild(script);
+    });
+    return dogProjectionApiPromise;
   }
 
   function loadSmallAnimalLaunch(timeoutMs) {
@@ -169,6 +237,37 @@
       }, deadlineMs);
     });
     return Promise.race([request, deadline]).finally(function () { clearTimeout(timer); });
+  }
+
+  function loadDogServicesLaunch(timeoutMs) {
+    if (typeof fetch !== 'function') return Promise.resolve({ public: false });
+    var deadlineMs = Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : 5000;
+    return loadDogProjectionApi(deadlineMs).then(function (api) {
+      if (!api) return { public: false };
+      var controller = typeof AbortController === 'function' ? new AbortController() : null;
+      var timer;
+      var request = fetch(dogServicesProjectionUrl(), {
+        credentials: 'same-origin',
+        cache: 'default',
+        signal: controller ? controller.signal : undefined
+      }).then(function (res) {
+        if (!res || !res.ok) throw new Error('dog projection unavailable');
+        return res.json();
+      });
+      var deadline = new Promise(function (_resolve, reject) {
+        timer = setTimeout(function () {
+          if (controller) controller.abort();
+          reject(new Error('dog projection timeout'));
+        }, deadlineMs);
+      });
+      return Promise.race([request, deadline]).then(function (value) {
+        return api.validateDogServicesProjection(value) ? value : { public: false };
+      }, function () {
+        return { public: false };
+      }).finally(function () { clearTimeout(timer); });
+    }, function () {
+      return { public: false };
+    });
   }
 
   function localizedItemHref(item, lang) {
@@ -766,15 +865,25 @@
     }, function () {
       applySmallAnimalLaunch(null);
     });
+    loadDogServicesLaunch().then(function (projection) {
+      applyDogServicesLaunch(projection);
+      if (projection && projection.public === true) enhanceNav();
+    }, function () {
+      applyDogServicesLaunch(null);
+    });
   }
 
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
       applySmallAnimalLaunch: applySmallAnimalLaunch,
+      applyDogServicesLaunch: applyDogServicesLaunch,
+      resetDogServicesLaunchForTest: resetDogServicesLaunchForTest,
       resetSmallAnimalLaunchForTest: resetSmallAnimalLaunchForTest,
       hasStaticSibling: hasStaticSibling,
       localizedItemHref: localizedItemHref,
       loadSmallAnimalLaunch: loadSmallAnimalLaunch,
+      loadDogServicesLaunch: loadDogServicesLaunch,
+      dogServicesProjectionUrl: dogServicesProjectionUrl,
       smallAnimalLaunchConfigUrl: smallAnimalLaunchConfigUrl,
       visibleNavGroups: visibleNavGroups,
       navGroups: function () { return NAV_GROUPS; }

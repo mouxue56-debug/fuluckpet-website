@@ -33,7 +33,8 @@
     },
 
     dogServices: {
-      // SINGLE PUBLIC LAUNCH GATE: keep disabled until the legal scope explicitly lists dogs.
+      // SINGLE PUBLIC LAUNCH GATE: generate-site projects this into dog-services-launch.json.
+      // Keep disabled until the legal scope explicitly lists dogs.
       public: false,
       boardingBasePrice: { small: 7400, medium: 8200, large: 8900 },
       longStayDiscount: {

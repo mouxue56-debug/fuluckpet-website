@@ -50,36 +50,37 @@ test('public legal truth lists the four official categories without inventing a 
   assert.doesNotMatch(`${about}\n${serviceCopy}`, /(?:繁殖\s*220012C|220012C\s*[^<\n]{0,30}繁殖)/);
 });
 
-test('public pages, navigation, schema and booking controls exclude every dog offer', () => {
-  const sources = [
-    'boarding/index.html',
-    'boarding/estimate.html',
-    'grooming/index.html',
-    'booking.html',
-    'nav.js',
-    'mobile-cta.js',
-    'cta-widget.js',
-    'boarding/boarding-public-estimate.js',
-  ];
-  for (const relative of sources) {
-    assert.equal(fs.existsSync(path.join(ROOT, relative)), true, `${relative} must exist`);
-    const source = read(relative);
-    assert.doesNotMatch(source, /small_dog|medium_dog|large_dog|dogServices|calculateDog(?:Boarding|BasicCare)|わんちゃん(?:のお預かり|基本ケア)/i, relative);
-    assert.doesNotMatch(source, /¥\s*(?:7,400|8,200|8,900|4,500|7,500|9,000)/, relative);
-    if (relative.endsWith('.html')) {
-      const interactive = [...source.matchAll(/<(a|button|option)\b[^>]*>[\s\S]*?<\/\1>|<input\b[^>]*>/gi)]
-        .map((match) => match[0])
-        .join('\n');
-      assert.doesNotMatch(interactive, /犬|\bdog\b|わんちゃん/i, `${relative}: interactive dog offer`);
-    }
-  }
+test('false projection leaves pages, navigation, schema and controls without a dog offer', () => {
+  const projection = JSON.parse(read('dog-services-launch.json'));
+  const projectionApi = require('../dog-services-projection.js');
+  const ui = require('../dog-services-public-ui.js');
+  const nav = require('../nav.js');
 
+  assert.deepEqual(projection, { public: false });
+  assert.equal(projectionApi.validateDogServicesProjection(projection), true);
+  for (const surface of ['boarding', 'care', 'estimate', 'estimate-care']) {
+    assert.equal(ui.renderSurface(surface, projection), '', surface);
+  }
+  assert.deepEqual(ui.buildSchemaObjects(projection), []);
+
+  nav.resetDogServicesLaunchForTest();
+  nav.applyDogServicesLaunch(projection);
+  assert.deepEqual(nav.navGroups().find((group) => group.id === 'services').items.map((item) => item.key), [
+    'nav.boarding', 'nav.grooming', 'nav.shop',
+  ]);
+
+  for (const relative of ['boarding/index.html', 'boarding/estimate.html', 'grooming/index.html', 'booking.html']) {
+    const source = read(relative);
+    assert.doesNotMatch(source, /¥\s*(?:7,400|8,200|8,900|4,500|7,500|9,000)/, relative);
+    const interactive = [...source.matchAll(/<(a|button|option)\b[^>]*>[\s\S]*?<\/\1>|<input\b[^>]*>/gi)]
+      .map((match) => match[0])
+      .join('\n');
+    assert.doesNotMatch(interactive, /犬|\bdog\b|わんちゃん/i, `${relative}: static interactive dog offer`);
+  }
   for (const relative of ['boarding/index.html', 'grooming/index.html']) {
     const schemas = [...read(relative).matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
-    assert.ok(schemas.length > 0, `${relative}: JSON-LD required`);
-    for (const schema of schemas) {
-      assert.doesNotMatch(schema[1], /犬|\bdog\b|わんちゃん/i, `${relative}: dog schema offer`);
-    }
+    assert.ok(schemas.length > 0, `${relative}: base JSON-LD required`);
+    for (const schema of schemas) assert.doesNotMatch(schema[1], /犬|\bdog\b|わんちゃん/i, relative);
   }
 });
 

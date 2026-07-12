@@ -18,11 +18,11 @@ const ADMIN_RENDER_RELEASE = '20260711a';
 const ADMIN_DIARY_RELEASE = '20260711a';
 const ADMIN_FAQ_RELEASE = TRUTH_RELEASE;
 const ADMIN_CALENDAR_RELEASE = '20260711a';
-const NAV_RELEASE = '20260712b';
-const I18N_RELEASE = '20260712c';
+const NAV_RELEASE = '20260712c';
+const I18N_RELEASE = '20260712d';
 const NAV_STYLE_RELEASE = '20260711c';
-const SERVICE_RELEASE = '20260711c';
-const ESTIMATE_RELEASE = '20260712a';
+const SERVICE_RELEASE = '20260712d';
+const ESTIMATE_RELEASE = '20260712b';
 const PUBLIC_ASSETS = {
   'style.css': STYLE_RELEASE,
   'nav.css': NAV_STYLE_RELEASE,
@@ -45,6 +45,8 @@ const PUBLIC_ASSETS = {
   'services.css': SERVICE_RELEASE,
   'boarding-public-config.js': SERVICE_RELEASE,
   'boarding-public-calc.js': SERVICE_RELEASE,
+  'dog-services-projection.js': SERVICE_RELEASE,
+  'dog-services-public-ui.js': SERVICE_RELEASE,
   'boarding/boarding-public-estimate.js': ESTIMATE_RELEASE,
 };
 

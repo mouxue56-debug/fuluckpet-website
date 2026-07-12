@@ -37,6 +37,16 @@ function extractAssetVersions(html) {
   return map;
 }
 
+function writeDogServicesProjection() {
+  const BoardingConfig = require('../boarding-public-config.js');
+  const DogServicesProjection = require('../dog-services-projection.js');
+  const filepath = path.join(SITE_DIR, 'dog-services-launch.json');
+  const output = DogServicesProjection.serializeDogServicesProjection(BoardingConfig);
+  const current = fs.existsSync(filepath) ? fs.readFileSync(filepath, 'utf8') : null;
+  if (current !== output) fs.writeFileSync(filepath, output, 'utf8');
+  console.log(`  dog-services-launch.json: ${JSON.parse(output).public ? 'public' : 'fail-closed'}`);
+}
+
 // ── Breed Config ──────────────────────────────────────────────
 
 const BREED_CONFIG = [
@@ -898,7 +908,7 @@ function buildListHeader(jaHeader, lang) {
 
   const styleV = verAsset('style.css', '20260711c');
   const navCssV = verAsset('nav.css', '20260711c');
-  const navJsV = verAsset('nav.js', '20260712b');
+  const navJsV = verAsset('nav.js', '20260712c');
   const relPath = 'kittens.html';
   const selfUrl = `${BASE_URL}/${langDir(lang)}kittens.html`;
   const kittensLabel = KITTENS_LABEL[lang];
@@ -1380,7 +1390,7 @@ ${smallAnimalHreflangBlock(detailId)}
   <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260711c')}">
   <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20260711c')}">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
-  <script defer src="/nav.js?v=${verAsset('nav.js', '20260712b')}"></script>`;
+  <script defer src="/nav.js?v=${verAsset('nav.js', '20260712c')}"></script>`;
 }
 
 function buildSmallAnimalListHtml(animals, headerHtml, footerHtml, lang = 'ja') {
@@ -1482,7 +1492,7 @@ ${sections}
 
 ${footerHtml}
 
-  <script src="/i18n.js?v=${verAsset('i18n.js', '20260712c')}"></script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20260712d')}"></script>
   <script src="/script.js?v=${verAsset('script.js', '20260711c')}"></script>
 </body>
 </html>`;
@@ -1626,7 +1636,7 @@ ${footerHtml}
     });
   });
   </script>
-  <script src="/i18n.js?v=${verAsset('i18n.js', '20260712c')}"></script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20260712d')}"></script>
   <script src="/script.js?v=${verAsset('script.js', '20260711c')}"></script>
 </body>
 </html>`;
@@ -2113,7 +2123,7 @@ ${hreflangBlock(`kittens/${fileId}.html`)}
   <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260711c')}">
   <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20260711c')}">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
-  <script defer src="/nav.js?v=${verAsset('nav.js', '20260712b')}"></script>
+  <script defer src="/nav.js?v=${verAsset('nav.js', '20260712c')}"></script>
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
@@ -2431,7 +2441,7 @@ ${footerHtml}
   });
   </script>
   <script src="/kitten-catalog.js?v=${verAsset('kitten-catalog.js', '20260711b')}"></script>
-  <script src="/i18n.js?v=${verAsset('i18n.js', '20260712c')}"></script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20260712d')}"></script>
   <script src="/catalog-i18n.js?v=${verAsset('catalog-i18n.js', '20260710b')}"></script>
   <script src="/kitten-carousel.js?v=${verAsset('kitten-carousel.js', '20260711b')}"></script>
   <script src="/cta-widget.js?v=${verAsset('cta-widget.js', '20260711b')}"></script>
@@ -3081,6 +3091,10 @@ async function main() {
 
   // Generate pages
   console.log('Generating pages...');
+
+  // Deterministic public projection of the one owner-controlled dog-service gate.
+  // It is written only after the complete API snapshot passes the no-partial-write gates.
+  writeDogServicesProjection();
 
   // Emit the single-source catalog value translations first — client renderers
   // (card-loader.js, kitten-carousel.js) load /catalog-i18n.js to translate raw ja

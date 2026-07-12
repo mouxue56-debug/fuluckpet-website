@@ -8,6 +8,9 @@
   var CONFIG = configApi.CONFIG;
   var HOLIDAYS = configApi.HOLIDAYS_2026;
   var RANGES = configApi.SPECIAL_DATE_RANGES;
+  var projectionApi = (typeof module !== 'undefined' && module.exports && typeof require !== 'undefined')
+    ? require('./dog-services-projection.js')
+    : root.DogServicesProjection;
 
   function roundYen100(amount) {
     return Math.round(amount / 100) * 100;
@@ -175,34 +178,47 @@
     return { available: false, error: 'unavailable' };
   }
 
-  function dogServicesArePublic() {
-    return !!(CONFIG.dogServices && CONFIG.dogServices.public === true);
+  function validDogProjection(projection) {
+    return !!(projectionApi && typeof projectionApi.validateDogServicesProjection === 'function' &&
+      projectionApi.validateDogServicesProjection(projection) && projection.public === true);
   }
 
-  function getDogLongStayRate(size, nights) {
-    var tiers = CONFIG.dogServices.longStayDiscount[size] || [];
+  function getDogLongStayRate(size, nights, projection) {
+    var tiers = projection.longStayDiscount[size] || [];
     for (var index = 0; index < tiers.length; index += 1) {
       if (nights >= tiers[index].minNights) return tiers[index].rate;
     }
     return 1;
   }
 
-  function calculateDogBoarding(input) {
-    if (!dogServicesArePublic()) return unavailableDogService();
+  function getDogDateCategory(value, projection) {
+    var ranges = projection.calendar.specialDateRanges;
+    for (var index = 0; index < ranges.length; index += 1) {
+      if (ranges[index].enabled && ranges[index].category === 'high_season_core' && inRange(value, ranges[index])) return 'high_season_core';
+    }
+    for (var second = 0; second < ranges.length; second += 1) {
+      if (ranges[second].enabled && ranges[second].category === 'school_vacation' && inRange(value, ranges[second])) return 'school_vacation';
+    }
+    if (isWeekend(value) || projection.calendar.holidays.indexOf(value) !== -1) return 'weekend_or_holiday';
+    return 'normal';
+  }
+
+  function calculateDogBoarding(input, projection) {
+    if (!validDogProjection(projection)) return unavailableDogService();
     input = input || {};
-    var prices = CONFIG.dogServices.boardingBasePrice;
-    var basePrice = prices[input.size];
+    var sizeConfig = projection.sizes[input.size];
+    var basePrice = sizeConfig && sizeConfig.boardingPerNight;
     if (!Number.isFinite(basePrice)) return { available: true, error: 'unknown_size', nights: 0, boardingTotal: 0, nightlyBreakdown: [] };
 
     var nights = getNights(input.checkInDate, input.checkOutDate);
     if (!(nights >= 1)) return { available: true, error: 'day_use', nights: nights, boardingTotal: 0, nightlyBreakdown: [] };
 
-    var rate = getDogLongStayRate(input.size, nights);
-    if (input.isMember) rate = Math.min(rate, CONFIG.customerDiscount.member);
-    var discountedBasePerNight = roundYen100(basePrice * rate);
+    var rate = getDogLongStayRate(input.size, nights, projection);
+    if (input.isMember) rate = Math.min(rate, projection.memberDiscountRate);
+    var discountedBasePerNight = Math.round(basePrice * rate / projection.roundUnit) * projection.roundUnit;
     var breakdown = getStayDates(input.checkInDate, nights).map(function (date) {
-      var category = getDateCategory(date);
-      var surcharge = CONFIG.dogServices.dateSurcharge[category][input.size];
+      var category = getDogDateCategory(date, projection);
+      var surcharge = projection.dateSurcharge[category][input.size];
       return {
         date: date,
         dateCategory: category,
@@ -224,10 +240,11 @@
     };
   }
 
-  function calculateDogBasicCare(input) {
-    if (!dogServicesArePublic()) return unavailableDogService();
+  function calculateDogBasicCare(input, projection) {
+    if (!validDogProjection(projection)) return unavailableDogService();
     input = input || {};
-    var basePrice = CONFIG.dogServices.basicCareBasePrice[input.size];
+    var sizeConfig = projection.sizes[input.size];
+    var basePrice = sizeConfig && sizeConfig.basicCare;
     if (!Number.isFinite(basePrice)) return { available: true, error: 'unknown_size', subtotal: 0 };
     return {
       available: true,
