@@ -29,7 +29,11 @@ function cssDeclarations(css, selector) {
 }
 
 function relativeLuminance(hex) {
-  const channels = hex.match(/[0-9a-f]{2}/gi).map((value) => Number.parseInt(value, 16) / 255);
+  const normalized = /^#[0-9a-f]{3}$/i.test(hex)
+    ? `#${hex.slice(1).split('').map((value) => value + value).join('')}`
+    : hex;
+  assert.match(normalized, /^#[0-9a-f]{6}$/i, `valid CSS hex color: ${hex}`);
+  const channels = normalized.match(/[0-9a-f]{2}/gi).map((value) => Number.parseInt(value, 16) / 255);
   return channels
     .map((value) => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4)
     .reduce((sum, value, index) => sum + value * [0.2126, 0.7152, 0.0722][index], 0);
@@ -57,7 +61,16 @@ function inlineStyleProperty(tag, property) {
   return value[1].trim();
 }
 
+function cssProperty(declarations, property) {
+  const value = declarations.match(new RegExp(`(?:^|;)\\s*${property}\\s*:\\s*([^;]+)`, 'i'));
+  assert.ok(value, `CSS declarations define ${property}`);
+  return value[1].trim();
+}
+
 function resolveCssHex(value, variables) {
+  if (/^#[0-9a-f]{3}$/i.test(value)) {
+    return `#${value.slice(1).split('').map((part) => part + part).join('')}`;
+  }
   if (/^#[0-9a-f]{6}$/i.test(value)) return value;
   const variable = value.match(/^var\(--([a-z0-9-]+)\)$/i);
   assert.ok(variable, `expected a hex color or one CSS variable, received ${value}`);
@@ -208,6 +221,25 @@ test('homepage guide entrance keeps its mint fill with dark text', () => {
   const foreground = resolveCssHex(inlineStyleProperty(tag[0], 'color'), variables);
   const ratio = contrastRatio(foreground, background);
   assert.ok(ratio >= 4.5, `guide CTA contrast is ${ratio.toFixed(2)}:1 (${foreground} on ${background})`);
+});
+
+test('mobile booking CTA text passes against both mint gradient endpoints', () => {
+  const style = read('style.css');
+  const variables = cssHexVariables(style);
+  const declarations = cssDeclarations(style, '.mobile-cta-bar a.cta-booking');
+  const foreground = resolveCssHex(cssProperty(declarations, 'color'), variables);
+  const background = cssProperty(declarations, 'background');
+  const gradient = background.match(/^linear-gradient\((.*)\)$/i);
+
+  assert.ok(gradient, 'booking CTA keeps its mint gradient');
+  const endpoints = gradient[1].split(',').map((value) => value.trim())
+    .filter((value) => /^(?:var\(--[a-z0-9-]+\)|#[0-9a-f]{3,6})$/i.test(value))
+    .map((value) => resolveCssHex(value, variables));
+  assert.equal(endpoints.length, 2, 'booking gradient exposes exactly two color endpoints');
+
+  const ratios = endpoints.map((endpoint) => contrastRatio(foreground, endpoint));
+  const worst = Math.min(...ratios);
+  assert.ok(worst >= 4.5, `booking CTA worst endpoint contrast is ${worst.toFixed(2)}:1 (${foreground} on ${endpoints.join(' / ')})`);
 });
 
 test('mobile estimator title breaks only at the natural phrase boundary', () => {

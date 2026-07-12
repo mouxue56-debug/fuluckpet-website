@@ -3215,7 +3215,7 @@ body.cta-hidden .mobile-nav-fab {
 }
 .mobile-cta-bar a.cta-booking {
   background: linear-gradient(135deg, var(--mint), var(--mint-dark));
-  color: #fff;
+  color: var(--ink);
   border-color: transparent;
 }
 .mobile-cta-bar a .cta-icon {
