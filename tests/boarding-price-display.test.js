@@ -17,7 +17,9 @@ test('public boarding prices come from a tracked licensed-scope config', () => {
   const source = read('boarding-public-config.js');
 
   assert.deepEqual(Object.keys(CONFIG.boardingBasePrice), ['cat']);
-  assert.doesNotMatch(source, /small_dog|medium_dog|large_dog|dogCarePrice/);
+  assert.ok(CONFIG.dogServices, 'dogServices config is required');
+  assert.equal(CONFIG.dogServices.public, false);
+  assert.doesNotMatch(source, /allowDraft/);
   assert.equal(CONFIG.boardingBasePrice.cat, 4800);
   assert.deepEqual(CONFIG.catGroomingBasePrice, { short: 4000, long: 6000 });
 });

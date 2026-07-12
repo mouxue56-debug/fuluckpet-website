@@ -1,7 +1,7 @@
 /* boarding-public-config.js — licensed public boarding and cat-care price source.
- * Values are the owner-approved 2026-07-08 v4 prices. This public projection
- * intentionally contains no dog service because registration 220012B does not
- * list dogs. Browser: window.BOARDING_CONFIG; Node: require(). */
+ * Values are the owner-approved 2026-07-08 v4 prices. Dog prices are retained
+ * only as a disabled capability because registration 220012B does not list dogs.
+ * Browser: window.BOARDING_CONFIG; Node: require(). */
 (function (root) {
   'use strict';
 
@@ -30,6 +30,36 @@
           { minNights: 1, perNight: 500 },
         ],
       },
+    },
+
+    dogServices: {
+      // SINGLE PUBLIC LAUNCH GATE: keep disabled until the legal scope explicitly lists dogs.
+      public: false,
+      boardingBasePrice: { small: 7400, medium: 8200, large: 8900 },
+      longStayDiscount: {
+        small: [
+          { minNights: 30, rate: 0.65 },
+          { minNights: 14, rate: 0.75 },
+          { minNights: 7, rate: 0.80 },
+        ],
+        medium: [
+          { minNights: 30, rate: 0.70 },
+          { minNights: 14, rate: 0.75 },
+          { minNights: 7, rate: 0.80 },
+        ],
+        large: [
+          { minNights: 30, rate: 0.70 },
+          { minNights: 14, rate: 0.75 },
+          { minNights: 7, rate: 0.80 },
+        ],
+      },
+      dateSurcharge: {
+        normal: { small: 0, medium: 0, large: 0 },
+        weekend_or_holiday: { small: 550, medium: 1100, large: 1100 },
+        school_vacation: { small: 1100, medium: 1650, large: 2200 },
+        high_season_core: { small: 2200, medium: 3300, large: 3300 },
+      },
+      basicCareBasePrice: { small: 4500, medium: 7500, large: 9000 },
     },
 
     customerDiscount: { member: 0.9, graduatedCat: 0.85 },

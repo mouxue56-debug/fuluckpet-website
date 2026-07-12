@@ -171,6 +171,73 @@
     };
   }
 
+  function unavailableDogService() {
+    return { available: false, error: 'unavailable' };
+  }
+
+  function dogServicesArePublic() {
+    return !!(CONFIG.dogServices && CONFIG.dogServices.public === true);
+  }
+
+  function getDogLongStayRate(size, nights) {
+    var tiers = CONFIG.dogServices.longStayDiscount[size] || [];
+    for (var index = 0; index < tiers.length; index += 1) {
+      if (nights >= tiers[index].minNights) return tiers[index].rate;
+    }
+    return 1;
+  }
+
+  function calculateDogBoarding(input) {
+    if (!dogServicesArePublic()) return unavailableDogService();
+    input = input || {};
+    var prices = CONFIG.dogServices.boardingBasePrice;
+    var basePrice = prices[input.size];
+    if (!Number.isFinite(basePrice)) return { available: true, error: 'unknown_size', nights: 0, boardingTotal: 0, nightlyBreakdown: [] };
+
+    var nights = getNights(input.checkInDate, input.checkOutDate);
+    if (!(nights >= 1)) return { available: true, error: 'day_use', nights: nights, boardingTotal: 0, nightlyBreakdown: [] };
+
+    var rate = getDogLongStayRate(input.size, nights);
+    if (input.isMember) rate = Math.min(rate, CONFIG.customerDiscount.member);
+    var discountedBasePerNight = roundYen100(basePrice * rate);
+    var breakdown = getStayDates(input.checkInDate, nights).map(function (date) {
+      var category = getDateCategory(date);
+      var surcharge = CONFIG.dogServices.dateSurcharge[category][input.size];
+      return {
+        date: date,
+        dateCategory: category,
+        basePerNight: discountedBasePerNight,
+        dateSurcharge: surcharge,
+        totalForNight: discountedBasePerNight + surcharge,
+      };
+    });
+    return {
+      available: true,
+      size: input.size,
+      nights: nights,
+      rate: rate,
+      basePricePerNight: basePrice,
+      discountedBasePerNight: discountedBasePerNight,
+      nightlyBreakdown: breakdown,
+      boardingTotal: breakdown.reduce(function (sum, night) { return sum + night.totalForNight; }, 0),
+      needsReview: nights >= 30,
+    };
+  }
+
+  function calculateDogBasicCare(input) {
+    if (!dogServicesArePublic()) return unavailableDogService();
+    input = input || {};
+    var basePrice = CONFIG.dogServices.basicCareBasePrice[input.size];
+    if (!Number.isFinite(basePrice)) return { available: true, error: 'unknown_size', subtotal: 0 };
+    return {
+      available: true,
+      size: input.size,
+      basePrice: basePrice,
+      appliedDiscountRate: 1,
+      subtotal: basePrice,
+    };
+  }
+
   var api = {
     roundYen100: roundYen100,
     getNights: getNights,
@@ -184,6 +251,8 @@
     calculateSmallPetBoarding: calculateSmallPetBoarding,
     getCatGroomingRate: getCatGroomingRate,
     calculateCatGrooming: calculateCatGrooming,
+    calculateDogBoarding: calculateDogBoarding,
+    calculateDogBasicCare: calculateDogBasicCare,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (typeof window !== 'undefined') window.BoardingCalc = api;
