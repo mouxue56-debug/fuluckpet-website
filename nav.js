@@ -163,17 +163,6 @@
   function applyDogServicesLaunch(config) {
     resetDogServicesLaunchForTest();
     if (!strictDogProjection(config) || config.public !== true) return;
-    var services = groupById('services');
-    if (!services) return;
-    var shopIndex = services.items.findIndex(function (item) { return item.key === 'nav.shop'; });
-    if (shopIndex === -1) shopIndex = services.items.length;
-    services.items.splice(shopIndex, 0, {
-      href: '/boarding/#dog-services',
-      key: 'nav.dogServices',
-      icon: 'dog',
-      featured: true,
-      match: ['/boarding/#dog-services', '/grooming/#dog-basic-care']
-    });
   }
 
   function smallAnimalLaunchConfigUrl(now) {
@@ -206,7 +195,7 @@
         if (value) dogProjectionApi = value;
         resolve(value);
       }
-      script.src = '/dog-services-projection.js?v=20260712d';
+      script.src = '/dog-services-projection.js?v=20260713a';
       script.async = true;
       script.onload = function () { finish(window.DogServicesProjection || null); };
       script.onerror = function () { finish(null); };

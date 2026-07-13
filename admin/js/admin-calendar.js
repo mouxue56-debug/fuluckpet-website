@@ -14,7 +14,7 @@
   var gridStart = null, gridEnd = null; // YYYY-MM-DD strings covering the visible 6-week grid
   var selectedDate = null; // YYYY-MM-DD currently open in the day panel
   var editingId = null; // event id being edited in the form, or null = create mode
-  var typeFilters = { visit: true, boarding: true, block: true, note: true };
+  var typeFilters = { visit: true, boarding: true, care: true, block: true, note: true };
   var statusFilter = 'all';
   var NEW_BOARDING_PET_TYPES = ['cat', 'rabbit', 'hamster', 'other_small_animal'];
   // Historical dog events predate the current 220012B scope. They stay readable
@@ -56,6 +56,7 @@
   var TYPE_LABELS = {
     visit: ['見学', '参观'],
     boarding: ['お預かり', '寄养'],
+    care: ['犬の基本ケア', '犬基础护理'],
     block: ['休業・満室', '休业·满房'],
     note: ['メモ', '备注']
   };
@@ -239,7 +240,10 @@
       cat: ['猫', '猫'],
       rabbit: ['うさぎ', '兔'],
       hamster: ['ハムスター', '仓鼠'],
-      other_small_animal: ['その他の登録対象小動物', '其他已登记小动物']
+      other_small_animal: ['その他の登録対象小動物', '其他已登记小动物'],
+      dog_small: ['小型犬（受付停止）', '小型犬（暂停受理）'],
+      dog_medium: ['中型犬（受付停止）', '中型犬（暂停受理）'],
+      dog_large: ['大型犬（受付停止）', '大型犬（暂停受理）']
     };
     var l = map[pt] || LEGACY_PET_TYPES[pt] || [pt, pt];
     return tt(l[0], l[1]);

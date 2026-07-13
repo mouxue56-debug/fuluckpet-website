@@ -307,6 +307,7 @@
             <select id="evtType" class="form-select">
               <option value="visit" data-adm-ja="見学" data-adm-zh="参观">見学</option>
               <option value="boarding" data-adm-ja="お預かり" data-adm-zh="寄养">お預かり</option>
+              <option value="care" disabled data-adm-ja="犬の基本ケア（受付停止）" data-adm-zh="犬基础护理（暂停受理）">犬の基本ケア（受付停止）</option>
               <option value="block" data-adm-ja="休業・満室" data-adm-zh="休业·满房">休業・満室</option>
               <option value="note" data-adm-ja="メモ" data-adm-zh="备注">メモ</option>
             </select>
@@ -338,7 +339,11 @@
                 <option value="rabbit" data-adm-ja="うさぎ" data-adm-zh="兔">うさぎ</option>
                 <option value="hamster" data-adm-ja="ハムスター" data-adm-zh="仓鼠">ハムスター</option>
                 <option value="other_small_animal" data-adm-ja="その他の登録対象小動物" data-adm-zh="其他已登记小动物">その他の登録対象小動物</option>
+                <option value="dog_small" disabled data-adm-ja="小型犬（受付停止）" data-adm-zh="小型犬（暂停受理）">小型犬（受付停止）</option>
+                <option value="dog_medium" disabled data-adm-ja="中型犬（受付停止）" data-adm-zh="中型犬（暂停受理）">中型犬（受付停止）</option>
+                <option value="dog_large" disabled data-adm-ja="大型犬（受付停止）" data-adm-zh="大型犬（暂停受理）">大型犬（受付停止）</option>
               </select>
+              <div class="form-hint" data-adm-ja="犬は現在受付停止。大阪・針中野で開始予定です。" data-adm-zh="犬服务当前暂停受理，预计在大阪针中野开放。">犬は現在受付停止。大阪・針中野で開始予定です。</div>
             </div>
           </div>
           <div class="form-group">
@@ -364,6 +369,6 @@
   <div id="toast" class="toast"></div>
 
   <script src="js/api-client.js?v=20260710b"></script>
-  <script src="js/admin-calendar.js?v=20260711a"></script>
+  <script src="js/admin-calendar.js?v=20260713a"></script>
 </body>
 </html>

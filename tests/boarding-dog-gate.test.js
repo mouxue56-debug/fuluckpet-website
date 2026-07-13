@@ -28,6 +28,8 @@ test('historical dog prices stay behind one disabled public gate', () => {
 
   assert.deepEqual(CONFIG.dogServices, {
     public: false,
+    preparingVisible: true,
+    locationNotice: '大阪・針中野での受付開始を予定しています。開始時期は決まり次第お知らせします。',
     boardingBasePrice: { small: 7400, medium: 8200, large: 8900 },
     longStayDiscount: {
       small: [

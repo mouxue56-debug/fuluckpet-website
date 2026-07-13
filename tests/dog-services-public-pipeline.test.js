@@ -12,6 +12,7 @@ const PROJECTION_PATH = path.join(ROOT, 'dog-services-projection.js');
 const UI_PATH = path.join(ROOT, 'dog-services-public-ui.js');
 const CONFIG_PATH = path.join(ROOT, 'boarding-public-config.js');
 const GENERATED_PATH = path.join(ROOT, 'dog-services-launch.json');
+const PREPARING_PATH = path.join(ROOT, 'dog-services-preparing.json');
 
 function requirePipeline() {
   assert.equal(fs.existsSync(PROJECTION_PATH), true, 'dog-services-projection.js must exist');
@@ -66,6 +67,21 @@ test('enabled projection copies only approved dog prices, date rules and safe di
   assert.doesNotMatch(JSON.stringify(value), /secret|script|injected|シャンプー|トリミング/);
 });
 
+test('preparing projection exposes approved display data while preserving the closed launch gate', () => {
+  const { projection } = requirePipeline();
+  const config = require(CONFIG_PATH);
+  const value = projection.buildDogServicesPreparingProjection(config);
+
+  assert.equal(projection.validateDogServicesPreparingProjection(value), true);
+  assert.equal(value.public, false);
+  assert.equal(value.preparing, true);
+  assert.equal(value.accepting, false);
+  assert.equal(value.locationNotice, '大阪・針中野での受付開始を予定しています。開始時期は決まり次第お知らせします。');
+  assert.deepEqual(value.sizes.small, { label: '小型犬', boardingPerNight: 7400, basicCare: 4500 });
+  assert.deepEqual(JSON.parse(fs.readFileSync(PREPARING_PATH, 'utf8')), value);
+  assert.equal(projection.serializeDogServicesProjection(config), '{"public":false}\n');
+});
+
 test('strict validator rejects extra keys, wrong prices and caller-forged partial projections', () => {
   const { projection } = requirePipeline();
   const valid = projection.buildDogServicesProjection(publicConfig());
@@ -104,6 +120,28 @@ test('shared UI emits no dog offer when false and complete offers, CTA and schem
     [7400, 8200, 8900],
     [4500, 7500, 9000],
   ]);
+});
+
+test('preparing UI shows stopped dog prices and calculator without booking CTA or schema', () => {
+  const { projection, ui } = requirePipeline();
+  const preparing = projection.buildDogServicesPreparingProjection(require(CONFIG_PATH));
+  for (const surface of ['boarding', 'care', 'estimate', 'estimate-care']) {
+    assert.notEqual(ui.renderSurface(surface, preparing), '', surface);
+  }
+  const boarding = ui.renderSurface('boarding', preparing);
+  assert.match(boarding, /現在受付停止/);
+  assert.match(boarding, /大阪・針中野/);
+  assert.match(boarding, /¥7,400/);
+  assert.match(boarding, /料金を計算/);
+  assert.doesNotMatch(boarding, /LINE|予約相談|申し込/);
+  assert.deepEqual(ui.buildSchemaObjects(preparing), []);
+
+  const estimate = ui.calculateEstimate(preparing, {
+    size: 'small', checkInDate: '2026-06-01', checkOutDate: '2026-06-02', basicCare: true,
+  });
+  assert.deepEqual({ available: estimate.available, accepting: estimate.accepting, total: estimate.total }, {
+    available: true, accepting: false, total: 11900,
+  });
 });
 
 test('UI loader uses a minute-bucketed URL and fails closed on invalid data or timeout', async () => {
@@ -159,10 +197,13 @@ test('nav and all three public pages consume the same generated projection', () 
   nav.applyDogServicesLaunch(enabled);
   const items = nav.navGroups().find((group) => group.id === 'services').items;
   assert.deepEqual(items.map((item) => item.key), [
-    'nav.boarding', 'nav.grooming', 'nav.dogServices', 'nav.shop',
+    'nav.boarding', 'nav.grooming', 'nav.shop',
   ]);
-  assert.equal(items[2].href, '/boarding/#dog-services');
   assert.equal(nav.dogServicesProjectionUrl(180000), '/dog-services-launch.json?v=3');
+  const i18n = fs.readFileSync(path.join(ROOT, 'i18n.js'), 'utf8');
+  assert.match(i18n, /'nav\.boarding': '猫・犬のお預かり/);
+  assert.match(i18n, /'nav\.grooming': '猫・犬のケア/);
+  assert.doesNotMatch(i18n, /'nav\.dogServices'/);
 
   for (const relative of ['boarding/index.html', 'grooming/index.html', 'boarding/estimate.html']) {
     const html = fs.readFileSync(path.join(ROOT, relative), 'utf8');
@@ -172,12 +213,24 @@ test('nav and all three public pages consume the same generated projection', () 
   }
 });
 
+test('dog estimator keeps stopped calculations separate from reservation actions', () => {
+  const html = fs.readFileSync(path.join(ROOT, 'boarding/estimate.html'), 'utf8');
+  const source = fs.readFileSync(path.join(ROOT, 'boarding/boarding-public-estimate.js'), 'utf8');
+  assert.match(html, /id="dogStopNote"[^>]*hidden/);
+  assert.match(html, /現在受付停止/);
+  assert.match(source, /lineButton\.hidden\s*=\s*isDog/);
+  assert.match(source, /dogStopNote\.hidden\s*=\s*!isDog/);
+  assert.match(source, /validateDogServicesPreparingProjection/);
+});
+
 test('standard generator and verify-generated own projection freshness', () => {
   const generator = fs.readFileSync(path.join(ROOT, 'tools/generate-site.js'), 'utf8');
   const verifier = fs.readFileSync(path.join(ROOT, 'tools/verify-generated.js'), 'utf8');
   assert.match(generator, /writeDogServicesProjection/);
   assert.match(verifier, /dog-services-launch\.json/);
   assert.match(verifier, /serializeDogServicesProjection/);
+  assert.match(generator, /dog-services-preparing\.json/);
+  assert.match(verifier, /serializeDogServicesPreparingProjection/);
 });
 
 test('verify-generated rejects a stale dog projection artifact', (t) => {
@@ -193,6 +246,7 @@ test('verify-generated rejects a stale dog projection artifact', (t) => {
     fs.copyFileSync(path.join(ROOT, relative), path.join(site, relative));
   }
   fs.writeFileSync(path.join(site, 'dog-services-launch.json'), '{"public":true}\n');
+  fs.writeFileSync(path.join(site, 'dog-services-preparing.json'), '{}\n');
   fs.writeFileSync(path.join(site, 'kittens.html'), [
     '<link href="/style.css?v=test">',
     '<link href="/nav.css?v=test">',

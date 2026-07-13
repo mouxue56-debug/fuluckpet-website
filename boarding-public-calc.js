@@ -179,8 +179,12 @@
   }
 
   function validDogProjection(projection) {
-    return !!(projectionApi && typeof projectionApi.validateDogServicesProjection === 'function' &&
-      projectionApi.validateDogServicesProjection(projection) && projection.public === true);
+    if (!projectionApi) return false;
+    var accepting = typeof projectionApi.validateDogServicesProjection === 'function' &&
+      projectionApi.validateDogServicesProjection(projection) && projection.public === true;
+    var preparing = typeof projectionApi.validateDogServicesPreparingProjection === 'function' &&
+      projectionApi.validateDogServicesPreparingProjection(projection) && projection.preparing === true;
+    return !!(accepting || preparing);
   }
 
   function getDogLongStayRate(size, nights, projection) {

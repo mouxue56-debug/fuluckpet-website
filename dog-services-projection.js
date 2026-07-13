@@ -89,16 +89,32 @@
       value.basicCareIncluded.every(function (label, index) { return label === BASIC_CARE_INCLUDED[index]; });
   }
 
+  function validateDogServicesPreparingProjection(value) {
+    if (!hasExactKeys(value, [
+      'public', 'preparing', 'accepting', 'locationNotice', 'version', 'currency', 'taxIncluded',
+      'roundUnit', 'sizes', 'memberDiscountRate', 'longStayDiscount', 'dateSurcharge', 'calendar',
+      'basicCareIncluded',
+    ])) return false;
+    if (value.public !== false || value.preparing !== true || value.accepting !== false) return false;
+    if (value.locationNotice !== '大阪・針中野での受付開始を予定しています。開始時期は決まり次第お知らせします。') return false;
+    var launchShape = {};
+    Object.keys(value).forEach(function (key) {
+      if (key !== 'preparing' && key !== 'accepting' && key !== 'locationNotice') launchShape[key] = value[key];
+    });
+    launchShape.public = true;
+    return validateDogServicesProjection(launchShape);
+  }
+
   function copySizeMap(source, valueForSize) {
     var output = {};
     SIZE_KEYS.forEach(function (size) { output[size] = valueForSize(source, size); });
     return output;
   }
 
-  function buildDogServicesProjection(configApi) {
+  function buildEnabledShape(configApi) {
     var config = configApi && configApi.CONFIG;
     var dog = config && config.dogServices;
-    if (!dog || dog.public !== true) return { public: false };
+    if (!dog) throw new Error('dogServices config unavailable');
 
     var projection = {
       public: true,
@@ -142,15 +158,44 @@
     return projection;
   }
 
+  function buildDogServicesProjection(configApi) {
+    var dog = configApi && configApi.CONFIG && configApi.CONFIG.dogServices;
+    if (!dog || dog.public !== true) return { public: false };
+    return buildEnabledShape(configApi);
+  }
+
+  function buildDogServicesPreparingProjection(configApi) {
+    var dog = configApi && configApi.CONFIG && configApi.CONFIG.dogServices;
+    if (!dog || dog.preparingVisible !== true) return { public: false, preparing: false };
+    var enabled = buildEnabledShape(configApi);
+    var preparing = Object.assign({}, enabled, {
+      public: false,
+      preparing: true,
+      accepting: false,
+      locationNotice: dog.locationNotice,
+    });
+    if (!validateDogServicesPreparingProjection(preparing)) {
+      throw new Error('dogServices preparing config cannot produce a safe projection');
+    }
+    return preparing;
+  }
+
   function serializeDogServicesProjection(configApi) {
     return JSON.stringify(buildDogServicesProjection(configApi)) + '\n';
+  }
+
+  function serializeDogServicesPreparingProjection(configApi) {
+    return JSON.stringify(buildDogServicesPreparingProjection(configApi)) + '\n';
   }
 
   return {
     FALSE_PROJECTION: FALSE_PROJECTION,
     SIZE_KEYS: SIZE_KEYS.slice(),
     buildDogServicesProjection: buildDogServicesProjection,
+    buildDogServicesPreparingProjection: buildDogServicesPreparingProjection,
     serializeDogServicesProjection: serializeDogServicesProjection,
+    serializeDogServicesPreparingProjection: serializeDogServicesPreparingProjection,
     validateDogServicesProjection: validateDogServicesProjection,
+    validateDogServicesPreparingProjection: validateDogServicesPreparingProjection,
   };
 });

@@ -21,6 +21,14 @@
       Projection.validateDogServicesProjection(value));
   }
 
+  function validPreparing(value) {
+    return !!(Projection && typeof Projection.validateDogServicesPreparingProjection === 'function' &&
+      Projection.validateDogServicesPreparingProjection(value));
+  }
+
+  function validDisplay(value) { return valid(value) || validPreparing(value); }
+  function accepting(value) { return valid(value) && value.public === true; }
+
   function money(value) {
     return '¥' + Math.round(value).toLocaleString('ja-JP');
   }
@@ -36,26 +44,32 @@
   }
 
   function renderBoarding(projection) {
+    var stopped = !accepting(projection);
     return '<section class="service-section dog-service-public" id="dog-services" data-dog-public-rendered="boarding">' +
       '<div class="service-wrap"><div class="service-heading"><p class="service-eyebrow">Dog stay</p>' +
-      '<h2>犬のお預かり</h2><p>体型別の税込基本料金です。7泊以上の長期料金と、土日祝・学校休暇・繁忙期の日付加算があります。正式料金は事前相談後に確定します。</p></div>' +
+      '<h2>犬のお預かり' + (stopped ? '｜準備中' : '') + '</h2>' +
+      (stopped ? '<p class="service-status" role="status"><strong>現在受付停止</strong></p><p>' + projection.locationNotice + '</p>' : '') +
+      '<p>体型別の税込基本料金です。7泊以上の長期料金と、土日祝・学校休暇・繁忙期の日付加算があります。正式料金は事前相談後に確定します。</p></div>' +
       '<div class="service-price-grid">' + priceCards(projection, 'boardingPerNight', ' <small>/ 1泊</small>') + '</div>' +
-      '<div class="service-actions"><a class="service-btn is-primary" href="' + LINE_URL + '" target="_blank" rel="noopener">LINEで予約相談</a>' +
+      '<div class="service-actions">' + (stopped ? '' : '<a class="service-btn is-primary" href="' + LINE_URL + '" target="_blank" rel="noopener">LINEで予約相談</a>') +
       '<a class="service-btn" href="/boarding/estimate.html">犬の料金を計算する</a>' +
       '<a class="service-btn" href="/grooming/#dog-basic-care">犬の基本ケアを見る</a></div></div></section>';
   }
 
   function renderCare(projection) {
+    var stopped = !accepting(projection);
     return '<section class="service-section dog-service-public" id="dog-basic-care" data-dog-public-rendered="care">' +
       '<div class="service-wrap"><div class="service-heading"><p class="service-eyebrow">Dog basic care</p>' +
-      '<h2>犬の基本ケア</h2><p>爪切り・耳掃除・肛門腺の3項目を、体型別の税込料金で承ります。</p></div>' +
+      '<h2>犬の基本ケア' + (stopped ? '｜準備中' : '') + '</h2>' +
+      (stopped ? '<p class="service-status" role="status"><strong>現在受付停止</strong></p><p>' + projection.locationNotice + '</p>' : '') +
+      '<p>爪切り・耳掃除・肛門腺の3項目を、体型別の税込料金でご案内します。</p></div>' +
       '<div class="service-price-grid">' + priceCards(projection, 'basicCare', '') + '</div>' +
-      '<div class="service-actions"><a class="service-btn is-primary" href="' + LINE_URL + '" target="_blank" rel="noopener">LINEで予約相談</a>' +
+      '<div class="service-actions">' + (stopped ? '' : '<a class="service-btn is-primary" href="' + LINE_URL + '" target="_blank" rel="noopener">LINEで予約相談</a>') +
       '<a class="service-btn" href="/boarding/estimate.html">お預かりと一緒に計算する</a></div></div></section>';
   }
 
   function renderEstimate(projection) {
-    return Projection.SIZE_KEYS.map(function (size) {
+    return (!accepting(projection) ? '<p class="service-note dog-estimate-stop"><strong>犬は現在受付停止</strong>（概算のみ確認できます）</p>' : '') + Projection.SIZE_KEYS.map(function (size) {
       var entry = projection.sizes[size];
       return '<div class="estimate-choice"><input type="radio" name="petType" id="type-dog-' + size + '" value="dog_' + size + '">' +
         '<label for="type-dog-' + size + '">' + entry.label + '<small>' + money(entry.boardingPerNight) + ' / 1泊</small></label></div>';
@@ -71,7 +85,7 @@
   }
 
   function renderSurface(surface, projection) {
-    if (!valid(projection) || projection.public !== true) return '';
+    if (!validDisplay(projection) || (projection.public !== true && projection.preparing !== true)) return '';
     if (surface === 'boarding') return renderBoarding(projection);
     if (surface === 'care') return renderCare(projection);
     if (surface === 'estimate') return renderEstimate(projection);
@@ -92,7 +106,7 @@
   }
 
   function buildSchemaObjects(projection) {
-    if (!valid(projection) || projection.public !== true) return [];
+    if (!accepting(projection)) return [];
     var provider = { '@type': 'LocalBusiness', name: '福楽ペット', legalName: '福楽株式会社' };
     return [
       {
@@ -111,6 +125,11 @@
   function projectionUrl(now) {
     var timestamp = typeof now === 'number' ? now : Date.now();
     return '/dog-services-launch.json?v=' + Math.floor(timestamp / 60000);
+  }
+
+  function preparingProjectionUrl(now) {
+    var timestamp = typeof now === 'number' ? now : Date.now();
+    return '/dog-services-preparing.json?v=' + Math.floor(timestamp / 60000);
   }
 
   function loadProjection(options) {
@@ -138,14 +157,20 @@
       }, timeoutMs);
     });
     return Promise.race([request, deadline]).then(function (value) {
-      return valid(value) ? value : { public: false };
+      if (valid(value) && value.public === true) return value;
+      return Promise.resolve(fetchImpl(preparingProjectionUrl(options.now), {
+        credentials: 'same-origin', cache: 'default', signal: controller ? controller.signal : undefined,
+      })).then(function (response) {
+        if (!response || !response.ok || typeof response.json !== 'function') return { public: false };
+        return response.json().then(function (prepared) { return validPreparing(prepared) ? prepared : { public: false }; });
+      }, function () { return { public: false }; });
     }, function () {
       return { public: false };
     }).finally(function () { clearTimeout(timer); });
   }
 
   function calculateEstimate(projection, input) {
-    if (!valid(projection) || projection.public !== true || !Calc) return { available: false, error: 'unavailable' };
+    if (!validDisplay(projection) || !Calc) return { available: false, error: 'unavailable' };
     var boarding = Calc.calculateDogBoarding(input, projection);
     if (!boarding || boarding.available !== true || boarding.error) return boarding;
     var basicCare = input && input.basicCare ? Calc.calculateDogBasicCare({ size: input.size }, projection) : null;
@@ -157,6 +182,7 @@
       basicCare: basicCare,
       basicCareTotal: basicCareTotal,
       total: boarding.boardingTotal + basicCareTotal,
+      accepting: accepting(projection),
     };
   }
 
@@ -167,7 +193,7 @@
   }
 
   function mountDocument(doc, projection) {
-    var safe = valid(projection) ? projection : FALSE_PROJECTION;
+    var safe = validDisplay(projection) ? projection : FALSE_PROJECTION;
     Array.prototype.forEach.call(doc.querySelectorAll('[data-dog-services-surface]'), function (node) {
       node.innerHTML = renderSurface(node.getAttribute('data-dog-services-surface'), safe);
     });
@@ -175,6 +201,9 @@
     Array.prototype.forEach.call(doc.querySelectorAll('[data-dog-private-only]'), function (node) {
       node.hidden = safe.public === true;
     });
+    if (root.BoardingEstimate && typeof root.BoardingEstimate.enableDogServices === 'function') {
+      root.BoardingEstimate.enableDogServices(safe);
+    }
     if (safe.public !== true) return safe;
 
     var schemaIndex = doc.querySelector('[data-dog-services-surface="boarding"]') ? 0 :
@@ -185,9 +214,6 @@
       script.setAttribute('data-dog-services-schema', schemaIndex === 0 ? 'boarding' : 'care');
       script.textContent = JSON.stringify(buildSchemaObjects(safe)[schemaIndex]);
       doc.head.appendChild(script);
-    }
-    if (root.BoardingEstimate && typeof root.BoardingEstimate.enableDogServices === 'function') {
-      root.BoardingEstimate.enableDogServices(safe);
     }
     return safe;
   }
@@ -208,6 +234,7 @@
     loadProjection: loadProjection,
     mountDocument: mountDocument,
     projectionUrl: projectionUrl,
+    preparingProjectionUrl: preparingProjectionUrl,
     renderSurface: renderSurface,
   };
 });

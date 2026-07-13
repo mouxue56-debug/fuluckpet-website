@@ -29,6 +29,7 @@
  */
 
 import launchConfig from '../small-animals-launch.json' with { type: 'json' };
+import { canWriteDogCalendarEvent } from './calendar-dog-policy.mjs';
 
 const PUBLIC_KITTEN_FIELDS = Object.freeze([
   'id', 'breederId', 'breed', 'color', 'gender', 'price', 'status', 'birthday',
@@ -1637,9 +1638,9 @@ function validateBooking(body) {
 // convention as validateBreederIdUniqueness). If you change the logic here, change
 // it there too. Spec: docs/CALENDAR_SPEC.md.
 
-const CAL_EVENT_TYPES = ['visit', 'boarding', 'block', 'note'];
+const CAL_EVENT_TYPES = ['visit', 'boarding', 'care', 'block', 'note'];
 const CAL_STATUSES = ['pending', 'confirmed', 'done', 'cancelled'];
-const CAL_PET_TYPES = ['cat', 'rabbit', 'hamster', 'other_small_animal'];
+const CAL_PET_TYPES = ['cat', 'rabbit', 'hamster', 'other_small_animal', 'dog_small', 'dog_medium', 'dog_large'];
 const CAL_SOURCES = ['booking-form', 'admin', 'ai'];
 // HH:MM, 00:00–23:59 only. The old /^\d{2}:\d{2}$/ accepted junk like 29:99 / 24:00.
 const CAL_TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -1800,6 +1801,7 @@ function calJstToUtcStamp(ymd, hhmm) {
 const CAL_TYPE_PREFIX = {
   visit: '【見学】',
   boarding: '【お預かり】',
+  care: '【基本ケア】',
   block: '【休業】',
   note: '【メモ】',
 };
@@ -3815,6 +3817,9 @@ export default {
         if (errors.length) {
           return addCors(json({ error: 'Validation failed', details: errors }, 400));
         }
+        if (!canWriteDogCalendarEvent(data, env)) {
+          return addCors(json({ error: '犬サービスは現在受付停止です' }, 409));
+        }
         const nowIso = new Date().toISOString();
         const event = {
           id: newCalEventId(),
@@ -3852,6 +3857,11 @@ export default {
         const { errors, data } = validateCalendarEvent(body, { partial: true });
         if (errors.length) {
           return addCors(json({ error: 'Validation failed', details: errors }, 400));
+        }
+        const gateDoc = (await env.DATA.get('calendar_events', 'json')) || { events: [] };
+        const gatePrev = Array.isArray(gateDoc.events) ? gateDoc.events.find(e => e && e.id === id) : null;
+        if (gatePrev && !canWriteDogCalendarEvent({ ...gatePrev, ...data }, env)) {
+          return addCors(json({ error: '犬サービスは現在受付停止です' }, 409));
         }
         let notFoundFlag = false;
         let merged = null;

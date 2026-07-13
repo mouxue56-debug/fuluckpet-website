@@ -24,9 +24,9 @@ function isRealDate(s) {
   return dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d;
 }
 
-const CAL_EVENT_TYPES = ['visit', 'boarding', 'block', 'note'];
+const CAL_EVENT_TYPES = ['visit', 'boarding', 'care', 'block', 'note'];
 const CAL_STATUSES = ['pending', 'confirmed', 'done', 'cancelled'];
-const CAL_PET_TYPES = ['cat', 'rabbit', 'hamster', 'other_small_animal'];
+const CAL_PET_TYPES = ['cat', 'rabbit', 'hamster', 'other_small_animal', 'dog_small', 'dog_medium', 'dog_large'];
 const CAL_SOURCES = ['booking-form', 'admin', 'ai'];
 const CAL_TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
@@ -182,6 +182,7 @@ function calJstToUtcStamp(ymd, hhmm) {
 const CAL_TYPE_PREFIX = {
   visit: '【見学】',
   boarding: '【お預かり】',
+  care: '【基本ケア】',
   block: '【休業】',
   note: '【メモ】',
 };

@@ -40,6 +40,7 @@
     resultLines: byId('resultLines'),
     totalValue: byId('totalValue'),
     reviewNote: byId('reviewNote'),
+    dogStopNote: byId('dogStopNote'),
     lineButton: byId('lineButton'),
     copyButton: byId('copyButton'),
     copyMessage: byId('copyMessage'),
@@ -53,6 +54,8 @@
     elements.resultEmpty.hidden = false;
     elements.resultBody.hidden = true;
     elements.lineButton.setAttribute('aria-disabled', 'true');
+    elements.lineButton.hidden = false;
+    elements.dogStopNote.hidden = true;
     elements.copyButton.hidden = true;
     elements.copyMessage.textContent = '';
     quoteText = '';
@@ -75,6 +78,7 @@
   }
 
   function render(type, checkIn, checkOut, nights, lines, total, needsReview) {
+    var isDog = /^dog_/.test(type);
     elements.resultLines.textContent = '';
     lines.forEach(function (line) { addLine(line.label, line.detail, line.value); });
     elements.totalValue.textContent = money(total);
@@ -82,6 +86,8 @@
     elements.resultEmpty.hidden = true;
     elements.resultBody.hidden = false;
     elements.lineButton.setAttribute('aria-disabled', 'false');
+    elements.lineButton.hidden = isDog;
+    elements.dogStopNote.hidden = !isDog;
     elements.copyButton.hidden = false;
     elements.copyMessage.textContent = '';
 
@@ -115,7 +121,7 @@
       return;
     }
     if (checkIn > '2027-01-07' || checkOut > '2027-01-08') {
-      setEmpty('2027年1月8日以降の日程はLINEで直接お見積りします。');
+      setEmpty(isDog ? '犬は現在受付停止です。受付開始後に対象日程を更新します。' : '2027年1月8日以降の日程はLINEで直接お見積りします。');
       return;
     }
 
@@ -141,7 +147,7 @@
         isMember: elements.isMember.checked,
       }, dogProjection);
       if (!dogBoarding || dogBoarding.available !== true || dogBoarding.error) {
-        setEmpty('犬の料金情報を確認できませんでした。LINEで直接お問い合わせください。');
+        setEmpty('犬の料金情報を確認できませんでした。受付開始前のためお申し込みはできません。');
         return;
       }
       var dogLines = [{
@@ -164,7 +170,7 @@
       if (elements.dogBasicCare && elements.dogBasicCare.checked) {
         var dogCare = Calc.calculateDogBasicCare({ size: dogSize }, dogProjection);
         if (!dogCare || dogCare.available !== true || dogCare.error) {
-          setEmpty('犬の基本ケア料金を確認できませんでした。LINEで直接お問い合わせください。');
+          setEmpty('犬の基本ケア料金を確認できませんでした。受付開始前のためお申し込みはできません。');
           return;
         }
         dogLines.push({ label: '犬の基本ケア', detail: '爪切り・耳掃除・肛門腺', value: '+' + money(dogCare.subtotal) });
@@ -255,7 +261,11 @@
   } catch (error) {}
 
   function enableDogServices(projection) {
-    if (!DogProjection || !DogProjection.validateDogServicesProjection(projection) || projection.public !== true) return false;
+    if (!DogProjection) return false;
+    var validPublic = DogProjection.validateDogServicesProjection(projection) && projection.public === true;
+    var validPreparing = typeof DogProjection.validateDogServicesPreparingProjection === 'function' &&
+      DogProjection.validateDogServicesPreparingProjection(projection) && projection.preparing === true;
+    if (!validPublic && !validPreparing) return false;
     dogProjection = projection;
     DogProjection.SIZE_KEYS.forEach(function (size) {
       labels['dog_' + size] = projection.sizes[size].label;

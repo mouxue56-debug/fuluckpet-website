@@ -50,13 +50,15 @@ test('public legal truth lists the four official categories without inventing a 
   assert.doesNotMatch(`${about}\n${serviceCopy}`, /(?:繁殖\s*220012C|220012C\s*[^<\n]{0,30}繁殖)/);
 });
 
-test('false projection leaves pages, navigation, schema and controls without a dog offer', () => {
+test('false launch projection keeps dog booking and schema disabled while preparation display stays separate', () => {
   const projection = JSON.parse(read('dog-services-launch.json'));
+  const preparing = JSON.parse(read('dog-services-preparing.json'));
   const projectionApi = require('../dog-services-projection.js');
   const ui = require('../dog-services-public-ui.js');
   const nav = require('../nav.js');
 
   assert.deepEqual(projection, { public: false });
+  assert.equal(projectionApi.validateDogServicesPreparingProjection(preparing), true);
   assert.equal(projectionApi.validateDogServicesProjection(projection), true);
   for (const surface of ['boarding', 'care', 'estimate', 'estimate-care']) {
     assert.equal(ui.renderSurface(surface, projection), '', surface);
@@ -75,13 +77,15 @@ test('false projection leaves pages, navigation, schema and controls without a d
     const interactive = [...source.matchAll(/<(a|button|option)\b[^>]*>[\s\S]*?<\/\1>|<input\b[^>]*>/gi)]
       .map((match) => match[0])
       .join('\n');
-    assert.doesNotMatch(interactive, /犬|\bdog\b|わんちゃん/i, `${relative}: static interactive dog offer`);
+    assert.doesNotMatch(interactive, /犬[^<]{0,30}(?:予約|申込)|(?:予約|申込)[^<]{0,30}犬/i, `${relative}: dog booking action`);
   }
   for (const relative of ['boarding/index.html', 'grooming/index.html']) {
     const schemas = [...read(relative).matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
     assert.ok(schemas.length > 0, `${relative}: base JSON-LD required`);
     for (const schema of schemas) assert.doesNotMatch(schema[1], /犬|\bdog\b|わんちゃん/i, relative);
   }
+  assert.match(ui.renderSurface('boarding', preparing), /現在受付停止/);
+  assert.deepEqual(ui.buildSchemaObjects(preparing), []);
 });
 
 test('sitemap exposes boarding and grooming but not the utility estimator', () => {
@@ -125,16 +129,19 @@ test('every static chat knowledge key is owned by the tracked seed', () => {
   assert.deepEqual(runtimeKeys, seededKeys);
 });
 
-test('admin boarding calendar creates only licensed-scope categories and keeps legacy labels for history', () => {
+test('admin calendar shows prepared dog categories disabled while keeping licensed categories active', () => {
   const worker = read('api/worker.js');
   const adminHtml = read('admin/calendar.html');
   const adminJs = read('admin/js/admin-calendar.js');
 
-  assert.match(worker, /CAL_PET_TYPES\s*=\s*\['cat',\s*'rabbit',\s*'hamster',\s*'other_small_animal'\]/);
+  assert.match(worker, /CAL_PET_TYPES\s*=\s*\[[^\]]*'dog_small'[^\]]*'dog_medium'[^\]]*'dog_large'/);
   for (const value of ['cat', 'rabbit', 'hamster', 'other_small_animal']) {
     assert.match(adminHtml, new RegExp(`option value="${value}"`));
   }
-  assert.doesNotMatch(adminHtml, /option value="(?:small_dog|medium_dog|large_dog)"/);
+  for (const value of ['dog_small', 'dog_medium', 'dog_large']) {
+    assert.match(adminHtml, new RegExp(`option value="${value}"[^>]*disabled`));
+  }
+  assert.match(adminHtml, /犬は現在受付停止/);
   assert.match(adminJs, /LEGACY_PET_TYPES/);
   assert.match(adminJs, /small_dog[\s\S]*medium_dog[\s\S]*large_dog/);
   assert.match(adminJs, /NEW_BOARDING_PET_TYPES\.indexOf\([^)]*\)\s*!==\s*-1/);
