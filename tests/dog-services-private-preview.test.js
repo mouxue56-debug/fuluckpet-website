@@ -78,7 +78,7 @@ test('buildPreviewProjection returns the exact strict public projection', () => 
 
   assert.deepEqual(preview, expectedPreviewProjection());
   assert.equal(preview.public, true);
-  assert.equal(preview.version, 2);
+  assert.equal(preview.version, 3);
   assert.ok(preview.calendar.holidays.includes('2027-11-23'));
   assert.equal(projectionApi.validateDogServicesProjection(preview), true);
 });

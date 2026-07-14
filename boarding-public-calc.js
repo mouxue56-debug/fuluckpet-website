@@ -73,56 +73,38 @@
     return 'normal';
   }
 
-  function getLongStayRate(animalType, nights) {
-    var tiers = CONFIG.longStayDiscount[animalType] || [];
+  function getLongStayRate(nights) {
+    var tiers = CONFIG.longStayDiscount || [];
     for (var index = 0; index < tiers.length; index += 1) {
       if (nights >= tiers[index].minNights) return tiers[index].rate;
     }
-    return null;
+    return 1;
   }
 
   function getBoardingDiscountRate(input) {
-    var rates = [1];
-    if (input.isMember) rates.push(CONFIG.customerDiscount.member);
-    if (input.animalType === 'cat' && input.isGraduatedCat) rates.push(CONFIG.customerDiscount.graduatedCat);
-    var longStay = getLongStayRate(input.animalType, input.nights);
-    if (longStay !== null) rates.push(longStay);
-    return Math.min.apply(null, rates);
+    if (input.animalType === 'cat' && input.isGraduatedCat) return CONFIG.graduatedCatDiscount;
+    return getLongStayRate(input.nights);
   }
 
   function calculateBoarding(input) {
     input = input || {};
     var basePrice = CONFIG.boardingBasePrice[input.animalType];
-    if (!Number.isFinite(basePrice)) return { error: 'unknown_type', nights: 0, boardingTotal: 0, nightlyBreakdown: [] };
+    if (!Number.isFinite(basePrice)) return { error: 'unknown_type', nights: 0, boardingTotal: 0 };
 
     var nights = getNights(input.checkInDate, input.checkOutDate);
-    if (!(nights >= 1)) return { error: 'day_use', nights: nights, boardingTotal: 0, nightlyBreakdown: [] };
+    if (!(nights >= 1)) return { error: 'day_use', nights: nights, boardingTotal: 0 };
 
     var rate = getBoardingDiscountRate({
       animalType: input.animalType,
       nights: nights,
-      isMember: !!input.isMember,
       isGraduatedCat: !!input.isGraduatedCat,
-    });
-    var discountedBasePerNight = roundYen100(basePrice * rate);
-    var breakdown = getStayDates(input.checkInDate, nights).map(function (date) {
-      var category = getDateCategory(date);
-      var surcharge = CONFIG.dateSurcharge[category][input.animalType];
-      return {
-        date: date,
-        dateCategory: category,
-        basePerNight: discountedBasePerNight,
-        dateSurcharge: surcharge,
-        totalForNight: discountedBasePerNight + surcharge,
-      };
     });
     return {
       nights: nights,
       rate: rate,
       basePricePerNight: basePrice,
-      discountedBasePerNight: discountedBasePerNight,
-      nightlyBreakdown: breakdown,
-      boardingTotal: breakdown.reduce(function (sum, night) { return sum + night.totalForNight; }, 0),
+      boardingSubtotal: basePrice * nights,
+      boardingTotal: roundYen100(basePrice * nights * rate),
       needsReview: nights >= 30,
     };
   }
@@ -131,13 +113,9 @@
     return !!(CONFIG.smallPetBoarding && Object.prototype.hasOwnProperty.call(CONFIG.smallPetBoarding, animalType));
   }
 
-  function getSmallPetPerNight(animalType, nights) {
+  function getSmallPetPerNight(animalType) {
     var service = CONFIG.smallPetBoarding[animalType];
-    if (!service) return null;
-    for (var index = 0; index < service.tiers.length; index += 1) {
-      if (nights >= service.tiers[index].minNights) return service.tiers[index].perNight;
-    }
-    return null;
+    return service && Number.isFinite(service.basePrice) ? service.basePrice : null;
   }
 
   function calculateSmallPetBoarding(input) {
@@ -145,25 +123,23 @@
     if (!isSmallPetType(input.animalType)) return { error: 'unknown_type', nights: 0, boardingTotal: 0, perNight: null };
     var nights = getNights(input.checkInDate, input.checkOutDate);
     if (!(nights >= 1)) return { error: 'day_use', nights: nights, boardingTotal: 0, perNight: null };
-    var perNight = getSmallPetPerNight(input.animalType, nights);
-    return { nights: nights, perNight: perNight, boardingTotal: perNight * nights };
+    var basePrice = getSmallPetPerNight(input.animalType);
+    var rate = getLongStayRate(nights);
+    return {
+      nights: nights,
+      rate: rate,
+      basePricePerNight: basePrice,
+      boardingSubtotal: basePrice * nights,
+      boardingTotal: roundYen100(basePrice * nights * rate),
+    };
   }
 
   function getCatGroomingRate(input) {
     if (input === undefined) input = {};
     if (!isRecord(input)) return null;
-    if (input.isMember !== undefined && typeof input.isMember !== 'boolean') return null;
     if (input.isGraduatedCat !== undefined && typeof input.isGraduatedCat !== 'boolean') return null;
-    var nights = input.boardingNights === undefined ? 0 : input.boardingNights;
-    if (!Number.isSafeInteger(nights) || nights < 0) return null;
     var discount = CONFIG.careCatalog.cat.discounts;
-    var rates = [1];
-    if (input.isMember === true) rates.push(discount.member);
-    if (input.isGraduatedCat === true) rates.push(discount.graduatedCat);
-    if (nights >= 14) rates.push(discount.afterBoarding14Nights);
-    else if (nights >= 7) rates.push(discount.afterBoarding7Nights);
-    else if (nights >= 3) rates.push(discount.afterBoarding3Nights);
-    return Math.min.apply(null, rates);
+    return input.isGraduatedCat === true ? discount.graduatedCat : 1;
   }
 
   function emptyCatCareResult(error) {
@@ -317,24 +293,12 @@
     return !!(accepting || preparing);
   }
 
-  function getDogLongStayRate(size, nights, projection) {
-    var tiers = projection.longStayDiscount[size] || [];
+  function getDogLongStayRate(nights, projection) {
+    var tiers = projection.longStayDiscount || [];
     for (var index = 0; index < tiers.length; index += 1) {
       if (nights >= tiers[index].minNights) return tiers[index].rate;
     }
     return 1;
-  }
-
-  function getDogDateCategory(value, projection) {
-    var ranges = projection.calendar.specialDateRanges;
-    for (var index = 0; index < ranges.length; index += 1) {
-      if (ranges[index].enabled && ranges[index].category === 'high_season_core' && inRange(value, ranges[index])) return 'high_season_core';
-    }
-    for (var second = 0; second < ranges.length; second += 1) {
-      if (ranges[second].enabled && ranges[second].category === 'school_vacation' && inRange(value, ranges[second])) return 'school_vacation';
-    }
-    if (isWeekend(value) || projection.calendar.holidays.indexOf(value) !== -1) return 'weekend_or_holiday';
-    return 'normal';
   }
 
   function calculateDogBoarding(input, projection) {
@@ -342,34 +306,20 @@
     input = input || {};
     var sizeConfig = projection.sizes[input.size];
     var basePrice = sizeConfig && sizeConfig.boardingPerNight;
-    if (!Number.isFinite(basePrice)) return { available: true, error: 'unknown_size', nights: 0, boardingTotal: 0, nightlyBreakdown: [] };
+    if (!Number.isFinite(basePrice)) return { available: true, error: 'unknown_size', nights: 0, boardingTotal: 0 };
 
     var nights = getNights(input.checkInDate, input.checkOutDate);
-    if (!(nights >= 1)) return { available: true, error: 'day_use', nights: nights, boardingTotal: 0, nightlyBreakdown: [] };
+    if (!(nights >= 1)) return { available: true, error: 'day_use', nights: nights, boardingTotal: 0 };
 
-    var rate = getDogLongStayRate(input.size, nights, projection);
-    if (input.isMember) rate = Math.min(rate, projection.memberDiscountRate);
-    var discountedBasePerNight = Math.round(basePrice * rate / projection.roundUnit) * projection.roundUnit;
-    var breakdown = getStayDates(input.checkInDate, nights).map(function (date) {
-      var category = getDogDateCategory(date, projection);
-      var surcharge = projection.dateSurcharge[category][input.size];
-      return {
-        date: date,
-        dateCategory: category,
-        basePerNight: discountedBasePerNight,
-        dateSurcharge: surcharge,
-        totalForNight: discountedBasePerNight + surcharge,
-      };
-    });
+    var rate = getDogLongStayRate(nights, projection);
     return {
       available: true,
       size: input.size,
       nights: nights,
       rate: rate,
       basePricePerNight: basePrice,
-      discountedBasePerNight: discountedBasePerNight,
-      nightlyBreakdown: breakdown,
-      boardingTotal: breakdown.reduce(function (sum, night) { return sum + night.totalForNight; }, 0),
+      boardingSubtotal: basePrice * nights,
+      boardingTotal: Math.round(basePrice * nights * rate / projection.roundUnit) * projection.roundUnit,
       needsReview: nights >= 30,
     };
   }

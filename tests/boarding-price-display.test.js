@@ -20,7 +20,22 @@ test('public boarding prices come from a tracked licensed-scope config', () => {
   assert.ok(CONFIG.dogServices, 'dogServices config is required');
   assert.equal(CONFIG.dogServices.public, false);
   assert.doesNotMatch(source, /allowDraft/);
-  assert.equal(CONFIG.boardingBasePrice.cat, 4800);
+  assert.equal(CONFIG.boardingBasePrice.cat, 4000);
+  assert.deepEqual(CONFIG.longStayDiscount, [
+    { minNights: 30, rate: 0.80 },
+    { minNights: 21, rate: 0.85 },
+    { minNights: 14, rate: 0.90 },
+    { minNights: 7, rate: 0.95 },
+  ]);
+  assert.equal(CONFIG.graduatedCatDiscount, 0.70);
+  assert.equal(Object.hasOwn(CONFIG, 'customerDiscount'), false);
+  assert.equal(Object.hasOwn(CONFIG, 'dateSurcharge'), false);
+  assert.equal(Object.hasOwn(CONFIG.dogServices, 'dateSurcharge'), false);
+  assert.equal(Object.hasOwn(CONFIG.dogServices, 'longStayDiscount'), false);
+  assert.deepEqual(CONFIG.smallPetBoarding, {
+    rabbit_cage: { basePrice: 1500 },
+    hamster_cage: { basePrice: 500 },
+  });
   assert.equal(CONFIG.catGroomingBasePrice, undefined);
   assert.deepEqual(
     CONFIG.careCatalog.cat.packages.map(({ id, price }) => [id, price]),
@@ -51,10 +66,12 @@ test('static service prices stay equal to the public config', () => {
 
   assert.ok(boarding.includes(yen(CONFIG.boardingBasePrice.cat)), 'cat boarding price');
   for (const kind of ['rabbit_cage', 'hamster_cage']) {
-    for (const tier of CONFIG.smallPetBoarding[kind].tiers) {
-      assert.ok(boarding.includes(yen(tier.perNight)), `${kind} ${tier.minNights} nights`);
-    }
+    assert.ok(boarding.includes(yen(CONFIG.smallPetBoarding[kind].basePrice)), `${kind} base price`);
   }
+  for (const copy of ['7泊以上5%OFF', '14泊以上10%OFF', '21泊以上15%OFF', '30泊以上20%OFF']) {
+    assert.match(boarding, new RegExp(copy), copy);
+  }
+  assert.match(boarding, /卒業猫[^<]{0,100}30%OFF/);
   assert.equal(careStatic.isGroomingPageFresh(grooming, CONFIG.careCatalog.cat), true);
   for (const carePackage of CONFIG.careCatalog.cat.packages) {
     assert.ok(grooming.includes(yen(carePackage.price)), `${carePackage.id} care price`);

@@ -14,6 +14,12 @@
 
   var CHECK_IN_MAX = '2027-12-31';
   var CHECK_OUT_MAX = '2028-01-01';
+  var LONG_STAY_LABELS = {
+    7: '7泊以上 5%OFF',
+    14: '14泊以上 10%OFF',
+    21: '21泊以上 15%OFF',
+    30: '30泊以上 20%OFF',
+  };
 
   function stateFor(type) {
     var isDog = /^dog_(small|medium|large)$/.test(type);
@@ -119,11 +125,6 @@
       rabbit_cage: 'うさぎ・小動物',
       hamster_cage: 'ハムスター等',
     };
-    var surchargeLabels = {
-      weekend_or_holiday: '土日祝加算',
-      school_vacation: '学校休暇加算',
-      high_season_core: '繁忙期加算',
-    };
     var catCatalog = Config.careCatalog.cat;
     var catItemControls = {};
     var dogProjection = null;
@@ -142,7 +143,6 @@
       checkIn: byId('checkIn'),
       checkOut: byId('checkOut'),
       discountCard: byId('discountCard'),
-      isMember: byId('isMember'),
       graduatedWrap: byId('graduatedWrap'),
       isGraduatedCat: byId('isGraduatedCat'),
       catCareField: byId('catCareField'),
@@ -341,47 +341,31 @@
       });
     }
 
-    function boardingDiscountLabel(type, nights, rate, isMember, isGraduatedCat) {
+    function boardingDiscountLabel(type, nights, rate, isGraduatedCat) {
       if (!(rate < 1)) return '';
-      if (nights >= 7 && rate < 0.9) {
-        var minimum = nights >= 30 ? 30 : (nights >= 14 ? 14 : 7);
-        var label = minimum + '泊以上 ' + Math.round((1 - rate) * 100) + '%OFF';
-        if (minimum === 7 && rate === 0.8 && isMember) return '7泊以上 20%OFF（会員10%よりお得）';
-        if (isMember) label += '（会員10%よりお得）';
-        return label;
+      if (type === 'cat' && isGraduatedCat && rate === Config.graduatedCatDiscount) {
+        return '福楽卒業猫 30%OFF（他の割引と併用不可）';
       }
-      if (type === 'cat' && isGraduatedCat && rate === Config.customerDiscount.graduatedCat) return '福楽卒業猫 15%OFF';
-      if (isMember && rate === Config.customerDiscount.member) return '会員 10%OFF';
-      return Math.round((1 - rate) * 100) + '%OFF';
+      var minimum = nights >= 30 ? 30 : (nights >= 21 ? 21 : (nights >= 14 ? 14 : 7));
+      return LONG_STAY_LABELS[minimum] || Math.round((1 - rate) * 100) + '%OFF';
     }
 
-    function addBoardingDiscountLine(lines, type, result, nights, isMember, isGraduatedCat) {
-      var label = boardingDiscountLabel(type, nights, result.rate, isMember, isGraduatedCat);
-      if (label) lines.push({ label: 'お預かり割引', detail: 'いちばんお得な割引を1つ適用', value: label });
-    }
-
-    function addSurchargeLines(lines, boarding) {
-      var groups = {};
-      boarding.nightlyBreakdown.forEach(function (night) {
-        if (!night.dateSurcharge) return;
-        groups[night.dateCategory] = groups[night.dateCategory] || { price: night.dateSurcharge, count: 0 };
-        groups[night.dateCategory].count += 1;
-      });
-      Object.keys(surchargeLabels).forEach(function (category) {
-        if (!groups[category]) return;
-        var surcharge = groups[category];
-        lines.push({ label: surchargeLabels[category], detail: money(surcharge.price) + ' × ' + surcharge.count + '泊', value: '+' + money(surcharge.price * surcharge.count) });
+    function addBoardingDiscountLine(lines, type, result, nights, isGraduatedCat) {
+      var label = boardingDiscountLabel(type, nights, result.rate, isGraduatedCat);
+      if (!label) return;
+      lines.push({
+        label: 'お預かり割引',
+        detail: label,
+        value: '-' + money(result.boardingSubtotal - result.boardingTotal),
       });
     }
 
-    function catCareDiscountLabel(care, nights) {
+    function catCareDiscountLabel(care) {
       var discount = Config.careCatalog.cat.discounts;
       if (care.appliedDiscountRate === 1) return '';
-      if (elements.isGraduatedCat.checked && care.appliedDiscountRate === discount.graduatedCat) return '福楽卒業猫 30%OFF';
-      if (nights >= 14 && care.appliedDiscountRate === discount.afterBoarding14Nights) return '14泊以上 20%OFF';
-      if (nights >= 7 && care.appliedDiscountRate === discount.afterBoarding7Nights) return '7泊以上 15%OFF';
-      if (nights >= 3 && care.appliedDiscountRate === discount.afterBoarding3Nights) return '3泊以上 10%OFF';
-      if (elements.isMember.checked && care.appliedDiscountRate === discount.member) return '会員 15%OFF';
+      if (elements.isGraduatedCat.checked && care.appliedDiscountRate === discount.graduatedCat) {
+        return '福楽卒業猫 30%OFF（他の割引と併用不可）';
+      }
       return Math.round((1 - care.appliedDiscountRate) * 100) + '%OFF';
     }
 
@@ -424,7 +408,6 @@
         elements.isGraduatedCat.checked = false;
         resetCatCare();
       }
-      if (isSmall) elements.isMember.checked = false;
       if (!isDog) resetDogCareOffer();
 
       if (!type || !checkIn || !checkOut) {
@@ -456,7 +439,8 @@
 
       if (isSmall) {
         var small = Calc.calculateSmallPetBoarding({ animalType: type, checkInDate: checkIn, checkOutDate: checkOut });
-        var smallLines = [{ label: '基本料金', detail: money(small.perNight) + ' × ' + nights + '泊', value: money(small.boardingTotal) }];
+        var smallLines = [{ label: '基本料金', detail: money(small.basePricePerNight) + ' × ' + nights + '泊', value: money(small.boardingSubtotal) }];
+        addBoardingDiscountLine(smallLines, type, small, nights, false);
         render(type, checkIn, checkOut, nights, smallLines, small.boardingTotal, '');
         return;
       }
@@ -468,7 +452,6 @@
           size: dogSize,
           checkInDate: checkIn,
           checkOutDate: checkOut,
-          isMember: elements.isMember.checked,
         }, dogProjection);
         if (!dogBoarding || dogBoarding.available !== true || dogBoarding.error) {
           setEmpty('犬の料金情報を確認できませんでした。受付開始前のためお申し込みはできません。', type, 'error');
@@ -476,11 +459,10 @@
         }
         var dogLines = [{
           label: dogPricing.boardingLabel,
-          detail: money(dogBoarding.discountedBasePerNight) + ' × ' + nights + '泊',
-          value: money(dogBoarding.discountedBasePerNight * nights),
+          detail: money(dogBoarding.basePricePerNight) + ' × ' + nights + '泊',
+          value: money(dogBoarding.boardingSubtotal),
         }];
-        addBoardingDiscountLine(dogLines, type, dogBoarding, nights, elements.isMember.checked, false);
-        addSurchargeLines(dogLines, dogBoarding);
+        addBoardingDiscountLine(dogLines, type, dogBoarding, nights, false);
         var dogTotal = dogBoarding.boardingTotal;
         var dogCareOffer = selectedDogCareOffer();
         if (dogCareOffer) {
@@ -508,24 +490,20 @@
         animalType: type,
         checkInDate: checkIn,
         checkOutDate: checkOut,
-        isMember: elements.isMember.checked,
         isGraduatedCat: elements.isGraduatedCat.checked,
       });
-      var lines = [{ label: 'お預かり', detail: money(boarding.discountedBasePerNight) + ' × ' + nights + '泊', value: money(boarding.discountedBasePerNight * nights) }];
-      addBoardingDiscountLine(lines, type, boarding, nights, elements.isMember.checked, elements.isGraduatedCat.checked);
-      addSurchargeLines(lines, boarding);
+      var lines = [{ label: 'お預かり', detail: money(boarding.basePricePerNight) + ' × ' + nights + '泊', value: money(boarding.boardingSubtotal) }];
+      addBoardingDiscountLine(lines, type, boarding, nights, elements.isGraduatedCat.checked);
 
       var total = boarding.boardingTotal;
       var care = Calc.calculateCatCare(catCareSelection(), {
-        isMember: elements.isMember.checked,
         isGraduatedCat: elements.isGraduatedCat.checked,
-        boardingNights: nights,
       });
       if (care.error) {
         setEmpty('猫のケア料金を確認できませんでした。選択内容をご確認ください。', type, 'error');
         return;
       }
-      var careDiscount = catCareDiscountLabel(care, nights);
+      var careDiscount = catCareDiscountLabel(care);
       care.lineItems.forEach(function (line) { lines.push(catCareLine(line, line.appliedDiscountRate < 1 ? careDiscount : '')); });
       total += care.subtotal;
       var reviewMessages = [];
@@ -567,7 +545,7 @@
 
     buildCatCareControls();
     bindPetTypeInputs();
-    [elements.checkIn, elements.checkOut, elements.isMember, elements.isGraduatedCat].forEach(function (input) {
+    [elements.checkIn, elements.checkOut, elements.isGraduatedCat].forEach(function (input) {
       input.addEventListener('change', compute);
     });
     elements.copyButton.addEventListener('click', function () {

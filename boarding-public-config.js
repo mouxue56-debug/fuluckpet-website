@@ -1,6 +1,6 @@
 /* boarding-public-config.js — licensed public boarding and cat-care price source.
- * Values are the owner-approved 2026-07-08 v4 prices. Dog prices are retained
- * only as a disabled capability because registration 220012B does not list dogs.
+ * Values are the owner-approved 2026-07-14 unified prices. Dog prices are retained
+ * only as a disabled capability while dog services remain受付停止.
  * Browser: window.BOARDING_CONFIG; Node: require(). */
 (function (root) {
   'use strict';
@@ -19,11 +19,7 @@
       { id: 'matting15', label: '毛玉・ブラッシング', price: 1100, unit: '15分', discountEligible: false, quoteOnly: false, maxQuantity: 8 },
     ],
     discounts: {
-      member: 0.85,
       graduatedCat: 0.70,
-      afterBoarding3Nights: 0.90,
-      afterBoarding7Nights: 0.85,
-      afterBoarding14Nights: 0.80,
     },
   };
 
@@ -48,26 +44,17 @@
     taxIncluded: true,
     roundUnit: 100,
 
-    boardingBasePrice: { cat: 4800 },
+    boardingBasePrice: { cat: 4000 },
+    longStayDiscount: [
+      { minNights: 30, rate: 0.80 },
+      { minNights: 21, rate: 0.85 },
+      { minNights: 14, rate: 0.90 },
+      { minNights: 7, rate: 0.95 },
+    ],
+    graduatedCatDiscount: 0.70,
     smallPetBoarding: {
-      rabbit_cage: {
-        tiers: [
-          { minNights: 30, perNight: 1200 },
-          { minNights: 21, perNight: 1275 },
-          { minNights: 14, perNight: 1350 },
-          { minNights: 7, perNight: 1425 },
-          { minNights: 1, perNight: 1500 },
-        ],
-      },
-      hamster_cage: {
-        tiers: [
-          { minNights: 30, perNight: 400 },
-          { minNights: 21, perNight: 428 },
-          { minNights: 14, perNight: 451 },
-          { minNights: 7, perNight: 475 },
-          { minNights: 1, perNight: 500 },
-        ],
-      },
+      rabbit_cage: { basePrice: 1500 },
+      hamster_cage: { basePrice: 500 },
     },
 
     dogServices: {
@@ -76,45 +63,12 @@
       public: false,
       preparingVisible: true,
       locationNotice: '大阪・針中野での受付開始を予定しています。開始時期は決まり次第お知らせします。',
-      boardingBasePrice: { small: 7400, medium: 8200, large: 8900 },
-      longStayDiscount: {
-        small: [
-          { minNights: 30, rate: 0.65 },
-          { minNights: 14, rate: 0.75 },
-          { minNights: 7, rate: 0.80 },
-        ],
-        medium: [
-          { minNights: 30, rate: 0.70 },
-          { minNights: 14, rate: 0.75 },
-          { minNights: 7, rate: 0.80 },
-        ],
-        large: [
-          { minNights: 30, rate: 0.70 },
-          { minNights: 14, rate: 0.75 },
-          { minNights: 7, rate: 0.80 },
-        ],
+      boardingBasePrice: { small: 5000, medium: 5500, large: 6500 },
+      weightBands: {
+        small: { minKg: 0, maxKgExclusive: 10 },
+        medium: { minKg: 10, maxKgExclusive: 20 },
+        large: { minKg: 20, maxKgExclusive: null },
       },
-      dateSurcharge: {
-        normal: { small: 0, medium: 0, large: 0 },
-        weekend_or_holiday: { small: 550, medium: 1100, large: 1100 },
-        school_vacation: { small: 1100, medium: 1650, large: 2200 },
-        high_season_core: { small: 2200, medium: 3300, large: 3300 },
-      },
-    },
-
-    customerDiscount: { member: 0.9, graduatedCat: 0.85 },
-    longStayDiscount: {
-      cat: [
-        { minNights: 30, rate: 0.60 },
-        { minNights: 14, rate: 0.75 },
-        { minNights: 7, rate: 0.80 },
-      ],
-    },
-    dateSurcharge: {
-      normal: { cat: 0 },
-      weekend_or_holiday: { cat: 550 },
-      school_vacation: { cat: 1100 },
-      high_season_core: { cat: 2200 },
     },
 
     careCatalog: {

@@ -96,7 +96,7 @@ function renderGraduateCard(cat) {
   const examples = cat.packages.map((pkg) => `${escapeHtml(pkg.label)} ${yen(roundedDiscountPrice(pkg.price, rate))}`).join(' ／ ');
   return '<article class="service-price-card is-primary"><p class="service-price-label">福楽卒業猫</p>' +
     `<p class="service-price">${discountPercent}%OFF</p><p class="service-price-note">${examples}。` +
-    'ほかの割引とは重複せず、最も割引率の高い1つを適用します。時間制の追加ケアは割引対象外です。</p></article>';
+    'お預かりと猫のケアが対象です。ほかの割引と併用不可。時間制の追加ケアは割引対象外です。</p></article>';
 }
 
 function renderItemRow(item) {
@@ -175,6 +175,18 @@ function sizePriceList(priceBySize) {
   return ['small', 'medium', 'large'].map((size) => plainYen(priceBySize[size])).join('／');
 }
 
+function longStayText(tiers) {
+  return tiers.slice().reverse().map((tier) =>
+    `${tier.minNights}泊以上${Math.round((1 - tier.rate) * 100)}%OFF`
+  ).join('、');
+}
+
+function dogWeightLabel(band) {
+  if (band.minKg === 0) return `${band.maxKgExclusive}kg未満`;
+  if (band.maxKgExclusive === null) return `${band.minKg}kg以上`;
+  return `${band.minKg}kg以上${band.maxKgExclusive}kg未満`;
+}
+
 function formatCareKnowledge(config) {
   if (!config || !config.careCatalog || !config.careCatalog.cat || !config.careCatalog.dog) {
     throw new Error('care catalog config is unavailable');
@@ -189,11 +201,17 @@ function formatCareKnowledge(config) {
   }).join('、');
   const dogItems = dog.items.map((entry) => `${entry.label} ${sizePriceList(entry.priceBySize)}`).join('、');
   const dogBundles = dog.bundles.map((entry) => `${entry.label} ${sizePriceList(entry.priceBySize)}`).join('、');
+  const dogBoarding = ['small', 'medium', 'large'].map((size) => {
+    const labels = { small: '小型犬', medium: '中型犬', large: '大型犬' };
+    return `${labels[size]}（${dogWeightLabel(config.dogServices.weightBands[size])}）${plainYen(config.dogServices.boardingBasePrice[size])}`;
+  }).join('、');
   return '福楽ペットは第一種動物取扱業の保管220012Bに基づき、完全予約制で猫と登録対象小動物を預かる。' +
     '対象は猫、うさぎ、ハムスター、マウス、ラット、モルモット、デグー、チンチラ、フクロモモンガ、ヤマネ、ヘビ。種類と健康状態は予約前に個別確認する。' +
-    `猫は1泊${plainYen(config.boardingBasePrice.cat)}。猫のシャンプー・基本ケアは${packageText}。部分ケアは${itemText}。` +
-    `犬のケアは予定価格として、単項目が体型別に${dogItems}、セットが${dogBundles}で、現在受付停止。犬のお預かりも現在受付停止。` +
-    '日程加算・長期料金・割引を含む概算は https://fuluckpet.com/boarding/ と https://fuluckpet.com/boarding/estimate.html 、猫の基本ケアは https://fuluckpet.com/grooming/ を確認し、正式料金はLINE相談後に確定する。';
+    `猫は1泊${plainYen(config.boardingBasePrice.cat)}。うさぎ・小動物は1泊${plainYen(config.smallPetBoarding.rabbit_cage.basePrice)}、ハムスター等は1泊${plainYen(config.smallPetBoarding.hamster_cage.basePrice)}。` +
+    `長期料金は全動物共通で${longStayText(config.longStayDiscount)}。土日祝・繁忙期の加算はない。` +
+    `福楽卒業猫はお預かり・猫のケアとも30%OFF、他の割引と併用不可。猫のシャンプー・基本ケアは${packageText}。部分ケアは${itemText}。` +
+    `犬のお預かりは予定価格として${dogBoarding}、現在受付停止。犬のケアも予定価格として、単項目が体型別に${dogItems}、セットが${dogBundles}で、現在受付停止。` +
+    '長期料金を含む概算は https://fuluckpet.com/boarding/ と https://fuluckpet.com/boarding/estimate.html 、猫の基本ケアは https://fuluckpet.com/grooming/ を確認し、正式料金はLINE相談後に確定する。';
 }
 
 module.exports = {

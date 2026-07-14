@@ -129,13 +129,17 @@ test('marker errors fail closed and writeGroomingPage preserves the original byt
 test('care knowledge is config-derived and keeps stopped dog prices next to their status', () => {
   const text = formatCareKnowledge(CONFIG);
   for (const value of [
-    '保管220012B', '猫は1泊4,800円', '短毛猫 4,000円', '長毛猫 6,000円',
+    '保管220012B', '猫は1泊4,000円', '短毛猫 4,000円', '長毛猫 6,000円',
+    '福楽卒業猫はお預かり・猫のケアとも30%OFF', '他の割引と併用不可',
+    '7泊以上5%OFF', '14泊以上10%OFF', '21泊以上15%OFF', '30泊以上20%OFF',
     '爪切り 1,100円', '耳掃除 660円', '肛門腺絞り 要相談', '毛玉・ブラッシング 1,100円／15分',
+    '小型犬（10kg未満）5,000円', '中型犬（10kg以上20kg未満）5,500円', '大型犬（20kg以上）6,500円',
     '660円／880円／1,100円', '1,650円／2,200円／2,750円',
     '予定価格', '現在受付停止',
     'https://fuluckpet.com/boarding/', 'https://fuluckpet.com/boarding/estimate.html', 'https://fuluckpet.com/grooming/',
   ]) assert.match(text, new RegExp(value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   assert.match(text, /犬[^。]{0,240}予定価格[^。]{0,240}現在受付停止/);
+  assert.doesNotMatch(text, /会員|土日祝加算|学校休暇加算|繁忙期加算|日程加算/);
 });
 
 test('verify-generated rejects a stale grooming menu or schema block', (t) => {

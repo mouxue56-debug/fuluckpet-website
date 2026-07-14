@@ -168,10 +168,18 @@ test('service CTAs use defined icons and estimate-only controls respect hidden s
 });
 
 test('graduated-cat 30% care benefit is visible, accessible and mobile-safe', () => {
+  const boarding = read('boarding/index.html');
   const grooming = read('grooming/index.html');
   const estimate = read('boarding/estimate.html');
   const estimateUi = read('boarding/boarding-public-estimate.js');
   const serviceCss = read('services.css');
+
+  assert.match(boarding, /猫[\s\S]{0,200}¥4,000/);
+  assert.match(boarding, /福楽卒業猫[\s\S]{0,100}30%OFF/);
+  for (const copy of ['7泊以上5%OFF', '14泊以上10%OFF', '21泊以上15%OFF', '30泊以上20%OFF']) {
+    assert.match(boarding, new RegExp(copy));
+  }
+  assert.doesNotMatch(`${boarding}\n${estimate}\n${estimateUi}`, /会員|土日祝加算|学校休暇加算|繁忙期加算|日付加算/);
 
   assert.match(grooming, /福楽卒業猫/);
   assert.match(grooming, /30%OFF/);
@@ -184,7 +192,7 @@ test('graduated-cat 30% care benefit is visible, accessible and mobile-safe', ()
     /<label\b[^>]*\bfor=["']isGraduatedCat["'][^>]*>[\s\S]*?福楽卒業猫[\s\S]*?30%OFF[\s\S]*?<\/label>/,
   );
   assert.match(estimate, /<section\b[^>]*\baria-live=["']polite["'][^>]*>/);
-  assert.match(estimateUi, /福楽卒業猫 30%OFF/);
+  assert.match(estimateUi, /福楽卒業猫 30%OFF（他の割引と併用不可）/);
   assert.match(estimateUi, /Calc\.calculateCatCare\(/);
   assert.doesNotMatch(estimateUi, /dogBasicCare|calculateDogBasicCare|catGroomingDiscount/);
 

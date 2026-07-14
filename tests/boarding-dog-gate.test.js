@@ -30,31 +30,19 @@ test('dog boarding and canonical care prices stay behind one disabled public gat
     public: false,
     preparingVisible: true,
     locationNotice: '大阪・針中野での受付開始を予定しています。開始時期は決まり次第お知らせします。',
-    boardingBasePrice: { small: 7400, medium: 8200, large: 8900 },
-    longStayDiscount: {
-      small: [
-        { minNights: 30, rate: 0.65 },
-        { minNights: 14, rate: 0.75 },
-        { minNights: 7, rate: 0.80 },
-      ],
-      medium: [
-        { minNights: 30, rate: 0.70 },
-        { minNights: 14, rate: 0.75 },
-        { minNights: 7, rate: 0.80 },
-      ],
-      large: [
-        { minNights: 30, rate: 0.70 },
-        { minNights: 14, rate: 0.75 },
-        { minNights: 7, rate: 0.80 },
-      ],
-    },
-    dateSurcharge: {
-      normal: { small: 0, medium: 0, large: 0 },
-      weekend_or_holiday: { small: 550, medium: 1100, large: 1100 },
-      school_vacation: { small: 1100, medium: 1650, large: 2200 },
-      high_season_core: { small: 2200, medium: 3300, large: 3300 },
+    boardingBasePrice: { small: 5000, medium: 5500, large: 6500 },
+    weightBands: {
+      small: { minKg: 0, maxKgExclusive: 10 },
+      medium: { minKg: 10, maxKgExclusive: 20 },
+      large: { minKg: 20, maxKgExclusive: null },
     },
   });
+  assert.deepEqual(CONFIG.longStayDiscount, [
+    { minNights: 30, rate: 0.80 },
+    { minNights: 21, rate: 0.85 },
+    { minNights: 14, rate: 0.90 },
+    { minNights: 7, rate: 0.95 },
+  ]);
   assert.deepEqual(CONFIG.careCatalog.dog, {
     items: [
       { id: 'nail', label: '爪切り', priceBySize: { small: 660, medium: 880, large: 1100 } },
@@ -73,7 +61,7 @@ test('dog boarding and canonical care prices stay behind one disabled public gat
   assert.deepEqual(source.match(/\bpublic\s*:\s*(?:true|false)/g), ['public: false']);
   assert.doesNotMatch(source, /basicCareBasePrice/);
   assert.doesNotMatch(`${source}\n${calcSource}`, /allowDraft/);
-  assert.doesNotMatch(calcSource, /\b(?:7400|8200|8900|4500|7500|9000)\b/);
+  assert.doesNotMatch(calcSource, /\b(?:5000|5500|6500|7400|8200|8900)\b/);
 });
 
 test('dog calculators fail closed while the public gate is false', () => {
@@ -100,7 +88,7 @@ test('dog calculators fail closed while the public gate is false', () => {
   );
 });
 
-test('the single config flip projects correct dog boarding and undiscounted care math', () => {
+test('the single config flip projects unified dog boarding and undiscounted care math', () => {
   const calc = require(calcPath);
   assert.equal(typeof calc.calculateDogBoarding, 'function');
   assert.equal(typeof calc.calculateDogCare, 'function');
@@ -115,22 +103,20 @@ test('the single config flip projects correct dog boarding and undiscounted care
       {
         available: normal.available,
         basePrice: normal.basePricePerNight,
-        discountedBase: normal.discountedBasePerNight,
-        surcharge: normal.nightlyBreakdown[0].dateSurcharge,
         total: normal.boardingTotal,
       },
-      { available: true, basePrice: 7400, discountedBase: 7400, surcharge: 0, total: 7400 },
+      { available: true, basePrice: 5000, total: 5000 },
     );
 
-    const member = calc.calculateDogBoarding({
+    const legacyMember = calc.calculateDogBoarding({
       size: 'small',
       checkInDate: '2026-06-01',
       checkOutDate: '2026-06-02',
       isMember: true,
     }, projection);
     assert.deepEqual(
-      { rate: member.rate, discountedBase: member.discountedBasePerNight, total: member.boardingTotal },
-      { rate: 0.90, discountedBase: 6700, total: 6700 },
+      { rate: legacyMember.rate, total: legacyMember.boardingTotal },
+      { rate: 1, total: 5000 },
     );
 
     const weekend = calc.calculateDogBoarding({
@@ -150,24 +136,25 @@ test('the single config flip projects correct dog boarding and undiscounted care
     }, projection);
     assert.deepEqual(
       [weekend.boardingTotal, schoolVacation.boardingTotal, highSeason.boardingTotal],
-      [7950, 9850, 12200],
+      [5000, 5500, 6500],
     );
 
     const stays = [
-      ['small', '2026-02-08', 7, 0.80, 5900],
-      ['small', '2026-02-15', 14, 0.75, 5600],
-      ['small', '2026-03-03', 30, 0.65, 4800],
-      ['medium', '2026-03-03', 30, 0.70, 5700],
-      ['large', '2026-03-03', 30, 0.70, 6200],
+      ['small', '2026-02-08', 7, 0.95, 33300],
+      ['small', '2026-02-15', 14, 0.90, 63000],
+      ['small', '2026-03-03', 30, 0.80, 120000],
+      ['medium', '2026-03-03', 30, 0.80, 132000],
+      ['large', '2026-03-03', 30, 0.80, 156000],
     ];
-    for (const [size, checkOutDate, nights, rate, discountedBase] of stays) {
+    for (const [size, checkOutDate, nights, rate, total] of stays) {
       const result = calc.calculateDogBoarding({
         size,
         checkInDate: '2026-02-01',
         checkOutDate,
       }, projection);
       assert.equal(result.rate, rate, `${size} ${nights} nights rate`);
-      assert.equal(result.discountedBasePerNight, discountedBase, `${size} ${nights} nights base`);
+      assert.equal(result.boardingTotal, total, `${size} ${nights} nights total`);
+      assert.equal(result.nightlyBreakdown, undefined, `${size} ${nights} nights has no surcharge breakdown`);
     }
 
     for (const [size, subtotal] of [['small', 1650], ['medium', 2200], ['large', 2750]]) {
@@ -220,7 +207,7 @@ test('dog care rejects an unknown offer or size without exposing a subtotal', ()
   assert.equal(Object.hasOwn(unknownSize, 'subtotal'), false);
 });
 
-test('member and seven-night dog discounts use the lower rate without stacking', () => {
+test('seven-night dog discount applies once and ignores legacy member input', () => {
   const calc = require(calcPath);
   const projection = publicProjection();
     const result = calc.calculateDogBoarding({
@@ -229,23 +216,14 @@ test('member and seven-night dog discounts use the lower rate without stacking',
       checkOutDate: '2026-06-08',
       isMember: true,
     }, projection);
-    const weekendNights = result.nightlyBreakdown.filter((night) => night.dateCategory === 'weekend_or_holiday');
-    const surchargeTotal = result.nightlyBreakdown.reduce((sum, night) => sum + night.dateSurcharge, 0);
-
     assert.deepEqual(
       {
         rate: result.rate,
-        discountedBase: result.discountedBasePerNight,
-        weekendNights: weekendNights.length,
-        surchargeTotal,
         total: result.boardingTotal,
       },
       {
-        rate: 0.80,
-        discountedBase: 5900,
-        weekendNights: 2,
-        surchargeTotal: 1100,
-        total: 42400,
+        rate: 0.95,
+        total: 33300,
       },
     );
 });

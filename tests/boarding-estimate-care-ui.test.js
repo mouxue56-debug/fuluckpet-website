@@ -37,6 +37,8 @@ test('estimate replaces the static cat menu with catalog-backed cat and dog fiel
   assert.match(html, /\bid=["']catCareItems["']/);
   assert.doesNotMatch(html, /\bid=["']catCare["']/);
   assert.match(html, /data-dog-services-surface=["']estimate-care["']/);
+  assert.doesNotMatch(html, /isMember|会員/);
+  assert.match(html, /福楽卒業猫（お預かり・猫のケア 30%OFF／併用不可）/);
 });
 
 test('species state exposes cat controls only for cats and dog controls only for dogs', () => {
@@ -112,13 +114,13 @@ test('dog estimate result and copied quote label planned prices only while stopp
     checkIn: '2026-08-01',
     checkOut: '2026-08-02',
     nights: 1,
-    lines: [{ label: stopped.boardingLabel, detail: '¥7,400 × 1泊', value: '¥7,400' }],
-    total: 7400,
+    lines: [{ label: stopped.boardingLabel, detail: '¥5,000 × 1泊', value: '¥5,000' }],
+    total: 5000,
   });
   for (const copy of [
     '【犬のお預かり 予定価格概算】',
     '犬のお預かり（予定価格）',
-    '予定価格合計（税込）：¥7,400',
+    '予定価格合計（税込）：¥5,000',
     '犬は現在受付停止です。表示額は税込予定価格です。',
   ]) assert.match(stoppedQuote, new RegExp(copy.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 
@@ -131,11 +133,11 @@ test('dog estimate result and copied quote label planned prices only while stopp
   const acceptedQuote = api.buildQuoteText({
     type: 'dog_small', dogAccepting: true, animalLabel: '小型犬',
     checkIn: '2026-08-01', checkOut: '2026-08-02', nights: 1,
-    lines: [{ label: accepting.boardingLabel, detail: '¥7,400 × 1泊', value: '¥7,400' }],
-    total: 7400,
+    lines: [{ label: accepting.boardingLabel, detail: '¥5,000 × 1泊', value: '¥5,000' }],
+    total: 5000,
   });
   assert.doesNotMatch(acceptedQuote, /予定価格|受付停止/);
-  assert.match(acceptedQuote, /概算合計（税込）：¥7,400/);
+  assert.match(acceptedQuote, /概算合計（税込）：¥5,000/);
   assert.equal(api.priceSemanticsFor('cat', false).planned, false);
 
   assert.match(html, /id="totalLabel">概算合計（税込）<\/span>/);
@@ -184,7 +186,11 @@ test('estimator consumes the canonical care catalogs without legacy aliases', ()
   assert.match(source, /Calc\.calculateCatCare\(/);
   assert.match(source, /input\[name=["']dogCareOffer["']\]:checked/);
   assert.match(source, /Calc\.calculateDogCare\(/);
-  assert.match(source, /7泊以上 20%OFF（会員10%よりお得）/);
+  for (const copy of ['7泊以上 5%OFF', '14泊以上 10%OFF', '21泊以上 15%OFF', '30泊以上 20%OFF']) {
+    assert.match(source, new RegExp(copy));
+  }
+  assert.match(source, /福楽卒業猫 30%OFF（他の割引と併用不可）/);
+  assert.doesNotMatch(source, /isMember|会員|surchargeLabels|addSurchargeLines/);
   assert.match(source, /毛玉・ブラッシング[^\n]{0,100}割引対象外/);
   assert.doesNotMatch(source, /dogBasicCare|calculateDogBasicCare|catGroomingDiscount|calculateCatGrooming/);
   assert.equal(Object.hasOwn(config.CONFIG, 'catGroomingDiscount'), false);

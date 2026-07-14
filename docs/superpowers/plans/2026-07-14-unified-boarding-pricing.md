@@ -88,10 +88,10 @@ assert.equal(graduated.boardingTotal, 84000);
 Run:
 
 ```bash
-node --test tests/boarding-public-calc.test.js tests/boarding-price-display.test.js tests/boarding-dog-gate.test.js tests/dog-services-public-pipeline.test.js
+node --test tests/boarding-public-calc.test.js tests/boarding-price-display.test.js tests/boarding-dog-gate.test.js
 ```
 
-Expected: FAIL on old ¥4,800/¥7,400 prices, missing weight bands, old discount tiers, member fields and date surcharges.
+Expected: FAIL on old ¥4,800/¥7,400 prices, missing weight bands, old discount tiers, member fields and date surcharges. The dog public-pipeline tests join Task 3 because they also exercise rendered UI.
 
 ### Task 2: Implement the single price and calculation contract
 
@@ -206,7 +206,7 @@ assert.match(formatCareKnowledge(CONFIG), /小型犬[^。]*5,000円[^。]*10kg�
 Run:
 
 ```bash
-node --test tests/boarding-estimate-care-ui.test.js tests/care-catalog-static.test.js tests/boarding-public-launch.test.js
+node --test tests/boarding-estimate-care-ui.test.js tests/care-catalog-static.test.js tests/boarding-public-launch.test.js tests/dog-services-public-pipeline.test.js
 ```
 
 Expected: FAIL on member controls, old prices and old static knowledge.

@@ -9,7 +9,11 @@
 
   var SIZE_KEYS = ['small', 'medium', 'large'];
   var SIZE_LABELS = { small: '小型犬', medium: '中型犬', large: '大型犬' };
-  var DATE_CATEGORIES = ['normal', 'weekend_or_holiday', 'school_vacation', 'high_season_core'];
+  var WEIGHT_BANDS = {
+    small: { minKg: 0, maxKgExclusive: 10 },
+    medium: { minKg: 10, maxKgExclusive: 20 },
+    large: { minKg: 20, maxKgExclusive: null },
+  };
   var CARE_ITEM_DEFINITIONS = [
     { id: 'nail', label: '爪切り' },
     { id: 'ear', label: '耳掃除' },
@@ -68,6 +72,14 @@
     });
   }
 
+  function validWeightBands(value) {
+    return validSizeMap(value, function (entry, size) {
+      var expected = WEIGHT_BANDS[size];
+      return hasExactKeys(entry, ['minKg', 'maxKgExclusive']) &&
+        entry.minKg === expected.minKg && entry.maxKgExclusive === expected.maxKgExclusive;
+    });
+  }
+
   function validIncludedItemIds(value, expected) {
     return Array.isArray(value) && value.length === expected.length && value.every(function (id, index) {
       return id === expected[index];
@@ -97,20 +109,16 @@
     if (hasExactKeys(value, ['public']) && value.public === false) return true;
     if (!hasExactKeys(value, [
       'public', 'version', 'currency', 'taxIncluded', 'roundUnit', 'sizes',
-      'memberDiscountRate', 'longStayDiscount', 'dateSurcharge', 'calendar', 'care',
+      'weightBands', 'longStayDiscount', 'calendar', 'care',
     ])) return false;
-    if (value.public !== true || value.version !== 2 || value.currency !== 'JPY') return false;
+    if (value.public !== true || value.version !== 3 || value.currency !== 'JPY') return false;
     if (value.taxIncluded !== true || value.roundUnit !== 100) return false;
-    if (!(typeof value.memberDiscountRate === 'number' && value.memberDiscountRate >= 0.5 && value.memberDiscountRate <= 1)) return false;
     if (!validSizeMap(value.sizes, function (entry, size) {
       return hasExactKeys(entry, ['label', 'boardingPerNight']) &&
         entry.label === SIZE_LABELS[size] && validBoardingYen(entry.boardingPerNight, false);
     })) return false;
-    if (!validSizeMap(value.longStayDiscount, validTierList)) return false;
-    if (!hasExactKeys(value.dateSurcharge, DATE_CATEGORIES)) return false;
-    if (!DATE_CATEGORIES.every(function (category) {
-      return validSizeMap(value.dateSurcharge[category], function (amount) { return validBoardingYen(amount, true); });
-    })) return false;
+    if (!validWeightBands(value.weightBands)) return false;
+    if (!validTierList(value.longStayDiscount)) return false;
     if (!hasExactKeys(value.calendar, ['holidays', 'specialDateRanges'])) return false;
     if (!Array.isArray(value.calendar.holidays) || value.calendar.holidays.length > 100 ||
         !value.calendar.holidays.every(validDate)) return false;
@@ -126,8 +134,7 @@
   function validateDogServicesPreparingProjection(value) {
     if (!hasExactKeys(value, [
       'public', 'preparing', 'accepting', 'locationNotice', 'version', 'currency', 'taxIncluded',
-      'roundUnit', 'sizes', 'memberDiscountRate', 'longStayDiscount', 'dateSurcharge', 'calendar',
-      'care',
+      'roundUnit', 'sizes', 'weightBands', 'longStayDiscount', 'calendar', 'care',
     ])) return false;
     if (value.public !== false || value.preparing !== true || value.accepting !== false) return false;
     if (value.locationNotice !== '大阪・針中野での受付開始を予定しています。開始時期は決まり次第お知らせします。') return false;
@@ -175,23 +182,23 @@
 
     var projection = {
       public: true,
-      version: 2,
+      version: 3,
       currency: config.currency,
       taxIncluded: config.taxIncluded,
       roundUnit: config.roundUnit,
-      memberDiscountRate: config.customerDiscount && config.customerDiscount.member,
       sizes: copySizeMap(dog.boardingBasePrice, function (_source, size) {
         return {
           label: SIZE_LABELS[size],
           boardingPerNight: dog.boardingBasePrice[size],
         };
       }),
-      longStayDiscount: copySizeMap(dog.longStayDiscount, function (source, size) {
-        return (source[size] || []).map(function (tier) {
-          return { minNights: tier.minNights, rate: tier.rate };
-        });
+      weightBands: copySizeMap(dog.weightBands, function (source, size) {
+        var band = source[size] || {};
+        return { minKg: band.minKg, maxKgExclusive: band.maxKgExclusive };
       }),
-      dateSurcharge: {},
+      longStayDiscount: (config.longStayDiscount || []).map(function (tier) {
+        return { minNights: tier.minNights, rate: tier.rate };
+      }),
       calendar: {
         holidays: configApi.HOLIDAYS.slice(),
         specialDateRanges: (configApi.SPECIAL_DATE_RANGES || []).filter(function (range) {
@@ -203,11 +210,6 @@
       },
       care: copyCareCatalog(config.careCatalog && config.careCatalog.dog),
     };
-    DATE_CATEGORIES.forEach(function (category) {
-      projection.dateSurcharge[category] = copySizeMap(dog.dateSurcharge[category], function (source, size) {
-        return source[size];
-      });
-    });
     if (!validateDogServicesProjection(projection)) {
       throw new Error('dogServices public config cannot produce a safe projection');
     }

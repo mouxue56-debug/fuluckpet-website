@@ -33,11 +33,18 @@
     return '¥' + Math.round(value).toLocaleString('ja-JP');
   }
 
+  function weightBandLabel(band) {
+    if (!band) return '';
+    if (band.minKg === 0) return band.maxKgExclusive + 'kg未満';
+    if (band.maxKgExclusive === null) return band.minKg + 'kg以上';
+    return band.minKg + 'kg以上' + band.maxKgExclusive + 'kg未満';
+  }
+
   function priceCards(projection, field, suffix) {
     return Projection.SIZE_KEYS.map(function (size) {
       var entry = projection.sizes[size];
       return '<article class="service-price-card' + (size === 'small' ? ' is-primary' : '') + '">' +
-        '<p class="service-price-label">' + entry.label + '</p>' +
+        '<p class="service-price-label">' + entry.label + '<small>' + weightBandLabel(projection.weightBands[size]) + '</small></p>' +
         '<p class="service-price">' + money(entry[field]) + (suffix || '') + '</p>' +
       '</article>';
     }).join('');
@@ -49,7 +56,7 @@
 
   function carePriceTable(projection) {
     var head = Projection.SIZE_KEYS.map(function (size) {
-      return '<th scope="col">' + projection.sizes[size].label + '</th>';
+      return '<th scope="col">' + projection.sizes[size].label + '<small>' + weightBandLabel(projection.weightBands[size]) + '</small></th>';
     }).join('');
     var rows = careOffers(projection).map(function (offer) {
       return '<tr><th scope="row">' + offer.label + '</th>' + Projection.SIZE_KEYS.map(function (size) {
@@ -70,8 +77,8 @@
       '<h2>犬のお預かり' + (stopped ? '｜準備中' : '') + '</h2>' +
       (stopped ? '<p class="service-status" role="status"><strong>現在受付停止</strong></p><p>' + projection.locationNotice + '</p>' : '') +
       '<p>' + (stopped
-        ? '体型別の税込予定価格です。7泊以上の長期料金と、土日祝・学校休暇・繁忙期の日付加算を予定しています。受付開始時の内容は開始前にあらためてお知らせします。'
-        : '体型別の税込基本料金です。7泊以上の長期料金と、土日祝・学校休暇・繁忙期の日付加算があります。正式料金は事前相談後に確定します。') +
+        ? '体重別の税込予定価格です。長期料金は7泊以上5%OFF、14泊以上10%OFF、21泊以上15%OFF、30泊以上20%OFFです。土日祝・繁忙期の加算はありません。受付開始時の内容は開始前にあらためてお知らせします。'
+        : '体重別の税込基本料金です。長期料金は7泊以上5%OFF、14泊以上10%OFF、21泊以上15%OFF、30泊以上20%OFFです。土日祝・繁忙期の加算はありません。正式料金は事前相談後に確定します。') +
       '</p></div>' +
       '<div class="service-price-grid">' + priceCards(projection, 'boardingPerNight', priceSuffix) + '</div>' +
       '<div class="service-actions">' + (stopped ? '' : '<a class="service-btn is-primary" href="' + LINE_URL + '" target="_blank" rel="noopener">LINEで予約相談</a>') +
@@ -101,7 +108,7 @@
     return (stopped ? '<p class="service-note dog-estimate-stop"><strong>犬は現在受付停止</strong>（税込予定価格の概算のみ確認できます）</p>' : '') + Projection.SIZE_KEYS.map(function (size) {
       var entry = projection.sizes[size];
       return '<div class="estimate-choice"><input type="radio" name="petType" id="type-dog-' + size + '" value="dog_' + size + '">' +
-        '<label for="type-dog-' + size + '">' + entry.label + '<small>' + money(entry.boardingPerNight) + ' / 1泊' +
+        '<label for="type-dog-' + size + '">' + entry.label + '<small>' + weightBandLabel(projection.weightBands[size]) + '・' + money(entry.boardingPerNight) + ' / 1泊' +
         (stopped ? '・税込予定価格' : '') + '</small></label></div>';
     }).join('');
   }
