@@ -105,14 +105,20 @@ test('machine-readable site truth names all registrations and public service URL
   assert.doesNotMatch(machine, /220012C[^\n]{0,80}繁殖|繁殖[^\n]{0,80}220012C/);
 });
 
-test('chat knowledge cannot revive unlicensed dog boarding or stale price bands', () => {
+test('chat knowledge uses the canonical care catalog and keeps dog prices explicitly stopped', () => {
   const seed = read('tools/seed-kb.js');
-  const chunk = seed.match(/'kb:boarding':\s*`([\s\S]*?)`,/);
-  assert.ok(chunk, 'tracked kb:boarding truth is required');
-  assert.match(chunk[1], /保管220012B/);
-  assert.match(chunk[1], /犬は現在受け付けていない/);
-  assert.match(chunk[1], /https:\/\/fuluckpet\.com\/boarding\//);
-  assert.doesNotMatch(chunk[1], /小型犬|中型犬|大型犬|フェレット|鳥類|7,400|8,200|8,900|9,000/);
+  const { buildChunks } = require('../tools/seed-kb.js');
+  const chunk = buildChunks()['kb:boarding'];
+  assert.match(seed, /'kb:boarding':\s*\n\s*formatCareKnowledge\(config\)/);
+  assert.match(chunk, /保管220012B/);
+  assert.match(chunk, /短毛猫 4,000円/);
+  assert.match(chunk, /耳掃除 660円/);
+  assert.match(chunk, /肛門腺絞り 要相談/);
+  assert.match(chunk, /犬[^。]{0,240}予定価格[^。]{0,240}現在受付停止/);
+  assert.match(chunk, /660円／880円／1,100円/);
+  assert.match(chunk, /1,650円／2,200円／2,750円/);
+  assert.match(chunk, /https:\/\/fuluckpet\.com\/boarding\//);
+  assert.doesNotMatch(chunk, /フェレット|鳥類|7,400|8,200|8,900|9,000/);
 
   const pricing = seed.match(/'kb:pricing':\s*\n\s*'([^']+)'/);
   assert.ok(pricing, 'tracked kb:pricing truth is required');

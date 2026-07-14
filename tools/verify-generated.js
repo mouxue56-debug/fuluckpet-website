@@ -18,6 +18,29 @@ const SITE = path.resolve(__dirname, '..');
 const errors = [];
 const SHARED_ASSETS = ['style.css', 'i18n.js', 'nav.js', 'nav.css'];
 
+// --- Check 0a: generated cat-care page freshness ---
+// The visible menu and JSON-LD must always describe the canonical catalog together.
+const catCareFiles = [
+  'boarding-public-config.js', 'tools/care-catalog-static.js', 'grooming/index.html',
+];
+const catCarePresence = catCareFiles.map(rel => fs.existsSync(path.join(SITE, rel)));
+if (catCarePresence.some(Boolean)) {
+  if (!catCarePresence.every(Boolean)) {
+    errors.push('[care-catalog] grooming/index.html is stale');
+  } else {
+    try {
+      const { CONFIG } = require('../boarding-public-config.js');
+      const CareCatalogStatic = require('./care-catalog-static.js');
+      const groomingSource = fs.readFileSync(path.join(SITE, 'grooming/index.html'), 'utf8');
+      if (!CareCatalogStatic.isGroomingPageFresh(groomingSource, CONFIG.careCatalog.cat)) {
+        errors.push('[care-catalog] grooming/index.html is stale');
+      }
+    } catch (_) {
+      errors.push('[care-catalog] grooming/index.html is stale');
+    }
+  }
+}
+
 // --- Check 0: generated dog-service launch projection freshness ---
 // A config flip must never leave nav/UI reading an older generated public state.
 const dogProjectionFiles = [

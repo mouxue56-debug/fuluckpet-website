@@ -251,6 +251,8 @@ test('runtime navigation exposes distinct truthful destinations and a dedicated 
   assert.equal(items.find((item) => item.key === 'nav.grooming').href, '/grooming/');
   assert.equal(items.find((item) => item.key === 'nav.boarding').jaOnly, true);
   assert.equal(items.find((item) => item.key === 'nav.grooming').jaOnly, true);
+  assert.equal(items.find((item) => item.key === 'nav.boarding').featured, undefined);
+  assert.equal(items.find((item) => item.key === 'nav.grooming').featured, undefined);
   assert.equal(items.find((item) => item.key === 'nav.shop').href, 'https://fukurakupet.stores.jp/');
   assert.equal(items.find((item) => item.key === 'nav.shop').external, true);
   const navCss = read('nav.css');

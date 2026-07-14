@@ -68,8 +68,8 @@
       labelKey: 'nav.group.services',
       icon: 'hand-heart',
       items: [
-        { href: '/boarding/', key: 'nav.boarding', icon: 'bed', jaOnly: true, featured: true, match: ['/boarding/'] },
-        { href: '/grooming/', key: 'nav.grooming', icon: 'bath', jaOnly: true, featured: true, match: ['/grooming/'] },
+        { href: '/boarding/', key: 'nav.boarding', icon: 'bed', jaOnly: true, match: ['/boarding/'] },
+        { href: '/grooming/', key: 'nav.grooming', icon: 'bath', jaOnly: true, match: ['/grooming/'] },
         { href: 'https://fukurakupet.stores.jp/', key: 'nav.shop', icon: 'shopping-cart', external: true }
       ]
     },
@@ -195,7 +195,7 @@
         if (value) dogProjectionApi = value;
         resolve(value);
       }
-      script.src = '/dog-services-projection.js?v=20260713a';
+      script.src = '/dog-services-projection.js?v=20260714b';
       script.async = true;
       script.onload = function () { finish(window.DogServicesProjection || null); };
       script.onerror = function () { finish(null); };

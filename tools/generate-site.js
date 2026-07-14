@@ -52,6 +52,14 @@ function writeDogServicesProjection() {
   console.log(`  dog-services-preparing.json: ${JSON.parse(preparingOutput).preparing ? 'visible' : 'hidden'}`);
 }
 
+function writeCatCarePage() {
+  const { CONFIG } = require('../boarding-public-config.js');
+  const CareCatalogStatic = require('./care-catalog-static.js');
+  const filepath = path.join(SITE_DIR, 'grooming', 'index.html');
+  const changed = CareCatalogStatic.writeGroomingPage(filepath, CONFIG.careCatalog.cat);
+  console.log(`  grooming/index.html: cat care catalog ${changed ? 'updated' : 'current'}`);
+}
+
 // ── Breed Config ──────────────────────────────────────────────
 
 const BREED_CONFIG = [
@@ -913,7 +921,7 @@ function buildListHeader(jaHeader, lang) {
 
   const styleV = verAsset('style.css', '20260712f');
   const navCssV = verAsset('nav.css', '20260711c');
-  const navJsV = verAsset('nav.js', '20260713a');
+  const navJsV = verAsset('nav.js', '20260714b');
   const relPath = 'kittens.html';
   const selfUrl = `${BASE_URL}/${langDir(lang)}kittens.html`;
   const kittensLabel = KITTENS_LABEL[lang];
@@ -1395,7 +1403,7 @@ ${smallAnimalHreflangBlock(detailId)}
   <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260712f')}">
   <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20260711c')}">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
-  <script defer src="/nav.js?v=${verAsset('nav.js', '20260713a')}"></script>`;
+  <script defer src="/nav.js?v=${verAsset('nav.js', '20260714b')}"></script>`;
 }
 
 function buildSmallAnimalListHtml(animals, headerHtml, footerHtml, lang = 'ja') {
@@ -2128,7 +2136,7 @@ ${hreflangBlock(`kittens/${fileId}.html`)}
   <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260712f')}">
   <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20260711c')}">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
-  <script defer src="/nav.js?v=${verAsset('nav.js', '20260713a')}"></script>
+  <script defer src="/nav.js?v=${verAsset('nav.js', '20260714b')}"></script>
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
@@ -3099,6 +3107,7 @@ async function main() {
 
   // Deterministic public projection of the one owner-controlled dog-service gate.
   // It is written only after the complete API snapshot passes the no-partial-write gates.
+  writeCatCarePage();
   writeDogServicesProjection();
 
   // Emit the single-source catalog value translations first — client renderers

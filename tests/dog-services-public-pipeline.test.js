@@ -337,9 +337,13 @@ test('verify-generated rejects a stale dog projection artifact', (t) => {
   for (const relative of [
     'boarding-public-config.js',
     'dog-services-projection.js',
+    'grooming/index.html',
+    'tools/care-catalog-static.js',
     'tools/robots-meta.js',
+    'tools/safe-json-for-html.js',
     'tools/verify-generated.js',
   ]) {
+    fs.mkdirSync(path.dirname(path.join(site, relative)), { recursive: true });
     fs.copyFileSync(path.join(ROOT, relative), path.join(site, relative));
   }
   fs.writeFileSync(path.join(site, 'dog-services-launch.json'), '{"public":true}\n');

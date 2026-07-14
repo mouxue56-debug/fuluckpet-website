@@ -121,11 +121,7 @@
       cat: CAT_CARE_CATALOG,
       dog: DOG_CARE_CATALOG,
     },
-    // Temporary compatibility aliases until every static-page consumer migrates.
-    catGroomingBasePrice: {
-      short: CAT_CARE_CATALOG.packages[0].price,
-      long: CAT_CARE_CATALOG.packages[1].price,
-    },
+    // Temporary compatibility alias until the estimator migrates in Task 4.
     catGroomingDiscount: CAT_CARE_CATALOG.discounts,
   };
 

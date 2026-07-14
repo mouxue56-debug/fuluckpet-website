@@ -21,7 +21,7 @@ test('public boarding prices come from a tracked licensed-scope config', () => {
   assert.equal(CONFIG.dogServices.public, false);
   assert.doesNotMatch(source, /allowDraft/);
   assert.equal(CONFIG.boardingBasePrice.cat, 4800);
-  assert.deepEqual(CONFIG.catGroomingBasePrice, { short: 4000, long: 6000 });
+  assert.equal(CONFIG.catGroomingBasePrice, undefined);
   assert.deepEqual(
     CONFIG.careCatalog.cat.packages.map(({ id, price }) => [id, price]),
     [['short', 4000], ['long', 6000]],
@@ -45,6 +45,7 @@ test('public boarding prices come from a tracked licensed-scope config', () => {
 
 test('static service prices stay equal to the public config', () => {
   const { CONFIG } = require(path.join(ROOT, 'boarding-public-config.js'));
+  const careStatic = require(path.join(ROOT, 'tools/care-catalog-static.js'));
   const boarding = read('boarding/index.html');
   const grooming = read('grooming/index.html');
 
@@ -54,8 +55,15 @@ test('static service prices stay equal to the public config', () => {
       assert.ok(boarding.includes(yen(tier.perNight)), `${kind} ${tier.minNights} nights`);
     }
   }
-  assert.ok(grooming.includes(yen(CONFIG.catGroomingBasePrice.short)), 'short-hair care price');
-  assert.ok(grooming.includes(yen(CONFIG.catGroomingBasePrice.long)), 'long-hair care price');
+  assert.equal(careStatic.isGroomingPageFresh(grooming, CONFIG.careCatalog.cat), true);
+  for (const carePackage of CONFIG.careCatalog.cat.packages) {
+    assert.ok(grooming.includes(yen(carePackage.price)), `${carePackage.id} care price`);
+  }
+  for (const item of CONFIG.careCatalog.cat.items.filter((entry) => !entry.quoteOnly)) {
+    assert.ok(grooming.includes(yen(item.price)), `${item.id} care price`);
+  }
+  assert.match(grooming, /肛門腺絞り[\s\S]{0,120}要相談/);
+  assert.equal((grooming.match(/<details\b/g) || []).length, 1, 'one static cat-care disclosure');
 });
 
 test('public estimator loads only the projected config and calculator', () => {

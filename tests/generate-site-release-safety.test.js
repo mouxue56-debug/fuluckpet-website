@@ -53,11 +53,14 @@ function createRunnableLastGoodSite(t, kittenMode) {
     'tools/lastmod-store.js',
     'tools/robots-meta.js',
     'tools/safe-json-for-html.js',
+    'tools/care-catalog-static.js',
     'kitten-catalog.js',
     'small-animals-launch.json',
     'boarding-public-config.js',
     'dog-services-projection.js',
     'dog-services-launch.json',
+    'dog-services-preparing.json',
+    'grooming/index.html',
     'index.html',
     'kittens.html',
     'en/kittens.html',
@@ -256,6 +259,32 @@ for (const scenario of [
     for (const [rel, bytes] of before) assert.deepEqual(after.get(rel), bytes, rel);
   });
 }
+
+test('grooming care marker damage fails before changing any last-good artifact', (t) => {
+  const { siteDir, preloadPath } = createRunnableLastGoodSite(t, 'empty');
+  const groomingPath = path.join(siteDir, 'grooming/index.html');
+  fs.writeFileSync(
+    groomingPath,
+    fs.readFileSync(groomingPath, 'utf8').replace('<!-- BEGIN GENERATED CAT CARE MENU -->', ''),
+    'utf8',
+  );
+  const before = artifactSnapshot(siteDir);
+  const result = childProcess.spawnSync(
+    process.execPath,
+    ['--require', preloadPath, path.join(siteDir, 'tools/generate-site.js')],
+    {
+      cwd: siteDir,
+      encoding: 'utf8',
+      env: { ...process.env, SMALL_ANIMALS_DARK_SLUG: '', FULUCK_ADMIN_PASS: '' },
+    },
+  );
+  const after = artifactSnapshot(siteDir);
+
+  assert.notEqual(result.status, 0);
+  assert.match(`${result.stdout}\n${result.stderr}`, /cat care marker|generated cat care/i);
+  assert.deepEqual([...after.keys()], [...before.keys()]);
+  for (const [rel, bytes] of before) assert.deepEqual(after.get(rel), bytes, rel);
+});
 
 function loadGeneratorForSite(t, siteDir) {
   let source = fs.readFileSync(GENERATOR, 'utf8').replace(

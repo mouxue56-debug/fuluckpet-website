@@ -258,6 +258,40 @@
   border-bottom: 0;
 }
 
+.service-care-details {
+  margin-top: 24px;
+  border: 1px solid rgba(125, 211, 192, .28);
+  border-radius: 18px;
+  background: var(--bg-white);
+}
+
+.service-care-details summary {
+  min-height: 44px;
+  padding: 16px 20px;
+  display: list-item;
+  color: var(--text-heading);
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.service-care-details summary::marker {
+  color: var(--mint-dark);
+}
+
+.service-care-details summary:focus-visible {
+  outline: 3px solid rgba(61, 166, 143, .35);
+  outline-offset: 3px;
+  border-radius: 14px;
+}
+
+.service-care-details .service-table-wrap {
+  margin: 0 20px 20px;
+}
+
+.service-care-details > .service-price-note {
+  margin: 0 20px 20px;
+}
+
 .service-note {
   margin: 18px 0 0;
   padding-left: 14px;

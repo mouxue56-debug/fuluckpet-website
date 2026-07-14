@@ -22,6 +22,7 @@ test('shared JSON script serializer preserves data without an HTML closing-scrip
 test('every generator that embeds remote data imports the shared HTML-script serializer', () => {
   for (const relative of [
     'tools/generate-site.js',
+    'tools/care-catalog-static.js',
     'tools/generate-diary.js',
     'tools/gen-blog-edu-pages.mjs',
     'tools/gen-blog-static-pages.mjs',

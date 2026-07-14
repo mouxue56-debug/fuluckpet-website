@@ -19,12 +19,12 @@ const ADMIN_RENDER_RELEASE = '20260711a';
 const ADMIN_DIARY_RELEASE = '20260711a';
 const ADMIN_FAQ_RELEASE = TRUTH_RELEASE;
 const ADMIN_CALENDAR_RELEASE = '20260713a';
-const NAV_RELEASE = '20260713a';
+const NAV_RELEASE = '20260714b';
 const I18N_RELEASE = '20260713a';
 const NAV_STYLE_RELEASE = '20260711c';
 const CHAT_STYLE_RELEASE = '20260712e';
-const SERVICE_STYLE_RELEASE = '20260712e';
-const SERVICE_RELEASE = '20260713a';
+const SERVICE_STYLE_RELEASE = '20260714b';
+const SERVICE_RELEASE = '20260714b';
 const ESTIMATE_RELEASE = '20260714a';
 const PUBLIC_ASSETS = {
   'style.css': STYLE_RELEASE,
@@ -96,6 +96,7 @@ test('generator defaults and direct templates cannot reintroduce an old public a
   const sources = [
     'tools/generate-site.js',
     'tools/generate-diary.js',
+    'nav.js',
     'tools/gen-blog-edu-pages.mjs',
     'tools/gen-blog-static-pages.mjs',
     'tools/translate-blog-articles.js',
