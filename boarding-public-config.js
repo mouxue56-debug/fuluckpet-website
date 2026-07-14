@@ -121,8 +121,6 @@
       cat: CAT_CARE_CATALOG,
       dog: DOG_CARE_CATALOG,
     },
-    // Temporary compatibility alias until the estimator migrates in Task 4.
-    catGroomingDiscount: CAT_CARE_CATALOG.discounts,
   };
 
   var HOLIDAYS_2026 = [

@@ -183,6 +183,8 @@ test('graduated-cat 30% care benefit is visible, accessible and mobile-safe', ()
   );
   assert.match(estimate, /<section\b[^>]*\baria-live=["']polite["'][^>]*>/);
   assert.match(estimateUi, /福楽卒業猫 30%OFF/);
+  assert.match(estimateUi, /Calc\.calculateCatCare\(/);
+  assert.doesNotMatch(estimateUi, /dogBasicCare|calculateDogBasicCare|catGroomingDiscount/);
 
   assert.match(
     serviceCss,
