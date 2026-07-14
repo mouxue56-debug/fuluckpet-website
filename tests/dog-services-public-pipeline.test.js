@@ -218,8 +218,13 @@ test('dog estimator keeps stopped calculations separate from reservation actions
   const source = fs.readFileSync(path.join(ROOT, 'boarding/boarding-public-estimate.js'), 'utf8');
   assert.match(html, /id="dogStopNote"[^>]*hidden/);
   assert.match(html, /現在受付停止/);
+  assert.match(html, /受付中のサービスのみLINE相談後に確定/);
   assert.match(source, /lineButton\.hidden\s*=\s*isDog/);
   assert.match(source, /dogStopNote\.hidden\s*=\s*!isDog/);
+  assert.match(source, /dateNote\.textContent\s*=\s*isDog\s*\?/);
+  assert.match(source, /犬は現在受付停止です。受付開始後に対象日程を更新します。/);
+  assert.match(source, /isDog\s*\?\s*'※犬は現在受付停止です。概算のみ確認できます。'/);
+  assert.match(source, /コピーできませんでした。画面の内容をご確認ください。/);
   assert.match(source, /validateDogServicesPreparingProjection/);
 });
 

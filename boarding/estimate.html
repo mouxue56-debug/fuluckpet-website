@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex,follow">
   <title>お預かり料金シミュレーター｜福楽キャッテリー</title>
-  <meta name="description" content="猫・うさぎ・ハムスター等のお預かり料金を日程から概算します。">
+  <meta name="description" content="猫・うさぎ・ハムスター等と、現在受付停止中の犬のお預かり料金を日程から概算します。">
   <link rel="canonical" href="https://fuluckpet.com/boarding/estimate.html">
   <link rel="stylesheet" href="/style.css?v=20260712f">
   <link rel="stylesheet" href="/nav.css?v=20260711c">
@@ -19,7 +19,7 @@
   <div class="mobile-nav" id="mobileNav"><nav><a class="mobile-nav-link" href="/kittens.html">子猫</a><a class="mobile-nav-link" href="/boarding/">猫・犬のお預かり</a><a class="mobile-nav-link" href="/grooming/">猫・犬のケア</a><a class="mobile-nav-link" href="/booking.html">見学予約</a><a class="mobile-nav-link" href="/about.html">福楽について</a></nav></div>
 
   <main class="estimate-main" id="main">
-    <div class="estimate-intro"><p class="service-eyebrow">Estimate</p><h1>お預かり料金<wbr>シミュレーター</h1><p>動物の種類と日程を選ぶと、税込の概算が表示されます。正式料金はLINE相談後に確定します。</p></div>
+    <div class="estimate-intro"><p class="service-eyebrow">Estimate</p><h1>お預かり料金<wbr>シミュレーター</h1><p>動物の種類と日程を選ぶと、税込の概算が表示されます。正式料金は、受付中のサービスのみLINE相談後に確定します。</p></div>
     <section class="estimate-card" aria-labelledby="estimate-type-title"><h2 id="estimate-type-title">1. どの子をお預かりしますか？</h2><div class="estimate-types" role="radiogroup" aria-label="動物の種類"><div class="estimate-choice"><input type="radio" name="petType" id="type-cat" value="cat"><label for="type-cat">猫<small>¥4,800 / 1泊</small></label></div><div class="estimate-choice"><input type="radio" name="petType" id="type-rabbit" value="rabbit_cage"><label for="type-rabbit">うさぎ・小動物<small>¥1,500 / 1泊〜</small></label></div><div class="estimate-choice"><input type="radio" name="petType" id="type-hamster" value="hamster_cage"><label for="type-hamster">ハムスター等<small>¥500 / 1泊〜</small></label></div><div data-dog-services-surface="estimate"></div></div></section>
     <section class="estimate-card" aria-labelledby="estimate-date-title"><h2 id="estimate-date-title">2. 日程を選んでください</h2><div class="estimate-fields"><div class="estimate-field"><label for="checkIn">チェックイン</label><input type="date" id="checkIn" max="2027-01-07" autocomplete="off"></div><div class="estimate-field"><label for="checkOut">チェックアウト</label><input type="date" id="checkOut" max="2027-01-08" autocomplete="off"></div></div><p class="service-note" id="dateNote">2027年1月8日以降はLINEで直接お見積りします。</p></section>
     <section class="estimate-card" id="discountCard" aria-labelledby="estimate-discount-title"><h2 id="estimate-discount-title">3. 割引とケア</h2><div class="estimate-checks"><label class="estimate-check" for="isMember"><input type="checkbox" id="isMember"><span>会員です</span></label><label class="estimate-check" id="graduatedWrap" for="isGraduatedCat"><input type="checkbox" id="isGraduatedCat"><span>福楽卒業猫（猫のシャンプー・基本ケア 30%OFF）</span></label></div><div class="estimate-field" id="careField" style="margin-top:18px"><label for="catCare">猫のシャンプー・基本ケア</label><select id="catCare"><option value="">追加しない</option><option value="short">短毛猫</option><option value="long">長毛猫</option></select></div><div data-dog-services-surface="estimate-care"></div></section>
@@ -27,6 +27,6 @@
     <p class="service-note">対象は保管登録220012Bに記載された動物です。<span data-dog-private-only>犬は現在受け付けていません。</span><a href="/boarding/">料金・ご利用案内へ戻る</a></p>
   </main>
   <footer class="service-footer"><div class="service-footer-inner"><p>© 福楽株式会社 · 福楽キャッテリー</p><p>福楽ペット · 保管 220012B · 動物取扱責任者 羅 方遠</p></div></footer>
-  <script src="/i18n.js?v=20260713a"></script><script src="/script.js?v=20260712e"></script><script src="/dog-services-projection.js?v=20260713a"></script><script src="/boarding-public-config.js?v=20260713a"></script><script src="/boarding-public-calc.js?v=20260713a"></script><script src="/boarding/boarding-public-estimate.js?v=20260713a"></script><script src="/dog-services-public-ui.js?v=20260713a"></script>
+  <script src="/i18n.js?v=20260713a"></script><script src="/script.js?v=20260712e"></script><script src="/dog-services-projection.js?v=20260713a"></script><script src="/boarding-public-config.js?v=20260713a"></script><script src="/boarding-public-calc.js?v=20260713a"></script><script src="/boarding/boarding-public-estimate.js?v=20260714a"></script><script src="/dog-services-public-ui.js?v=20260713a"></script>
 </body>
 </html>

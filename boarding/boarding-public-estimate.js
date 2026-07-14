@@ -41,6 +41,7 @@
     totalValue: byId('totalValue'),
     reviewNote: byId('reviewNote'),
     dogStopNote: byId('dogStopNote'),
+    dateNote: byId('dateNote'),
     lineButton: byId('lineButton'),
     copyButton: byId('copyButton'),
     copyMessage: byId('copyMessage'),
@@ -93,7 +94,11 @@
 
     var output = ['【お預かり 概算】', '動物：' + labels[type], '期間：' + checkIn + '〜' + checkOut + '（' + nights + '泊）', '――――――'];
     lines.forEach(function (line) { output.push(line.label + (line.detail ? '（' + line.detail + '）' : '') + ' ' + line.value); });
-    output.push('――――――', '概算合計（税込）：' + money(total), '※正式料金はご相談後に確定します。');
+    output.push(
+      '――――――',
+      '概算合計（税込）：' + money(total),
+      isDog ? '※犬は現在受付停止です。概算のみ確認できます。' : '※正式料金はご相談後に確定します。',
+    );
     quoteText = output.join('\n');
   }
 
@@ -105,6 +110,10 @@
     var isSmall = Calc.isSmallPetType(type);
     var dogMatch = /^dog_(small|medium|large)$/.exec(type);
     var isDog = !!dogMatch;
+
+    elements.dateNote.textContent = isDog
+      ? '犬は現在受付停止です。受付開始後に対象日程を更新します。'
+      : '2027年1月8日以降はLINEで直接お見積りします。';
 
     elements.discountCard.hidden = !type || isSmall;
     elements.graduatedWrap.hidden = !isCat;
@@ -243,7 +252,7 @@
   bindPetTypeInputs();
   [elements.checkIn, elements.checkOut, elements.isMember, elements.isGraduatedCat, elements.catCare].forEach(function (input) { input.addEventListener('change', compute); });
   elements.copyButton.addEventListener('click', function () {
-    copyQuote().then(function () { elements.copyMessage.textContent = '見積もり内容をコピーしました。'; }, function () { elements.copyMessage.textContent = 'コピーできませんでした。画面の内容をLINEでお知らせください。'; });
+    copyQuote().then(function () { elements.copyMessage.textContent = '見積もり内容をコピーしました。'; }, function () { elements.copyMessage.textContent = 'コピーできませんでした。画面の内容をご確認ください。'; });
   });
   elements.lineButton.addEventListener('click', function (event) {
     if (!quoteText) { event.preventDefault(); return; }
