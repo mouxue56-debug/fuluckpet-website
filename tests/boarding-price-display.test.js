@@ -13,7 +13,7 @@ const yen = (value) => `¥${Number(value).toLocaleString('en-US')}`;
 test('public boarding prices come from a tracked licensed-scope config', () => {
   const configPath = path.join(ROOT, 'boarding-public-config.js');
   assert.equal(fs.existsSync(configPath), true, 'boarding-public-config.js must exist');
-  const { CONFIG } = require(configPath);
+  const { CONFIG, HOLIDAYS_2026, HOLIDAYS_2027, HOLIDAYS } = require(configPath);
   const source = read('boarding-public-config.js');
 
   assert.deepEqual(Object.keys(CONFIG.boardingBasePrice), ['cat']);
@@ -22,6 +22,25 @@ test('public boarding prices come from a tracked licensed-scope config', () => {
   assert.doesNotMatch(source, /allowDraft/);
   assert.equal(CONFIG.boardingBasePrice.cat, 4800);
   assert.deepEqual(CONFIG.catGroomingBasePrice, { short: 4000, long: 6000 });
+  assert.deepEqual(
+    CONFIG.careCatalog.cat.packages.map(({ id, price }) => [id, price]),
+    [['short', 4000], ['long', 6000]],
+  );
+  assert.deepEqual(
+    CONFIG.careCatalog.cat.items.map(({ id, price }) => [id, price]),
+    [
+      ['nail', 1100],
+      ['ear', 660],
+      ['paw', 1100],
+      ['dental', 1100],
+      ['anal', null],
+      ['matting15', 1100],
+    ],
+  );
+  assert.ok(HOLIDAYS_2027.includes('2027-03-22'));
+  assert.ok(HOLIDAYS.includes('2026-07-20'));
+  assert.ok(HOLIDAYS.includes('2027-09-23'));
+  assert.deepEqual(HOLIDAYS, HOLIDAYS_2026.concat(HOLIDAYS_2027));
 });
 
 test('static service prices stay equal to the public config', () => {

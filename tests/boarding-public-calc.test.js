@@ -39,6 +39,12 @@ test('cat boarding keeps approved base, date surcharge and long-stay math', () =
   assert.equal(seven.discountedBasePerNight, 3800);
 });
 
+test('2027 holidays and seasonal ranges use the established surcharge priority', () => {
+  const calc = require(calcPath);
+  assert.equal(calc.getDateCategory('2027-03-22'), 'weekend_or_holiday');
+  assert.equal(calc.getDateCategory('2027-08-10'), 'high_season_core');
+});
+
 test('small-animal tiers keep the owner-approved per-night values', () => {
   const calc = require(calcPath);
   const rabbit = calc.calculateSmallPetBoarding({ animalType: 'rabbit_cage', checkInDate: '2026-06-01', checkOutDate: '2026-06-08' });
@@ -70,6 +76,68 @@ test('cat care keeps approved prices and gives graduated cats one non-stacking 3
     { rate: long.appliedDiscountRate, subtotal: long.subtotal },
     { rate: 0.70, subtotal: 4200 },
   );
+});
+
+test('cat care keeps ordinary undiscounted yen exact', () => {
+  const calc = require(calcPath);
+  const result = calc.calculateCatCare({ packageId: '', quantities: { ear: 1 } }, {});
+  assert.equal(result.appliedDiscountRate, 1);
+  assert.equal(result.subtotal, 660);
+});
+
+test('cat care applies the best fixed-price discount and skips package-included items', () => {
+  const calc = require(calcPath);
+  const result = calc.calculateCatCare(
+    { packageId: 'short', quantities: { nail: 1, paw: 1, matting15: 2 } },
+    { isMember: true, isGraduatedCat: true, boardingNights: 14 },
+  );
+
+  assert.equal(result.appliedDiscountRate, 0.70);
+  assert.deepEqual(result.skippedIncludedItemIds, ['nail']);
+  assert.equal(result.subtotal, 5800);
+});
+
+test('quote-only cat care is marked for consultation without displaying zero yen', () => {
+  const calc = require(calcPath);
+  const result = calc.calculateCatCare({ packageId: '', quantities: { anal: 1 } }, {});
+
+  assert.equal(result.needsQuote, true);
+  assert.equal(result.subtotal, 0);
+  assert.equal(result.lineItems[0].displayPrice, '要相談');
+});
+
+test('unknown cat care packages fail closed with an empty result', () => {
+  const calc = require(calcPath);
+  assert.deepEqual(calc.calculateCatCare({ packageId: 'unknown', quantities: {} }, {}), {
+    error: 'unknown_care_package',
+    packageId: '',
+    appliedDiscountRate: 1,
+    lineItems: [],
+    skippedIncludedItemIds: [],
+    needsQuote: false,
+    subtotal: 0,
+  });
+});
+
+test('unknown items and invalid cat care quantities fail closed', () => {
+  const calc = require(calcPath);
+  assert.equal(calc.calculateCatCare({ packageId: '', quantities: { unknown: 1 } }, {}).error, 'unknown_care_item');
+  for (const quantity of [-1, 1.5, 9]) {
+    assert.equal(
+      calc.calculateCatCare({ packageId: '', quantities: { matting15: quantity } }, {}).error,
+      'invalid_care_quantity',
+    );
+  }
+});
+
+test('cat care rejects non-record quantity shapes', () => {
+  const calc = require(calcPath);
+  for (const quantities of [[], new Map([['ear', 1]])]) {
+    assert.equal(
+      calc.calculateCatCare({ packageId: '', quantities }, {}).error,
+      'invalid_care_selection',
+    );
+  }
 });
 
 test('invalid and unknown service inputs fail closed', () => {

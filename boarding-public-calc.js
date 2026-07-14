@@ -6,7 +6,7 @@
     ? require('./boarding-public-config.js')
     : root.BOARDING_CONFIG;
   var CONFIG = configApi.CONFIG;
-  var HOLIDAYS = configApi.HOLIDAYS_2026;
+  var HOLIDAYS = configApi.HOLIDAYS;
   var RANGES = configApi.SPECIAL_DATE_RANGES;
   var projectionApi = (typeof module !== 'undefined' && module.exports && typeof require !== 'undefined')
     ? require('./dog-services-projection.js')
@@ -151,7 +151,7 @@
 
   function getCatGroomingRate(input) {
     input = input || {};
-    var discount = CONFIG.catGroomingDiscount;
+    var discount = CONFIG.careCatalog.cat.discounts;
     var rates = [1];
     if (input.isMember) rates.push(discount.member);
     if (input.isGraduatedCat) rates.push(discount.graduatedCat);
@@ -162,15 +162,140 @@
     return Math.min.apply(null, rates);
   }
 
+  function emptyCatCareResult(error) {
+    var result = {
+      packageId: '',
+      appliedDiscountRate: 1,
+      lineItems: [],
+      skippedIncludedItemIds: [],
+      needsQuote: false,
+      subtotal: 0,
+    };
+    if (error) result.error = error;
+    return result;
+  }
+
+  function formatYen(amount) {
+    return '¥' + String(amount).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  function discountedCatCarePrice(price, rate) {
+    return rate === 1 ? price : roundYen100(price * rate);
+  }
+
+  function findById(entries, id) {
+    for (var index = 0; index < entries.length; index += 1) {
+      if (entries[index].id === id) return entries[index];
+    }
+    return null;
+  }
+
+  function isRecord(value) {
+    if (!value || Object.prototype.toString.call(value) !== '[object Object]') return false;
+    var prototype = Object.getPrototypeOf(value);
+    return prototype === Object.prototype || prototype === null;
+  }
+
+  function calculateCatCare(selection, customer) {
+    if (!isRecord(selection)) return emptyCatCareResult('invalid_care_selection');
+    if (typeof selection.packageId !== 'string') return emptyCatCareResult('invalid_care_selection');
+    if (!isRecord(selection.quantities)) return emptyCatCareResult('invalid_care_selection');
+
+    var catalog = CONFIG.careCatalog.cat;
+    var packageConfig = selection.packageId ? findById(catalog.packages, selection.packageId) : null;
+    if (selection.packageId && !packageConfig) return emptyCatCareResult('unknown_care_package');
+
+    var itemKeys = Object.keys(selection.quantities);
+    for (var keyIndex = 0; keyIndex < itemKeys.length; keyIndex += 1) {
+      var itemConfig = findById(catalog.items, itemKeys[keyIndex]);
+      if (!itemConfig) return emptyCatCareResult('unknown_care_item');
+      var quantity = selection.quantities[itemKeys[keyIndex]];
+      if (!Number.isSafeInteger(quantity) || quantity < 0 || quantity > itemConfig.maxQuantity) {
+        return emptyCatCareResult('invalid_care_quantity');
+      }
+    }
+
+    var rate = getCatGroomingRate(customer);
+    return {
+      appliedDiscountRate: rate,
+      packageId: selection.packageId,
+      lineItems: buildCatCareLineItems(catalog, packageConfig, selection.quantities, rate),
+      skippedIncludedItemIds: getSkippedCatCareItemIds(catalog, packageConfig, selection.quantities),
+      needsQuote: getCatCareNeedsQuote(catalog, packageConfig, selection.quantities),
+      subtotal: getCatCareSubtotal(catalog, packageConfig, selection.quantities, rate),
+    };
+  }
+
+  function getSkippedCatCareItemIds(catalog, packageConfig, quantities) {
+    if (!packageConfig) return [];
+    return catalog.items.filter(function (item) {
+      return quantities[item.id] > 0 && packageConfig.includedItemIds.indexOf(item.id) !== -1;
+    }).map(function (item) { return item.id; });
+  }
+
+  function getCatCareNeedsQuote(catalog, packageConfig, quantities) {
+    return catalog.items.some(function (item) {
+      var included = packageConfig && packageConfig.includedItemIds.indexOf(item.id) !== -1;
+      return quantities[item.id] > 0 && !included && item.quoteOnly;
+    });
+  }
+
+  function getCatCareSubtotal(catalog, packageConfig, quantities, rate) {
+    var subtotal = packageConfig ? discountedCatCarePrice(packageConfig.price, rate) : 0;
+    return catalog.items.reduce(function (sum, item) {
+      var quantity = quantities[item.id] || 0;
+      var included = packageConfig && packageConfig.includedItemIds.indexOf(item.id) !== -1;
+      if (!quantity || included || item.quoteOnly) return sum;
+      var itemRate = item.discountEligible ? rate : 1;
+      return sum + discountedCatCarePrice(item.price * quantity, itemRate);
+    }, subtotal);
+  }
+
+  function buildCatCareLineItems(catalog, packageConfig, quantities, rate) {
+    var lineItems = [];
+    if (packageConfig) {
+      var packageSubtotal = discountedCatCarePrice(packageConfig.price, rate);
+      lineItems.push({
+        type: 'package',
+        id: packageConfig.id,
+        label: packageConfig.label,
+        quantity: 1,
+        unitPrice: packageConfig.price,
+        appliedDiscountRate: rate,
+        subtotal: packageSubtotal,
+        displayPrice: formatYen(packageSubtotal),
+      });
+    }
+    catalog.items.forEach(function (item) {
+      var quantity = quantities[item.id] || 0;
+      var included = packageConfig && packageConfig.includedItemIds.indexOf(item.id) !== -1;
+      if (!quantity || included) return;
+      var itemRate = item.discountEligible ? rate : 1;
+      var subtotal = item.quoteOnly ? 0 : discountedCatCarePrice(item.price * quantity, itemRate);
+      lineItems.push({
+        type: 'item',
+        id: item.id,
+        label: item.label,
+        unit: item.unit,
+        quantity: quantity,
+        unitPrice: item.price,
+        appliedDiscountRate: itemRate,
+        subtotal: subtotal,
+        displayPrice: item.quoteOnly ? '要相談' : formatYen(subtotal),
+      });
+    });
+    return lineItems;
+  }
+
   function calculateCatGrooming(menu, input) {
-    var basePrice = CONFIG.catGroomingBasePrice[menu];
-    if (!Number.isFinite(basePrice)) return null;
-    var rate = getCatGroomingRate(input);
+    var result = calculateCatCare({ packageId: menu, quantities: {} }, input);
+    if (result.error || !result.packageId) return null;
+    var packageLine = result.lineItems[0];
     return {
       menu: menu,
-      basePrice: basePrice,
-      appliedDiscountRate: rate,
-      subtotal: roundYen100(basePrice * rate),
+      basePrice: packageLine.unitPrice,
+      appliedDiscountRate: result.appliedDiscountRate,
+      subtotal: result.subtotal,
     };
   }
 
@@ -271,6 +396,7 @@
     getSmallPetPerNight: getSmallPetPerNight,
     calculateSmallPetBoarding: calculateSmallPetBoarding,
     getCatGroomingRate: getCatGroomingRate,
+    calculateCatCare: calculateCatCare,
     calculateCatGrooming: calculateCatGrooming,
     calculateDogBoarding: calculateDogBoarding,
     calculateDogBasicCare: calculateDogBasicCare,
