@@ -30,7 +30,7 @@ function publicConfig() {
       ...source.CONFIG,
       dogServices: { ...source.CONFIG.dogServices, public: true },
     },
-    HOLIDAYS_2026: source.HOLIDAYS_2026.slice(),
+    HOLIDAYS: source.HOLIDAYS.slice(),
     SPECIAL_DATE_RANGES: source.SPECIAL_DATE_RANGES.map((range) => ({ ...range })),
   };
 }
@@ -51,17 +51,48 @@ test('enabled projection copies only approved dog prices, date rules and safe di
   config.CONFIG.dogServices.secret = 'must-not-leak';
   config.CONFIG.dogServices.boardingBasePrice.injected = 1;
   config.SPECIAL_DATE_RANGES[0] = { ...config.SPECIAL_DATE_RANGES[0], label: '<script>', secret: true };
+  if (config.CONFIG.careCatalog.dog) {
+    const dogCatalog = config.CONFIG.careCatalog.dog;
+    config.CONFIG.careCatalog = {
+      ...config.CONFIG.careCatalog,
+      dog: {
+        ...dogCatalog,
+        items: dogCatalog.items.map((item, index) => index === 0 ? {
+          ...item,
+          secret: 'must-not-leak',
+          priceBySize: { ...item.priceBySize, injected: 1 },
+        } : item),
+      },
+    };
+  }
 
   const value = projection.buildDogServicesProjection(config);
   assert.equal(projection.validateDogServicesProjection(value), true);
+  assert.equal(value.version, 2);
   assert.deepEqual(value.sizes, {
-    small: { label: '小型犬', boardingPerNight: 7400, basicCare: 4500 },
-    medium: { label: '中型犬', boardingPerNight: 8200, basicCare: 7500 },
-    large: { label: '大型犬', boardingPerNight: 8900, basicCare: 9000 },
+    small: { label: '小型犬', boardingPerNight: 7400 },
+    medium: { label: '中型犬', boardingPerNight: 8200 },
+    large: { label: '大型犬', boardingPerNight: 8900 },
   });
-  assert.deepEqual(value.basicCareIncluded, ['爪切り', '耳掃除', '肛門腺']);
+  assert.deepEqual(value.care, {
+    items: [
+      { id: 'nail', label: '爪切り', priceBySize: { small: 660, medium: 880, large: 1100 } },
+      { id: 'ear', label: '耳掃除', priceBySize: { small: 660, medium: 880, large: 1100 } },
+      { id: 'anal', label: '肛門腺', priceBySize: { small: 660, medium: 880, large: 1100 } },
+    ],
+    bundles: [
+      {
+        id: 'basic3',
+        label: '基本ケア3点セット',
+        includedItemIds: ['nail', 'ear', 'anal'],
+        priceBySize: { small: 1650, medium: 2200, large: 2750 },
+      },
+    ],
+  });
+  assert.deepEqual(value.calendar.holidays, require(CONFIG_PATH).HOLIDAYS);
+  assert.ok(value.calendar.holidays.includes('2027-11-23'));
   assert.deepEqual(Object.keys(value).sort(), [
-    'basicCareIncluded', 'calendar', 'currency', 'dateSurcharge', 'longStayDiscount', 'memberDiscountRate',
+    'calendar', 'care', 'currency', 'dateSurcharge', 'longStayDiscount', 'memberDiscountRate',
     'public', 'roundUnit', 'sizes', 'taxIncluded', 'version',
   ]);
   assert.doesNotMatch(JSON.stringify(value), /secret|script|injected|シャンプー|トリミング/);
@@ -77,7 +108,14 @@ test('preparing projection exposes approved display data while preserving the cl
   assert.equal(value.preparing, true);
   assert.equal(value.accepting, false);
   assert.equal(value.locationNotice, '大阪・針中野での受付開始を予定しています。開始時期は決まり次第お知らせします。');
-  assert.deepEqual(value.sizes.small, { label: '小型犬', boardingPerNight: 7400, basicCare: 4500 });
+  assert.equal(value.version, 2);
+  assert.deepEqual(value.sizes.small, { label: '小型犬', boardingPerNight: 7400 });
+  assert.deepEqual(value.care.items[0], {
+    id: 'nail',
+    label: '爪切り',
+    priceBySize: { small: 660, medium: 880, large: 1100 },
+  });
+  assert.deepEqual(value.care.bundles[0].priceBySize, { small: 1650, medium: 2200, large: 2750 });
   assert.deepEqual(JSON.parse(fs.readFileSync(PREPARING_PATH, 'utf8')), value);
   assert.equal(projection.serializeDogServicesProjection(config), '{"public":false}\n');
 });
@@ -86,12 +124,42 @@ test('strict validator rejects extra keys, wrong prices and caller-forged partia
   const { projection } = requirePipeline();
   const valid = projection.buildDogServicesProjection(publicConfig());
   assert.equal(projection.validateDogServicesProjection(valid), true);
+  assert.equal(valid.version, 2);
   assert.equal(projection.validateDogServicesProjection({ public: true }), false);
   assert.equal(projection.validateDogServicesProjection({ public: false, sizes: valid.sizes }), false);
   assert.equal(projection.validateDogServicesProjection({ ...valid, extra: true }), false);
   assert.equal(projection.validateDogServicesProjection({
     ...valid,
-    sizes: { ...valid.sizes, small: { ...valid.sizes.small, boardingPerNight: 1 } },
+    sizes: { ...valid.sizes, small: { ...valid.sizes.small, boardingPerNight: 660 } },
+  }), false);
+  for (const carePrice of [1, 660, 880, Number.MAX_SAFE_INTEGER]) {
+    assert.equal(projection.validateDogServicesProjection({
+      ...valid,
+      care: {
+        ...valid.care,
+        items: valid.care.items.map((item, index) => index === 0 ? {
+          ...item,
+          priceBySize: { ...item.priceBySize, small: carePrice },
+        } : item),
+      },
+    }), true, `care price ${carePrice}`);
+  }
+  assert.equal(projection.validateDogServicesProjection({
+    ...valid,
+    care: {
+      ...valid.care,
+      items: valid.care.items.map((item, index) => index === 0 ? { ...item, extra: true } : item),
+    },
+  }), false);
+  assert.equal(projection.validateDogServicesProjection({
+    ...valid,
+    care: {
+      ...valid.care,
+      items: valid.care.items.map((item, index) => index === 0 ? {
+        ...item,
+        priceBySize: { small: item.priceBySize.small, medium: item.priceBySize.medium },
+      } : item),
+    },
   }), false);
 });
 
@@ -109,16 +177,19 @@ test('shared UI emits no dog offer when false and complete offers, CTA and schem
     assert.match(boarding, new RegExp(copy));
   }
   const care = ui.renderSurface('care', enabled);
-  for (const copy of ['犬の基本ケア', '爪切り', '耳掃除', '肛門腺', '¥4,500', '¥7,500', '¥9,000']) {
+  for (const copy of [
+    '犬の基本ケア', '爪切り', '耳掃除', '肛門腺', '基本ケア3点セット',
+    '¥660', '¥880', '¥1,100', '¥1,650', '¥2,200', '¥2,750',
+  ]) {
     assert.match(care, new RegExp(copy));
   }
-  assert.doesNotMatch(care, /シャンプー|トリミング/);
+  assert.doesNotMatch(care, /トリミング|カット|シャンプーコース|剪毛|専門美容/);
 
   const schemas = ui.buildSchemaObjects(enabled);
   assert.equal(schemas.length, 2);
   assert.deepEqual(schemas.map((schema) => schema.offers.map((offer) => Number(offer.price))), [
     [7400, 8200, 8900],
-    [4500, 7500, 9000],
+    [660, 880, 1100, 660, 880, 1100, 660, 880, 1100, 1650, 2200, 2750],
   ]);
 });
 
@@ -134,13 +205,34 @@ test('preparing UI shows stopped dog prices and calculator without booking CTA o
   assert.match(boarding, /¥7,400/);
   assert.match(boarding, /料金を計算/);
   assert.doesNotMatch(boarding, /LINE|予約相談|申し込/);
+
+  const care = ui.renderSurface('care', preparing);
+  assert.equal((care.match(/<section\b/g) || []).length, 1);
+  assert.equal((care.match(/<details\b/g) || []).length, 1);
+  assert.equal((care.match(/<table\b/g) || []).length, 1);
+  const detailsTag = care.match(/<details\b[^>]*>/);
+  assert.ok(detailsTag);
+  assert.doesNotMatch(detailsTag[0], /\bopen\b/);
+  for (const copy of ['予定価格', '現在受付停止', '大阪・針中野', '爪切り', '耳掃除', '肛門腺', '基本ケア3点セット']) {
+    assert.match(care, new RegExp(copy));
+  }
+  assert.doesNotMatch(care, /<a\b|<button\b/);
+  assert.doesNotMatch(care, /LINE|トリミング|カット|シャンプーコース|剪毛|専門美容/);
+
+  const estimateCare = ui.renderSurface('estimate-care', preparing);
+  assert.match(estimateCare, /id="dogCareField"[^>]*\bhidden\b/);
+  assert.equal((estimateCare.match(/type="radio"/g) || []).length, 5);
+  assert.equal((estimateCare.match(/name="dogCareOffer"/g) || []).length, 5);
+  assert.match(estimateCare, /予定価格/);
+  assert.match(estimateCare, /現在受付停止/);
+
   assert.deepEqual(ui.buildSchemaObjects(preparing), []);
 
   const estimate = ui.calculateEstimate(preparing, {
     size: 'small', checkInDate: '2026-06-01', checkOutDate: '2026-06-02', basicCare: true,
   });
   assert.deepEqual({ available: estimate.available, accepting: estimate.accepting, total: estimate.total }, {
-    available: true, accepting: false, total: 11900,
+    available: true, accepting: false, total: 9050,
   });
 });
 
@@ -181,7 +273,7 @@ test('dog estimates require a validated public projection and use projected pric
     size: 'small', checkInDate: '2026-06-01', checkOutDate: '2026-06-02', basicCare: true,
   });
   assert.deepEqual({ boarding: estimate.boardingTotal, care: estimate.basicCareTotal, total: estimate.total }, {
-    boarding: 7400, care: 4500, total: 11900,
+    boarding: 7400, care: 1650, total: 9050,
   });
 });
 

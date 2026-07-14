@@ -24,7 +24,7 @@ function expectedPreviewProjection() {
       ...source.CONFIG,
       dogServices: { ...source.CONFIG.dogServices, public: true },
     },
-    HOLIDAYS_2026: source.HOLIDAYS_2026.slice(),
+    HOLIDAYS: source.HOLIDAYS.slice(),
     SPECIAL_DATE_RANGES: source.SPECIAL_DATE_RANGES.map((range) => ({ ...range })),
   });
 }
@@ -78,6 +78,8 @@ test('buildPreviewProjection returns the exact strict public projection', () => 
 
   assert.deepEqual(preview, expectedPreviewProjection());
   assert.equal(preview.public, true);
+  assert.equal(preview.version, 2);
+  assert.ok(preview.calendar.holidays.includes('2027-11-23'));
   assert.equal(projectionApi.validateDogServicesProjection(preview), true);
 });
 

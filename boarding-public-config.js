@@ -27,6 +27,22 @@
     },
   };
 
+  var DOG_CARE_CATALOG = {
+    items: [
+      { id: 'nail', label: '爪切り', priceBySize: { small: 660, medium: 880, large: 1100 } },
+      { id: 'ear', label: '耳掃除', priceBySize: { small: 660, medium: 880, large: 1100 } },
+      { id: 'anal', label: '肛門腺', priceBySize: { small: 660, medium: 880, large: 1100 } },
+    ],
+    bundles: [
+      {
+        id: 'basic3',
+        label: '基本ケア3点セット',
+        includedItemIds: ['nail', 'ear', 'anal'],
+        priceBySize: { small: 1650, medium: 2200, large: 2750 },
+      },
+    ],
+  };
+
   var CONFIG = {
     currency: 'JPY',
     taxIncluded: true,
@@ -84,7 +100,6 @@
         school_vacation: { small: 1100, medium: 1650, large: 2200 },
         high_season_core: { small: 2200, medium: 3300, large: 3300 },
       },
-      basicCareBasePrice: { small: 4500, medium: 7500, large: 9000 },
     },
 
     customerDiscount: { member: 0.9, graduatedCat: 0.85 },
@@ -104,6 +119,7 @@
 
     careCatalog: {
       cat: CAT_CARE_CATALOG,
+      dog: DOG_CARE_CATALOG,
     },
     // Temporary compatibility aliases until every static-page consumer migrates.
     catGroomingBasePrice: {

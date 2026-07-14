@@ -47,7 +47,7 @@ function buildPreviewProjection() {
       ...source.CONFIG,
       dogServices: { ...source.CONFIG.dogServices, public: true },
     },
-    HOLIDAYS_2026: source.HOLIDAYS_2026.slice(),
+    HOLIDAYS: source.HOLIDAYS.slice(),
     SPECIAL_DATE_RANGES: source.SPECIAL_DATE_RANGES.map((range) => ({ ...range })),
   });
 }

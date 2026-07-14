@@ -15,13 +15,13 @@ function publicProjection() {
   const source = require(configPath);
   const configApi = {
     CONFIG: { ...source.CONFIG, dogServices: { ...source.CONFIG.dogServices, public: true } },
-    HOLIDAYS_2026: source.HOLIDAYS_2026.slice(),
+    HOLIDAYS: source.HOLIDAYS.slice(),
     SPECIAL_DATE_RANGES: source.SPECIAL_DATE_RANGES.map((range) => ({ ...range })),
   };
   return require(projectionPath).buildDogServicesProjection(configApi);
 }
 
-test('historical dog prices stay behind one disabled public gate', () => {
+test('dog boarding and canonical care prices stay behind one disabled public gate', () => {
   const { CONFIG } = require(configPath);
   const source = read('boarding-public-config.js');
   const calcSource = read('boarding-public-calc.js');
@@ -54,9 +54,24 @@ test('historical dog prices stay behind one disabled public gate', () => {
       school_vacation: { small: 1100, medium: 1650, large: 2200 },
       high_season_core: { small: 2200, medium: 3300, large: 3300 },
     },
-    basicCareBasePrice: { small: 4500, medium: 7500, large: 9000 },
+  });
+  assert.deepEqual(CONFIG.careCatalog.dog, {
+    items: [
+      { id: 'nail', label: '爪切り', priceBySize: { small: 660, medium: 880, large: 1100 } },
+      { id: 'ear', label: '耳掃除', priceBySize: { small: 660, medium: 880, large: 1100 } },
+      { id: 'anal', label: '肛門腺', priceBySize: { small: 660, medium: 880, large: 1100 } },
+    ],
+    bundles: [
+      {
+        id: 'basic3',
+        label: '基本ケア3点セット',
+        includedItemIds: ['nail', 'ear', 'anal'],
+        priceBySize: { small: 1650, medium: 2200, large: 2750 },
+      },
+    ],
   });
   assert.deepEqual(source.match(/\bpublic\s*:\s*(?:true|false)/g), ['public: false']);
+  assert.doesNotMatch(source, /basicCareBasePrice/);
   assert.doesNotMatch(`${source}\n${calcSource}`, /allowDraft/);
   assert.doesNotMatch(calcSource, /\b(?:7400|8200|8900|4500|7500|9000)\b/);
 });
@@ -65,6 +80,7 @@ test('dog calculators fail closed while the public gate is false', () => {
   const calc = require(calcPath);
 
   assert.equal(typeof calc.calculateDogBoarding, 'function');
+  assert.equal(typeof calc.calculateDogCare, 'function');
   assert.equal(typeof calc.calculateDogBasicCare, 'function');
   assert.deepEqual(
     calc.calculateDogBoarding({
@@ -72,6 +88,10 @@ test('dog calculators fail closed while the public gate is false', () => {
       checkInDate: '2026-06-01',
       checkOutDate: '2026-06-02',
     }),
+    { available: false, error: 'unavailable' },
+  );
+  assert.deepEqual(
+    calc.calculateDogCare({ size: 'small', offerId: 'nail' }),
     { available: false, error: 'unavailable' },
   );
   assert.deepEqual(
@@ -83,6 +103,7 @@ test('dog calculators fail closed while the public gate is false', () => {
 test('the single config flip projects correct dog boarding and undiscounted care math', () => {
   const calc = require(calcPath);
   assert.equal(typeof calc.calculateDogBoarding, 'function');
+  assert.equal(typeof calc.calculateDogCare, 'function');
   assert.equal(typeof calc.calculateDogBasicCare, 'function');
   const projection = publicProjection();
     const normal = calc.calculateDogBoarding({
@@ -149,7 +170,7 @@ test('the single config flip projects correct dog boarding and undiscounted care
       assert.equal(result.discountedBasePerNight, discountedBase, `${size} ${nights} nights base`);
     }
 
-    for (const [size, subtotal] of [['small', 4500], ['medium', 7500], ['large', 9000]]) {
+    for (const [size, subtotal] of [['small', 1650], ['medium', 2200], ['large', 2750]]) {
       assert.deepEqual(
         calc.calculateDogBasicCare({
           size,
@@ -160,6 +181,43 @@ test('the single config flip projects correct dog boarding and undiscounted care
         { available: true, size, basePrice: subtotal, appliedDiscountRate: 1, subtotal },
       );
     }
+
+    for (const [offerId, size, subtotal] of [
+      ['nail', 'small', 660],
+      ['ear', 'medium', 880],
+      ['anal', 'large', 1100],
+      ['basic3', 'large', 2750],
+    ]) {
+      const result = calc.calculateDogCare({
+        size,
+        offerId,
+        isMember: true,
+        isGraduatedCat: true,
+        boardingNights: 30,
+      }, projection);
+      assert.deepEqual(result, {
+        available: true,
+        size,
+        offerId,
+        basePrice: subtotal,
+        appliedDiscountRate: 1,
+        subtotal,
+      });
+    }
+});
+
+test('dog care rejects an unknown offer or size without exposing a subtotal', () => {
+  const calc = require(calcPath);
+  const projection = publicProjection();
+  assert.equal(typeof calc.calculateDogCare, 'function');
+
+  const unknownOffer = calc.calculateDogCare({ size: 'small', offerId: 'missing' }, projection);
+  assert.deepEqual(unknownOffer, { available: true, error: 'unknown_offer' });
+  assert.equal(Object.hasOwn(unknownOffer, 'subtotal'), false);
+
+  const unknownSize = calc.calculateDogCare({ size: 'extra-large', offerId: 'nail' }, projection);
+  assert.deepEqual(unknownSize, { available: true, error: 'unknown_size' });
+  assert.equal(Object.hasOwn(unknownSize, 'subtotal'), false);
 });
 
 test('member and seven-night dog discounts use the lower rate without stacking', () => {

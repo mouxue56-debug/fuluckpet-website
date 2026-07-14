@@ -374,18 +374,35 @@
     };
   }
 
-  function calculateDogBasicCare(input, projection) {
+  function calculateDogCare(input, projection) {
     if (!validDogProjection(projection)) return unavailableDogService();
     input = input || {};
-    var sizeConfig = projection.sizes[input.size];
-    var basePrice = sizeConfig && sizeConfig.basicCare;
-    if (!Number.isFinite(basePrice)) return { available: true, error: 'unknown_size', subtotal: 0 };
+    var offers = projection.care.items.concat(projection.care.bundles);
+    var matches = offers.filter(function (offer) { return offer.id === input.offerId; });
+    if (matches.length !== 1) return { available: true, error: 'unknown_offer' };
+    if (!Object.prototype.hasOwnProperty.call(projection.sizes, input.size)) {
+      return { available: true, error: 'unknown_size' };
+    }
+    var basePrice = matches[0].priceBySize[input.size];
     return {
       available: true,
       size: input.size,
+      offerId: input.offerId,
       basePrice: basePrice,
       appliedDiscountRate: 1,
       subtotal: basePrice,
+    };
+  }
+
+  function calculateDogBasicCare(input, projection) {
+    var result = calculateDogCare({ size: input && input.size, offerId: 'basic3' }, projection);
+    if (!result || result.available !== true || result.error) return result;
+    return {
+      available: true,
+      size: result.size,
+      basePrice: result.basePrice,
+      appliedDiscountRate: result.appliedDiscountRate,
+      subtotal: result.subtotal,
     };
   }
 
@@ -404,6 +421,7 @@
     calculateCatCare: calculateCatCare,
     calculateCatGrooming: calculateCatGrooming,
     calculateDogBoarding: calculateDogBoarding,
+    calculateDogCare: calculateDogCare,
     calculateDogBasicCare: calculateDogBasicCare,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

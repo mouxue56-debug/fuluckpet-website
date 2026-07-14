@@ -10,7 +10,14 @@
   var SIZE_KEYS = ['small', 'medium', 'large'];
   var SIZE_LABELS = { small: '小型犬', medium: '中型犬', large: '大型犬' };
   var DATE_CATEGORIES = ['normal', 'weekend_or_holiday', 'school_vacation', 'high_season_core'];
-  var BASIC_CARE_INCLUDED = ['爪切り', '耳掃除', '肛門腺'];
+  var CARE_ITEM_DEFINITIONS = [
+    { id: 'nail', label: '爪切り' },
+    { id: 'ear', label: '耳掃除' },
+    { id: 'anal', label: '肛門腺' },
+  ];
+  var CARE_BUNDLE_DEFINITIONS = [
+    { id: 'basic3', label: '基本ケア3点セット', includedItemIds: ['nail', 'ear', 'anal'] },
+  ];
   var FALSE_PROJECTION = Object.freeze({ public: false });
 
   function isPlainObject(value) {
@@ -28,8 +35,12 @@
     });
   }
 
-  function validYen(value, allowZero) {
+  function validBoardingYen(value, allowZero) {
     return Number.isInteger(value) && value >= (allowZero ? 0 : 1000) && value <= 1000000;
+  }
+
+  function validCareYen(value) {
+    return Number.isSafeInteger(value) && value > 0;
   }
 
   function validDate(value) {
@@ -57,23 +68,48 @@
     });
   }
 
+  function validIncludedItemIds(value, expected) {
+    return Array.isArray(value) && value.length === expected.length && value.every(function (id, index) {
+      return id === expected[index];
+    });
+  }
+
+  function validCareCatalog(value) {
+    if (!hasExactKeys(value, ['items', 'bundles'])) return false;
+    if (!Array.isArray(value.items) || value.items.length !== CARE_ITEM_DEFINITIONS.length) return false;
+    if (!value.items.every(function (item, index) {
+      var expected = CARE_ITEM_DEFINITIONS[index];
+      return hasExactKeys(item, ['id', 'label', 'priceBySize']) &&
+        item.id === expected.id && item.label === expected.label &&
+        validSizeMap(item.priceBySize, validCareYen);
+    })) return false;
+    if (!Array.isArray(value.bundles) || value.bundles.length !== CARE_BUNDLE_DEFINITIONS.length) return false;
+    return value.bundles.every(function (bundle, index) {
+      var expected = CARE_BUNDLE_DEFINITIONS[index];
+      return hasExactKeys(bundle, ['id', 'label', 'includedItemIds', 'priceBySize']) &&
+        bundle.id === expected.id && bundle.label === expected.label &&
+        validIncludedItemIds(bundle.includedItemIds, expected.includedItemIds) &&
+        validSizeMap(bundle.priceBySize, validCareYen);
+    });
+  }
+
   function validateDogServicesProjection(value) {
     if (hasExactKeys(value, ['public']) && value.public === false) return true;
     if (!hasExactKeys(value, [
       'public', 'version', 'currency', 'taxIncluded', 'roundUnit', 'sizes',
-      'memberDiscountRate', 'longStayDiscount', 'dateSurcharge', 'calendar', 'basicCareIncluded',
+      'memberDiscountRate', 'longStayDiscount', 'dateSurcharge', 'calendar', 'care',
     ])) return false;
-    if (value.public !== true || value.version !== 1 || value.currency !== 'JPY') return false;
+    if (value.public !== true || value.version !== 2 || value.currency !== 'JPY') return false;
     if (value.taxIncluded !== true || value.roundUnit !== 100) return false;
     if (!(typeof value.memberDiscountRate === 'number' && value.memberDiscountRate >= 0.5 && value.memberDiscountRate <= 1)) return false;
     if (!validSizeMap(value.sizes, function (entry, size) {
-      return hasExactKeys(entry, ['label', 'boardingPerNight', 'basicCare']) &&
-        entry.label === SIZE_LABELS[size] && validYen(entry.boardingPerNight, false) && validYen(entry.basicCare, false);
+      return hasExactKeys(entry, ['label', 'boardingPerNight']) &&
+        entry.label === SIZE_LABELS[size] && validBoardingYen(entry.boardingPerNight, false);
     })) return false;
     if (!validSizeMap(value.longStayDiscount, validTierList)) return false;
     if (!hasExactKeys(value.dateSurcharge, DATE_CATEGORIES)) return false;
     if (!DATE_CATEGORIES.every(function (category) {
-      return validSizeMap(value.dateSurcharge[category], function (amount) { return validYen(amount, true); });
+      return validSizeMap(value.dateSurcharge[category], function (amount) { return validBoardingYen(amount, true); });
     })) return false;
     if (!hasExactKeys(value.calendar, ['holidays', 'specialDateRanges'])) return false;
     if (!Array.isArray(value.calendar.holidays) || value.calendar.holidays.length > 100 ||
@@ -84,16 +120,14 @@
             (range.category === 'school_vacation' || range.category === 'high_season_core') &&
             validDate(range.start) && validDate(range.end) && range.start <= range.end && range.enabled === true;
         })) return false;
-    return Array.isArray(value.basicCareIncluded) &&
-      value.basicCareIncluded.length === BASIC_CARE_INCLUDED.length &&
-      value.basicCareIncluded.every(function (label, index) { return label === BASIC_CARE_INCLUDED[index]; });
+    return validCareCatalog(value.care);
   }
 
   function validateDogServicesPreparingProjection(value) {
     if (!hasExactKeys(value, [
       'public', 'preparing', 'accepting', 'locationNotice', 'version', 'currency', 'taxIncluded',
       'roundUnit', 'sizes', 'memberDiscountRate', 'longStayDiscount', 'dateSurcharge', 'calendar',
-      'basicCareIncluded',
+      'care',
     ])) return false;
     if (value.public !== false || value.preparing !== true || value.accepting !== false) return false;
     if (value.locationNotice !== '大阪・針中野での受付開始を予定しています。開始時期は決まり次第お知らせします。') return false;
@@ -107,18 +141,41 @@
 
   function copySizeMap(source, valueForSize) {
     var output = {};
-    SIZE_KEYS.forEach(function (size) { output[size] = valueForSize(source, size); });
+    SIZE_KEYS.forEach(function (size) { output[size] = valueForSize(source || {}, size); });
     return output;
+  }
+
+  function copyCareCatalog(source) {
+    var items = source && Array.isArray(source.items) ? source.items : [];
+    var bundles = source && Array.isArray(source.bundles) ? source.bundles : [];
+    return {
+      items: items.map(function (item) {
+        return {
+          id: item && item.id,
+          label: item && item.label,
+          priceBySize: copySizeMap(item && item.priceBySize, function (prices, size) { return prices[size]; }),
+        };
+      }),
+      bundles: bundles.map(function (bundle) {
+        return {
+          id: bundle && bundle.id,
+          label: bundle && bundle.label,
+          includedItemIds: bundle && Array.isArray(bundle.includedItemIds) ? bundle.includedItemIds.slice() : [],
+          priceBySize: copySizeMap(bundle && bundle.priceBySize, function (prices, size) { return prices[size]; }),
+        };
+      }),
+    };
   }
 
   function buildEnabledShape(configApi) {
     var config = configApi && configApi.CONFIG;
     var dog = config && config.dogServices;
     if (!dog) throw new Error('dogServices config unavailable');
+    if (!Array.isArray(configApi && configApi.HOLIDAYS)) throw new Error('combined holidays unavailable');
 
     var projection = {
       public: true,
-      version: 1,
+      version: 2,
       currency: config.currency,
       taxIncluded: config.taxIncluded,
       roundUnit: config.roundUnit,
@@ -127,7 +184,6 @@
         return {
           label: SIZE_LABELS[size],
           boardingPerNight: dog.boardingBasePrice[size],
-          basicCare: dog.basicCareBasePrice[size],
         };
       }),
       longStayDiscount: copySizeMap(dog.longStayDiscount, function (source, size) {
@@ -137,7 +193,7 @@
       }),
       dateSurcharge: {},
       calendar: {
-        holidays: (configApi.HOLIDAYS_2026 || []).slice(),
+        holidays: configApi.HOLIDAYS.slice(),
         specialDateRanges: (configApi.SPECIAL_DATE_RANGES || []).filter(function (range) {
           return range && range.enabled === true &&
             (range.category === 'school_vacation' || range.category === 'high_season_core');
@@ -145,7 +201,7 @@
           return { category: range.category, start: range.start, end: range.end, enabled: true };
         }),
       },
-      basicCareIncluded: BASIC_CARE_INCLUDED.slice(),
+      care: copyCareCatalog(config.careCatalog && config.careCatalog.dog),
     };
     DATE_CATEGORIES.forEach(function (category) {
       projection.dateSurcharge[category] = copySizeMap(dog.dateSurcharge[category], function (source, size) {

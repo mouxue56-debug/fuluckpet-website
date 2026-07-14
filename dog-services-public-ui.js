@@ -43,6 +43,23 @@
     }).join('');
   }
 
+  function careOffers(projection) {
+    return projection.care.items.concat(projection.care.bundles);
+  }
+
+  function carePriceTable(projection) {
+    var head = Projection.SIZE_KEYS.map(function (size) {
+      return '<th scope="col">' + projection.sizes[size].label + '</th>';
+    }).join('');
+    var rows = careOffers(projection).map(function (offer) {
+      return '<tr><th scope="row">' + offer.label + '</th>' + Projection.SIZE_KEYS.map(function (size) {
+        return '<td>' + money(offer.priceBySize[size]) + '</td>';
+      }).join('') + '</tr>';
+    }).join('');
+    return '<div class="service-table-wrap"><table class="service-table"><thead><tr><th scope="col">ケア内容</th>' +
+      head + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+  }
+
   function renderBoarding(projection) {
     var stopped = !accepting(projection);
     return '<section class="service-section dog-service-public" id="dog-services" data-dog-public-rendered="boarding">' +
@@ -59,13 +76,18 @@
   function renderCare(projection) {
     var stopped = !accepting(projection);
     return '<section class="service-section dog-service-public" id="dog-basic-care" data-dog-public-rendered="care">' +
-      '<div class="service-wrap"><div class="service-heading"><p class="service-eyebrow">Dog basic care</p>' +
-      '<h2>犬の基本ケア' + (stopped ? '｜準備中' : '') + '</h2>' +
+      '<div class="service-wrap">' +
       (stopped ? '<p class="service-status" role="status"><strong>現在受付停止</strong></p><p>' + projection.locationNotice + '</p>' : '') +
-      '<p>爪切り・耳掃除・肛門腺の3項目を、体型別の税込料金でご案内します。</p></div>' +
-      '<div class="service-price-grid">' + priceCards(projection, 'basicCare', '') + '</div>' +
-      '<div class="service-actions">' + (stopped ? '' : '<a class="service-btn is-primary" href="' + LINE_URL + '" target="_blank" rel="noopener">LINEで予約相談</a>') +
-      '<a class="service-btn" href="/boarding/estimate.html">お預かりと一緒に計算する</a></div></div></section>';
+      '<div class="service-heading"><p class="service-eyebrow">Dog basic care</p>' +
+      '<h2>犬の基本ケア' + (stopped ? '｜準備中' : '') + '</h2>' +
+      '<p>' + (stopped
+        ? '以下は受付開始後を想定した税込の予定価格です。現在はご予約いただけません。'
+        : '爪切り・耳掃除・肛門腺を、体型別の税込料金でご案内します。') + '</p></div>' +
+      '<details class="service-care-details"><summary>' + (stopped ? '予定価格を見る' : '料金表を見る') + '</summary>' +
+      carePriceTable(projection) + '</details>' +
+      (stopped ? '' : '<div class="service-actions"><a class="service-btn is-primary" href="' + LINE_URL +
+        '" target="_blank" rel="noopener">LINEで予約相談</a><a class="service-btn" href="/boarding/estimate.html">お預かりと一緒に計算する</a></div>') +
+      '</div></section>';
   }
 
   function renderEstimate(projection) {
@@ -77,11 +99,18 @@
   }
 
   function renderEstimateCare(projection) {
-    return '<label class="estimate-check" for="dogBasicCare"><input type="checkbox" id="dogBasicCare">' +
-      '<span>犬の基本ケア（爪切り・耳掃除・肛門腺）を追加</span></label>' +
-      '<p class="service-note">体型別 ' + Projection.SIZE_KEYS.map(function (size) {
-        return projection.sizes[size].label + ' ' + money(projection.sizes[size].basicCare);
-      }).join(' ／ ') + '</p>';
+    var stopped = !accepting(projection);
+    var choices = '<div class="estimate-choice"><input type="radio" name="dogCareOffer" id="dog-care-none" value="" checked>' +
+      '<label for="dog-care-none">ケアを追加しない</label></div>' + careOffers(projection).map(function (offer) {
+        return '<div class="estimate-choice"><input type="radio" name="dogCareOffer" id="dog-care-' + offer.id + '" value="' +
+          offer.id + '"><label for="dog-care-' + offer.id + '">' + offer.label + '<small>' + Projection.SIZE_KEYS.map(function (size) {
+            return projection.sizes[size].label + ' ' + money(offer.priceBySize[size]);
+          }).join(' ／ ') + '</small></label></div>';
+      }).join('');
+    return '<div class="estimate-field dog-care-field" id="dogCareField" hidden><fieldset><legend>犬のケア' +
+      (stopped ? '（予定価格）' : '') + '</legend>' +
+      (stopped ? '<p class="service-note"><strong>現在受付停止</strong>。予定価格の概算のみ確認できます。</p>' : '') +
+      '<div class="estimate-types">' + choices + '</div></fieldset></div>';
   }
 
   function renderSurface(surface, projection) {
@@ -105,6 +134,19 @@
     });
   }
 
+  function careSchemaOffers(projection) {
+    return careOffers(projection).reduce(function (result, offer) {
+      return result.concat(Projection.SIZE_KEYS.map(function (size) {
+        return {
+          '@type': 'Offer',
+          name: '犬の基本ケア ' + offer.label + ' ' + projection.sizes[size].label,
+          price: String(offer.priceBySize[size]),
+          priceCurrency: projection.currency,
+        };
+      }));
+    }, []);
+  }
+
   function buildSchemaObjects(projection) {
     if (!accepting(projection)) return [];
     var provider = { '@type': 'LocalBusiness', name: '福楽ペット', legalName: '福楽株式会社' };
@@ -117,7 +159,7 @@
       {
         '@context': 'https://schema.org', '@type': 'Service', name: '犬の基本ケア（爪切り・耳掃除・肛門腺）',
         url: 'https://fuluckpet.com/grooming/#dog-basic-care', provider: provider,
-        offers: offers(projection, 'basicCare', '犬の基本ケア'),
+        offers: careSchemaOffers(projection),
       },
     ];
   }
