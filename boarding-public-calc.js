@@ -150,12 +150,16 @@
   }
 
   function getCatGroomingRate(input) {
-    input = input || {};
+    if (input === undefined) input = {};
+    if (!isRecord(input)) return null;
+    if (input.isMember !== undefined && typeof input.isMember !== 'boolean') return null;
+    if (input.isGraduatedCat !== undefined && typeof input.isGraduatedCat !== 'boolean') return null;
+    var nights = input.boardingNights === undefined ? 0 : input.boardingNights;
+    if (!Number.isSafeInteger(nights) || nights < 0) return null;
     var discount = CONFIG.careCatalog.cat.discounts;
     var rates = [1];
-    if (input.isMember) rates.push(discount.member);
-    if (input.isGraduatedCat) rates.push(discount.graduatedCat);
-    var nights = Number(input.boardingNights) || 0;
+    if (input.isMember === true) rates.push(discount.member);
+    if (input.isGraduatedCat === true) rates.push(discount.graduatedCat);
     if (nights >= 14) rates.push(discount.afterBoarding14Nights);
     else if (nights >= 7) rates.push(discount.afterBoarding7Nights);
     else if (nights >= 3) rates.push(discount.afterBoarding3Nights);
@@ -216,6 +220,7 @@
     }
 
     var rate = getCatGroomingRate(customer);
+    if (rate === null) return emptyCatCareResult('invalid_customer');
     return {
       appliedDiscountRate: rate,
       packageId: selection.packageId,

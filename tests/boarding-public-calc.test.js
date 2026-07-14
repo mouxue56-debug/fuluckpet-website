@@ -97,6 +97,38 @@ test('cat care applies the best fixed-price discount and skips package-included 
   assert.equal(result.subtotal, 5800);
 });
 
+test('invalid cat care customer values fail closed without granting a discount', () => {
+  const calc = require(calcPath);
+  const selection = { packageId: 'short', quantities: {} };
+  const expected = {
+    error: 'invalid_customer',
+    packageId: '',
+    appliedDiscountRate: 1,
+    lineItems: [],
+    skippedIncludedItemIds: [],
+    needsQuote: false,
+    subtotal: 0,
+  };
+  const invalidCustomers = [
+    { isGraduatedCat: 'false' },
+    { isMember: 'false' },
+    { boardingNights: Infinity },
+    { boardingNights: -1 },
+    { boardingNights: 1.5 },
+    { boardingNights: Number.MAX_SAFE_INTEGER + 1 },
+    { boardingNights: '14' },
+  ];
+
+  for (const customer of invalidCustomers) {
+    assert.deepEqual(calc.calculateCatCare(selection, customer), expected);
+  }
+  assert.equal(calc.calculateCatCare(selection, {
+    isMember: false,
+    isGraduatedCat: false,
+    boardingNights: 0,
+  }).subtotal, 4000);
+});
+
 test('quote-only cat care is marked for consultation without displaying zero yen', () => {
   const calc = require(calcPath);
   const result = calc.calculateCatCare({ packageId: '', quantities: { anal: 1 } }, {});
