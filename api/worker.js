@@ -29,7 +29,7 @@
  */
 
 import launchConfig from '../small-animals-launch.json' with { type: 'json' };
-import { canUpdateCalendarEvent, canWriteCalendarEvent } from './calendar-dog-policy.mjs';
+import { canDeleteCalendarEvent, canUpdateCalendarEvent, canWriteCalendarEvent } from './calendar-dog-policy.mjs';
 
 const PUBLIC_KITTEN_FIELDS = Object.freeze([
   'id', 'breederId', 'breed', 'color', 'gender', 'price', 'status', 'birthday',
@@ -1883,6 +1883,7 @@ async function mutateCalendar(env, fn) {
   if (!Array.isArray(doc.events)) doc.events = [];
   if (typeof doc.rev !== 'number') doc.rev = 0;
   const result = fn(doc);
+  if (result && result.skipWrite === true) return { result, rev: doc.rev };
   doc.rev = doc.rev + 1;
   await env.DATA.put('calendar_events', JSON.stringify(doc));
   return { result, rev: doc.rev };
@@ -3899,13 +3900,17 @@ export default {
       if (path === '/api/admin/calendar' && method === 'DELETE') {
         const id = url.searchParams.get('id') || '';
         if (!id) return addCors(json({ error: 'id query param required' }, 400));
-        let removed = false;
-        const { rev } = await mutateCalendar(env, (doc) => {
-          const before = doc.events.length;
-          doc.events = doc.events.filter(e => !(e && e.id === id));
-          removed = doc.events.length < before;
+        const { rev, result } = await mutateCalendar(env, (doc) => {
+          const index = doc.events.findIndex(e => e && e.id === id);
+          if (index === -1) return { skipWrite: true, notFound: true };
+          if (!canDeleteCalendarEvent(doc.events[index], env)) {
+            return { skipWrite: true, blocked: true };
+          }
+          doc.events.splice(index, 1);
+          return { removed: true };
         });
-        if (!removed) return addCors(notFound());
+        if (result.blocked) return addCors(json({ error: '犬サービスは現在受付停止です' }, 409));
+        if (result.notFound) return addCors(notFound());
         return addCors(json({ rev, ok: true }));
       }
 

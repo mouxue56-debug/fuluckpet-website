@@ -1,4 +1,5 @@
 const DOG_PET_TYPES = Object.freeze(['dog_small', 'dog_medium', 'dog_large']);
+const LEGACY_DOG_PET_TYPES = Object.freeze(['small_dog', 'medium_dog', 'large_dog']);
 
 function isDogCalendarEvent(event) {
   if (!event || typeof event !== 'object') return false;
@@ -36,8 +37,17 @@ function canUpdateCalendarEvent(previousEvent, mergedEvent, env) {
   return canWriteCalendarEvent(mergedEvent, env);
 }
 
+function canDeleteCalendarEvent(event, env) {
+  if (!event || typeof event !== 'object') return false;
+  if (LEGACY_DOG_PET_TYPES.includes(event.petType)) return false;
+  if (event.type === 'care' && event.petType !== 'cat' && !isDogCalendarEvent(event)) return false;
+  return canWriteCalendarEvent(event, env);
+}
+
 export {
   DOG_PET_TYPES,
+  LEGACY_DOG_PET_TYPES,
+  canDeleteCalendarEvent,
   canUpdateCalendarEvent,
   canWriteCalendarEvent,
   canWriteDogCalendarEvent,

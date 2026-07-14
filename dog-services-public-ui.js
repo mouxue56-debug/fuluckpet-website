@@ -62,12 +62,16 @@
 
   function renderBoarding(projection) {
     var stopped = !accepting(projection);
+    var priceSuffix = stopped
+      ? ' <small>/ 1泊・税込予定価格</small>'
+      : ' <small>/ 1泊</small>';
     return '<section class="service-section dog-service-public" id="dog-services" data-dog-public-rendered="boarding">' +
       '<div class="service-wrap"><div class="service-heading"><p class="service-eyebrow">Dog stay</p>' +
       '<h2>犬のお預かり' + (stopped ? '｜準備中' : '') + '</h2>' +
       (stopped ? '<p class="service-status" role="status"><strong>現在受付停止</strong></p><p>' + projection.locationNotice + '</p>' : '') +
-      '<p>体型別の税込基本料金です。7泊以上の長期料金と、土日祝・学校休暇・繁忙期の日付加算があります。正式料金は事前相談後に確定します。</p></div>' +
-      '<div class="service-price-grid">' + priceCards(projection, 'boardingPerNight', ' <small>/ 1泊</small>') + '</div>' +
+      '<p>' + (stopped ? '体型別の税込予定価格です。' : '体型別の税込基本料金です。') +
+      '7泊以上の長期料金と、土日祝・学校休暇・繁忙期の日付加算があります。正式料金は事前相談後に確定します。</p></div>' +
+      '<div class="service-price-grid">' + priceCards(projection, 'boardingPerNight', priceSuffix) + '</div>' +
       '<div class="service-actions">' + (stopped ? '' : '<a class="service-btn is-primary" href="' + LINE_URL + '" target="_blank" rel="noopener">LINEで予約相談</a>') +
       '<a class="service-btn" href="/boarding/estimate.html">犬の料金を計算する</a>' +
       '<a class="service-btn" href="/grooming/#dog-basic-care">犬の基本ケアを見る</a></div></div></section>';
@@ -91,10 +95,12 @@
   }
 
   function renderEstimate(projection) {
-    return (!accepting(projection) ? '<p class="service-note dog-estimate-stop"><strong>犬は現在受付停止</strong>（概算のみ確認できます）</p>' : '') + Projection.SIZE_KEYS.map(function (size) {
+    var stopped = !accepting(projection);
+    return (stopped ? '<p class="service-note dog-estimate-stop"><strong>犬は現在受付停止</strong>（税込予定価格の概算のみ確認できます）</p>' : '') + Projection.SIZE_KEYS.map(function (size) {
       var entry = projection.sizes[size];
       return '<div class="estimate-choice"><input type="radio" name="petType" id="type-dog-' + size + '" value="dog_' + size + '">' +
-        '<label for="type-dog-' + size + '">' + entry.label + '<small>' + money(entry.boardingPerNight) + ' / 1泊</small></label></div>';
+        '<label for="type-dog-' + size + '">' + entry.label + '<small>' + money(entry.boardingPerNight) + ' / 1泊' +
+        (stopped ? '・税込予定価格' : '') + '</small></label></div>';
     }).join('');
   }
 

@@ -34,6 +34,41 @@
     };
   }
 
+  function priceSemanticsFor(type, dogAccepting) {
+    var isDog = /^dog_(small|medium|large)$/.test(type);
+    var planned = isDog && dogAccepting !== true;
+    return {
+      planned: planned,
+      boardingLabel: isDog ? (planned ? '犬のお預かり（予定価格）' : '犬のお預かり') : 'お預かり',
+      totalLabel: planned ? '概算合計（税込予定価格）' : '概算合計（税込）',
+    };
+  }
+
+  function quoteMoney(value) {
+    return '¥' + Math.round(value).toLocaleString('ja-JP');
+  }
+
+  function buildQuoteText(input) {
+    var pricing = priceSemanticsFor(input.type, input.dogAccepting);
+    var output = [
+      pricing.planned ? '【犬のお預かり 予定価格概算】' : '【お預かり 概算】',
+      '動物：' + input.animalLabel,
+      '期間：' + input.checkIn + '〜' + input.checkOut + '（' + input.nights + '泊）',
+      '――――――',
+    ];
+    input.lines.forEach(function (line) {
+      output.push(line.label + (line.detail ? '（' + line.detail + '）' : '') + ' ' + line.value);
+    });
+    output.push(
+      '――――――',
+      (pricing.planned ? '予定価格合計（税込）：' : '概算合計（税込）：') + quoteMoney(input.total),
+      pricing.planned
+        ? '※犬は現在受付停止です。表示額は税込予定価格です。概算のみ確認できます。'
+        : '※正式料金はご相談後に確定します。',
+    );
+    return output.join('\n');
+  }
+
   function findById(entries, id) {
     for (var index = 0; index < entries.length; index += 1) {
       if (entries[index].id === id) return entries[index];
@@ -103,6 +138,7 @@
       resultBody: byId('resultBody'),
       resultLines: byId('resultLines'),
       totalRow: byId('totalRow'),
+      totalLabel: byId('totalLabel'),
       totalValue: byId('totalValue'),
       reviewNote: byId('reviewNote'),
       dogStopNote: byId('dogStopNote'),
@@ -259,30 +295,35 @@
 
     function render(type, checkIn, checkOut, nights, lines, total, reviewMessage) {
       var isDog = /^dog_/.test(type);
+      var dogAccepting = !!(isDog && dogProjection && dogProjection.public === true);
+      var pricing = priceSemanticsFor(type, dogAccepting);
       elements.resultLines.textContent = '';
       lines.forEach(function (line) { addLine(line.label, line.detail, line.value); });
       elements.resultLines.hidden = false;
       elements.totalRow.hidden = false;
+      elements.totalLabel.textContent = pricing.totalLabel;
       elements.totalValue.textContent = money(total);
       elements.reviewNote.textContent = reviewMessage || '';
       elements.reviewNote.hidden = !reviewMessage;
       elements.resultEmpty.hidden = true;
       elements.resultBody.hidden = false;
       elements.lineButton.hidden = isDog;
-      elements.dogStopNote.hidden = !isDog;
+      elements.dogStopNote.hidden = !pricing.planned;
       elements.copyMessage.textContent = '';
       elements.lineButton.textContent = defaultLineText;
       lineDirect = false;
       applyActionState(type, 'result');
 
-      var output = ['【お預かり 概算】', '動物：' + labels[type], '期間：' + checkIn + '〜' + checkOut + '（' + nights + '泊）', '――――――'];
-      lines.forEach(function (line) { output.push(line.label + (line.detail ? '（' + line.detail + '）' : '') + ' ' + line.value); });
-      output.push(
-        '――――――',
-        '概算合計（税込）：' + money(total),
-        isDog ? '※犬は現在受付停止です。概算のみ確認できます。' : '※正式料金はご相談後に確定します。',
-      );
-      quoteText = output.join('\n');
+      quoteText = buildQuoteText({
+        type: type,
+        dogAccepting: dogAccepting,
+        animalLabel: labels[type],
+        checkIn: checkIn,
+        checkOut: checkOut,
+        nights: nights,
+        lines: lines,
+        total: total,
+      });
     }
 
     function boardingDiscountLabel(type, nights, rate, isMember, isGraduatedCat) {
@@ -407,6 +448,7 @@
 
       if (isDog) {
         var dogSize = dogMatch[1];
+        var dogPricing = priceSemanticsFor(type, dogProjection && dogProjection.public === true);
         var dogBoarding = Calc.calculateDogBoarding({
           size: dogSize,
           checkInDate: checkIn,
@@ -418,7 +460,7 @@
           return;
         }
         var dogLines = [{
-          label: '犬のお預かり',
+          label: dogPricing.boardingLabel,
           detail: money(dogBoarding.discountedBasePerNight) + ' × ' + nights + '泊',
           value: money(dogBoarding.discountedBasePerNight * nights),
         }];
@@ -560,7 +602,9 @@
   return {
     actionStateFor: actionStateFor,
     applyCatPackageSelection: applyCatPackageSelection,
+    buildQuoteText: buildQuoteText,
     init: init,
+    priceSemanticsFor: priceSemanticsFor,
     stateFor: stateFor,
   };
 });

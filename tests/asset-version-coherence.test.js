@@ -25,7 +25,8 @@ const NAV_STYLE_RELEASE = '20260711c';
 const CHAT_STYLE_RELEASE = '20260712e';
 const SERVICE_STYLE_RELEASE = '20260714c';
 const SERVICE_RELEASE = '20260714b';
-const ESTIMATE_RELEASE = '20260714c';
+const DOG_UI_RELEASE = '20260714c';
+const ESTIMATE_RELEASE = '20260714d';
 const PUBLIC_ASSETS = {
   'style.css': STYLE_RELEASE,
   'nav.css': NAV_STYLE_RELEASE,
@@ -49,7 +50,7 @@ const PUBLIC_ASSETS = {
   'boarding-public-config.js': SERVICE_RELEASE,
   'boarding-public-calc.js': SERVICE_RELEASE,
   'dog-services-projection.js': SERVICE_RELEASE,
-  'dog-services-public-ui.js': SERVICE_RELEASE,
+  'dog-services-public-ui.js': DOG_UI_RELEASE,
   'boarding/boarding-public-estimate.js': ESTIMATE_RELEASE,
 };
 

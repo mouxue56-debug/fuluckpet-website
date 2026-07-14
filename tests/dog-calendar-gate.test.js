@@ -8,6 +8,50 @@ const { pathToFileURL } = require('node:url');
 const vm = require('node:vm');
 
 const ROOT = path.resolve(__dirname, '..');
+const ADMIN_ORIGIN = 'https://fuluckpet.com';
+const ADMIN_PASSWORD = 'test-only-calendar-delete-password';
+const ADMIN_SALT = '1234567890abcdef1234567890abcdef';
+
+function bytesToHex(buffer) {
+  return [...new Uint8Array(buffer)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+async function passwordHash(password, salt) {
+  return bytesToHex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${password}:${salt}`)));
+}
+
+async function calendarDeleteHarness(events, dogPublic = false) {
+  const store = new Map([
+    ['pw:salt', ADMIN_SALT],
+    ['pw:hash', await passwordHash(ADMIN_PASSWORD, ADMIN_SALT)],
+    ['calendar_events', JSON.stringify({ rev: 4, events })],
+  ]);
+  const puts = [];
+  return {
+    store,
+    puts,
+    env: {
+      DOG_SERVICES_PUBLIC: dogPublic ? 'true' : 'false',
+      DATA: {
+        async get(key, type) {
+          const value = store.get(key) ?? null;
+          return type === 'json' && value !== null ? JSON.parse(value) : value;
+        },
+        async put(key, value) {
+          puts.push({ key, value });
+          store.set(key, value);
+        },
+      },
+    },
+  };
+}
+
+function calendarDeleteRequest(id) {
+  return new Request(`https://fuluckpet.com/api/admin/calendar?id=${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    headers: { Origin: ADMIN_ORIGIN, Authorization: `Bearer ${ADMIN_PASSWORD}` },
+  });
+}
 
 test('dog calendar policy rejects dog boarding and care by default and allows only the explicit true gate', async () => {
   const policy = await import(pathToFileURL(path.join(ROOT, 'api/calendar-dog-policy.mjs')).href);
@@ -74,6 +118,70 @@ test('calendar update policy keeps historical non-cat care read-only while the d
   ), false);
 });
 
+test('calendar delete policy protects stopped current, legacy, and malformed historical records', async () => {
+  const policy = await import(pathToFileURL(path.join(ROOT, 'api/calendar-dog-policy.mjs')).href);
+  const currentDog = { type: 'boarding', petType: 'dog_small' };
+  const immutableHistory = [
+    { type: 'boarding', petType: 'small_dog' },
+    { type: 'care' },
+    { type: 'care', petType: 'rabbit' },
+  ];
+
+  assert.equal(policy.canDeleteCalendarEvent({ type: 'care', petType: 'cat' }, {}), true);
+  assert.equal(policy.canDeleteCalendarEvent({ type: 'boarding', petType: 'cat' }, {}), true);
+  assert.equal(policy.canDeleteCalendarEvent(currentDog, {}), false);
+  assert.equal(policy.canDeleteCalendarEvent(currentDog, { DOG_SERVICES_PUBLIC: 'true' }), true);
+  for (const event of immutableHistory) {
+    assert.equal(policy.canDeleteCalendarEvent(event, {}), false, JSON.stringify(event));
+    assert.equal(policy.canDeleteCalendarEvent(event, { DOG_SERVICES_PUBLIC: 'true' }), false, JSON.stringify(event));
+  }
+});
+
+test('Worker DELETE rejects protected calendar records without a KV write and deletes allowed records', async () => {
+  const { default: worker } = await import(pathToFileURL(path.join(ROOT, 'api/worker.js')).href);
+  const protectedCases = [
+    [{ id: 'current-dog', type: 'boarding', petType: 'dog_small' }, false],
+    [{ id: 'legacy-dog', type: 'boarding', petType: 'small_dog' }, false],
+    [{ id: 'missing-care', type: 'care' }, false],
+    [{ id: 'other-care', type: 'care', petType: 'rabbit' }, false],
+    [{ id: 'legacy-open', type: 'care', petType: 'small_dog' }, true],
+  ];
+  for (const [event, dogPublic] of protectedCases) {
+    const h = await calendarDeleteHarness([event], dogPublic);
+    const response = await worker.fetch(calendarDeleteRequest(event.id), h.env, { waitUntil() {} });
+    assert.equal(response.status, 409, event.id);
+    assert.deepEqual(await response.json(), { error: '犬サービスは現在受付停止です' }, event.id);
+    assert.equal(h.puts.length, 0, event.id);
+    assert.deepEqual(JSON.parse(h.store.get('calendar_events')).events, [event], event.id);
+  }
+
+  const missingHarness = await calendarDeleteHarness([
+    { id: 'keep-cat', type: 'care', petType: 'cat' },
+  ], false);
+  const missingResponse = await worker.fetch(
+    calendarDeleteRequest('absent-event'),
+    missingHarness.env,
+    { waitUntil() {} },
+  );
+  assert.equal(missingResponse.status, 404);
+  assert.equal(missingHarness.puts.length, 0);
+  assert.deepEqual(JSON.parse(missingHarness.store.get('calendar_events')).events, [
+    { id: 'keep-cat', type: 'care', petType: 'cat' },
+  ]);
+
+  for (const [event, dogPublic] of [
+    [{ id: 'cat-care', type: 'care', petType: 'cat' }, false],
+    [{ id: 'current-dog-open', type: 'boarding', petType: 'dog_small' }, true],
+  ]) {
+    const h = await calendarDeleteHarness([event], dogPublic);
+    const response = await worker.fetch(calendarDeleteRequest(event.id), h.env, { waitUntil() {} });
+    assert.equal(response.status, 200, event.id);
+    assert.deepEqual(await response.json(), { rev: 5, ok: true }, event.id);
+    assert.equal(h.puts.length, 1, event.id);
+    assert.deepEqual(JSON.parse(h.store.get('calendar_events')).events, [], event.id);
+  }
+});
+
 test('worker and admin expose prepared dog types but keep the production write gate false', () => {
   const worker = fs.readFileSync(path.join(ROOT, 'api/worker.js'), 'utf8');
   const wrangler = fs.readFileSync(path.join(ROOT, 'api/wrangler.toml'), 'utf8');
@@ -91,7 +199,7 @@ test('worker and admin expose prepared dog types but keep the production write g
 
   const readRoute = worker.match(/path === '\/api\/admin\/calendar' && method === 'GET'[\s\S]*?(?=\/\/ POST \/api\/admin\/calendar)/);
   assert.ok(readRoute, 'calendar GET route remains available for historical records');
-  assert.doesNotMatch(readRoute[0], /canWriteDogCalendarEvent/);
+  assert.doesNotMatch(readRoute[0], /can(?:Write|Update|Delete)(?:Dog)?CalendarEvent/);
 });
 
 test('Admin calendar gives cat care a filter, legend, and mobile-safe visual marker', () => {
@@ -170,6 +278,8 @@ function adminCalendarHarness() {
     '    submitForm: submitForm,',
     '    startEdit: startEdit,',
     '    resetForm: resetForm,',
+    '    renderDayPanel: renderDayPanel,',
+    '    deleteEvent: deleteEvent,',
     '    setEvents: function(nextEvents) { events = nextEvents; }',
     '  };',
     '',
@@ -187,6 +297,7 @@ function adminCalendarHarness() {
     FuluckAPI: {
       post(url, payload) { calls.push({ method: 'POST', url, payload }); return pending; },
       put(url, payload) { calls.push({ method: 'PUT', url, payload }); return pending; },
+      del(url) { calls.push({ method: 'DELETE', url }); return pending; },
     },
     localStorage: { getItem() { return null; }, setItem() {} },
     sessionStorage: { getItem() { return null; }, setItem() {}, removeItem() {} },
@@ -282,4 +393,40 @@ test('Admin keeps historical non-cat care unchanged and read-only until reset', 
     assert.equal(h.elements.get('btnSaveEvent').disabled, false, label);
     assert.equal(h.elements.get('evtReadOnlyHint').hidden, true, label);
   }
+});
+
+test('Admin hides delete and blocks edit and delete calls for every stopped read-only event', () => {
+  const protectedEvents = [
+    { id: 'current-dog', type: 'boarding', petType: 'dog_small' },
+    { id: 'legacy-dog', type: 'boarding', petType: 'small_dog' },
+    { id: 'missing-care', type: 'care' },
+    { id: 'other-care', type: 'care', petType: 'rabbit' },
+  ];
+  for (const event of protectedEvents) {
+    const h = adminCalendarHarness();
+    const stored = {
+      ...event,
+      title: '読み取り専用',
+      start: '2026-07-01',
+      end: '2026-07-01',
+      status: 'confirmed',
+    };
+    h.api.setEvents([stored]);
+    h.api.renderDayPanel('2026-07-01');
+    assert.doesNotMatch(h.elements.get('dayEventsList').innerHTML, /data-act="delete"/, event.id);
+    h.api.startEdit(event.id);
+    assert.equal(h.elements.get('btnSaveEvent').disabled, true, event.id);
+    h.api.deleteEvent(event.id);
+    assert.equal(h.calls.length, 0, event.id);
+  }
+
+  const allowed = adminCalendarHarness();
+  allowed.api.setEvents([{
+    id: 'cat-care', type: 'care', petType: 'cat', title: '猫ケア',
+    start: '2026-07-01', end: '2026-07-01', status: 'confirmed',
+  }]);
+  allowed.api.renderDayPanel('2026-07-01');
+  assert.match(allowed.elements.get('dayEventsList').innerHTML, /data-act="delete"/);
+  allowed.api.deleteEvent('cat-care');
+  assert.equal(allowed.calls[0].method, 'DELETE');
 });

@@ -176,6 +176,9 @@ test('shared UI emits no dog offer when false and complete offers, CTA and schem
   for (const copy of ['小型犬', '¥7,400', '中型犬', '¥8,200', '大型犬', '¥8,900', 'LINEで予約相談']) {
     assert.match(boarding, new RegExp(copy));
   }
+  assert.match(boarding, /体型別の税込基本料金です/);
+  assert.doesNotMatch(boarding, /予定価格/);
+  assert.doesNotMatch(ui.renderSurface('estimate', enabled), /予定価格/);
   const care = ui.renderSurface('care', enabled);
   for (const copy of [
     '犬の基本ケア', '爪切り', '耳掃除', '肛門腺', '基本ケア3点セット',
@@ -204,7 +207,16 @@ test('preparing UI shows stopped dog prices and calculator without booking CTA o
   assert.match(boarding, /大阪・針中野/);
   assert.match(boarding, /¥7,400/);
   assert.match(boarding, /料金を計算/);
+  assert.match(boarding, /体型別の税込予定価格です/);
+  assert.equal((boarding.match(/税込予定価格/g) || []).length, 4);
   assert.doesNotMatch(boarding, /LINE|予約相談|申し込/);
+
+  const estimateBoarding = ui.renderSurface('estimate', preparing);
+  assert.match(estimateBoarding, /犬は現在受付停止/);
+  assert.equal((estimateBoarding.match(/税込予定価格/g) || []).length, 4);
+  for (const price of ['¥7,400', '¥8,200', '¥8,900']) {
+    assert.match(estimateBoarding, new RegExp(`${price}[^<]*税込予定価格`));
+  }
 
   const care = ui.renderSurface('care', preparing);
   assert.equal((care.match(/<section\b/g) || []).length, 1);
@@ -312,10 +324,10 @@ test('dog estimator keeps stopped calculations separate from reservation actions
   assert.match(html, /現在受付停止/);
   assert.match(html, /受付中のサービスのみLINE相談後に確定/);
   assert.match(source, /lineButton\.hidden\s*=\s*isDog/);
-  assert.match(source, /dogStopNote\.hidden\s*=\s*!isDog/);
+  assert.match(source, /dogStopNote\.hidden\s*=\s*!pricing\.planned/);
   assert.match(source, /dateNote\.textContent\s*=\s*isDog\s*\?/);
   assert.match(source, /犬は現在受付停止です。受付開始後に対象日程を更新します。/);
-  assert.match(source, /isDog\s*\?\s*'※犬は現在受付停止です。概算のみ確認できます。'/);
+  assert.match(source, /犬は現在受付停止です。表示額は税込予定価格です。概算のみ確認できます。/);
   assert.match(source, /コピーできませんでした。画面の内容をご確認ください。/);
   assert.match(source, /validateDogServicesPreparingProjection/);
 });

@@ -94,6 +94,57 @@ test('stopped dog output never exposes LINE while its completed quote remains co
   });
 });
 
+test('dog estimate result and copied quote label planned prices only while stopped', () => {
+  const api = require('../boarding/boarding-public-estimate.js');
+  const html = read('boarding/estimate.html');
+  const source = read('boarding/boarding-public-estimate.js');
+  const stopped = api.priceSemanticsFor('dog_small', false);
+
+  assert.deepEqual(stopped, {
+    planned: true,
+    boardingLabel: '犬のお預かり（予定価格）',
+    totalLabel: '概算合計（税込予定価格）',
+  });
+  const stoppedQuote = api.buildQuoteText({
+    type: 'dog_small',
+    dogAccepting: false,
+    animalLabel: '小型犬',
+    checkIn: '2026-08-01',
+    checkOut: '2026-08-02',
+    nights: 1,
+    lines: [{ label: stopped.boardingLabel, detail: '¥7,400 × 1泊', value: '¥7,400' }],
+    total: 7400,
+  });
+  for (const copy of [
+    '【犬のお預かり 予定価格概算】',
+    '犬のお預かり（予定価格）',
+    '予定価格合計（税込）：¥7,400',
+    '犬は現在受付停止です。表示額は税込予定価格です。',
+  ]) assert.match(stoppedQuote, new RegExp(copy.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+
+  const accepting = api.priceSemanticsFor('dog_small', true);
+  assert.deepEqual(accepting, {
+    planned: false,
+    boardingLabel: '犬のお預かり',
+    totalLabel: '概算合計（税込）',
+  });
+  const acceptedQuote = api.buildQuoteText({
+    type: 'dog_small', dogAccepting: true, animalLabel: '小型犬',
+    checkIn: '2026-08-01', checkOut: '2026-08-02', nights: 1,
+    lines: [{ label: accepting.boardingLabel, detail: '¥7,400 × 1泊', value: '¥7,400' }],
+    total: 7400,
+  });
+  assert.doesNotMatch(acceptedQuote, /予定価格|受付停止/);
+  assert.match(acceptedQuote, /概算合計（税込）：¥7,400/);
+  assert.equal(api.priceSemanticsFor('cat', false).planned, false);
+
+  assert.match(html, /id="totalLabel">概算合計（税込）<\/span>/);
+  assert.match(html, /id="dogStopNote"[^>]*hidden[^>]*>[\s\S]*税込予定価格/);
+  assert.match(source, /dogPricing\.boardingLabel/);
+  assert.match(source, /elements\.totalLabel\.textContent\s*=\s*pricing\.totalLabel/);
+  assert.match(source, /quoteText\s*=\s*buildQuoteText\(/);
+});
+
 test('estimator consumes the canonical care catalogs without legacy aliases', () => {
   const source = read('boarding/boarding-public-estimate.js');
   const config = require('../boarding-public-config.js');

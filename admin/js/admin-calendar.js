@@ -18,6 +18,7 @@
   var typeFilters = { visit: true, boarding: true, care: true, block: true, note: true };
   var statusFilter = 'all';
   var NEW_BOARDING_PET_TYPES = ['cat', 'rabbit', 'hamster', 'other_small_animal'];
+  var STOPPED_DOG_PET_TYPES = ['dog_small', 'dog_medium', 'dog_large'];
   // Historical care events outside the cat contract stay readable but read-only.
   var LEGACY_PET_TYPES = {
     small_dog: ['小型犬（履歴・受付対象外）', '小型犬（历史·不再受理）'],
@@ -25,8 +26,11 @@
     large_dog: ['大型犬（履歴・受付対象外）', '大型犬（历史·不再受理）']
   };
 
-  function isHistoricalReadOnlyCare(event) {
-    return !!(event && event.type === 'care' && event.petType !== 'cat');
+  function isStoppedReadOnlyEvent(event) {
+    if (!event) return false;
+    return STOPPED_DOG_PET_TYPES.indexOf(event.petType) !== -1 ||
+      Object.prototype.hasOwnProperty.call(LEGACY_PET_TYPES, event.petType) ||
+      (event.type === 'care' && event.petType !== 'cat');
   }
 
   function $(id) { return document.getElementById(id); }
@@ -223,7 +227,7 @@
           + (e.notes ? '<div class="evt-notes">' + escHtml(e.notes) + '</div>' : '')
           + '<div class="evt-actions">'
           +   '<button class="action-btn" data-act="edit" data-id="' + escAttr(e.id) + '">' + tt('編集', '编辑') + '</button>'
-          +   '<button class="action-btn delete" data-act="delete" data-id="' + escAttr(e.id) + '">' + tt('削除', '删除') + '</button>'
+          +   (isStoppedReadOnlyEvent(e) ? '' : '<button class="action-btn delete" data-act="delete" data-id="' + escAttr(e.id) + '">' + tt('削除', '删除') + '</button>')
           + '</div>'
           + '</div>';
       }).join('');
@@ -284,7 +288,7 @@
     $('evtStatus').value = e.status || 'pending';
     $('evtNotes').value = e.notes || '';
     updatePetTypeVisibility();
-    var readOnly = isHistoricalReadOnlyCare(editingOriginalEvent);
+    var readOnly = isStoppedReadOnlyEvent(editingOriginalEvent);
     $('btnSaveEvent').textContent = tt('更新する', '更新');
     $('btnSaveEvent').disabled = readOnly;
     $('evtReadOnlyHint').hidden = !readOnly;
@@ -312,7 +316,7 @@
     var isBoarding = type === 'boarding';
     var isCare = type === 'care';
     var petTypeSelect = $('evtPetType');
-    var preserveHistoricalCare = isCare && isHistoricalReadOnlyCare(editingOriginalEvent);
+    var preserveHistoricalCare = isCare && isStoppedReadOnlyEvent(editingOriginalEvent);
     $('evtPetTypeGroup').style.display = (isBoarding || isCare) ? 'block' : 'none';
     Array.prototype.forEach.call(petTypeSelect.querySelectorAll('option'), function(option) {
       option.disabled = isCare
@@ -324,7 +328,7 @@
 
   function submitForm(ev) {
     ev.preventDefault();
-    if (isHistoricalReadOnlyCare(editingOriginalEvent)) return;
+    if (isStoppedReadOnlyEvent(editingOriginalEvent)) return;
     var start = $('evtStart').value;
     var end = $('evtEnd').value || start;
     var payload = {
@@ -357,6 +361,8 @@
   }
 
   function deleteEvent(id) {
+    var event = events.filter(function(item) { return item && item.id === id; })[0];
+    if (isStoppedReadOnlyEvent(event)) return;
     if (!confirm(tt('この予定を削除しますか？', '确定删除该日程吗？'))) return;
     FuluckAPI.del('/api/admin/calendar?id=' + encodeURIComponent(id)).then(function() {
       showToast(tt('削除しました', '已删除'), 'success');
