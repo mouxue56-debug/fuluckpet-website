@@ -2,7 +2,7 @@ const DOG_PET_TYPES = Object.freeze(['dog_small', 'dog_medium', 'dog_large']);
 
 function isDogCalendarEvent(event) {
   if (!event || typeof event !== 'object') return false;
-  return event.type === 'care' || DOG_PET_TYPES.includes(event.petType);
+  return DOG_PET_TYPES.includes(event.petType);
 }
 
 function dogCalendarWritesEnabled(env) {

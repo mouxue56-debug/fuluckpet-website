@@ -17,6 +17,7 @@
   var typeFilters = { visit: true, boarding: true, care: true, block: true, note: true };
   var statusFilter = 'all';
   var NEW_BOARDING_PET_TYPES = ['cat', 'rabbit', 'hamster', 'other_small_animal'];
+  var STOPPED_DOG_PET_TYPES = ['dog_small', 'dog_medium', 'dog_large'];
   // Historical dog events predate the current 220012B scope. They stay readable
   // and may retain their stored value while another field is edited, but the UI
   // never offers them for a new event and the API rejects new legacy writes.
@@ -25,6 +26,11 @@
     medium_dog: ['中型犬（履歴・受付対象外）', '中型犬（历史·不再受理）'],
     large_dog: ['大型犬（履歴・受付対象外）', '大型犬（历史·不再受理）']
   };
+
+  function isStoppedDogPetType(petType) {
+    return STOPPED_DOG_PET_TYPES.indexOf(petType) !== -1 ||
+      Object.prototype.hasOwnProperty.call(LEGACY_PET_TYPES, petType);
+  }
 
   function $(id) { return document.getElementById(id); }
   function tt(ja, zh) { return (window.admLang === 'zh') ? zh : ja; }
@@ -56,7 +62,7 @@
   var TYPE_LABELS = {
     visit: ['見学', '参观'],
     boarding: ['お預かり', '寄养'],
-    care: ['犬の基本ケア', '犬基础护理'],
+    care: ['猫のケア', '猫护理'],
     block: ['休業・満室', '休业·满房'],
     note: ['メモ', '备注']
   };
@@ -279,7 +285,7 @@
     $('evtPetType').value = e.petType || 'cat';
     $('evtStatus').value = e.status || 'pending';
     $('evtNotes').value = e.notes || '';
-    updatePetTypeVisibility();
+    updatePetTypeVisibility({ preserveStoppedDog: isStoppedDogPetType(e.petType) });
     $('btnSaveEvent').textContent = tt('更新する', '更新');
     $('btnCancelEdit').style.display = 'block';
     $('eventForm').scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -297,8 +303,19 @@
     $('btnCancelEdit').style.display = 'none';
   }
 
-  function updatePetTypeVisibility() {
-    $('evtPetTypeGroup').style.display = ($('evtType').value === 'boarding') ? 'block' : 'none';
+  function updatePetTypeVisibility(options) {
+    var type = $('evtType').value;
+    var isBoarding = type === 'boarding';
+    var isCare = type === 'care';
+    var petTypeSelect = $('evtPetType');
+    var preserveStoppedDog = !!(options && options.preserveStoppedDog && isStoppedDogPetType(petTypeSelect.value));
+    $('evtPetTypeGroup').style.display = (isBoarding || isCare) ? 'block' : 'none';
+    Array.prototype.forEach.call(petTypeSelect.querySelectorAll('option'), function(option) {
+      option.disabled = isCare
+        ? option.value !== 'cat'
+        : NEW_BOARDING_PET_TYPES.indexOf(option.value) === -1;
+    });
+    if (isCare && !preserveStoppedDog) petTypeSelect.value = 'cat';
   }
 
   function submitForm(ev) {
@@ -314,7 +331,10 @@
       status: $('evtStatus').value,
       notes: $('evtNotes').value || undefined
     };
-    if (payload.type === 'boarding') {
+    if (payload.type === 'care') {
+      var carePetType = $('evtPetType').value;
+      payload.petType = editingId && isStoppedDogPetType(carePetType) ? carePetType : 'cat';
+    } else if (payload.type === 'boarding') {
       var petType = $('evtPetType').value;
       if (NEW_BOARDING_PET_TYPES.indexOf(petType) !== -1) payload.petType = petType;
     }

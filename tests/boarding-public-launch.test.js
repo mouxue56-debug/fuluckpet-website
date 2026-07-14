@@ -147,10 +147,12 @@ test('admin calendar shows prepared dog categories disabled while keeping licens
   for (const value of ['dog_small', 'dog_medium', 'dog_large']) {
     assert.match(adminHtml, new RegExp(`option value="${value}"[^>]*disabled`));
   }
+  assert.match(adminHtml, /<option\b[^>]*value="care"(?![^>]*\bdisabled\b)[^>]*data-adm-ja="猫のケア"[^>]*data-adm-zh="猫护理"[^>]*>猫のケア<\/option>/);
   assert.match(adminHtml, /犬は現在受付停止/);
   assert.match(adminJs, /LEGACY_PET_TYPES/);
   assert.match(adminJs, /small_dog[\s\S]*medium_dog[\s\S]*large_dog/);
   assert.match(adminJs, /NEW_BOARDING_PET_TYPES\.indexOf\([^)]*\)\s*!==\s*-1/);
+  assert.match(adminJs, /care:\s*\['猫のケア',\s*'猫护理'\]/);
 });
 
 test('service CTAs use defined icons and estimate-only controls respect hidden state', () => {
