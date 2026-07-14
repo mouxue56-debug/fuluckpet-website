@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const childProcess = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
@@ -52,6 +53,23 @@ const HOMEPAGE_AWARD_COPY = {
   en: 'H1 2025: No. 1 nationwide for customer ratings among Siberian breeders',
   zh: '2025年上半年 全国西伯利亚猫繁育者 客户评价第1名',
 };
+
+test('public review proof stays truthful without a volatile exact count', () => {
+  const trackedPublic = childProcess.execFileSync(
+    'git',
+    ['ls-files', '*.html', '*.js', '*.mjs', '*.py'],
+    { cwd: ROOT, encoding: 'utf8' },
+  ).trim().split('\n').filter(Boolean);
+
+  for (const file of trackedPublic) {
+    const source = read(file);
+    assert.doesNotMatch(source, /113(?:件|\s+reviews|条评价)/, file);
+    assert.doesNotMatch(source, /["']reviewCount["']\s*:\s*["']113["']/, file);
+  }
+  assert.match(read('index.html'), /口コミ評価 5\.00 \/ 100件以上/);
+  assert.match(read('i18n.js'), /100\+ reviews/);
+  assert.match(read('i18n.js'), /100条以上评价/);
+});
 
 test('public FAQ copy names real channels and contains no invented form or hardcoded range', () => {
   for (const file of ['faq.html', 'index.html', 'i18n.js']) {

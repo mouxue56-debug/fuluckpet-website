@@ -57,7 +57,7 @@ const translations = {
     'hero.stat3': '卒業猫',
     'obi.rank': '全国 1位',
     'obi.rankSub': 'みんなの子猫ブリーダー 2025年上半期',
-    'obi.reviews': 'レビュー113件',
+    'obi.reviews': 'レビュー100件以上',
     'obi.all': '全頭',
     'obi.tested': '遺伝子検査済み',
     'chip.hypoallergenic': '低アレルゲンのシベリアン',
@@ -126,7 +126,7 @@ const translations = {
 
     // Voice (Reviews)
     'voice.title': 'お客様の声',
-    'voice.total': '/ 113件のレビュー',
+    'voice.total': '/ 100件以上のレビュー',
     'voice.r1.text': '質問にも丁寧に答えてくださり、引き渡し前には爪切りやシャンプーまで準備してくださいました。安心してお迎えできました。',
     'voice.r1.author': '— 大阪府 L.A様',
     'voice.r2.text': '説明がとても分かりやすく、素晴らしいブリーダーさんです。可愛い子猫をお迎えでき、食事やケアについても丁寧にアドバイスいただきました。',
@@ -263,7 +263,7 @@ const translations = {
 
     // Trust Bar
     'trust.award': '全国ブリーダーアワード受賞',
-    'trust.rating': '口コミ評価 5.00 / 113件',
+    'trust.rating': '口コミ評価 5.00 / 100件以上',
     'trust.license': '第一種動物取扱業 登録済',
     'trust.support': 'お迎え後も生涯LINEサポート',
     'trust.graduates': '200+ 卒業猫',
@@ -596,7 +596,7 @@ const translations = {
     'hero.stat3': 'Kittens Adopted',
     'obi.rank': '#1 Nationwide',
     'obi.rankSub': 'Minna no Koneko Breeder · H1 2025',
-    'obi.reviews': '113 reviews',
+    'obi.reviews': '100+ reviews',
     'obi.all': 'Every cat',
     'obi.tested': 'Genetically tested',
     'chip.hypoallergenic': 'Hypoallergenic Siberian',
@@ -1135,7 +1135,7 @@ const translations = {
     'hero.stat3': '已出窝',
     'obi.rank': '全国第1位',
     'obi.rankSub': 'みんなの子猫ブリーダー · 2025上半年',
-    'obi.reviews': '113条评价',
+    'obi.reviews': '100条以上评价',
     'obi.all': '全部',
     'obi.tested': '已做基因检测',
     'chip.hypoallergenic': '低致敏西伯利亚猫',
@@ -1204,7 +1204,7 @@ const translations = {
 
     // Voice
     'voice.title': '客户评价',
-    'voice.total': '/ 113条评价',
+    'voice.total': '/ 100条以上评价',
     'voice.r1.text': '问题都耐心解答，交接前还帮猫咪剪了指甲、洗了澡，准备得非常周到。非常安心地迎接了小猫。',
     'voice.r1.author': '— 大阪府 L.A',
     'voice.r2.text': '说明非常清楚易懂，是很棒的繁殖者。迎接了可爱的小猫，还在饮食和护理方面给了很多细心的建议。',

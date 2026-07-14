@@ -204,4 +204,8 @@ test('graduated-cat 30% care benefit is visible, accessible and mobile-safe', ()
     serviceCss,
     /@media\s*\(max-width:\s*600px\)[\s\S]*?\.estimate-types,[\s\S]*?\.estimate-fields,[\s\S]*?\.estimate-result-actions[\s\S]*?grid-template-columns:\s*1fr/,
   );
+  assert.match(
+    serviceCss,
+    /\.estimate-lines\s+strong\s*\{[^}]*white-space:\s*nowrap/,
+  );
 });

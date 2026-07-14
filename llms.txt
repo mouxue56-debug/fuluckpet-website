@@ -1,6 +1,6 @@
 # 福楽キャッテリー (Fuluck Cattery)
 
-> 大阪市城東区のサイベリアン専門ブリーダー。全頭遺伝子検査、口コミ5.0★（113件）、みんなの子猫ブリーダーアワード全国上位入賞の実績。低アレルゲン（Fel d1が少なめ）のサイベリアンを中心に、ブリティッシュショートヘア／ロングヘア、ラグドールも扱う。An Osaka-based specialist breeder of Siberian cats — a naturally lower-allergen breed — with full genetic screening on every breeding cat and a verified 5.0-star / 113-review record.
+> 大阪市城東区のサイベリアン専門ブリーダー。全頭遺伝子検査、口コミ5.0★（100件以上）、みんなの子猫ブリーダーアワード全国上位入賞の実績。低アレルゲン（Fel d1が少なめ）のサイベリアンを中心に、ブリティッシュショートヘア／ロングヘア、ラグドールも扱う。An Osaka-based specialist breeder of Siberian cats — a naturally lower-allergen breed — with full genetic screening on every breeding cat and a verified 5.0-star / 113-review record.
 
 ## About
 - 所在地: 大阪府大阪市城東区。見学は事前予約制、対応言語は日本語・英語・中国語。
@@ -18,7 +18,7 @@
 - [子猫一覧 / Available kittens](https://fuluckpet.com/kittens.html) — 販売中・予約済みの子猫。ライブデータから毎日再生成。
 - [子猫詳細ページ / Kitten detail](https://fuluckpet.com/kittens.html) — 各子猫は /kittens/<個体番号>.html（例 /kittens/2602-00625.html）。写真・猫種・毛色・性別・誕生月・価格・Product構造化データ付き。
 - [親猫紹介 / Parents](https://fuluckpet.com/parents.html) — 繁殖に用いる親猫と血統・健康情報。
-- [お客様の声 / Reviews](https://fuluckpet.com/reviews.html) — 口コミ5.0★・113件の実績とレビュー。
+- [お客様の声 / Reviews](https://fuluckpet.com/reviews.html) — 口コミ5.0★・100件以上の実績とレビュー。
 - [サイベリアンの魅力 / Siberian breed](https://fuluckpet.com/siberian.html) — 性格・被毛・歴史などの品種解説。
 - [猫アレルギーとサイベリアン / Cat allergy](https://fuluckpet.com/siberian-allergy.html) — Fel d1の科学、正直なリスク説明、無料セルフチェック付き。
 - [大阪・関西でのお迎え / Osaka breeder](https://fuluckpet.com/siberian-breeder-osaka.html) — 関西からのお迎え・見学・引き渡しの地域ガイド。

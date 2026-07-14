@@ -10,6 +10,13 @@ const KittenCatalog = require('../kitten-catalog.js');
 const ROOT = path.resolve(__dirname, '..');
 const SOURCE = fs.readFileSync(path.join(ROOT, 'kitten-carousel.js'), 'utf8');
 
+test('mobile carousel gutters stay inside a 390px detail-page viewport', () => {
+  assert.match(
+    SOURCE,
+    /@media\(max-width:600px\)\{[^}]*\.kc-track-wrap\s*\{[^}]*margin:\s*0 -16px;[^}]*padding:\s*0 16px;/,
+  );
+});
+
 function flushAsyncWork() {
   return new Promise((resolve) => setImmediate(resolve)).then(
     () => new Promise((resolve) => setImmediate(resolve))

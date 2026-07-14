@@ -326,6 +326,7 @@
     '.kc-dot { width:6px; height:6px; border-radius:50%; background:#ddd; transition:background 0.3s; }' +
     '.kc-dot.active { background:var(--mint,#7DD3C0); width:18px; border-radius:3px; }' +
     '@media(max-width:600px){' +
+      '.kc-track-wrap { margin:0 -16px; padding:0 16px; }' +
       '.kc-card { flex:0 0 180px; }' +
       '.kc-img { width:180px; height:180px; }' +
       '.kc-actions { flex-direction:column; align-items:center; }' +

@@ -656,6 +656,11 @@ select.estimate-care-control {
   color: var(--text-note);
 }
 
+.estimate-lines strong {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
 .estimate-total {
   margin-top: 12px;
   padding-top: 18px;

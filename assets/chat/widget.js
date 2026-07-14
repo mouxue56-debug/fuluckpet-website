@@ -267,6 +267,15 @@
     '<path d="M54 39 L46 38" stroke="#cba07a" stroke-width="0.8" stroke-linecap="round"/>' +
     '</svg>';
 
+  var svgCatInstance = 0;
+  function catSvg(width, height) {
+    svgCatInstance += 1;
+    var suffix = '-' + svgCatInstance;
+    return SVG_CAT.replace(/fcF/g, 'fcF' + suffix)
+      .replace(/fcE/g, 'fcE' + suffix)
+      .replace('width="48" height="48"', 'width="' + width + '" height="' + height + '"');
+  }
+
   var SVG_CLOSE =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6 L18 18 M6 18 L18 6"/></svg>';
   var SVG_RESET =
@@ -284,7 +293,7 @@
     );
     avatar.innerHTML = role === 'user'
       ? '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
-      : SVG_CAT.replace('width="48" height="48"', 'width="22" height="22"');
+      : catSvg(22, 22);
 
     var bubble = el('div', { class: 'fuluck-chat-msg-bubble' });
     if (opts.html) bubble.innerHTML = content;
@@ -298,7 +307,7 @@
 
   function typingNode() {
     var avatar = el('div', { class: 'fuluck-chat-msg-avatar', 'aria-hidden': 'true' });
-    avatar.innerHTML = SVG_CAT.replace('width="48" height="48"', 'width="22" height="22"');
+    avatar.innerHTML = catSvg(22, 22);
     var dots = el('div', { class: 'fuluck-chat-msg-bubble' }, [
       el('span', { class: 'fuluck-chat-typing' }, [
         el('span'),
@@ -378,7 +387,7 @@
       [
         (function () {
           var w = el('span', { class: 'fuluck-chat-bubble-avatar', 'aria-hidden': 'true' });
-          w.innerHTML = SVG_CAT;
+          w.innerHTML = catSvg(48, 48);
           return w;
         })(),
         el('span', { class: 'fuluck-chat-bubble-pulse', 'aria-hidden': 'true' })
@@ -396,7 +405,7 @@
 
     // Header
     var headerAvatar = el('div', { class: 'fuluck-chat-header-avatar', 'aria-hidden': 'true' });
-    headerAvatar.innerHTML = SVG_CAT.replace('width="48" height="48"', 'width="28" height="28"');
+    headerAvatar.innerHTML = catSvg(28, 28);
 
     var statusEl = el('div', { class: 'fuluck-chat-header-status' }, t('chat.status'));
     this.statusEl = statusEl;

@@ -36,7 +36,7 @@ def hero(h1, sub, btns=True):
 
 def trust_strip():
     return ('<section style="padding:8px 0 0"><div class="container" style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;text-align:center">'
-            '<span style="background:#fff;border:1px solid #e8f5f0;border-radius:30px;padding:8px 18px;font-weight:600;color:#5A7A7A"><i class="ico ico-star" aria-hidden="true"></i> 5.00／113件</span>'
+            '<span style="background:#fff;border:1px solid #e8f5f0;border-radius:30px;padding:8px 18px;font-weight:600;color:#5A7A7A"><i class="ico ico-star" aria-hidden="true"></i> 5.00／100件以上</span>'
             '<span style="background:#fff;border:1px solid #e8f5f0;border-radius:30px;padding:8px 18px;font-weight:600;color:#5A7A7A"><i class="ico ico-trophy" aria-hidden="true"></i> みんなの子猫ブリーダー 全国1位（2025上半期）</span>'
             '<span style="background:#fff;border:1px solid #e8f5f0;border-radius:30px;padding:8px 18px;font-weight:600;color:#5A7A7A"><i class="ico ico-paw-print" aria-hidden="true"></i> 200+ 卒業猫</span></div></section>')
 
@@ -73,7 +73,7 @@ LANDING_BODY = (hero(
   '<section style="padding:40px 0"><div class="container" style="max-width:860px">'
   '<h2>なぜ大阪で福楽キャッテリーが選ばれるのか</h2>'
   '<ul style="line-height:2.1;font-size:1.02rem">'
-  '<li><b>みんなの子猫ブリーダー 全国第1位</b>（2025年上半期）・口コミ <b>5.00★×113件</b>・<b>200頭以上</b>の卒業実績。</li>'
+  '<li><b>みんなの子猫ブリーダー 全国第1位</b>（2025年上半期）・口コミ <b>5.00★×100件以上</b>・<b>200頭以上</b>の卒業実績。</li>'
   '<li><b>低アレルゲン（Fel d1）に特化</b>したサイベリアン専門。猫アレルギーのご家庭からのご相談を多数いただいています。</li>'
   '<li><b>遺伝子検査（PKD・HCM）</b>を実施し、結果を確認できる親猫から繁殖。マイクロチップ・ワクチン・健康診断済みでお渡し。</li>'
   '<li>見学時に<b>アレルギーの相性チェック</b>のお時間を確保。実際に会って納得してからお迎えいただけます。</li>'
@@ -140,7 +140,7 @@ WAITLIST_BODY = (hero(
 
 PAGES = [
  {"slug":"siberian-breeder-osaka.html","title":"サイベリアン ブリーダー 大阪・関西｜低アレルゲン専門｜福楽キャッテリー",
-  "desc":"大阪のサイベリアン専門ブリーダー・福楽キャッテリー。低アレルゲンで穏やかな子猫を関西全域・全国へ。口コミ5.00★×113件、みんなの子猫ブリーダー全国1位。見学予約受付中。",
+  "desc":"大阪のサイベリアン専門ブリーダー・福楽キャッテリー。低アレルゲンで穏やかな子猫を関西全域・全国へ。口コミ5.00★×100件以上、みんなの子猫ブリーダー全国1位。見学予約受付中。",
   "keywords":"サイベリアン,ブリーダー,大阪,関西,子猫,低アレルゲン,福楽キャッテリー,見学,価格,猫アレルギー",
   "jsonld":jsonld_breadcrumb("サイベリアン ブリーダー 大阪・関西","siberian-breeder-osaka.html", faq_jsonld(LANDING_FAQ)),
   "body":LANDING_BODY},

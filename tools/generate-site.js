@@ -1179,8 +1179,8 @@ ${shapesHtml}
         "availability": `https://schema.org/${availMap[effectiveStatus]}`,
         "seller": { "@type": "Organization", "name": "福楽キャッテリー" }
       }
-      // No per-kitten aggregateRating: the business-wide 5.0/113 belongs on the
-      // LocalBusiness, not on each Product (no single kitten has 113 reviews —
+      // No per-kitten aggregateRating: the business-wide rating belongs on the
+      // LocalBusiness, not on each Product (no single kitten owns those reviews —
       // Google product-rating policy violation that risks review-snippet suppression).
     });
   }
@@ -2456,7 +2456,7 @@ ${footerHtml}
   <script src="/kitten-catalog.js?v=${verAsset('kitten-catalog.js', '20260711b')}"></script>
   <script src="/i18n.js?v=${verAsset('i18n.js', '20260713a')}"></script>
   <script src="/catalog-i18n.js?v=${verAsset('catalog-i18n.js', '20260710b')}"></script>
-  <script src="/kitten-carousel.js?v=${verAsset('kitten-carousel.js', '20260712e')}"></script>
+  <script src="/kitten-carousel.js?v=${verAsset('kitten-carousel.js', '20260714g')}"></script>
   <script src="/cta-widget.js?v=${verAsset('cta-widget.js', '20260711b')}"></script>
   <script src="/script.js?v=${verAsset('script.js', '20260712e')}"></script>
 </body>

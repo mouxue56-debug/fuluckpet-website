@@ -37,7 +37,7 @@ const CTA_I18N = {
   ja: {
     relatedHeading: '関連記事',
     ctaTitle: '福楽キャッテリーの子猫を見てみませんか？',
-    badgeReviews: '<strong>5.00</strong>／113件',
+    badgeReviews: '<strong>5.00</strong>／100件以上',
     badgeRank: '全国1位（みんなの子猫ブリーダー）',
     badgeGrads: '<strong>200+</strong> 卒業猫',
     ctaText: '健康管理と社会化トレーニングを大切に育てた子猫たちをご紹介しています。<br>お気軽にLINEでご相談ください。',
@@ -52,7 +52,7 @@ const CTA_I18N = {
   en: {
     relatedHeading: 'Related Articles',
     ctaTitle: 'Would you like to meet the kittens at 福楽キャッテリー?',
-    badgeReviews: '<strong>5.00</strong> · 113 reviews',
+    badgeReviews: '<strong>5.00</strong> · 100+ reviews',
     badgeRank: '#1 Nationwide (Minna no Koneko Breeder)',
     badgeGrads: '<strong>200+</strong> kittens placed',
     ctaText: 'We introduce kittens raised with great care for their health and socialization.<br>Feel free to reach out to us on LINE.',
@@ -67,7 +67,7 @@ const CTA_I18N = {
   zh: {
     relatedHeading: '相关文章',
     ctaTitle: '想看看福楽キャッテリー的幼猫吗？',
-    badgeReviews: '<strong>5.00</strong> · 113条评价',
+    badgeReviews: '<strong>5.00</strong> · 100条以上评价',
     badgeRank: '全国第1名（大家的幼猫繁育者）',
     badgeGrads: '<strong>200+</strong> 毕业猫',
     ctaText: '我们介绍的是精心注重健康管理与社会化训练养育的幼猫。<br>欢迎随时通过LINE咨询。',

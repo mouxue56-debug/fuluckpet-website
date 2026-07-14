@@ -13,7 +13,7 @@ const STYLE_RELEASE = '20260712f';
 const SCRIPT_RELEASE = '20260712e';
 const TRUTH_RELEASE = '20260711c';
 const CATALOG_RELEASE = '20260711b';
-const KITTEN_CAROUSEL_RELEASE = '20260712e';
+const KITTEN_CAROUSEL_RELEASE = '20260714g';
 const CARD_LOADER_RELEASE = '20260711d';
 const ADMIN_RENDER_RELEASE = '20260711a';
 const ADMIN_DIARY_RELEASE = '20260711a';
@@ -23,7 +23,8 @@ const NAV_RELEASE = '20260714f';
 const I18N_RELEASE = '20260713a';
 const NAV_STYLE_RELEASE = '20260711c';
 const CHAT_STYLE_RELEASE = '20260712e';
-const SERVICE_STYLE_RELEASE = '20260714c';
+const CHAT_RELEASE = '20260714g';
+const SERVICE_STYLE_RELEASE = '20260714g';
 const SERVICE_RELEASE = '20260714f';
 const DOG_UI_RELEASE = '20260714f';
 const ESTIMATE_RELEASE = '20260714f';
@@ -45,7 +46,7 @@ const PUBLIC_ASSETS = {
   'script.js': SCRIPT_RELEASE,
   'mobile-cta.js': TRUST_RELEASE,
   'assets/chat/widget.css': CHAT_STYLE_RELEASE,
-  'assets/chat/widget.js': TRUTH_RELEASE,
+  'assets/chat/widget.js': CHAT_RELEASE,
   'services.css': SERVICE_STYLE_RELEASE,
   'boarding-public-config.js': SERVICE_RELEASE,
   'boarding-public-calc.js': SERVICE_RELEASE,

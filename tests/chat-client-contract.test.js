@@ -27,3 +27,10 @@ test('chat client continues bounded forget batches until the server reports comp
   assert.match(widget, /body\s*&&\s*body\.more[\s\S]*?forgetServerBatch\(sid,\s*attempt\s*\+\s*1,\s*body\.cursor\)/);
   assert.match(widget, /attempt\s*>=\s*60/);
 });
+
+test('every rendered cat avatar gets unique SVG gradient ids', () => {
+  assert.match(widget, /function catSvg\s*\(/);
+  assert.match(widget, /SVG_CAT\.replace\(\/fcF\/g,/);
+  assert.match(widget, /SVG_CAT\.replace[\s\S]*?\.replace\(\/fcE\/g,/);
+  assert.doesNotMatch(widget, /innerHTML\s*=\s*SVG_CAT(?:\.|;)/);
+});
