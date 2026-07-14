@@ -27,6 +27,7 @@ function canUpdateCalendarEvent(previousEvent, mergedEvent, env) {
   if (!previousEvent || typeof previousEvent !== 'object') return false;
   if (!mergedEvent || typeof mergedEvent !== 'object') return false;
 
+  if (LEGACY_DOG_PET_TYPES.includes(previousEvent.petType)) return false;
   if (isDogCalendarEvent(previousEvent) && !dogCalendarWritesEnabled(env)) return false;
   if (
     previousEvent.type === 'care' &&

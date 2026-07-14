@@ -3859,27 +3859,11 @@ export default {
         if (errors.length) {
           return addCors(json({ error: 'Validation failed', details: errors }, 400));
         }
-        const gateDoc = (await env.DATA.get('calendar_events', 'json')) || { events: [] };
-        const gatePrev = Array.isArray(gateDoc.events) ? gateDoc.events.find(e => e && e.id === id) : null;
-        if (gatePrev && !canUpdateCalendarEvent(gatePrev, { ...gatePrev, ...data }, env)) {
-          return addCors(json({ error: '犬サービスは現在受付停止です' }, 409));
-        }
-        let notFoundFlag = false;
-        let merged = null;
-        const { rev } = await mutateCalendar(env, (doc) => {
+        const { rev, result } = await mutateCalendar(env, (doc) => {
           const idx = doc.events.findIndex(e => e && e.id === id);
-          if (idx === -1) { notFoundFlag = true; return; }
+          if (idx === -1) return { skipWrite: true, notFound: true };
           const prev = doc.events[idx];
-          // Cross-field end≥start guard against the MERGED result (partial validate
-          // only sees the fields in this body).
-          const nextStart = data.start !== undefined ? data.start : prev.start;
-          const nextEnd = data.end !== undefined ? data.end : prev.end;
-          if (DATE_RE.test(nextStart) && DATE_RE.test(nextEnd) && nextEnd < nextStart) {
-            notFoundFlag = false;
-            merged = { _err: 'end must be >= start' };
-            return;
-          }
-          merged = {
+          const merged = {
             ...prev,
             ...data,
             id: prev.id,               // id immutable
@@ -3887,13 +3871,25 @@ export default {
             updatedAt: new Date().toISOString(),
             updatedBy: data.updatedBy || prev.updatedBy || 'admin',
           };
+          if (!canUpdateCalendarEvent(prev, merged, env)) {
+            return { skipWrite: true, blocked: true };
+          }
+          // Cross-field end≥start guard against the MERGED result (partial validate
+          // only sees the fields in this body).
+          const nextStart = merged.start;
+          const nextEnd = merged.end;
+          if (DATE_RE.test(nextStart) && DATE_RE.test(nextEnd) && nextEnd < nextStart) {
+            return { skipWrite: true, validationError: 'end must be >= start' };
+          }
           doc.events[idx] = merged;
+          return { merged };
         });
-        if (notFoundFlag) return addCors(notFound());
-        if (merged && merged._err) {
-          return addCors(json({ error: 'Validation failed', details: [merged._err] }, 400));
+        if (result.blocked) return addCors(json({ error: '犬サービスは現在受付停止です' }, 409));
+        if (result.notFound) return addCors(notFound());
+        if (result.validationError) {
+          return addCors(json({ error: 'Validation failed', details: [result.validationError] }, 400));
         }
-        return addCors(json({ rev, event: merged }));
+        return addCors(json({ rev, event: result.merged }));
       }
 
       // DELETE /api/admin/calendar?id=evt_x → { rev, ok:true }; 404 if absent.

@@ -74,6 +74,17 @@
     cancelled: ['キャンセル', '已取消']
   };
   function typeLabel(t) { var l = TYPE_LABELS[t] || [t, t]; return tt(l[0], l[1]); }
+  function eventTypeLabel(event) {
+    if (!event || event.type !== 'care') return typeLabel(event && event.type);
+    if (event.petType === 'cat') return typeLabel('care');
+    if (STOPPED_DOG_PET_TYPES.indexOf(event.petType) !== -1) {
+      return tt('犬のケア（受付停止）', '犬护理（暂停受理）');
+    }
+    if (Object.prototype.hasOwnProperty.call(LEGACY_PET_TYPES, event.petType)) {
+      return tt('犬のケア（履歴）', '犬护理（历史）');
+    }
+    return tt('履歴ケア', '历史护理');
+  }
   function statusLabel(s) { var l = STATUS_LABELS[s] || [s, s]; return tt(l[0], l[1]); }
 
   // ---- login ----
@@ -219,7 +230,7 @@
         if (e.source) meta.push(tt('元', '来源') + ': ' + escHtml(e.source));
         return '<div class="evt-card">'
           + '<div class="evt-card-head">'
-          +   '<div><span class="evt-type-badge type-' + escAttr(e.type) + '">' + escHtml(typeLabel(e.type)) + '</span>'
+          +   '<div><span class="evt-type-badge type-' + escAttr(e.type) + '">' + escHtml(eventTypeLabel(e)) + '</span>'
           +   '<span class="evt-status-badge evt-status-' + escAttr(e.status || 'pending') + '">' + escHtml(statusLabel(e.status || 'pending')) + '</span></div>'
           + '</div>'
           + '<div class="evt-title' + cancelled + '">' + escHtml(e.title || '') + '</div>'

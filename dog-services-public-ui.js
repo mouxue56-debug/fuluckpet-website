@@ -69,8 +69,10 @@
       '<div class="service-wrap"><div class="service-heading"><p class="service-eyebrow">Dog stay</p>' +
       '<h2>犬のお預かり' + (stopped ? '｜準備中' : '') + '</h2>' +
       (stopped ? '<p class="service-status" role="status"><strong>現在受付停止</strong></p><p>' + projection.locationNotice + '</p>' : '') +
-      '<p>' + (stopped ? '体型別の税込予定価格です。' : '体型別の税込基本料金です。') +
-      '7泊以上の長期料金と、土日祝・学校休暇・繁忙期の日付加算があります。正式料金は事前相談後に確定します。</p></div>' +
+      '<p>' + (stopped
+        ? '体型別の税込予定価格です。7泊以上の長期料金と、土日祝・学校休暇・繁忙期の日付加算を予定しています。受付開始時の内容は開始前にあらためてお知らせします。'
+        : '体型別の税込基本料金です。7泊以上の長期料金と、土日祝・学校休暇・繁忙期の日付加算があります。正式料金は事前相談後に確定します。') +
+      '</p></div>' +
       '<div class="service-price-grid">' + priceCards(projection, 'boardingPerNight', priceSuffix) + '</div>' +
       '<div class="service-actions">' + (stopped ? '' : '<a class="service-btn is-primary" href="' + LINE_URL + '" target="_blank" rel="noopener">LINEで予約相談</a>') +
       '<a class="service-btn" href="/boarding/estimate.html">犬の料金を計算する</a>' +

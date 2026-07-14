@@ -179,6 +179,9 @@ test('shared UI emits no dog offer when false and complete offers, CTA and schem
   assert.match(boarding, /体型別の税込基本料金です/);
   assert.doesNotMatch(boarding, /予定価格/);
   assert.doesNotMatch(ui.renderSurface('estimate', enabled), /予定価格/);
+  const acceptingCareEstimate = ui.renderSurface('estimate-care', enabled);
+  assert.match(acceptingCareEstimate, /犬のケア/);
+  assert.doesNotMatch(acceptingCareEstimate, /予定価格|受付停止/);
   const care = ui.renderSurface('care', enabled);
   for (const copy of [
     '犬の基本ケア', '爪切り', '耳掃除', '肛門腺', '基本ケア3点セット',
@@ -209,6 +212,7 @@ test('preparing UI shows stopped dog prices and calculator without booking CTA o
   assert.match(boarding, /料金を計算/);
   assert.match(boarding, /体型別の税込予定価格です/);
   assert.equal((boarding.match(/税込予定価格/g) || []).length, 4);
+  assert.doesNotMatch(boarding, /正式料金/);
   assert.doesNotMatch(boarding, /LINE|予約相談|申し込/);
 
   const estimateBoarding = ui.renderSurface('estimate', preparing);

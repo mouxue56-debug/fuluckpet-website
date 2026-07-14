@@ -27,13 +27,16 @@ async function calendarDeleteHarness(events, dogPublic = false) {
     ['calendar_events', JSON.stringify({ rev: 4, events })],
   ]);
   const puts = [];
+  const gets = [];
   return {
     store,
     puts,
+    gets,
     env: {
       DOG_SERVICES_PUBLIC: dogPublic ? 'true' : 'false',
       DATA: {
         async get(key, type) {
+          gets.push(key);
           const value = store.get(key) ?? null;
           return type === 'json' && value !== null ? JSON.parse(value) : value;
         },
@@ -50,6 +53,18 @@ function calendarDeleteRequest(id) {
   return new Request(`https://fuluckpet.com/api/admin/calendar?id=${encodeURIComponent(id)}`, {
     method: 'DELETE',
     headers: { Origin: ADMIN_ORIGIN, Authorization: `Bearer ${ADMIN_PASSWORD}` },
+  });
+}
+
+function calendarUpdateRequest(id, body) {
+  return new Request(`https://fuluckpet.com/api/admin/calendar?id=${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    headers: {
+      Origin: ADMIN_ORIGIN,
+      Authorization: `Bearer ${ADMIN_PASSWORD}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
   });
 }
 
@@ -116,6 +131,36 @@ test('calendar update policy keeps historical non-cat care read-only while the d
     { type: 'care', petType: 'small_dog' },
     { DOG_SERVICES_PUBLIC: 'true' },
   ), false);
+  for (const previous of [
+    { type: 'boarding', petType: 'small_dog' },
+    { type: 'visit', petType: 'medium_dog' },
+    { type: 'note', petType: 'large_dog' },
+  ]) {
+    assert.equal(policy.canUpdateCalendarEvent(previous, { ...previous, title: '変更' }, {
+      DOG_SERVICES_PUBLIC: 'true',
+    }), false, JSON.stringify(previous));
+  }
+});
+
+test('Worker PUT atomically rejects stopped and legacy dogs without changing KV or rev', async () => {
+  const { default: worker } = await import(pathToFileURL(path.join(ROOT, 'api/worker.js')).href);
+  const cases = [
+    [{ id: 'current-closed', type: 'boarding', petType: 'dog_small' }, false],
+    [{ id: 'legacy-small', type: 'boarding', petType: 'small_dog' }, true],
+    [{ id: 'legacy-medium', type: 'visit', petType: 'medium_dog' }, true],
+    [{ id: 'legacy-large', type: 'note', petType: 'large_dog' }, true],
+  ];
+  for (const [event, dogPublic] of cases) {
+    const stored = { ...event, title: '保持', start: '2026-07-01', end: '2026-07-01', status: 'confirmed' };
+    const h = await calendarDeleteHarness([stored], dogPublic);
+    const before = h.store.get('calendar_events');
+    const response = await worker.fetch(calendarUpdateRequest(event.id, { title: '変更' }), h.env, { waitUntil() {} });
+    assert.equal(response.status, 409, event.id);
+    assert.deepEqual(await response.json(), { error: '犬サービスは現在受付停止です' }, event.id);
+    assert.equal(h.puts.length, 0, event.id);
+    assert.equal(h.store.get('calendar_events'), before, event.id);
+    assert.equal(h.gets.filter((key) => key === 'calendar_events').length, 1, event.id);
+  }
 });
 
 test('calendar delete policy protects stopped current, legacy, and malformed historical records', async () => {
@@ -192,10 +237,11 @@ test('worker and admin expose prepared dog types but keep the production write g
     assert.match(admin, new RegExp(`option value="${type}"[^>]*disabled`));
   }
   assert.match(admin, /犬は現在受付停止/);
-  assert.match(admin, /id="evtReadOnlyHint"[^>]*hidden[^>]*data-adm-ja="この履歴ケアは読み取り専用です。変更は保存できません。"[^>]*data-adm-zh="此历史护理记录为只读，无法保存更改。"/);
+  assert.match(admin, /id="evtReadOnlyHint"[^>]*hidden[^>]*data-adm-ja="この予定は読み取り専用です。変更や削除はできません。"[^>]*data-adm-zh="此日程为只读，无法更改或删除。"/);
   assert.match(wrangler, /DOG_SERVICES_PUBLIC\s*=\s*"false"/);
   assert.match(worker, /canWriteCalendarEvent\(data, env\)/);
-  assert.match(worker, /canUpdateCalendarEvent\(gatePrev,\s*\{ \.\.\.gatePrev, \.\.\.data \},\s*env\)/);
+  assert.match(worker, /canUpdateCalendarEvent\(prev, merged, env\)/);
+  assert.doesNotMatch(worker, /const gateDoc =/);
 
   const readRoute = worker.match(/path === '\/api\/admin\/calendar' && method === 'GET'[\s\S]*?(?=\/\/ POST \/api\/admin\/calendar)/);
   assert.ok(readRoute, 'calendar GET route remains available for historical records');
@@ -213,6 +259,8 @@ test('Admin calendar gives cat care a filter, legend, and mobile-safe visual mar
   assert.match(admin, /\.evt-type-badge\.type-care\s*\{[^}]*var\(--cal-care-bg\)[^}]*var\(--cal-care-fg\)/);
   assert.match(admin, /\.btn-save:disabled\s*\{[^}]*cursor:\s*not-allowed/);
   assert.match(admin, /@media \(max-width: 640px\)[\s\S]*\.cal-chips\s*\{\s*display:\s*none;\s*\}[\s\S]*\.cal-dots\s*\{\s*display:\s*flex;\s*\}/);
+  assert.match(admin, /この予定は読み取り専用です。変更や削除はできません。/);
+  assert.doesNotMatch(admin, /この履歴ケアは読み取り専用/);
 });
 
 function adminCalendarHarness() {
@@ -397,12 +445,13 @@ test('Admin keeps historical non-cat care unchanged and read-only until reset', 
 
 test('Admin hides delete and blocks edit and delete calls for every stopped read-only event', () => {
   const protectedEvents = [
-    { id: 'current-dog', type: 'boarding', petType: 'dog_small' },
-    { id: 'legacy-dog', type: 'boarding', petType: 'small_dog' },
-    { id: 'missing-care', type: 'care' },
-    { id: 'other-care', type: 'care', petType: 'rabbit' },
+    [{ id: 'current-dog', type: 'boarding', petType: 'dog_small' }, 'お預かり'],
+    [{ id: 'current-dog-care', type: 'care', petType: 'dog_small' }, '犬のケア（受付停止）'],
+    [{ id: 'legacy-dog', type: 'care', petType: 'small_dog' }, '犬のケア（履歴）'],
+    [{ id: 'missing-care', type: 'care' }, '履歴ケア'],
+    [{ id: 'other-care', type: 'care', petType: 'rabbit' }, '履歴ケア'],
   ];
-  for (const event of protectedEvents) {
+  for (const [event, badge] of protectedEvents) {
     const h = adminCalendarHarness();
     const stored = {
       ...event,
@@ -414,6 +463,7 @@ test('Admin hides delete and blocks edit and delete calls for every stopped read
     h.api.setEvents([stored]);
     h.api.renderDayPanel('2026-07-01');
     assert.doesNotMatch(h.elements.get('dayEventsList').innerHTML, /data-act="delete"/, event.id);
+    assert.match(h.elements.get('dayEventsList').innerHTML, new RegExp(`evt-type-badge[^>]*>${badge}<`), event.id);
     h.api.startEdit(event.id);
     assert.equal(h.elements.get('btnSaveEvent').disabled, true, event.id);
     h.api.deleteEvent(event.id);

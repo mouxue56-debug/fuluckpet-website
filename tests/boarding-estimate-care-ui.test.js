@@ -145,6 +145,34 @@ test('dog estimate result and copied quote label planned prices only while stopp
   assert.match(source, /quoteText\s*=\s*buildQuoteText\(/);
 });
 
+test('selected dog care uses planned wording only in stopped screen results and copied quotes', () => {
+  const api = require('../boarding/boarding-public-estimate.js');
+  assert.equal(typeof api.dogCareLineFor, 'function');
+  assert.equal(typeof api.dogReviewMessageFor, 'function');
+
+  const stoppedLine = api.dogCareLineFor('爪切り', 660, true);
+  assert.deepEqual(stoppedLine, { label: '犬のケア：爪切り', detail: '予定価格', value: '+¥660' });
+  const stoppedQuote = api.buildQuoteText({
+    type: 'dog_small', dogAccepting: false, animalLabel: '小型犬',
+    checkIn: '2026-08-01', checkOut: '2026-08-02', nights: 1,
+    lines: [stoppedLine], total: 660,
+  });
+  assert.match(stoppedQuote, /犬のケア：爪切り（予定価格）/);
+  assert.match(stoppedQuote, /税込予定価格/);
+  assert.doesNotMatch(api.dogReviewMessageFor(true, true), /正式料金/);
+
+  const acceptingLine = api.dogCareLineFor('爪切り', 660, false);
+  assert.deepEqual(acceptingLine, { label: '犬のケア：爪切り', detail: '', value: '+¥660' });
+  const acceptingQuote = api.buildQuoteText({
+    type: 'dog_small', dogAccepting: true, animalLabel: '小型犬',
+    checkIn: '2026-08-01', checkOut: '2026-08-02', nights: 1,
+    lines: [acceptingLine], total: 660,
+  });
+  assert.doesNotMatch(acceptingQuote, /予定価格|受付停止/);
+  assert.match(api.dogReviewMessageFor(true, false), /正式料金/);
+  assert.equal(api.dogReviewMessageFor(false, true), '');
+});
+
 test('estimator consumes the canonical care catalogs without legacy aliases', () => {
   const source = read('boarding/boarding-public-estimate.js');
   const config = require('../boarding-public-config.js');

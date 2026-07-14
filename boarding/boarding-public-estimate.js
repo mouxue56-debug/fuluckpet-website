@@ -48,6 +48,21 @@
     return '¥' + Math.round(value).toLocaleString('ja-JP');
   }
 
+  function dogCareLineFor(label, subtotal, planned) {
+    return {
+      label: '犬のケア：' + label,
+      detail: planned ? '予定価格' : '',
+      value: '+' + quoteMoney(subtotal),
+    };
+  }
+
+  function dogReviewMessageFor(needsReview, planned) {
+    if (!needsReview) return '';
+    return planned
+      ? '30泊以上は日程とお世話内容を確認後に料金をご案内します。'
+      : '30泊以上は日程とお世話内容を確認後に正式料金をご案内します。';
+  }
+
   function buildQuoteText(input) {
     var pricing = priceSemanticsFor(input.type, input.dogAccepting);
     var output = [
@@ -474,7 +489,7 @@
             setEmpty('犬のケア料金を確認できませんでした。受付開始前のためお申し込みはできません。', type, 'error');
             return;
           }
-          dogLines.push({ label: '犬のケア：' + dogCareLabel(dogCareOffer), detail: '予定価格', value: '+' + money(dogCare.subtotal) });
+          dogLines.push(dogCareLineFor(dogCareLabel(dogCareOffer), dogCare.subtotal, dogPricing.planned));
           dogTotal += dogCare.subtotal;
         }
         render(
@@ -484,7 +499,7 @@
           nights,
           dogLines,
           dogTotal,
-          dogBoarding.needsReview ? '30泊以上は日程とお世話内容を確認後に正式料金をご案内します。' : '',
+          dogReviewMessageFor(dogBoarding.needsReview, dogPricing.planned),
         );
         return;
       }
@@ -603,6 +618,8 @@
     actionStateFor: actionStateFor,
     applyCatPackageSelection: applyCatPackageSelection,
     buildQuoteText: buildQuoteText,
+    dogCareLineFor: dogCareLineFor,
+    dogReviewMessageFor: dogReviewMessageFor,
     init: init,
     priceSemanticsFor: priceSemanticsFor,
     stateFor: stateFor,
