@@ -75,7 +75,8 @@ const sources = {
 
 // ---------------------------------------------------------------------------
 // 2) Cleaned KB chunks — Kimi-distilled facts the chat assistant should cite.
-//    Each value is plain Japanese, ≤500 chars, AI-friendly bullet-style.
+//    Each value is plain Japanese; the emitter caps values at 8,000 characters
+//    and the Worker reads a bounded excerpt for each retrieval.
 // ---------------------------------------------------------------------------
 function buildChunks(config = CONFIG) {
   return {
