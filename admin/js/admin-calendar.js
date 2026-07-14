@@ -14,22 +14,19 @@
   var gridStart = null, gridEnd = null; // YYYY-MM-DD strings covering the visible 6-week grid
   var selectedDate = null; // YYYY-MM-DD currently open in the day panel
   var editingId = null; // event id being edited in the form, or null = create mode
+  var editingOriginalEvent = null; // immutable identity used to protect historical care records
   var typeFilters = { visit: true, boarding: true, care: true, block: true, note: true };
   var statusFilter = 'all';
   var NEW_BOARDING_PET_TYPES = ['cat', 'rabbit', 'hamster', 'other_small_animal'];
-  var STOPPED_DOG_PET_TYPES = ['dog_small', 'dog_medium', 'dog_large'];
-  // Historical dog events predate the current 220012B scope. They stay readable
-  // and may retain their stored value while another field is edited, but the UI
-  // never offers them for a new event and the API rejects new legacy writes.
+  // Historical care events outside the cat contract stay readable but read-only.
   var LEGACY_PET_TYPES = {
     small_dog: ['小型犬（履歴・受付対象外）', '小型犬（历史·不再受理）'],
     medium_dog: ['中型犬（履歴・受付対象外）', '中型犬（历史·不再受理）'],
     large_dog: ['大型犬（履歴・受付対象外）', '大型犬（历史·不再受理）']
   };
 
-  function isStoppedDogPetType(petType) {
-    return STOPPED_DOG_PET_TYPES.indexOf(petType) !== -1 ||
-      Object.prototype.hasOwnProperty.call(LEGACY_PET_TYPES, petType);
+  function isHistoricalReadOnlyCare(event) {
+    return !!(event && event.type === 'care' && event.petType !== 'cat');
   }
 
   function $(id) { return document.getElementById(id); }
@@ -267,6 +264,7 @@
     var e = events.filter(function(x) { return x.id === id; })[0];
     if (!e) return;
     editingId = id;
+    editingOriginalEvent = { type: e.type, petType: e.petType };
     $('evtId').value = e.id;
     $('evtType').value = e.type;
     $('evtTitle').value = e.title || '';
@@ -282,17 +280,21 @@
       legacyOption.dataset.legacyPetType = 'true';
       $('evtPetType').appendChild(legacyOption);
     }
-    $('evtPetType').value = e.petType || 'cat';
+    $('evtPetType').value = Object.prototype.hasOwnProperty.call(e, 'petType') ? e.petType : '';
     $('evtStatus').value = e.status || 'pending';
     $('evtNotes').value = e.notes || '';
-    updatePetTypeVisibility({ preserveStoppedDog: isStoppedDogPetType(e.petType) });
+    updatePetTypeVisibility();
+    var readOnly = isHistoricalReadOnlyCare(editingOriginalEvent);
     $('btnSaveEvent').textContent = tt('更新する', '更新');
+    $('btnSaveEvent').disabled = readOnly;
+    $('evtReadOnlyHint').hidden = !readOnly;
     $('btnCancelEdit').style.display = 'block';
     $('eventForm').scrollIntoView({ behavior: 'smooth', block: 'end' });
   }
 
   function resetForm() {
     editingId = null;
+    editingOriginalEvent = null;
     clearLegacyPetTypeOption();
     $('eventForm').reset();
     $('evtId').value = '';
@@ -300,26 +302,29 @@
     $('evtStatus').value = 'pending';
     updatePetTypeVisibility();
     $('btnSaveEvent').textContent = tt('追加する', '添加');
+    $('btnSaveEvent').disabled = false;
+    $('evtReadOnlyHint').hidden = true;
     $('btnCancelEdit').style.display = 'none';
   }
 
-  function updatePetTypeVisibility(options) {
+  function updatePetTypeVisibility() {
     var type = $('evtType').value;
     var isBoarding = type === 'boarding';
     var isCare = type === 'care';
     var petTypeSelect = $('evtPetType');
-    var preserveStoppedDog = !!(options && options.preserveStoppedDog && isStoppedDogPetType(petTypeSelect.value));
+    var preserveHistoricalCare = isCare && isHistoricalReadOnlyCare(editingOriginalEvent);
     $('evtPetTypeGroup').style.display = (isBoarding || isCare) ? 'block' : 'none';
     Array.prototype.forEach.call(petTypeSelect.querySelectorAll('option'), function(option) {
       option.disabled = isCare
         ? option.value !== 'cat'
         : NEW_BOARDING_PET_TYPES.indexOf(option.value) === -1;
     });
-    if (isCare && !preserveStoppedDog) petTypeSelect.value = 'cat';
+    if (isCare && !preserveHistoricalCare) petTypeSelect.value = 'cat';
   }
 
   function submitForm(ev) {
     ev.preventDefault();
+    if (isHistoricalReadOnlyCare(editingOriginalEvent)) return;
     var start = $('evtStart').value;
     var end = $('evtEnd').value || start;
     var payload = {
@@ -332,8 +337,7 @@
       notes: $('evtNotes').value || undefined
     };
     if (payload.type === 'care') {
-      var carePetType = $('evtPetType').value;
-      payload.petType = editingId && isStoppedDogPetType(carePetType) ? carePetType : 'cat';
+      payload.petType = 'cat';
     } else if (payload.type === 'boarding') {
       var petType = $('evtPetType').value;
       if (NEW_BOARDING_PET_TYPES.indexOf(petType) !== -1) payload.petType = petType;

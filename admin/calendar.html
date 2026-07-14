@@ -32,6 +32,9 @@
       --cal-boarding: #2F855A;
       --cal-boarding-bg: #C6F6D5;
       --cal-boarding-fg: #22543D;
+      --cal-care: var(--warning);
+      --cal-care-bg: #FEFCBF;
+      --cal-care-fg: #744210;
       --cal-block: #A0AEC0;
       --cal-block-bg: #EDF2F7;
       --cal-block-fg: #4A5568;
@@ -110,6 +113,7 @@
     .cal-chip { font-size: 10px; padding: 2px 5px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
     .cal-chip.type-visit { background: var(--cal-visit-bg); color: var(--cal-visit-fg); }
     .cal-chip.type-boarding { background: var(--cal-boarding-bg); color: var(--cal-boarding-fg); }
+    .cal-chip.type-care { background: var(--cal-care-bg); color: var(--cal-care-fg); }
     .cal-chip.type-block { background: var(--cal-block-bg); color: var(--cal-block-fg); }
     .cal-chip.type-note { background: var(--cal-note-bg); color: var(--cal-note-fg); }
     .cal-chip.is-cancelled { text-decoration: line-through; opacity: .55; }
@@ -119,6 +123,7 @@
     .cal-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
     .cal-dot.type-visit { background: var(--cal-visit); }
     .cal-dot.type-boarding { background: var(--cal-boarding); }
+    .cal-dot.type-care { background: var(--cal-care); }
     .cal-dot.type-block { background: var(--cal-block); }
     .cal-dot.type-note { background: var(--cal-note); }
 
@@ -136,6 +141,7 @@
     .evt-type-badge { display: inline-block; padding: 2px 9px; border-radius: 100px; font-size: 10px; font-weight: 700; }
     .evt-type-badge.type-visit { background: var(--cal-visit-bg); color: var(--cal-visit-fg); }
     .evt-type-badge.type-boarding { background: var(--cal-boarding-bg); color: var(--cal-boarding-fg); }
+    .evt-type-badge.type-care { background: var(--cal-care-bg); color: var(--cal-care-fg); }
     .evt-type-badge.type-block { background: var(--cal-block-bg); color: var(--cal-block-fg); }
     .evt-type-badge.type-note { background: var(--cal-note-bg); color: var(--cal-note-fg); }
     .evt-status-badge { display: inline-block; padding: 2px 9px; border-radius: 100px; font-size: 10px; font-weight: 700; margin-left: 6px; }
@@ -164,6 +170,7 @@
     .form-section-title { font-size: 13px; font-weight: 700; margin: 18px 0 10px; padding-top: 14px; border-top: 1px dashed var(--border); }
     .btn-save { width: 100%; padding: 11px; border-radius: 8px; border: none; background: linear-gradient(135deg, var(--mint), var(--mint-dark)); color: white; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; margin-top: 4px; }
     .btn-save:hover { transform: translateY(-1px); }
+    .btn-save:disabled { opacity: .55; cursor: not-allowed; transform: none; }
 
     /* === iCal section === */
     .ical-card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 24px; }
@@ -227,6 +234,7 @@
         <div class="filter-group" id="typeFilterGroup">
           <label class="filter-check"><input type="checkbox" data-type="visit" checked> <span data-adm-ja="見学" data-adm-zh="参观">見学</span></label>
           <label class="filter-check"><input type="checkbox" data-type="boarding" checked> <span data-adm-ja="お預かり" data-adm-zh="寄养">お預かり</span></label>
+          <label class="filter-check"><input type="checkbox" data-type="care" checked> <span data-adm-ja="猫のケア" data-adm-zh="猫护理">猫のケア</span></label>
           <label class="filter-check"><input type="checkbox" data-type="block" checked> <span data-adm-ja="休業・満室" data-adm-zh="休业·满房">休業・満室</span></label>
           <label class="filter-check"><input type="checkbox" data-type="note" checked> <span data-adm-ja="メモ" data-adm-zh="备注">メモ</span></label>
         </div>
@@ -240,6 +248,7 @@
         <div class="legend">
           <span class="legend-item"><span class="legend-dot" style="background:var(--cal-visit)"></span><span data-adm-ja="見学" data-adm-zh="参观">見学</span></span>
           <span class="legend-item"><span class="legend-dot" style="background:var(--cal-boarding)"></span><span data-adm-ja="お預かり" data-adm-zh="寄养">お預かり</span></span>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--cal-care)"></span><span data-adm-ja="猫のケア" data-adm-zh="猫护理">猫のケア</span></span>
           <span class="legend-item"><span class="legend-dot" style="background:var(--cal-block)"></span><span data-adm-ja="休業・満室" data-adm-zh="休业·满房">休業・満室</span></span>
           <span class="legend-item"><span class="legend-dot" style="background:var(--cal-note)"></span><span data-adm-ja="メモ" data-adm-zh="备注">メモ</span></span>
         </div>
@@ -359,6 +368,7 @@
             <label class="form-label" for="evtNotes" data-adm-ja="メモ" data-adm-zh="备注">メモ</label>
             <textarea id="evtNotes" class="form-textarea" maxlength="2000"></textarea>
           </div>
+          <div id="evtReadOnlyHint" hidden data-adm-ja="この履歴ケアは読み取り専用です。変更は保存できません。" data-adm-zh="此历史护理记录为只读，无法保存更改。" class="form-hint">この履歴ケアは読み取り専用です。変更は保存できません。</div>
           <button type="submit" id="btnSaveEvent" class="btn-save" data-adm-ja="追加する" data-adm-zh="添加">追加する</button>
           <button type="button" id="btnCancelEdit" class="btn-save" style="display:none;background:var(--bg);color:var(--text);border:1px solid var(--border);margin-top:6px;" data-adm-ja="編集をキャンセル" data-adm-zh="取消编辑">編集をキャンセル</button>
         </form>
@@ -369,6 +379,6 @@
   <div id="toast" class="toast"></div>
 
   <script src="js/api-client.js?v=20260710b"></script>
-  <script src="js/admin-calendar.js?v=20260714a"></script>
+  <script src="js/admin-calendar.js?v=20260714b"></script>
 </body>
 </html>

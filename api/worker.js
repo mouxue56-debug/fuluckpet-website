@@ -29,7 +29,7 @@
  */
 
 import launchConfig from '../small-animals-launch.json' with { type: 'json' };
-import { canWriteDogCalendarEvent } from './calendar-dog-policy.mjs';
+import { canUpdateCalendarEvent, canWriteCalendarEvent } from './calendar-dog-policy.mjs';
 
 const PUBLIC_KITTEN_FIELDS = Object.freeze([
   'id', 'breederId', 'breed', 'color', 'gender', 'price', 'status', 'birthday',
@@ -3817,7 +3817,7 @@ export default {
         if (errors.length) {
           return addCors(json({ error: 'Validation failed', details: errors }, 400));
         }
-        if (!canWriteDogCalendarEvent(data, env)) {
+        if (!canWriteCalendarEvent(data, env)) {
           return addCors(json({ error: '犬サービスは現在受付停止です' }, 409));
         }
         const nowIso = new Date().toISOString();
@@ -3860,7 +3860,7 @@ export default {
         }
         const gateDoc = (await env.DATA.get('calendar_events', 'json')) || { events: [] };
         const gatePrev = Array.isArray(gateDoc.events) ? gateDoc.events.find(e => e && e.id === id) : null;
-        if (gatePrev && !canWriteDogCalendarEvent({ ...gatePrev, ...data }, env)) {
+        if (gatePrev && !canUpdateCalendarEvent(gatePrev, { ...gatePrev, ...data }, env)) {
           return addCors(json({ error: '犬サービスは現在受付停止です' }, 409));
         }
         let notFoundFlag = false;

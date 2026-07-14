@@ -13,4 +13,34 @@ function canWriteDogCalendarEvent(event, env) {
   return !isDogCalendarEvent(event) || dogCalendarWritesEnabled(env);
 }
 
-export { DOG_PET_TYPES, canWriteDogCalendarEvent, dogCalendarWritesEnabled, isDogCalendarEvent };
+function canWriteCalendarEvent(event, env) {
+  if (!event || typeof event !== 'object') return false;
+  if (event.type === 'care') {
+    if (event.petType === 'cat') return true;
+    return isDogCalendarEvent(event) && dogCalendarWritesEnabled(env);
+  }
+  return canWriteDogCalendarEvent(event, env);
+}
+
+function canUpdateCalendarEvent(previousEvent, mergedEvent, env) {
+  if (!previousEvent || typeof previousEvent !== 'object') return false;
+  if (!mergedEvent || typeof mergedEvent !== 'object') return false;
+
+  if (isDogCalendarEvent(previousEvent) && !dogCalendarWritesEnabled(env)) return false;
+  if (
+    previousEvent.type === 'care' &&
+    previousEvent.petType !== 'cat' &&
+    !isDogCalendarEvent(previousEvent)
+  ) return false;
+
+  return canWriteCalendarEvent(mergedEvent, env);
+}
+
+export {
+  DOG_PET_TYPES,
+  canUpdateCalendarEvent,
+  canWriteCalendarEvent,
+  canWriteDogCalendarEvent,
+  dogCalendarWritesEnabled,
+  isDogCalendarEvent,
+};
