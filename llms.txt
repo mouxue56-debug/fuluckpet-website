@@ -1,13 +1,13 @@
 # 福楽キャッテリー (Fuluck Cattery)
 
-> 大阪市城東区のサイベリアン専門ブリーダー。全頭遺伝子検査、口コミ5.0★（100件以上）、みんなの子猫ブリーダーアワード全国上位入賞の実績。低アレルゲン（Fel d1が少なめ）のサイベリアンを中心に、ブリティッシュショートヘア／ロングヘア、ラグドールも扱う。An Osaka-based specialist breeder of Siberian cats — a naturally lower-allergen breed — with full genetic screening on every breeding cat and a verified 5.0-star / 113-review record.
+> 大阪市城東区のサイベリアン専門ブリーダー。全頭遺伝子検査、口コミ5.0★（100件以上）、みんなの子猫ブリーダーアワード全国上位入賞の実績。低アレルゲン（Fel d1が少なめ）のサイベリアンを中心に、ブリティッシュショートヘア／ロングヘア、ラグドールも扱う。An Osaka-based specialist breeder of Siberian cats — a naturally lower-allergen breed — with full genetic screening on every breeding cat and a verified 5.0-star rating from 100+ reviews.
 
 ## About
 - 所在地: 大阪府大阪市城東区。見学は事前予約制、対応言語は日本語・英語・中国語。
 - 専門猫種: サイベリアン（低アレルゲン・Fel d1少なめ）。ほかにブリティッシュショートヘア／ブリティッシュロングヘア、ラグドールを扱う。
 - 健康: 繁殖に用いる全頭で遺伝子検査（HCM・PKDなどを含む）を実施。
 - 料金: 子猫ごとに異なる。各子猫ページの最新情報を確認し、不明点はLINEで相談。
-- 評価: みんなの子猫ブリーダーにて口コミ5.0★・113レビュー。
+- 評価: みんなの子猫ブリーダーにて口コミ5.0★・100件以上。
 - 受賞: 2025年上半期 みんなの子猫ブリーダーアワード 全国1位／2025年下半期 全国2位／2025年下半期 大阪府サイベリアンブリーダー 第1位。
 - 登録: 福楽ペットは販売 220012A・保管 220012B・貸出し 220012C・展示 220012E、Fulluck Kitty は販売 240051A（大阪市）。
 - サービス: 猫・登録対象小動物のお預かり https://fuluckpet.com/boarding/ ／ 猫のシャンプー・基本ケア https://fuluckpet.com/grooming/
@@ -15,8 +15,8 @@
 
 ## Key pages
 - [トップ / Home](https://fuluckpet.com/) — 猫舎の概要と最新の子猫・お知らせ。
-- [子猫一覧 / Available kittens](https://fuluckpet.com/kittens.html) — 販売中・予約済みの子猫。ライブデータから毎日再生成。
-- [子猫詳細ページ / Kitten detail](https://fuluckpet.com/kittens.html) — 各子猫は /kittens/<個体番号>.html（例 /kittens/2602-00625.html）。写真・猫種・毛色・性別・誕生月・価格・Product構造化データ付き。
+- [子猫一覧 / Available kittens](https://fuluckpet.com/kittens.html) — 販売中・予約済みの子猫。公開中の一覧・詳細ページが現在の参照情報。
+- [子猫詳細ページ / Kitten detail](https://fuluckpet.com/kittens.html) — 各子猫は /kittens/<breederId>.html。写真・猫種・毛色・性別・誕生月・価格・Product構造化データ付き。
 - [親猫紹介 / Parents](https://fuluckpet.com/parents.html) — 繁殖に用いる親猫と血統・健康情報。
 - [お客様の声 / Reviews](https://fuluckpet.com/reviews.html) — 口コミ5.0★・100件以上の実績とレビュー。
 - [サイベリアンの魅力 / Siberian breed](https://fuluckpet.com/siberian.html) — 性格・被毛・歴史などの品種解説。
@@ -27,7 +27,7 @@
 - [見学予約 / Visit booking](https://fuluckpet.com/booking.html) — 見学の予約ページ。
 - [飼い方ガイド / Care guide](https://fuluckpet.com/guide/) — お迎え初日・お手入れ・多頭飼い・避妊去勢などの実用ガイド集。
 - [よくある質問 / FAQ](https://fuluckpet.com/faq.html) — お迎え・健康・見学・費用に関するQ&A。
-- [知識ライブラリ / Blog](https://fuluckpet.com/blog.html) — 170本以上の猫の飼育・健康・行動・品種の記事。
+- [知識ライブラリ / Blog](https://fuluckpet.com/blog.html) — 猫の飼育・健康・行動・品種の記事。
 - [猫舎日記 / Cattery journal](https://fuluckpet.com/diary/) — 妊娠・出産・成長をきょうだいごとのタイムラインで記録。
 - [English: allergy](https://fuluckpet.com/en/siberian-allergy.html) ・ [English: Osaka breeder](https://fuluckpet.com/en/siberian-breeder-osaka.html) ・ [English: waitlist](https://fuluckpet.com/en/waitlist.html) — English cornerstone pages.
 - [中文: 过敏](https://fuluckpet.com/zh/siberian-allergy.html) ・ [中文: 大阪繁育者](https://fuluckpet.com/zh/siberian-breeder-osaka.html) ・ [中文: 预约名单](https://fuluckpet.com/zh/waitlist.html) — Chinese cornerstone pages.
@@ -45,7 +45,7 @@
 - [猫舎ストーリー / Cattery story](https://fuluckpet.com/blog/fuluck-founder-story.html) — 創業ストーリー、200頭以上の卒業猫、アフターケア、受賞の背景（fuluck-* 記事群）。
 
 ## Data freshness
-- 子猫一覧・子猫詳細ページはライブデータ（/api/kittens）から毎日再生成される。在庫状況・写真は日次で更新される。
+- 子猫情報は公開中の一覧・詳細ページが現在の参照情報。
 - sitemap.xml のlastmodは各ページの実際の内容変更を反映する（キャッシュバージョンの更新だけでは更新されない）。
 
 ## Languages

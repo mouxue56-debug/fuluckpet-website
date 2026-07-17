@@ -1,7 +1,7 @@
 # fuluckpet.com — 福楽キャッテリー (Fuluck Cattery) — Full machine-readable summary
 
 > 大阪サイベリアン専門ブリーダー / Osaka Siberian Cat Specialist Breeder
-> 営業中 · 200+ 卒業猫 · 5.0★ 113レビュー · 第一種動物取扱業 220012A
+> 200+ 卒業猫 · 口コミ5.0★（100件以上） · 第一種動物取扱業 220012A
 
 ## About
 - 法人: 福楽株式会社 / 代表: 羅方遠 (ラホウエン)
@@ -204,4 +204,4 @@ A: 2週間に1回程度の爪切りをおすすめします。子猫のうちか
 - シニア猫 (Seniors) — geriatric care, age conversion
 - 猫ライフ (Lifestyle) — apartment living, multi-cat households, cats with babies
 - アレルギー対策 (Allergy) — Fel d1, HEPA air purifiers, allergy testing
-- 100+ articles indexed at https://fuluckpet.com/blog.html
+- Cat knowledge library: https://fuluckpet.com/blog.html
