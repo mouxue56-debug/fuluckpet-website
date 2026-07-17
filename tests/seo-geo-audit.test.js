@@ -18,6 +18,7 @@ const FIXED_SOURCE_TIMESTAMP = '2026-07-17T00:00:00.000Z';
 const FIXED_BASE_COMMIT = '0123456789abcdef';
 const ORIGIN = 'https://fuluckpet.com';
 const PROJECT = path.resolve(__dirname, '..');
+const EXACT_REVIEW_CLAIM = ['113', 'reviews'].join(' ');
 
 function write(root, relative, content) {
   const target = path.join(root, relative);
@@ -167,7 +168,7 @@ test('combined invalid fixture emits the stable hard-gate error codes', (t) => {
   write(
     root,
     'llms.txt',
-    `# Fuluck\n\n- Reviews: 5.00 / 113 reviews\n- Broken: ${ORIGIN}/missing.html\n`,
+    `# Fuluck\n\n- Reviews: 5.00 / ${EXACT_REVIEW_CLAIM}\n- Broken: ${ORIGIN}/missing.html\n`,
   );
 
   const result = audit(root);
@@ -351,6 +352,20 @@ test('malformed JSON-LD is reported while later scripts on the page are retained
   assertHasOnlyCode(audit(root), 'JSON_LD_INVALID');
 });
 
+test('data-type is not JSON-LD while an exact type attribute is still parsed', () => {
+  const html = `<!doctype html><title>Attribute boundary</title>
+<script data-type="application/ld+json">{"@type":"SearchAction"}</script>
+<script type="application/ld+json">{"@type":"Organization","name":"Fuluck"}</script>\n`;
+  const findings = [];
+  const metadata = {};
+
+  const entities = parseJsonLdScripts(html, 'blog/attribute-boundary.html', findings, metadata);
+
+  assert.deepEqual(findings, []);
+  assert.equal(metadata.scriptCount, 1);
+  assert.deepEqual(entities, [{ '@type': 'Organization', name: 'Fuluck' }]);
+});
+
 test('unclosed JSON-LD script is not silently omitted', (t) => {
   const root = createValidFixture(t);
   const relative = 'blog/unclosed-json-ld.html';
@@ -389,6 +404,18 @@ test('commented noindex cannot hide an active SearchAction', (t) => {
 <script type="application/ld+json">{"@type":"SearchAction"}</script>\n`);
 
   assertHasOnlyCode(audit(root), 'SEARCH_ACTION_OBSOLETE');
+});
+
+test('data-name and data-content cannot hide an active SearchAction', (t) => {
+  const root = createValidFixture(t);
+  write(root, 'blog/article.html', `<!doctype html><html><head><title>Public</title>
+<meta data-name="robots" data-content="noindex">
+<script type="application/ld+json">{"@type":"SearchAction"}</script></head><body></body></html>\n`);
+
+  const result = audit(root);
+
+  assert.equal(result.summary.noindexHtmlCount, 0);
+  assertHasOnlyCode(result, 'SEARCH_ACTION_OBSOLETE');
 });
 
 test('robots-looking text inside a script cannot hide an active SearchAction', (t) => {
@@ -580,7 +607,7 @@ for (const mutation of [
   },
   {
     label: 'exact review count',
-    line: '- Rating: 5.00 / 113 reviews',
+    line: `- Rating: 5.00 / ${EXACT_REVIEW_CLAIM}`,
     code: 'EXACT_REVIEW_COUNT',
   },
   {

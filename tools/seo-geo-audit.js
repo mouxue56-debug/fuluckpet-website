@@ -84,8 +84,10 @@ function digestInputs(inputs) {
 }
 
 function attributeValue(tag, name) {
+  const htmlSpace = '[\\t\\n\\f\\r ]';
   const expression = new RegExp(
-    `\\b${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`,
+    `(?:^|${htmlSpace})${name}(?=${htmlSpace}|=|>|$)` +
+      `${htmlSpace}*=${htmlSpace}*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`,
     'i',
   );
   const match = String(tag).match(expression);
