@@ -51,6 +51,26 @@ function getIndent(line) {
   return line.length - line.trimStart().length;
 }
 
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function yamlKeyPattern(name) {
+  const escapedName = escapeRegExp(name);
+  return `(?:${escapedName}|'${escapedName}'|"${escapedName}")`;
+}
+
+function getYamlMappingName(line) {
+  const match = line.match(/^\s*(?:'([A-Za-z0-9_-]+)'|"([A-Za-z0-9_-]+)"|([A-Za-z0-9_-]+))\s*:/);
+  return match ? (match[1] || match[2] || match[3]) : null;
+}
+
+function getYamlMappingValue(line, name) {
+  const match = line.match(new RegExp(`^\\s*${yamlKeyPattern(name)}\\s*:\\s*(.*?)\\s*$`));
+  assert.ok(match, `expected a ${name} mapping entry`);
+  return match[1].replace(/\s+#.*$/, '').trim();
+}
+
 function getNamedStepBlock(source, stepName) {
   const lines = source.split('\n');
   const marker = `- name: ${stepName}`;
@@ -71,6 +91,15 @@ function getNamedStepBlock(source, stepName) {
   }
 
   return lines.slice(start, end).join('\n').trimEnd();
+}
+
+function getStepMappingValues(stepBlock, name) {
+  const lines = stepBlock.split('\n');
+  const propertyIndent = getIndent(lines[0]) + 2;
+
+  return lines
+    .filter((line) => getIndent(line) === propertyIndent && getYamlMappingName(line) === name)
+    .map((line) => getYamlMappingValue(line, name));
 }
 
 function getLiteralRunScript(stepBlock) {
@@ -109,11 +138,10 @@ function getPermissionBlocks(source) {
   const blocks = [];
 
   for (let index = 0; index < lines.length; index += 1) {
-    const match = lines[index].match(/^(\s*)permissions:\s*(.*?)\s*$/);
-    if (!match) continue;
+    if (getYamlMappingName(lines[index]) !== 'permissions') continue;
 
-    const indent = match[1].length;
-    const inline = match[2].replace(/\s+#.*$/, '').trim();
+    const indent = getIndent(lines[index]);
+    const inline = getYamlMappingValue(lines[index], 'permissions');
     const entries = [];
 
     if (!inline) {
@@ -121,11 +149,10 @@ function getPermissionBlocks(source) {
         const line = lines[entryIndex];
         if (!line.trim()) continue;
         if (getIndent(line) <= indent) break;
-        const entry = line
-          .trim()
-          .replace(/\s+#.*$/, '')
-          .match(/^([A-Za-z0-9_-]+):\s*['"]?([A-Za-z-]+)['"]?\s*$/);
-        if (entry) entries.push({ name: entry[1], value: entry[2].toLowerCase() });
+        const name = getYamlMappingName(line);
+        if (!name) continue;
+        const value = getYamlMappingValue(line, name).replace(/^['"]|['"]$/g, '').toLowerCase();
+        entries.push({ name, value });
       }
     }
 
@@ -158,10 +185,10 @@ function assertReadOnlyPermissions(source) {
 
 function assertBlockingAuditStep(source) {
   const auditStep = getNamedStepBlock(source, 'Generate SEO GEO audit');
-  assert.doesNotMatch(auditStep, /^\s+if:\s*/m, 'the audit step cannot be conditional');
-  assert.doesNotMatch(
-    auditStep,
-    /^\s+continue-on-error:\s*/m,
+  assert.deepEqual(getStepMappingValues(auditStep, 'if'), [], 'the audit step cannot be conditional');
+  assert.deepEqual(
+    getStepMappingValues(auditStep, 'continue-on-error'),
+    [],
     'the audit step cannot ignore its own failure',
   );
 
@@ -180,16 +207,23 @@ function assertBlockingAuditStep(source) {
 
 function assertAlwaysRunSteps(source) {
   const verifyStep = getNamedStepBlock(source, 'Verify generated output');
-  assertAppearsInOrder(verifyStep, [
-    'if: always()',
-    'run: node tools/verify-generated.js',
-  ]);
+  assert.deepEqual(
+    getStepMappingValues(verifyStep, 'if'),
+    ['always()'],
+    'generated verification must use exactly if: always()',
+  );
+  assert.deepEqual(
+    getStepMappingValues(verifyStep, 'run'),
+    ['node tools/verify-generated.js'],
+  );
 
   const uploadStep = getNamedStepBlock(source, 'Upload SEO GEO audit');
-  assertAppearsInOrder(uploadStep, [
-    'if: always()',
-    `uses: ${UPLOAD} # v4.6.2`,
-  ]);
+  assert.deepEqual(
+    getStepMappingValues(uploadStep, 'if'),
+    ['always()'],
+    'artifact upload must use exactly if: always()',
+  );
+  assert.deepEqual(getStepMappingValues(uploadStep, 'uses'), [UPLOAD]);
 }
 
 function assertSeoGeoWorkflowPolicy(source) {
@@ -345,14 +379,24 @@ test('SEO GEO quality workflow is read-only, scheduled and produces an always-up
   assertSeoGeoWorkflowPolicy(seoGeoWorkflow);
 });
 
-test('SEO GEO validator binds always() to the upload step itself', () => {
+test('SEO GEO validator binds exact always() semantics to the upload step itself', async (t) => {
   const withoutUploadAlways = replaceExactlyOnce(
     seoGeoWorkflow,
     '      - name: Upload SEO GEO audit\n        if: always()\n',
     '      - name: Upload SEO GEO audit\n',
   );
+  const withCompoundUploadIf = replaceExactlyOnce(
+    seoGeoWorkflow,
+    '      - name: Upload SEO GEO audit\n        if: always()\n',
+    '      - name: Upload SEO GEO audit\n        if: always() && false\n',
+  );
 
-  assertPolicyRejectsMutation('upload without its own always()', withoutUploadAlways);
+  for (const [label, mutatedSource] of [
+    ['upload without its own always()', withoutUploadAlways],
+    ['upload with always() && false', withCompoundUploadIf],
+  ]) {
+    await t.test(label, () => assertPolicyRejectsMutation(label, mutatedSource));
+  }
 });
 
 test('SEO GEO validator rejects every audit failure bypass', async (t) => {
@@ -371,11 +415,35 @@ test('SEO GEO validator rejects every audit failure bypass', async (t) => {
     '      - name: Generate SEO GEO audit\n        run: |',
     '      - name: Generate SEO GEO audit\n        if: always()\n        run: |',
   );
+  const withSingleQuotedContinueOnError = replaceExactlyOnce(
+    seoGeoWorkflow,
+    '      - name: Generate SEO GEO audit\n        run: |',
+    "      - name: Generate SEO GEO audit\n        'continue-on-error': true\n        run: |",
+  );
+  const withDoubleQuotedContinueOnError = replaceExactlyOnce(
+    seoGeoWorkflow,
+    '      - name: Generate SEO GEO audit\n        run: |',
+    '      - name: Generate SEO GEO audit\n        "continue-on-error": true\n        run: |',
+  );
+  const withSingleQuotedIf = replaceExactlyOnce(
+    seoGeoWorkflow,
+    '      - name: Generate SEO GEO audit\n        run: |',
+    "      - name: Generate SEO GEO audit\n        'if': always()\n        run: |",
+  );
+  const withDoubleQuotedIf = replaceExactlyOnce(
+    seoGeoWorkflow,
+    '      - name: Generate SEO GEO audit\n        run: |',
+    '      - name: Generate SEO GEO audit\n        "if": always()\n        run: |',
+  );
 
   for (const [label, mutatedSource] of [
     ['audit with continue-on-error', withContinueOnError],
     ['audit command with a masked exit status', withMaskedCommand],
     ['audit scheduled with always()', withAlways],
+    ['audit with single-quoted continue-on-error', withSingleQuotedContinueOnError],
+    ['audit with double-quoted continue-on-error', withDoubleQuotedContinueOnError],
+    ['audit with single-quoted if', withSingleQuotedIf],
+    ['audit with double-quoted if', withDoubleQuotedIf],
   ]) {
     await t.test(label, () => assertPolicyRejectsMutation(label, mutatedSource));
   }
@@ -397,6 +465,16 @@ test('SEO GEO validator rejects write permissions and bracket secret references'
     'permissions:\n  contents: read',
     'permissions:\n  contents: read\n  actions: write',
   );
+  const withSingleQuotedJobPermissions = replaceExactlyOnce(
+    seoGeoWorkflow,
+    '  audit:\n    runs-on: ubuntu-latest',
+    "  audit:\n    'permissions': write-all\n    runs-on: ubuntu-latest",
+  );
+  const withDoubleQuotedJobPermissions = replaceExactlyOnce(
+    seoGeoWorkflow,
+    '  audit:\n    runs-on: ubuntu-latest',
+    '  audit:\n    "permissions": write-all\n    runs-on: ubuntu-latest',
+  );
   const secretExpressions = [
     "${{ secrets['TOKEN'] }}",
     '${{ secrets["TOKEN"] }}',
@@ -406,6 +484,8 @@ test('SEO GEO validator rejects write permissions and bracket secret references'
     ['global permissions write-all', withGlobalWriteAll],
     ['job permissions write-all', withJobWriteAll],
     ['write-valued permission', withWriteValuedPermission],
+    ['single-quoted job permissions write-all', withSingleQuotedJobPermissions],
+    ['double-quoted job permissions write-all', withDoubleQuotedJobPermissions],
     ...secretExpressions.map((expression) => [
       `secret reference ${expression}`,
       replaceExactlyOnce(
