@@ -82,13 +82,15 @@ https://fuluckpet.com/kittens/<breederId>.html#product
 
 新增 `SEO GEO Quality` Workflow：
 
-- 触发：`workflow_dispatch`、每周一 00:30 UTC（09:30 JST），以及 SEO/GEO 相关路径的 push / pull_request。
+- 触发：`workflow_dispatch`、每周日 19:17 UTC（周一 04:17 JST），以及全部 push / pull_request；周计划避开现有每日 18:00 UTC 再生成窗口。
 - 权限：仅 `contents: read`。
 - 环境：Ubuntu、Node 24，无依赖安装、无第三方 API、无生产凭据。
 - 步骤：checkout 固定 SHA → 运行 SEO/GEO 专项测试 → 运行审计器生成 JSON/Markdown → 运行 `verify-generated` → 上传审计 artifact。
 - 所有 GitHub-maintained actions 固定到不可变 commit SHA。
 
 现有 `quality.yml` 和 `regenerate-site.yml` 也要调用审计器。每日再生成在 commit 前执行；如果 push 前发生 rebase，则重新生成后再次执行，避免旧结果穿过重试分支。
+
+GitHub Pages 的动态发布工作流目前与 Quality 并行，独立 SEO/GEO Workflow 不能阻止一个已经由 main push 触发的 Pages 发布。因此生产硬门仍是：人工 push 前本地全门，以及 `regenerate-site.yml` 在自动 commit 前和 rebase retry 后的双重审计。除非另立 Pages 架构项目，本轮不把“并行检测”表述成“部署阻断”。
 
 ### 6. 第一轮内容机会
 
@@ -133,7 +135,7 @@ GSC 数据本轮通过 Laura 已登录的只读浏览器会话采集，不把账
 4. 运行 `node --test tests/*.test.js`、`node tools/verify-generated.js`、`node tools/seo-geo-audit.js` 和 `git diff --check`。
 5. 本地抽查桌面与手机：首页、博客、三语子猫列表、三语子猫详情、大阪落地页、成本文章；控制台无 error、无 body 横向溢出。
 6. 发布后以同一 SHA 验证静态页面和 JSON-LD；GSC 验证只针对已修正历史项。
-7. 生成 `mode: investigation` 的 Heisei Editorial Grid 1.0 冻结报告包，包含 JSON、Markdown、HTML、review、QA 和三张审阅图。
+7. 在工作树外 `/Users/willma/Documents/猫舍/报告/Fuluck-SEO-GEO-质量与发布审计-2026-07-17/` 生成 `mode: investigation` 的 Heisei Editorial Grid 1.0 冻结报告包，包含 JSON、Markdown、HTML、review、QA 和三张审阅图。
 8. 按知识库规则更新 NEXT、session log 与 Fuluck 发布 runbook，并 commit/push。
 
 ## 明确不做
