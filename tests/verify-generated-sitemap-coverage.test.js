@@ -248,6 +248,37 @@ ${ALL_MARKERS}
   assert.match(result.stderr, /schema.*kittens\.html.*Offer/i);
 });
 
+for (const scenario of [
+  {
+    label: 'inside @graph',
+    entity: { '@graph': [{ '@type': 'ItemList' }] },
+  },
+  {
+    label: 'inside an arbitrary nested object',
+    entity: { data: { list: { '@type': 'ItemList' } } },
+  },
+]) {
+  test(`verify-generated rejects a second ItemList ${scenario.label} on a kitten list page`, (t) => {
+    const siteDir = createVerifierSite(t);
+    fs.appendFileSync(
+      path.join(siteDir, 'kittens.html'),
+      `<script type="application/ld+json">${JSON.stringify(scenario.entity)}</script>\n`,
+      'utf8',
+    );
+    write(siteDir, 'sitemap.xml', `<?xml version="1.0"?>
+<urlset>
+  <url><loc>https://fuluckpet.com/kittens.html</loc></url>
+${ALL_MARKERS}
+</urlset>
+`);
+
+    const result = runVerifier(siteDir);
+
+    assert.equal(result.status, 1, `mutation escaped verifier:\n${result.stdout}\n${result.stderr}`);
+    assert.match(result.stderr, /schema.*kittens\.html.*exactly one ItemList entity.*found 2/i);
+  });
+}
+
 test('verify-generated rejects malformed detail Product ID and seller reference', (t) => {
   const siteDir = createVerifierSite(t);
   write(siteDir, 'kittens/schema-broken.html', `<!doctype html>

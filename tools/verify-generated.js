@@ -250,7 +250,7 @@ for (const p of ['kittens.html', 'en/kittens.html', 'zh/kittens.html']) {
     errors.push(`[schema] ${p}: expected exactly one generated ItemList block (found ${generatedBlocks})`);
   }
   const entities = jsonLdEntities(c, p);
-  const itemLists = entities.filter((entity) => hasSchemaType(entity, 'ItemList'));
+  const itemLists = schemaNodes(entities, 'ItemList');
   if (itemLists.length !== 1) {
     errors.push(`[schema] ${p}: expected exactly one ItemList entity (found ${itemLists.length})`);
   }
