@@ -103,13 +103,18 @@ function hasSchemaType(value, type) {
   const schemaType = value['@type'];
   return schemaType === type || (Array.isArray(schemaType) && schemaType.includes(type));
 }
-function countSchemaType(value, type) {
-  if (!value || typeof value !== 'object') return 0;
-  let count = hasSchemaType(value, type) ? 1 : 0;
+function collectSchemaNodes(value, type, nodes = []) {
+  if (!value || typeof value !== 'object') return nodes;
+  if (hasSchemaType(value, type)) nodes.push(value);
   for (const child of Object.values(value)) {
-    if (child && typeof child === 'object') count += countSchemaType(child, type);
+    if (child && typeof child === 'object') collectSchemaNodes(child, type, nodes);
   }
-  return count;
+  return nodes;
+}
+function schemaNodes(entities, type) {
+  const nodes = [];
+  for (const entity of entities) collectSchemaNodes(entity, type, nodes);
+  return nodes;
 }
 function listHtmlTree(absDir = SITE, relDir = '') {
   const skipDirs = new Set(['.git', '.superpowers', 'node_modules']);
@@ -189,42 +194,47 @@ for (const p of kittenDetailPages) {
   }
 
   const entities = jsonLdEntities(c, p);
-  const products = entities.filter((entity) => hasSchemaType(entity, 'Product'));
+  const products = schemaNodes(entities, 'Product');
+  const offerNodes = schemaNodes(entities, 'Offer');
   const priceBlock = c.match(/<p\b[^>]*class=["'][^"']*\bkitten-detail-price\b[^"']*["'][^>]*>([\s\S]*?)<\/p>/i);
   const priced = Boolean(priceBlock && /(?:&yen;|&#165;|¥)\s*[\d,]+/i.test(priceBlock[1]));
-  if (priced && products.length !== 1) {
+  if (!priced) {
+    if (products.length !== 0 || offerNodes.length !== 0) {
+      errors.push(`[schema] ${p}: unpriced detail must contain no Product or Offer (found ${products.length} Product, ${offerNodes.length} Offer)`);
+    }
+    continue;
+  }
+  if (products.length !== 1) {
     errors.push(`[schema] ${p}: priced detail must contain exactly one Product (found ${products.length})`);
+    continue;
   }
-  if (!priced && products.length > 0) {
-    errors.push(`[schema] ${p}: unpriced detail must not contain Product schema (found ${products.length})`);
+
+  const product = products[0];
+  const expectedProductId = `${BASE_URL}/kittens/${path.basename(p)}#product`;
+  if (product['@id'] !== expectedProductId) {
+    errors.push(`[schema] ${p}: Product @id must be ${expectedProductId}`);
   }
-  if (products.length === 1) {
-    const product = products[0];
-    const expectedProductId = `${BASE_URL}/kittens/${path.basename(p)}#product`;
-    if (product['@id'] !== expectedProductId) {
-      errors.push(`[schema] ${p}: Product @id must be ${expectedProductId}`);
+  const offers = product.offers;
+  const ownsOnlyTypedOffer = offers && typeof offers === 'object' && !Array.isArray(offers) &&
+    hasSchemaType(offers, 'Offer') && offerNodes.length === 1 && offerNodes[0] === offers;
+  if (!ownsOnlyTypedOffer) {
+    errors.push(`[schema] ${p}: priced detail must contain exactly one typed Offer owned by Product (found ${offerNodes.length} Offer)`);
+    continue;
+  }
+
+  const expectedOfferUrl = `${BASE_URL}/${p}`;
+  if (offers.url !== expectedOfferUrl) {
+    errors.push(`[schema] ${p}: Offer url must be ${expectedOfferUrl}`);
+  }
+  const seller = offers.seller;
+  if (!seller || typeof seller !== 'object' || Array.isArray(seller) ||
+      seller['@id'] !== `${BASE_URL}/#cattery` || Object.keys(seller).length !== 1) {
+    errors.push(`[schema] ${p}: Offer seller must reference ${BASE_URL}/#cattery`);
+  }
+  for (const field of ['shippingDetails', 'hasMerchantReturnPolicy', 'priceValidUntil']) {
+    if (Object.prototype.hasOwnProperty.call(offers, field)) {
+      errors.push(`[schema] ${p}: Offer must not publish unverified ${field}`);
     }
-    const offers = product.offers;
-    const expectedOfferUrl = `${BASE_URL}/${p}`;
-    if (!offers || typeof offers !== 'object' || Array.isArray(offers)) {
-      errors.push(`[schema] ${p}: Product must contain one Offer object`);
-    } else {
-      if (offers.url !== expectedOfferUrl) {
-        errors.push(`[schema] ${p}: Offer url must be ${expectedOfferUrl}`);
-      }
-      const seller = offers.seller;
-      if (!seller || typeof seller !== 'object' || Array.isArray(seller) ||
-          seller['@id'] !== `${BASE_URL}/#cattery` || Object.keys(seller).length !== 1) {
-        errors.push(`[schema] ${p}: Offer seller must reference ${BASE_URL}/#cattery`);
-      }
-      for (const field of ['shippingDetails', 'hasMerchantReturnPolicy', 'priceValidUntil']) {
-        if (Object.prototype.hasOwnProperty.call(offers, field)) {
-          errors.push(`[schema] ${p}: Offer must not publish unverified ${field}`);
-        }
-      }
-    }
-  } else if (products.length > 1) {
-    errors.push(`[schema] ${p}: duplicate Product schema (${products.length})`);
   }
 }
 
@@ -244,8 +254,8 @@ for (const p of ['kittens.html', 'en/kittens.html', 'zh/kittens.html']) {
   if (itemLists.length !== 1) {
     errors.push(`[schema] ${p}: expected exactly one ItemList entity (found ${itemLists.length})`);
   }
-  const products = entities.reduce((count, entity) => count + countSchemaType(entity, 'Product'), 0);
-  const offers = entities.reduce((count, entity) => count + countSchemaType(entity, 'Offer'), 0);
+  const products = schemaNodes(entities, 'Product').length;
+  const offers = schemaNodes(entities, 'Offer').length;
   if (products !== 0) errors.push(`[schema] ${p}: kitten list must not publish Product schema (${products})`);
   if (offers !== 0) errors.push(`[schema] ${p}: kitten list must not publish Offer schema (${offers})`);
 }
