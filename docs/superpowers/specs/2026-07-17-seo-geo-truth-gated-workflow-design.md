@@ -74,7 +74,7 @@ https://fuluckpet.com/kittens/<breederId>.html#product
 4. 未验证的 Merchant 政策字段在所有 Product/Offer 中缺席。
 5. `SearchAction` 与 `{search_term_string}` 在公开 HTML 中缺席。
 6. `llms*.txt` 不含精确评价数、具体易失效子猫示例或无法解析的站内 URL。
-7. 审计输出包含时间、Git SHA、检查数量、errors、warnings 和状态；有 error 时进程非零退出。
+7. 审计输出包含可复现的基线提交时间、`baseCommit`、实际被审文件集合的 `inputDigest`、检查数量、errors、warnings 和状态；commit 前候选输出不得冒充旧 HEAD 的 tree。不得写 wall-clock、runner 名、绝对路径或随机值，同一输入文件集合的输出必须 byte-stable；有 error 时进程非零退出。
 
 审计器支持把同一结果确定性写为 JSON 与 Markdown。Markdown 用于人读，JSON 用于 CI artifact 和冻结调查报告事实输入。
 
