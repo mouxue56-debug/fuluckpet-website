@@ -222,3 +222,94 @@ test('related cost articles link back and English Osaka reviews use the stable t
   assert.doesNotMatch(englishOsaka, /\b113\b/);
   assert.match(englishOsaka, /100\+ reviews/);
 });
+
+test('price guide titles and summaries stay timeless across source and derived surfaces', () => {
+  const route = '/blog/siberian-price-guide.html';
+  const article = read('blog/siberian-price-guide.html');
+  const blogPosting = schemas(article).find((schema) => schema['@type'] === 'BlogPosting');
+  const breadcrumb = schemas(article).find((schema) => schema['@type'] === 'BreadcrumbList');
+  const card = blogCard(read('blog.html'), route);
+  const searchRecords = JSON.parse(read('blog-search-index.json')).filter((record) => record.u === route);
+  const listingContext = vm.createContext({ window: {} });
+  vm.runInContext(read('blog-listing-i18n.js'), listingContext, { filename: 'blog-listing-i18n.js' });
+  const listing = listingContext.window._blogListingI18n.articles['siberian-price-guide'];
+  const translationPath = path.join(ROOT, 'tools/blog-translations/siberian-price-guide.json');
+
+  const titleSurfaces = [
+    tagText(article, 'title'),
+    metaContent(article, 'property', 'og:title'),
+    tagText(article, 'h1'),
+    blogPosting.headline,
+    breadcrumb.itemListElement.at(-1).name,
+    tagText(card, 'h3'),
+    ...searchRecords.map((record) => record.t),
+    listing.en.title,
+    listing.zh.title,
+  ];
+  for (const title of titleSurfaces) assert.doesNotMatch(title, /2025/, title);
+
+  const cardTitle = 'サイベリアンの値段・価格ガイド';
+  assert.equal(tagText(card, 'h3'), cardTitle);
+  assert.equal(searchRecords.length, 1, 'price guide has one search record');
+  assert.equal(searchRecords[0].t, blogPosting.headline);
+  assert.equal(searchRecords[0].d, metaContent(article, 'name', 'description'));
+  assert.equal(searchRecords[0].i, 'https://fuluckpet.com/images/siberian-group.webp');
+  assert.match(tagText(card, 'p'), /各子猫ページで最新情報を確認/);
+
+  const staleYearClaim = /2025年(?:最新|現在|の最新相場|日本西伯利亚猫)|(?:cost|price|prices)[^\n<]{0,50}(?:in|for) 2025/i;
+  const unsupportedPriceRange = /(?:15\s*[〜～-]\s*50\s*万|150[,.]?000\s*[–—〜～-]\s*(?:¥\s*)?500[,.]?000)/i;
+  for (const [surface, value] of [
+    ['price article', article],
+    ['blog card', textContent(card)],
+    ['search record', searchRecords.map((record) => `${record.t}\n${record.d}`).join('\n')],
+    ['listing i18n', JSON.stringify(listing)],
+  ]) {
+    assert.doesNotMatch(value, staleYearClaim, surface);
+    assert.doesNotMatch(value, unsupportedPriceRange, surface);
+  }
+
+  assert.ok(fs.existsSync(translationPath), 'price-guide translation source exists');
+  const translation = JSON.parse(fs.readFileSync(translationPath, 'utf8'));
+  assert.equal(translation.slug, 'siberian-price-guide');
+  assert.doesNotMatch(`${translation.en.title}\n${translation.en.content}\n${translation.zh.title}\n${translation.zh.content}`, staleYearClaim);
+  assert.doesNotMatch(`${translation.en.content}\n${translation.zh.content}`, unsupportedPriceRange);
+});
+
+test('price guide uses a price-neutral verified photograph instead of the stale range graphic', () => {
+  const article = read('blog/siberian-price-guide.html');
+  const figure = article.match(/<figure\b[^>]*class=["'][^"']*blog-figure[^"']*["'][^>]*>([\s\S]*?)<\/figure>/i);
+  assert.ok(figure, 'price guide figure exists');
+  assert.match(figure[1], /src=["']\/images\/siberian-group\.webp["']/);
+  assert.match(figure[1], /width=["']800["']/);
+  assert.match(figure[1], /height=["']450["']/);
+  assert.doesNotMatch(article, /siberian-price-guide_1200\.webp/);
+  assert.equal(metaContent(article, 'property', 'og:image'), 'https://fuluckpet.com/images/siberian-group.webp');
+});
+
+test('Osaka support articles link readers to the primary Osaka landing page', () => {
+  for (const relative of ['blog/siberian-osaka-guide.html', 'blog/kansai-breeder-guide.html']) {
+    const article = read(relative).match(/<article\b[^>]*>([\s\S]*?)<\/article>/i);
+    assert.ok(article, `${relative}: article body exists`);
+    assert.match(article[1], /href=["']\/siberian-breeder-osaka\.html["']/, relative);
+  }
+});
+
+test('changed SEO GEO articles publish an honest current dateModified', () => {
+  for (const relative of [
+    'blog/kansai-breeder-guide.html',
+    'blog/siberian-osaka-guide.html',
+    'blog/siberian-price-guide.html',
+    'blog/siberian-weight-size.html',
+    'blog/siberian-character.html',
+    'blog/large-cat-breeds.html',
+    'blog/siberian-vs-mainecoon.html',
+    'blog/siberian-vs-norwegian.html',
+    'blog/siberian-cat-characteristics.html',
+    'en/blog/choose-healthy-kitten-checklist.html',
+    'zh/blog/choose-healthy-kitten-checklist.html',
+  ]) {
+    const posting = schemas(read(relative)).find((entry) => entry['@type'] === 'BlogPosting');
+    assert.ok(posting, `${relative}: BlogPosting exists`);
+    assert.equal(posting.dateModified, '2026-07-18T00:00:00.000Z', relative);
+  }
+});

@@ -146,6 +146,66 @@ test('video calls stay preliminary and never replace the legally required on-sit
   }
 });
 
+test('waitlist pages preserve the pre-contract on-site duty and localized health guidance', () => {
+  const waitlists = [
+    ['waitlist.html', LEGAL_VISIT_COPY.ja, '/blog/choose-healthy-kitten-checklist.html'],
+    ['en/waitlist.html', LEGAL_VISIT_COPY.en, '/en/blog/choose-healthy-kitten-checklist.html'],
+    ['zh/waitlist.html', LEGAL_VISIT_COPY.zh, '/zh/blog/choose-healthy-kitten-checklist.html'],
+  ];
+
+  for (const [file, legalCopy, healthGuide] of waitlists) {
+    const visible = visibleHtml(file);
+    assert.ok(visible.includes(legalCopy), `${file}: exact pre-contract on-site duty`);
+    assert.match(visible, new RegExp(`href=["']${healthGuide.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']`));
+  }
+});
+
+test('Fuluck copy distinguishes parent-cat genetic testing from kitten-specific records', () => {
+  const files = [
+    'blog/siberian-price-guide.html',
+    'blog/siberian-osaka-guide.html',
+    'blog/kansai-breeder-guide.html',
+  ];
+  const falseAllKittenClaim = /(?:すべての子猫|全子猫)[^\n<]{0,60}遺伝子検査|every kitten[^\n<]{0,120}genetic test|每(?:一)?只(?:幼猫|小猫|猫咪)[^\n<]{0,80}基因检测|所有猫咪[^\n<]{0,80}基因检测/is;
+
+  for (const file of files) {
+    const source = read(file);
+    assert.doesNotMatch(source, falseAllKittenClaim, file);
+    assert.match(source, /親猫[^\n<]{0,80}遺伝子検査/, `${file}: Japanese parent-cat test boundary`);
+    assert.match(
+      source,
+      /(?:parent cats?[^\n<]{0,100}genetic test|genetic test[^\n<]{0,100}parent cats?)/is,
+      `${file}: English parent-cat test boundary`,
+    );
+    assert.match(source, /亲猫[^\n<]{0,100}基因检测/, `${file}: Chinese parent-cat test boundary`);
+  }
+});
+
+test('no tracked public page claims genetic screening applies to every kitten', () => {
+  const publicHtml = childProcess.execFileSync(
+    'git',
+    ['ls-files', '*.html'],
+    { cwd: ROOT, encoding: 'utf8' },
+  ).trim().split('\n').filter((file) => file && !file.startsWith('admin/'));
+  const universalKittenGeneticClaims = [
+    /(?:すべて|全て|全)の?子猫(?:に|は|を|が)?[^\n<]{0,60}(?:遺伝子|DNA)検査(?:を)?(?:実施|済み|受け)/is,
+    /(?:遺伝子|DNA)検査(?:を)?(?:すべて|全て|全)の?子猫(?:に|へ)?(?:実施|行)/is,
+    /(?:all|every|each)\s+(?:of\s+our\s+)?kittens?\s+(?:(?:is|are|has|have|undergo(?:es)?|receiv(?:e|es))\s+){0,2}(?:genetic(?:ally)?|DNA)\s+(?:test|screen)/is,
+    /(?:genetic|DNA)\s+(?:testing|screening)\s+(?:is\s+)?(?:performed|conducted|done|completed)\s+(?:on|for)\s+(?:all|every|each)\s+(?:of\s+our\s+)?kittens?/is,
+    /(?:所有|全部|每(?:一)?只)(?:的)?(?:幼猫|小猫|猫咪)(?:都|均)?[^\n<]{0,50}(?:接受|进行|完成|已做)[^\n<]{0,30}(?:基因|DNA)(?:检测|检查|筛查)/is,
+    /(?:基因|DNA)(?:检测|检查|筛查)(?:已)?(?:覆盖|适用于|针对|用于)[^\n<]{0,30}(?:所有|全部|每(?:一)?只)(?:的)?(?:幼猫|小猫|猫咪)/is,
+  ];
+
+  const offenders = [];
+  for (const file of publicHtml) {
+    const source = read(file);
+    for (const claim of universalKittenGeneticClaims) {
+      if (claim.test(source)) offenders.push(`${file}: ${claim.source}`);
+    }
+  }
+  assert.deepEqual(offenders, [], `universal kitten genetic-test claims remain:\n${offenders.join('\n')}`);
+});
+
 for (const [file, parallelCopy] of [
   ['index.html', /対面見学\s*・\s*LINEビデオ通話対応/],
   ['siberian-allergy.html', /相性チェック<\/b>のお時間を長めに確保（対面・ビデオ通話）/],

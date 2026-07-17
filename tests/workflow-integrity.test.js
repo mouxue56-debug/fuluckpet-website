@@ -257,7 +257,7 @@ function assertSeoGeoWorkflowPolicy(source) {
   );
 
   assertAppearsInOrder(source, [
-    'node --test tests/seo-geo-structured-data.test.js tests/seo-geo-content-contract.test.js tests/seo-geo-audit.test.js tests/workflow-integrity.test.js',
+    'node --test tests/seo-geo-structured-data.test.js tests/seo-geo-content-contract.test.js tests/seo-geo-audit.test.js tests/seo-geo-content-opportunities.test.js tests/siberian-weight-truth.test.js tests/localized-blog-seo.test.js tests/whole-site-trust-contract.test.js tests/workflow-integrity.test.js',
     'node tools/seo-geo-audit.js',
     'node tools/verify-generated.js',
     'actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02',
