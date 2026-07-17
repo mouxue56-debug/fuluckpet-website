@@ -80,6 +80,7 @@
       items: [
         { href: '/booking.html', key: 'nav.booking', icon: 'calendar-check', match: ['/booking.html'] },
         { href: '/waitlist.html', key: 'nav.waitlist', icon: 'clipboard-list', localized: true, match: ['/waitlist.html'] },
+        { href: '/siberian-breeder-osaka.html', key: 'nav.osakaAdoption', icon: 'map-pin', localized: true, match: ['/siberian-breeder-osaka.html'] },
         { href: '/guide/', key: 'nav.guide', icon: 'book-open', match: ['/guide/'] },
         { href: '/faq.html', key: 'nav.faq', icon: 'circle-help', match: ['/faq.html'] }
       ]

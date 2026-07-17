@@ -86,6 +86,7 @@ test('consultation menu stays concise and avoids overlapping adoption destinatio
   assert.deepEqual(adoption.items.map((item) => item.key), [
     'nav.booking',
     'nav.waitlist',
+    'nav.osakaAdoption',
     'nav.guide',
     'nav.faq',
   ]);
