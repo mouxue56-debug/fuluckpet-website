@@ -175,8 +175,18 @@ function assertReadOnlyPermissions(source) {
   );
 
   for (const block of permissionBlocks) {
+    assert.doesNotMatch(
+      block.inline,
+      /[&*]/,
+      'inline permissions cannot use YAML anchors or aliases',
+    );
     assert.doesNotMatch(block.inline, /\bwrite(?:-all)?\b/, 'inline permissions cannot write');
     for (const entry of block.entries) {
+      assert.doesNotMatch(
+        entry.value,
+        /[&*]/,
+        `${entry.name} permission cannot use YAML anchors or aliases`,
+      );
       assert.notEqual(entry.value, 'write', `${entry.name} permission cannot write`);
       assert.notEqual(entry.value, 'write-all', `${entry.name} permission cannot write-all`);
     }
@@ -238,8 +248,8 @@ function assertSeoGeoWorkflowPolicy(source) {
   assertAlwaysRunSteps(source);
   assert.doesNotMatch(
     source,
-    /\bsecrets\s*(?:\.|\[\s*['"])/i,
-    'workflow cannot reference secrets with dot or bracket syntax',
+    /\bsecrets\b/i,
+    'workflow cannot reference the secrets context',
   );
   assert.doesNotMatch(
     source,
@@ -449,7 +459,7 @@ test('SEO GEO validator rejects every audit failure bypass', async (t) => {
   }
 });
 
-test('SEO GEO validator rejects write permissions and bracket secret references', async (t) => {
+test('SEO GEO validator rejects unsafe permissions and secrets context references', async (t) => {
   const withGlobalWriteAll = replaceExactlyOnce(
     seoGeoWorkflow,
     'permissions:\n  contents: read',
@@ -475,6 +485,20 @@ test('SEO GEO validator rejects write permissions and bracket secret references'
     '  audit:\n    runs-on: ubuntu-latest',
     '  audit:\n    "permissions": write-all\n    runs-on: ubuntu-latest',
   );
+  const withPermissionAlias = replaceExactlyOnce(
+    replaceExactlyOnce(
+      seoGeoWorkflow,
+      'permissions:\n  contents: read',
+      'x-writer: &writer write-all\n\npermissions:\n  contents: read',
+    ),
+    '  audit:\n    runs-on: ubuntu-latest',
+    '  audit:\n    permissions: *writer\n    runs-on: ubuntu-latest',
+  );
+  const withBareSecretsContext = replaceExactlyOnce(
+    seoGeoWorkflow,
+    '    runs-on: ubuntu-latest',
+    '    runs-on: ubuntu-latest\n    env:\n      SECRETS_JSON: ${{ toJSON(secrets) }}',
+  );
   const secretExpressions = [
     "${{ secrets['TOKEN'] }}",
     '${{ secrets["TOKEN"] }}',
@@ -486,6 +510,8 @@ test('SEO GEO validator rejects write permissions and bracket secret references'
     ['write-valued permission', withWriteValuedPermission],
     ['single-quoted job permissions write-all', withSingleQuotedJobPermissions],
     ['double-quoted job permissions write-all', withDoubleQuotedJobPermissions],
+    ['job permissions alias to write-all anchor', withPermissionAlias],
+    ['bare secrets context reference', withBareSecretsContext],
     ...secretExpressions.map((expression) => [
       `secret reference ${expression}`,
       replaceExactlyOnce(
