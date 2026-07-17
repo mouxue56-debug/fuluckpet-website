@@ -26,5 +26,8 @@ jobs:
       - name: Run complete regression suite
         run: node --test tests/*.test.js
 
+      - name: Run SEO GEO audit
+        run: node tools/seo-geo-audit.js
+
       - name: Verify generated output
         run: node tools/verify-generated.js

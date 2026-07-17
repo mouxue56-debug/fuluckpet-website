@@ -1,0 +1,49 @@
+name: SEO GEO Quality
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 19 * * 0'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: seo-geo-quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: '.node-version'
+
+      - name: Run SEO GEO contract tests
+        run: node --test tests/seo-geo-structured-data.test.js tests/seo-geo-content-contract.test.js tests/seo-geo-audit.test.js tests/workflow-integrity.test.js
+
+      - name: Generate SEO GEO audit
+        run: |
+          mkdir -p "$RUNNER_TEMP/seo-geo-audit"
+          node tools/seo-geo-audit.js \
+            --json "$RUNNER_TEMP/seo-geo-audit/seo-geo-audit.json" \
+            --markdown "$RUNNER_TEMP/seo-geo-audit/seo-geo-audit.md"
+
+      - name: Verify generated output
+        if: always()
+        run: node tools/verify-generated.js
+
+      - name: Upload SEO GEO audit
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: seo-geo-audit-${{ github.sha }}
+          path: ${{ runner.temp }}/seo-geo-audit/
+          if-no-files-found: error
+          retention-days: 30
