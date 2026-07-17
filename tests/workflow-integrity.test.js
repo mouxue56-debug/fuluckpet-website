@@ -47,6 +47,197 @@ function assertAuditReportsUseRunnerTemp(source) {
   );
 }
 
+function getIndent(line) {
+  return line.length - line.trimStart().length;
+}
+
+function getNamedStepBlock(source, stepName) {
+  const lines = source.split('\n');
+  const marker = `- name: ${stepName}`;
+  const starts = [];
+
+  for (let index = 0; index < lines.length; index += 1) {
+    if (lines[index].trim() === marker) starts.push(index);
+  }
+
+  assert.equal(starts.length, 1, `expected exactly one ${stepName} step`);
+  const start = starts[0];
+  const stepIndent = getIndent(lines[start]);
+  let end = start + 1;
+
+  while (end < lines.length) {
+    if (lines[end].trim() && getIndent(lines[end]) <= stepIndent) break;
+    end += 1;
+  }
+
+  return lines.slice(start, end).join('\n').trimEnd();
+}
+
+function getLiteralRunScript(stepBlock) {
+  const lines = stepBlock.split('\n');
+  const runIndexes = [];
+
+  for (let index = 0; index < lines.length; index += 1) {
+    if (/^\s+run:\s*\|\s*$/.test(lines[index])) runIndexes.push(index);
+  }
+
+  assert.equal(runIndexes.length, 1, 'step must contain exactly one literal run block');
+  const runIndex = runIndexes[0];
+  const runIndent = getIndent(lines[runIndex]);
+  const scriptLines = [];
+
+  for (let index = runIndex + 1; index < lines.length; index += 1) {
+    if (lines[index].trim() && getIndent(lines[index]) <= runIndent) break;
+    scriptLines.push(lines[index]);
+  }
+
+  const contentIndents = scriptLines
+    .filter((line) => line.trim())
+    .map((line) => getIndent(line));
+  assert.ok(contentIndents.length > 0, 'literal run block must not be empty');
+  const contentIndent = Math.min(...contentIndents);
+  assert.ok(contentIndent > runIndent, 'literal run block must be nested under run');
+
+  return scriptLines
+    .map((line) => (line.trim() ? line.slice(contentIndent) : ''))
+    .join('\n')
+    .trimEnd();
+}
+
+function getPermissionBlocks(source) {
+  const lines = source.split('\n');
+  const blocks = [];
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const match = lines[index].match(/^(\s*)permissions:\s*(.*?)\s*$/);
+    if (!match) continue;
+
+    const indent = match[1].length;
+    const inline = match[2].replace(/\s+#.*$/, '').trim();
+    const entries = [];
+
+    if (!inline) {
+      for (let entryIndex = index + 1; entryIndex < lines.length; entryIndex += 1) {
+        const line = lines[entryIndex];
+        if (!line.trim()) continue;
+        if (getIndent(line) <= indent) break;
+        const entry = line
+          .trim()
+          .replace(/\s+#.*$/, '')
+          .match(/^([A-Za-z0-9_-]+):\s*['"]?([A-Za-z-]+)['"]?\s*$/);
+        if (entry) entries.push({ name: entry[1], value: entry[2].toLowerCase() });
+      }
+    }
+
+    blocks.push({ indent, inline: inline.toLowerCase(), entries });
+  }
+
+  return blocks;
+}
+
+function assertReadOnlyPermissions(source) {
+  const permissionBlocks = getPermissionBlocks(source);
+  const globalPermissions = permissionBlocks.filter((block) => block.indent === 0);
+
+  assert.equal(globalPermissions.length, 1, 'workflow must declare one global permissions block');
+  assert.equal(globalPermissions[0].inline, '', 'global permissions must be an explicit map');
+  assert.deepEqual(
+    globalPermissions[0].entries,
+    [{ name: 'contents', value: 'read' }],
+    'global permissions must grant only contents: read',
+  );
+
+  for (const block of permissionBlocks) {
+    assert.doesNotMatch(block.inline, /\bwrite(?:-all)?\b/, 'inline permissions cannot write');
+    for (const entry of block.entries) {
+      assert.notEqual(entry.value, 'write', `${entry.name} permission cannot write`);
+      assert.notEqual(entry.value, 'write-all', `${entry.name} permission cannot write-all`);
+    }
+  }
+}
+
+function assertBlockingAuditStep(source) {
+  const auditStep = getNamedStepBlock(source, 'Generate SEO GEO audit');
+  assert.doesNotMatch(auditStep, /^\s+if:\s*/m, 'the audit step cannot be conditional');
+  assert.doesNotMatch(
+    auditStep,
+    /^\s+continue-on-error:\s*/m,
+    'the audit step cannot ignore its own failure',
+  );
+
+  const continuation = String.fromCharCode(92);
+  assert.deepEqual(
+    getLiteralRunScript(auditStep).split('\n'),
+    [
+      'mkdir -p "$RUNNER_TEMP/seo-geo-audit"',
+      `node tools/seo-geo-audit.js ${continuation}`,
+      `  --json "$RUNNER_TEMP/seo-geo-audit/seo-geo-audit.json" ${continuation}`,
+      '  --markdown "$RUNNER_TEMP/seo-geo-audit/seo-geo-audit.md"',
+    ],
+    'the unmasked audit command must terminate the audit step',
+  );
+}
+
+function assertAlwaysRunSteps(source) {
+  const verifyStep = getNamedStepBlock(source, 'Verify generated output');
+  assertAppearsInOrder(verifyStep, [
+    'if: always()',
+    'run: node tools/verify-generated.js',
+  ]);
+
+  const uploadStep = getNamedStepBlock(source, 'Upload SEO GEO audit');
+  assertAppearsInOrder(uploadStep, [
+    'if: always()',
+    `uses: ${UPLOAD} # v4.6.2`,
+  ]);
+}
+
+function assertSeoGeoWorkflowPolicy(source) {
+  assert.match(source, /workflow_dispatch:/);
+  assert.match(source, /cron:\s*['"]17 19 \* \* 0['"]/);
+  assert.match(source, /push:/);
+  assert.match(source, /pull_request:/);
+  assertReadOnlyPermissions(source);
+  assert.match(source, /timeout-minutes:\s*10/);
+  assert.match(source, /node-version-file:\s*['"]?\.node-version['"]?/);
+  assertBlockingAuditStep(source);
+  assertAlwaysRunSteps(source);
+  assert.doesNotMatch(
+    source,
+    /\bsecrets\s*(?:\.|\[\s*['"])/i,
+    'workflow cannot reference secrets with dot or bracket syntax',
+  );
+  assert.doesNotMatch(
+    source,
+    /git\s+push|\bdeploy\b|\bwrangler\b|cloudflare|indexnow|search\s+console|\bgsc\b/i,
+  );
+
+  assertAppearsInOrder(source, [
+    'node --test tests/seo-geo-structured-data.test.js tests/seo-geo-content-contract.test.js tests/seo-geo-audit.test.js tests/workflow-integrity.test.js',
+    'node tools/seo-geo-audit.js',
+    'node tools/verify-generated.js',
+    'actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02',
+  ]);
+}
+
+function replaceExactlyOnce(source, before, after) {
+  assert.equal(
+    source.split(before).length - 1,
+    1,
+    `mutation target must occur exactly once: ${before}`,
+  );
+  return source.replace(before, after);
+}
+
+function assertPolicyRejectsMutation(label, mutatedSource) {
+  assert.notEqual(mutatedSource, seoGeoWorkflow, `${label} must change the workflow source`);
+  assert.throws(
+    () => assertSeoGeoWorkflowPolicy(mutatedSource),
+    assert.AssertionError,
+    `${label} must be rejected by the SEO GEO workflow validator`,
+  );
+}
+
 test('regeneration workflow runs the complete Node test suite before committing', () => {
   assert.equal(nodeVersion, '24');
   assert.match(workflow, /node-version-file:\s*['"]?\.node-version['"]?/);
@@ -151,42 +342,83 @@ test('regeneration workflow keeps audit reports outside git staging at both rele
 });
 
 test('SEO GEO quality workflow is read-only, scheduled and produces an always-uploaded audit', () => {
-  assert.match(seoGeoWorkflow, /workflow_dispatch:/);
-  assert.match(seoGeoWorkflow, /cron:\s*['"]17 19 \* \* 0['"]/);
-  assert.match(seoGeoWorkflow, /push:/);
-  assert.match(seoGeoWorkflow, /pull_request:/);
-  assert.match(seoGeoWorkflow, /permissions:\s*\n\s+contents:\s*read/);
-  assert.match(seoGeoWorkflow, /timeout-minutes:\s*10/);
-  assert.match(seoGeoWorkflow, /node-version-file:\s*['"]?\.node-version['"]?/);
-  assert.match(
+  assertSeoGeoWorkflowPolicy(seoGeoWorkflow);
+});
+
+test('SEO GEO validator binds always() to the upload step itself', () => {
+  const withoutUploadAlways = replaceExactlyOnce(
     seoGeoWorkflow,
-    /node tools\/seo-geo-audit\.js[\s\S]*--json[\s\S]*seo-geo-audit\.json[\s\S]*--markdown[\s\S]*seo-geo-audit\.md/,
-  );
-  assert.match(
-    seoGeoWorkflow,
-    /if:\s*always\(\)[\s\S]*actions\/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02\s+#\s+v4\.6\.2/,
-  );
-  assert.doesNotMatch(
-    seoGeoWorkflow,
-    /contents:\s*write|pages:\s*write|id-token:\s*write|secrets\.|git\s+push|\bdeploy\b|\bwrangler\b|cloudflare|indexnow|search\s+console|\bgsc\b/i,
+    '      - name: Upload SEO GEO audit\n        if: always()\n',
+    '      - name: Upload SEO GEO audit\n',
   );
 
-  assertAppearsInOrder(seoGeoWorkflow, [
-    'node --test tests/seo-geo-structured-data.test.js tests/seo-geo-content-contract.test.js tests/seo-geo-audit.test.js tests/workflow-integrity.test.js',
-    'node tools/seo-geo-audit.js',
-    'node tools/verify-generated.js',
-    'actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02',
-  ]);
+  assertPolicyRejectsMutation('upload without its own always()', withoutUploadAlways);
+});
 
-  const auditStepIndex = seoGeoWorkflow.indexOf('- name: Generate SEO GEO audit');
-  const verifyStepIndex = seoGeoWorkflow.indexOf('- name: Verify generated output');
-  assert.notEqual(auditStepIndex, -1);
-  assert.notEqual(verifyStepIndex, -1);
-  assert.doesNotMatch(
-    seoGeoWorkflow.slice(auditStepIndex, verifyStepIndex),
-    /if:\s*always\(\)/,
-    'the audit must block the workflow rather than being an always-run step',
+test('SEO GEO validator rejects every audit failure bypass', async (t) => {
+  const withContinueOnError = replaceExactlyOnce(
+    seoGeoWorkflow,
+    '      - name: Generate SEO GEO audit\n        run: |',
+    '      - name: Generate SEO GEO audit\n        continue-on-error: true\n        run: |',
   );
+  const withMaskedCommand = replaceExactlyOnce(
+    seoGeoWorkflow,
+    '            --markdown "$RUNNER_TEMP/seo-geo-audit/seo-geo-audit.md"',
+    '            --markdown "$RUNNER_TEMP/seo-geo-audit/seo-geo-audit.md" || true',
+  );
+  const withAlways = replaceExactlyOnce(
+    seoGeoWorkflow,
+    '      - name: Generate SEO GEO audit\n        run: |',
+    '      - name: Generate SEO GEO audit\n        if: always()\n        run: |',
+  );
+
+  for (const [label, mutatedSource] of [
+    ['audit with continue-on-error', withContinueOnError],
+    ['audit command with a masked exit status', withMaskedCommand],
+    ['audit scheduled with always()', withAlways],
+  ]) {
+    await t.test(label, () => assertPolicyRejectsMutation(label, mutatedSource));
+  }
+});
+
+test('SEO GEO validator rejects write permissions and bracket secret references', async (t) => {
+  const withGlobalWriteAll = replaceExactlyOnce(
+    seoGeoWorkflow,
+    'permissions:\n  contents: read',
+    'permissions: write-all',
+  );
+  const withJobWriteAll = replaceExactlyOnce(
+    seoGeoWorkflow,
+    '  audit:\n    runs-on: ubuntu-latest',
+    '  audit:\n    permissions: write-all\n    runs-on: ubuntu-latest',
+  );
+  const withWriteValuedPermission = replaceExactlyOnce(
+    seoGeoWorkflow,
+    'permissions:\n  contents: read',
+    'permissions:\n  contents: read\n  actions: write',
+  );
+  const secretExpressions = [
+    "${{ secrets['TOKEN'] }}",
+    '${{ secrets["TOKEN"] }}',
+  ];
+
+  const mutations = [
+    ['global permissions write-all', withGlobalWriteAll],
+    ['job permissions write-all', withJobWriteAll],
+    ['write-valued permission', withWriteValuedPermission],
+    ...secretExpressions.map((expression) => [
+      `secret reference ${expression}`,
+      replaceExactlyOnce(
+        seoGeoWorkflow,
+        '    runs-on: ubuntu-latest',
+        `    runs-on: ubuntu-latest\n    env:\n      TOKEN: ${expression}`,
+      ),
+    ]),
+  ];
+
+  for (const [label, mutatedSource] of mutations) {
+    await t.test(label, () => assertPolicyRejectsMutation(label, mutatedSource));
+  }
 });
 
 test('manual regeneration cannot run from a non-main ref', () => {
