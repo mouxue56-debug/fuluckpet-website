@@ -117,9 +117,12 @@ function insideHtmlComment(index, ranges) {
   return false;
 }
 
+function stripHtmlComments(markup) {
+  return String(markup).replace(/<!--[\s\S]*?(?:-->|$)/g, '');
+}
+
 function stripInactiveMarkup(markup) {
-  return String(markup)
-    .replace(/<!--[\s\S]*?(?:-->|$)/g, '')
+  return stripHtmlComments(markup)
     .replace(
       /<(script|style|template|textarea|title|noscript)\b[^>]*>[\s\S]*?(?:<\/\1\s*>|$)/gi,
       '',
@@ -624,7 +627,7 @@ function checkDefinitions(errors) {
       'EXACT_REVIEW_COUNT', 'LLMS_INTERNAL_URL_MISSING', 'LLMS_VOLATILE_ID',
     ]],
     ['MERCHANT_POLICY', ['MERCHANT_POLICY_UNVERIFIED']],
-    ['SEARCH_ACTION', ['SEARCH_ACTION_OBSOLETE']],
+    ['SEARCH_ACTION', ['SEARCH_ACTION_OBSOLETE', 'SEARCH_TERM_TEMPLATE_OBSOLETE']],
   ];
   const errorCodes = new Set(errors.map((error) => error.code));
   return definitions.map(([code, codes]) => ({
@@ -690,6 +693,9 @@ function auditSite(options = {}) {
     const products = collectSchemaNodes(entities, 'Product');
     const offers = collectSchemaNodes(entities, 'Offer');
     const searchActions = collectSchemaNodes(entities, 'SearchAction');
+    const searchTermTemplateCount = (
+      stripHtmlComments(html).match(/\{search_term_string\}/gi) || []
+    ).length;
     itemListCount += itemLists.length;
     productCount += products.length;
     offerCount += offers.length;
@@ -711,6 +717,14 @@ function auditSite(options = {}) {
         'SEARCH_ACTION_OBSOLETE',
         input.path,
         `Public page must not publish SearchAction; found ${searchActions.length}.`,
+      );
+    }
+    if (searchTermTemplateCount > 0) {
+      addFinding(
+        errors,
+        'SEARCH_TERM_TEMPLATE_OBSOLETE',
+        input.path,
+        `Public page must not publish {search_term_string}; found ${searchTermTemplateCount}.`,
       );
     }
 

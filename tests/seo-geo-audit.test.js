@@ -386,6 +386,40 @@ test('SearchAction is rejected on an arbitrary public page', (t) => {
   assertHasOnlyCode(audit(root), 'SEARCH_ACTION_OBSOLETE');
 });
 
+test('search term template is rejected on an arbitrary public page without SearchAction', (t) => {
+  const root = createValidFixture(t);
+  appendJsonLd(root, 'blog/article.html', {
+    '@type': 'Thing',
+    url: `${ORIGIN}/?q={search_term_string}`,
+  });
+
+  assertHasOnlyCode(audit(root), 'SEARCH_TERM_TEMPLATE_OBSOLETE');
+});
+
+test('commented search term template is not treated as published markup', (t) => {
+  const root = createValidFixture(t);
+  fs.appendFileSync(
+    path.join(root, 'blog/article.html'),
+    '<!-- https://fuluckpet.com/?q={search_term_string} -->\n',
+    'utf8',
+  );
+
+  assert.equal(audit(root).status, 'pass');
+});
+
+test('noindex page is excluded from the search term template rule', (t) => {
+  const root = createValidFixture(t);
+  write(root, 'private-search.html', `<!doctype html><html><head>
+<meta name="robots" content="noindex"></head><body>
+<script>const target = '/?q={search_term_string}';</script>
+</body></html>\n`);
+
+  const result = audit(root);
+
+  assert.equal(result.status, 'pass');
+  assert.equal(result.summary.noindexHtmlCount, 1);
+});
+
 test('commented JSON-LD is not treated as a published SearchAction', (t) => {
   const root = createValidFixture(t);
   fs.appendFileSync(
