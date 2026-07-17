@@ -32,6 +32,18 @@ function loadGenerator(t) {
   return { siteDir, generator: require(path.join(toolsDir, 'generate-site.js')) };
 }
 
+function listingItemList(html) {
+  const match = html.match(/<!-- Generated kitten ItemList -->\s*<script type="application\/ld\+json">\s*([\s\S]*?)\s*<\/script>/);
+  assert.ok(match, 'generated listing must contain one ItemList block');
+  return JSON.parse(match[1]);
+}
+
+function detailProduct(html) {
+  const scripts = [...html.matchAll(/<script type="application\/ld\+json">\s*([\s\S]*?)\s*<\/script>/g)]
+    .map((match) => JSON.parse(match[1]));
+  return scripts.find((item) => item['@type'] === 'Product') || null;
+}
+
 test('kitten generation rejects unsafe breederId before deleting or writing any file', (t) => {
   const { siteDir, generator } = loadGenerator(t);
   const kittensDir = path.join(siteDir, 'kittens');
@@ -180,7 +192,7 @@ test('unknown read status renders as sold and never receives a detail page or si
   assert.doesNotMatch(sitemap, new RegExp(`/kittens/${breederId}\\.html`));
 });
 
-test('static cards and Product data share the strict sale-price contract', (t) => {
+test('static cards, ItemList entries, and detail Products share the strict sale-price contract', (t) => {
   const { siteDir, generator } = loadGenerator(t);
   const invalidPrices = [0, -1, 1.5, '1e3', '1,000', '', null, false, NaN, Infinity, {}, []];
   const kittens = invalidPrices.map((price, index) => ({
@@ -205,21 +217,35 @@ test('static cards and Product data share the strict sale-price contract', (t) =
   });
 
   generator.generateKittens(kittens);
+  generator.generateKittenDetailPages(kittens, []);
   const listing = fs.readFileSync(path.join(siteDir, 'kittens.html'), 'utf8');
+  const itemList = listingItemList(listing);
+  assert.equal(itemList.numberOfItems, 1);
+  assert.equal(itemList.itemListElement.length, 1);
   for (let index = 0; index < invalidPrices.length; index += 1) {
     const breederId = `invalid-price-${index}`;
     const card = listing.match(new RegExp(`<div class="kitten-card"[^>]*data-breeder-id="${breederId}"[^>]*>[\\s\\S]*?<\\/div>\\s*<\\/div>`));
     assert.ok(card, breederId);
     assert.match(card[0], /data-price=""/, breederId);
     assert.match(card[0], /価格はお問い合わせください/, breederId);
-    assert.doesNotMatch(listing, new RegExp(`kittens\\.html#${breederId}`), breederId);
+    assert.doesNotMatch(JSON.stringify(itemList), new RegExp(`/kittens/${breederId}\\.html`), breederId);
+    const detail = fs.readFileSync(path.join(siteDir, 'kittens', `${breederId}.html`), 'utf8');
+    assert.equal(detailProduct(detail), null, breederId);
   }
 
   const validCard = listing.match(/<div class="kitten-card"[^>]*data-breeder-id="valid-string-price"[^>]*>[\s\S]*?<\/div>\s*<\/div>/);
   assert.ok(validCard);
   assert.match(validCard[0], /data-price="220000"/);
   assert.match(validCard[0], /&yen;220,000/);
-  assert.match(listing, /kittens\.html#valid-string-price/);
+  assert.equal(itemList.itemListElement[0].url, 'https://fuluckpet.com/kittens/valid-string-price.html');
+
+  const product = detailProduct(fs.readFileSync(
+    path.join(siteDir, 'kittens', 'valid-string-price.html'),
+    'utf8',
+  ));
+  assert.ok(product);
+  assert.equal(product['@id'], 'https://fuluckpet.com/kittens/valid-string-price.html#product');
+  assert.deepEqual(product.offers.seller, { '@id': 'https://fuluckpet.com/#cattery' });
 });
 
 test('generated kitten lists contain no trailing whitespace', (t) => {

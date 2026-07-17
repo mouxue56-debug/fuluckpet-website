@@ -29,6 +29,8 @@ function createVerifierSite(t) {
 <script src="/i18n.js?v=test"></script>
 <script src="/nav.js?v=test"></script>
 <a class="skip-link" href="#main">Skip</a><main id="main"></main>
+<!-- Generated kitten ItemList -->
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"ItemList","@id":"https://fuluckpet.com/kittens.html#kitten-list","name":"Kittens","numberOfItems":0,"itemListElement":[]}</script>
 `, 'utf8');
   return siteDir;
 }
@@ -183,6 +185,90 @@ ${ALL_MARKERS}
 
   assert.equal(result.status, 1, `expected explicit-index noindex failure, got stdout: ${result.stdout}`);
   assert.match(result.stderr, /noindex page has <loc>: https:\/\/fuluckpet\.com\/boarding\/index\.html/);
+});
+
+test('verify-generated rejects Product schema on a kitten list page', (t) => {
+  const siteDir = createVerifierSite(t);
+  const listingPath = path.join(siteDir, 'kittens.html');
+  fs.appendFileSync(
+    listingPath,
+    '<script type="application/ld+json">{"@type":"Product","offers":{"@type":"Offer"}}</script>\n',
+    'utf8',
+  );
+  write(siteDir, 'sitemap.xml', `<?xml version="1.0"?>
+<urlset>
+  <url><loc>https://fuluckpet.com/kittens.html</loc></url>
+${ALL_MARKERS}
+</urlset>
+`);
+
+  const result = runVerifier(siteDir);
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /schema.*kittens\.html.*Product/i);
+  assert.match(result.stderr, /schema.*kittens\.html.*Offer/i);
+});
+
+test('verify-generated rejects malformed detail Product ID and seller reference', (t) => {
+  const siteDir = createVerifierSite(t);
+  write(siteDir, 'kittens/schema-broken.html', `<!doctype html>
+<link rel="canonical" href="https://fuluckpet.com/kittens/schema-broken.html">
+<link rel="stylesheet" href="/style.css?v=test">
+<link rel="stylesheet" href="/nav.css?v=test">
+<script src="/i18n.js?v=test"></script>
+<script src="/nav.js?v=test"></script>
+<a class="skip-link" href="#main">Skip</a>
+<main id="main">
+  <p class="kitten-detail-price">&yen;180,000</p>
+  <script type="application/ld+json">{"@type":"Product","@id":"https://fuluckpet.com/kittens.html#schema-broken","offers":{"@type":"Offer","url":"https://fuluckpet.com/kittens/schema-broken.html","seller":{"@type":"Organization","name":"Fuluck"}}}</script>
+</main>
+`);
+  write(siteDir, 'sitemap.xml', `<?xml version="1.0"?>
+<urlset>
+  <url><loc>https://fuluckpet.com/kittens.html</loc></url>
+  <url><loc>https://fuluckpet.com/kittens/schema-broken.html</loc></url>
+${ALL_MARKERS}
+</urlset>
+`);
+
+  const result = runVerifier(siteDir);
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /schema.*schema-broken\.html.*Product @id/i);
+  assert.match(result.stderr, /schema.*schema-broken\.html.*seller/i);
+});
+
+test('verify-generated enforces Product cardinality at the visible detail-price boundary', (t) => {
+  const siteDir = createVerifierSite(t);
+  write(siteDir, 'kittens/priced-missing.html', `<!doctype html>
+<link rel="canonical" href="https://fuluckpet.com/kittens/priced-missing.html">
+<link rel="stylesheet" href="/style.css?v=test"><link rel="stylesheet" href="/nav.css?v=test">
+<script src="/i18n.js?v=test"></script><script src="/nav.js?v=test"></script>
+<a class="skip-link" href="#main">Skip</a><main id="main"><p class="kitten-detail-price">&yen;180,000</p></main>
+`);
+  write(siteDir, 'kittens/unpriced-product.html', `<!doctype html>
+<link rel="canonical" href="https://fuluckpet.com/kittens/unpriced-product.html">
+<link rel="stylesheet" href="/style.css?v=test"><link rel="stylesheet" href="/nav.css?v=test">
+<script src="/i18n.js?v=test"></script><script src="/nav.js?v=test"></script>
+<a class="skip-link" href="#main">Skip</a><main id="main">
+<p class="kitten-detail-price">価格はお問い合わせください</p>
+<script type="application/ld+json">{"@type":"Product","@id":"https://fuluckpet.com/kittens/unpriced-product.html#product","offers":{"@type":"Offer","url":"https://fuluckpet.com/kittens/unpriced-product.html","seller":{"@id":"https://fuluckpet.com/#cattery"}}}</script>
+</main>
+`);
+  write(siteDir, 'sitemap.xml', `<?xml version="1.0"?>
+<urlset>
+  <url><loc>https://fuluckpet.com/kittens.html</loc></url>
+  <url><loc>https://fuluckpet.com/kittens/priced-missing.html</loc></url>
+  <url><loc>https://fuluckpet.com/kittens/unpriced-product.html</loc></url>
+${ALL_MARKERS}
+</urlset>
+`);
+
+  const result = runVerifier(siteDir);
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /schema.*priced-missing\.html.*priced.*one Product/i);
+  assert.match(result.stderr, /schema.*unpriced-product\.html.*unpriced.*Product/i);
 });
 
 test('verify-generated rejects broken kitten detail landmarks and duplicate Product schema', (t) => {
