@@ -67,7 +67,12 @@
     "https://www.koneko-breeder.com/breeder/data/c995680/child_img_11_80061d16c973.jpg.webp"
    ],
    "driveManaged": true,
-   "appealJa": "【去勢済み】穏やかな優しい子"
+   "appealJa": "【去勢済み】穏やかな優しい子",
+   "notes": {
+    "ja": "【去勢済み】穏やかな優しい子",
+    "zh": "【已绝育】银渐层弟弟，性格温柔稳重",
+    "en": "Neutered · gentle silver shaded boy"
+   }
   },
   {
    "breederId": "2508-02468",
@@ -179,7 +184,12 @@
     "https://www.koneko-breeder.com/breeder/data/c995680/child_img_11_c1aad9ca3424.jpg.webp"
    ],
    "driveManaged": true,
-   "appealJa": "お顔も性格も定着、お迎え後すぐ馴染みやすい"
+   "appealJa": "お顔も性格も定着、お迎え後すぐ馴染みやすい",
+   "notes": {
+    "ja": "お顔も性格も定着、すぐ馴染みやすい",
+    "zh": "红色山猫重点色，颜值性格已稳定",
+    "en": "Red lynx point boy, settles in fast"
+   }
   },
   {
    "breederId": "2509-02086",
@@ -724,7 +734,12 @@
     "https://www.koneko-breeder.com/breeder/data/c995680/child_img_15_b8b1a1861ae9.jpg.webp"
    ],
    "driveManaged": false,
-   "appealJa": "夏キャンペン中🥰"
+   "appealJa": "夏キャンペン中🥰",
+   "notes": {
+    "ja": "夏キャンペーン中🥰",
+    "zh": "棕虎斑三层被毛妹妹，夏季特惠中",
+    "en": "Triple-coat brown tabby girl, summer sale"
+   }
   },
   {
    "breederId": "2603-02733",
@@ -812,7 +827,12 @@
     "https://www.koneko-breeder.com/breeder/data/c995680/child_img_14_0712274892d6.jpg.webp"
    ],
    "driveManaged": false,
-   "appealJa": "人馴れの可愛いこです🥰"
+   "appealJa": "人馴れの可愛いこです🥰",
+   "notes": {
+    "ja": "人馴れの可愛いこです🥰",
+    "zh": "纯白色三层被毛，亲人不怕生",
+    "en": "People-loving white boy, triple coat"
+   }
   },
   {
    "breederId": "2604-00477",
@@ -843,7 +863,12 @@
     "https://www.koneko-breeder.com/breeder/data/c995680/child_img_14_841724d8baf3.jpg.webp"
    ],
    "driveManaged": false,
-   "appealJa": "人馴れの可愛い猫ちゃん🥰"
+   "appealJa": "人馴れの可愛い猫ちゃん🥰",
+   "notes": {
+    "ja": "人馴れの可愛い猫ちゃん🥰",
+    "zh": "涅瓦面具色妹妹，亲人可爱",
+    "en": "Neva Masquerade girl, loves people"
+   }
   },
   {
    "breederId": "2604-01883",
@@ -899,7 +924,12 @@
     "https://www.koneko-breeder.com/breeder/data/d696506/child_img_9_c7f27bd20de6.jpg.webp"
    ],
    "driveManaged": false,
-   "appealJa": "「去勢済」穏やかの可愛い子💛🩵"
+   "appealJa": "「去勢済」穏やかの可愛い子💛🩵",
+   "notes": {
+    "ja": "【去勢済み】穏やかな可愛い子💛",
+    "zh": "【已绝育】西伯利亚×英短，温和白猫",
+    "en": "Neutered · calm white Siberian-BSH mix"
+   }
   },
   {
    "breederId": "2604-02934",
@@ -931,7 +961,12 @@
     "https://www.koneko-breeder.com/breeder/data/c995680/child_img_15_e84498ccb554.jpg.webp"
    ],
    "driveManaged": false,
-   "appealJa": "やさしく穏やか、ふわふわの可愛い子です。"
+   "appealJa": "やさしく穏やか、ふわふわの可愛い子です。",
+   "notes": {
+    "ja": "やさしく穏やか、ふわふわの可愛い子",
+    "zh": "银色加白弟弟，毛量蓬松性格温顺",
+    "en": "Silver & white boy, fluffy and gentle"
+   }
   },
   {
    "breederId": "2605-01317",
@@ -960,7 +995,12 @@
     "https://www.koneko-breeder.com/breeder/data/c995680/child_img_13_90ead69880f8.jpg.webp"
    ],
    "driveManaged": false,
-   "appealJa": "優しい性格の可愛い子"
+   "appealJa": "優しい性格の可愛い子",
+   "notes": {
+    "ja": "優しい性格の可愛い子",
+    "zh": "三层被毛棕虎斑妹妹，性格温柔",
+    "en": "Sweet-natured brown tabby girl"
+   }
   },
   {
    "breederId": "2605-02526",
@@ -983,7 +1023,12 @@
     "https://www.koneko-breeder.com/breeder/data/d696506/child_img_9_533d36035765.jpg.webp"
    ],
    "driveManaged": false,
-   "appealJa": "人馴れの可愛い子💛🩵"
+   "appealJa": "人馴れの可愛い子💛🩵",
+   "notes": {
+    "ja": "人馴れの可愛い子💛",
+    "zh": "白色西伯利亚×英短混血，很亲人",
+    "en": "White Siberian x BSH mix, people-loving"
+   }
   },
   {
    "breederId": "2605-03613",
@@ -1007,7 +1052,12 @@
     "https://www.koneko-breeder.com/breeder/data/d696506/child_img_8_86fb2f598432.jpg.webp"
    ],
    "driveManaged": false,
-   "appealJa": "性格も見た目も定着❤️理想の猫とすぐに暮らそう"
+   "appealJa": "性格も見た目も定着❤️理想の猫とすぐに暮らそう",
+   "notes": {
+    "ja": "性格も見た目も定着❤️理想の猫と暮らす",
+    "zh": "白色西英混血，颜值性格已定型",
+    "en": "White Siberian-BSH boy, personality set"
+   }
   },
   {
    "breederId": "2606-00637",
@@ -1036,7 +1086,12 @@
     "https://www.koneko-breeder.com/breeder/data/c995680/child_img_12_9eaffe91b1c3.jpg.webp"
    ],
    "driveManaged": false,
-   "appealJa": "夏キャンペーン中☀️値下げました！"
+   "appealJa": "夏キャンペーン中☀️値下げました！",
+   "notes": {
+    "ja": "夏キャンペーン中☀️値下げました！",
+    "zh": "棕虎斑加白弟弟，夏季降价中",
+    "en": "Brown tabby & white boy, summer price cut"
+   }
   },
   {
    "breederId": "2606-01235",
@@ -1062,7 +1117,12 @@
     "https://www.koneko-breeder.com/breeder/data/c995680/child_img_11_9f4726eccbd9.jpg.webp"
    ],
    "driveManaged": false,
-   "appealJa": "やさしく穏やか、ふわふわの可愛い子です。"
+   "appealJa": "やさしく穏やか、ふわふわの可愛い子です。",
+   "notes": {
+    "ja": "やさしく穏やか、ふわふわの可愛い子",
+    "zh": "红色山猫重点色，三层被毛蓬松",
+    "en": "Fluffy triple-coat red lynx point boy"
+   }
   },
   {
    "breederId": "2606-03044",
@@ -1093,7 +1153,12 @@
     "https://www.koneko-breeder.com/breeder/data/c995680/child_img_14_b982c1e2df69.jpg.webp"
    ],
    "driveManaged": false,
-   "appealJa": "優しい性格の可愛い子"
+   "appealJa": "優しい性格の可愛い子",
+   "notes": {
+    "ja": "優しい性格の可愛い子",
+    "zh": "纯白色三层被毛妹妹，性情温柔",
+    "en": "Gentle pure white girl, triple coat"
+   }
   },
   {
    "breederId": "2607-00576",
@@ -1122,7 +1187,12 @@
     "https://www.koneko-breeder.com/breeder/data/c995680/child_img_12_f54fd4919f85.jpg.webp"
    ],
    "driveManaged": false,
-   "appealJa": "やさしく穏やか、ふわふわの可愛い子です。"
+   "appealJa": "やさしく穏やか、ふわふわの可愛い子です。",
+   "notes": {
+    "ja": "やさしく穏やか、ふわふわの可愛い子",
+    "zh": "红色山猫重点色弟弟，温和稳重",
+    "en": "Red lynx point boy, calm and mellow"
+   }
   },
   {
    "breederId": "2607-00585",
@@ -1154,7 +1224,12 @@
     "https://www.koneko-breeder.com/breeder/data/c995680/child_img_15_56d156225929.jpg.webp"
    ],
    "driveManaged": false,
-   "appealJa": "人馴れの可愛い猫ちゃん🥰"
+   "appealJa": "人馴れの可愛い猫ちゃん🥰",
+   "notes": {
+    "ja": "人馴れの可愛い猫ちゃん🥰",
+    "zh": "蓝玳瑁虎斑加白弟弟，与人亲近",
+    "en": "Blue patched tabby & white, people-friendly"
+   }
   },
   {
    "breederId": "2607-00594",
@@ -1184,7 +1259,12 @@
     "https://www.koneko-breeder.com/breeder/data/c995680/child_img_14_e2e7802b7888.jpg.webp"
    ],
    "driveManaged": false,
-   "appealJa": "穏やかで優しい猫ちゃん"
+   "appealJa": "穏やかで優しい猫ちゃん",
+   "notes": {
+    "ja": "穏やかで優しい猫ちゃん",
+    "zh": "蓝玳瑁虎斑加白，三层被毛温顺",
+    "en": "Blue patched tabby boy, calm, triple coat"
+   }
   },
   {
    "breederId": "2607-01890",
@@ -1213,7 +1293,12 @@
     "https://www.koneko-breeder.com/breeder/data/c995680/child_img_12_6e4a1fe55938.jpg.webp"
    ],
    "driveManaged": false,
-   "appealJa": "🌻夏キャンペン中"
+   "appealJa": "🌻夏キャンペン中",
+   "notes": {
+    "ja": "🌻夏キャンペーン中",
+    "zh": "银玳瑁虎斑弟弟，夏日优惠中",
+    "en": "Silver patched tabby boy, summer offer"
+   }
   },
   {
    "breederId": "2607-02161",
@@ -1245,7 +1330,12 @@
     "https://www.koneko-breeder.com/breeder/data/c995680/child_img_15_1d2c1da26b40.jpg.webp"
    ],
    "driveManaged": false,
-   "appealJa": "ふわふわ可愛い子猫"
+   "appealJa": "ふわふわ可愛い子猫",
+   "notes": {
+    "ja": "ふわふわ可愛い子猫",
+    "zh": "蓝色加白妹妹，毛茸茸三层被毛",
+    "en": "Fluffy blue & white girl, triple coat"
+   }
   },
   {
    "breederId": "2607-02164",
@@ -1271,7 +1361,12 @@
     "https://www.koneko-breeder.com/breeder/data/d696506/child_img_9_813ff8b92dc1.jpg.webp"
    ],
    "driveManaged": false,
-   "appealJa": "人馴れの明るい子です"
+   "appealJa": "人馴れの明るい子です",
+   "notes": {
+    "ja": "人馴れの明るい子です",
+    "zh": "金渐层英长弟弟，开朗又亲人",
+    "en": "Golden shaded British Longhair, cheerful"
+   }
   },
   {
    "breederId": "2607-02167",
@@ -1296,7 +1391,12 @@
     "https://www.koneko-breeder.com/breeder/data/d696506/child_img_8_028f4be773f4.jpg.webp"
    ],
    "driveManaged": false,
-   "appealJa": "優しい性格の可愛い子"
+   "appealJa": "優しい性格の可愛い子",
+   "notes": {
+    "ja": "優しい性格の可愛い子",
+    "zh": "金渐层英国长毛猫，性格温柔",
+    "en": "Sweet golden shaded British Longhair boy"
+   }
   }
  ],
  "deleteRecordIds": [
@@ -1315,5 +1415,6 @@
    "breederId": "2508-02468",
    "reason": "早期录入，价格 190,000 为旧价；保留 k1777278916986"
   }
- ]
+ ],
+ "notePolicy": "note=ja / noteZh / noteEn。未記入の言語は日本語へフォールバックせず空にする。掲載中（available/reserved）のみ記入、売却済みは触らない。ja は平台原文ベース＋消毒（客観的誤字の修正・期限切れ企画の削除）、zh/en は翻訳ではなく書き下ろし。"
 }

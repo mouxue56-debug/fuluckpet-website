@@ -348,6 +348,10 @@
     var genderFull = gender === '♂' ? ct('male') : gender === '♀' ? ct('female') : '';
     var dataImages = opts && opts.showImages && cover ? escAttr(cover) : '';
     var bdayText = fmtBday(k.birthday);
+    // note は言語別フィールド。未記入なら空にする（日本語へ落とさない）。
+    var noteLang = getLang();
+    var noteL = noteLang === 'en' ? k.noteEn : noteLang === 'zh' ? k.noteZh : k.note;
+    noteL = typeof noteL === 'string' ? noteL : '';
     var price = KittenCatalog.normalizeSalePrice(k.price);
     var priceText = fmtPrice(price);
     var isNew = safeBoolean(k.isNew);
@@ -390,7 +394,7 @@
         hypoChip +
         '<p class="kit-meta">' + genderFull + ' ・ ' + escAttr(ctColor(color)) + '</p>' +
         '<p class="kit-meta">' + bdayText + '</p>' +
-        (k.note ? '<p class="kit-meta" style="font-size:11px;color:var(--text-note);">' + escAttr(safeEmbeddedText(k.note)) + '</p>' : '') +
+        (noteL ? '<p class="kit-meta" style="font-size:11px;color:var(--text-note);">' + escAttr(safeEmbeddedText(noteL)) + '</p>' : '') +
         '<p class="kit-price">' + (price === null ? escAttr(ct('askPrice')) : priceText + ' <span class="tax">' + ct('taxIncl') + '</span>') + '</p>' +
       '</div>' +
     '</div>';

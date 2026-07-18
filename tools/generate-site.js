@@ -281,6 +281,16 @@ function formatBirthday(birthday) {
   return birthday;
 }
 
+// note は言語ごとに別フィールド（note = ja / noteZh / noteEn）。
+// breed や color と違い note は自由文なので翻訳表を作れない。未記入の
+// 言語では日本語へフォールバックせず空にする —— さもないと中文・英語
+// ページに日本語がそのまま出る（実際「去勢済み」が3言語面に出ていた）。
+function noteFor(kitten, lang) {
+  if (!kitten) return '';
+  const pick = lang === 'en' ? kitten.noteEn : lang === 'zh' ? kitten.noteZh : kitten.note;
+  return typeof pick === 'string' ? pick : '';
+}
+
 function statusText(status) {
   switch (status) {
     case 'available': return '販売中';
@@ -1061,8 +1071,9 @@ function generateKittens(kittens, lang = 'ja') {
       const promotionChip = promotionTag
         ? `\n            <span class="kitten-promotion-chip usp-chip usp-chip--card" data-promotion-tag="${escapeHtml(promotionTag)}">${escapeHtml(KittenCatalog.promotionLabel(promotionTag, lang))}</span>`
         : '';
-      const noteHtml = k.note
-        ? `\n            <p class="kit-meta" style="font-size:11px;color:var(--text-note);">${escapeHtml(k.note)}</p>`
+      const noteL = noteFor(k, lang);
+      const noteHtml = noteL
+        ? `\n            <p class="kit-meta" style="font-size:11px;color:var(--text-note);">${escapeHtml(noteL)}</p>`
         : '';
 
       // Localized baked strings (ja passthrough → byte-identical). The card has no
@@ -2104,8 +2115,9 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja') {
   }
 
   // Note row
-  const noteRow = kitten.note
-    ? `<tr><th data-i18n="kitten.note">備考</th><td>${escapeHtml(kitten.note)}</td></tr>`
+  const noteDetailL = noteFor(kitten, lang);
+  const noteRow = noteDetailL
+    ? `<tr><th data-i18n="kitten.note">備考</th><td>${escapeHtml(noteDetailL)}</td></tr>`
     : '';
 
   // New badge

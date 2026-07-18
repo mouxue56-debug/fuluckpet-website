@@ -33,7 +33,10 @@ import { canDeleteCalendarEvent, canUpdateCalendarEvent, canWriteCalendarEvent }
 
 const PUBLIC_KITTEN_FIELDS = Object.freeze([
   'id', 'breederId', 'breed', 'color', 'gender', 'price', 'status', 'birthday',
-  'photos', 'coverIndex', 'video', 'isNew', 'papa', 'mama', 'note',
+  // note は言語別。noteZh / noteEn が空の言語は日本語へ落とさず非表示にする
+  // （自由文なので翻訳表が作れない。generate-site.js の noteFor() を参照）
+  'photos', 'coverIndex', 'video', 'isNew', 'papa', 'mama',
+  'note', 'noteZh', 'noteEn',
   'promotionTag', 'promotionPriority',
 ]);
 

@@ -122,6 +122,15 @@ async function main() {
       if (s.papa && !rec.papa) patch.papa = s.papa;
       if (s.mama && !rec.mama) patch.mama = s.mama;
 
+      // note は掲載中の個体だけ。売却済みの子に売り文句は要らないし、
+      // 既存の日本語 note も消さない（ja 面では今も正しい）。
+      if (s.status !== 'sold' && s.notes) {
+        for (const [field, key] of [['note', 'ja'], ['noteZh', 'zh'], ['noteEn', 'en']]) {
+          const v = s.notes[key];
+          if (typeof v === 'string' && v && rec[field] !== v) patch[field] = v;
+        }
+      }
+
       // photos: Drive 管理下は触らない。空 or 全部サムネのときだけ差し替え
       const cur = rec.photos || [];
       const allThumb = cur.length > 0 && cur.every(isThumb);
@@ -194,7 +203,11 @@ async function main() {
         id: `sim-${a.breederId}`, breederId: a.breederId, breed: a.breed, color: a.color,
         gender: a.gender, price: a.price, status: a.status, birthday: a.birthday,
         photos: a.photos, coverIndex: 0, video: normalizeVideo(a.video),
-        papa: a.papa || '', mama: a.mama || '', note: '', isNew: true,
+        papa: a.papa || '', mama: a.mama || '',
+        note: (a.notes && a.notes.ja) || '',
+        noteZh: (a.notes && a.notes.zh) || '',
+        noteEn: (a.notes && a.notes.en) || '',
+        isNew: true,
       })));
     writeFileSync(process.argv[emitIdx + 1], JSON.stringify(patched, null, 1));
     console.log(`\n同期後の目録を書き出し: ${process.argv[emitIdx + 1]}（${patched.length} 件）`);
@@ -224,7 +237,10 @@ async function main() {
       breederId: a.breederId, breed: a.breed, color: a.color, gender: a.gender,
       price: a.price, status: a.status, birthday: a.birthday,
       photos: a.photos, coverIndex: 0,
-      video: normalizeVideo(a.video), papa: a.papa || '', mama: a.mama || '', note: '',
+      video: normalizeVideo(a.video), papa: a.papa || '', mama: a.mama || '',
+      note: (a.notes && a.notes.ja) || '',
+      noteZh: (a.notes && a.notes.zh) || '',
+      noteEn: (a.notes && a.notes.en) || '',
       isNew: true,
     });
     if (r.ok) { console.log(`   ✓ 追加 ${a.breederId}`); ok++; }
