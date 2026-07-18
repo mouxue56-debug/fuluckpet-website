@@ -579,6 +579,8 @@ const BREED_MAP = {
   'ブリティッシュロングヘア': { en: 'British Longhair', zh: '英国长毛猫' },
   'ラグドール': { en: 'Ragdoll', zh: '布偶猫' },
   'サイベリアン×ブリティッシュ': { en: 'Siberian × British mix', zh: '西伯利亚×英系混血' },
+  'サイベリアン&ブリティッシュショートヘア': { en: 'Siberian × British Shorthair mix', zh: '西伯利亚×英短混血' },
+  'サイベリアンXブリティッシュショットヘア': { en: 'Siberian × British Shorthair mix', zh: '西伯利亚×英短混血' },
 };
 function breedLabel(breed, lang) {
   if (lang === 'ja' || !breed) return breed || '';
@@ -593,23 +595,23 @@ function breedLabel(breed, lang) {
 // Missing key → passthrough raw ja + console.warn (so a new color can't silently ship untranslated).
 const COLOR_MAP = {
   'ホワイト': { en: 'White', zh: '白色' },
-  'ブラウンタビー&ホワイト（トリプルコート）': { en: 'Brown Tabby & White (Triple Coat)', zh: '棕虎斑&白色（三层被毛）' },
+  'ブラウンタビー&ホワイト（トリプルコート）': { en: 'Brown Tabby & White (Triple Coat)', zh: '棕虎斑加白（三层被毛）' },
   'ブルーリンクスポイント ネヴァマスカレード': { en: 'Blue Lynx Point Neva Masquerade', zh: '蓝色山猫重点色 涅瓦假面' },
-  'ゴールデンシェーデッド': { en: 'Golden Shaded', zh: '金色阴影' },
-  'シルバー&ホワイト（トリプルコート）': { en: 'Silver & White (Triple Coat)', zh: '银色&白色（三层被毛）' },
+  'ゴールデンシェーデッド': { en: 'Golden Shaded', zh: '金渐层' },
+  'シルバー&ホワイト（トリプルコート）': { en: 'Silver & White (Triple Coat)', zh: '银色加白（三层被毛）' },
   'ブラウンタビー トリプルコート': { en: 'Brown Tabby, Triple Coat', zh: '棕虎斑 三层被毛' },
-  'ブラウンタビー＆ホワイト': { en: 'Brown Tabby & White', zh: '棕虎斑&白色' },
+  'ブラウンタビー＆ホワイト': { en: 'Brown Tabby & White', zh: '棕虎斑加白' },
   'ブルーリンクスポイント(ネヴァマスカレード)（トリプルコート）': { en: 'Blue Lynx Point (Neva Masquerade) (Triple Coat)', zh: '蓝色山猫重点色（涅瓦假面）（三层被毛）' },
   'レッドリンクスポイント': { en: 'Red Lynx Point', zh: '红色山猫重点色' },
-  'ゴールデンシェーデッド＆ホワイト': { en: 'Golden Shaded & White', zh: '金色阴影&白色' },
-  'シルバーシェーデット': { en: 'Silver Shaded', zh: '银色阴影' },
-  'シルバーシェーデッド': { en: 'Silver Shaded', zh: '银色阴影' },
+  'ゴールデンシェーデッド＆ホワイト': { en: 'Golden Shaded & White', zh: '金渐层加白' },
+  'シルバーシェーデット': { en: 'Silver Shaded', zh: '银渐层' },
+  'シルバーシェーデッド': { en: 'Silver Shaded', zh: '银渐层' },
   'シルバータビー': { en: 'Silver Tabby', zh: '银虎斑' },
   'シルバータビー トリプルコート': { en: 'Silver Tabby, Triple Coat', zh: '银虎斑 三层被毛' },
-  'シルバー＆ホワイト トリプルコート': { en: 'Silver & White, Triple Coat', zh: '银色&白色 三层被毛' },
+  'シルバー＆ホワイト トリプルコート': { en: 'Silver & White, Triple Coat', zh: '银色加白 三层被毛' },
   'シールポイント(ネヴァマスカレード)（トリプルコート）': { en: 'Seal Point (Neva Masquerade) (Triple Coat)', zh: '海豹重点色（涅瓦假面）（三层被毛）' },
-  'チョコレートゴールデン ロングヘア': { en: 'Chocolate Golden Longhair', zh: '巧克力金色 长毛' },
-  'チンチラゴールデン ロングヘア': { en: 'Chinchilla Golden Longhair', zh: '金吉拉金色 长毛' },
+  'チョコレートゴールデン ロングヘア': { en: 'Chocolate Golden Longhair', zh: '巧克力金渐层 长毛' },
+  'チンチラゴールデン ロングヘア': { en: 'Chinchilla Golden Longhair', zh: '金吉拉金渐层 长毛' },
   'ブラウンタビー（トリプルコート）': { en: 'Brown Tabby (Triple Coat)', zh: '棕虎斑（三层被毛）' },
   'ブルー&ホワイト（トリプルコート）': { en: 'Blue & White (Triple Coat)', zh: '蓝色&白色（三层被毛）' },
   'ブルーパッチドタビー&ホワイト': { en: 'Blue Patched Tabby & White', zh: '蓝玳瑁虎斑加白' },
@@ -619,6 +621,11 @@ const COLOR_MAP = {
   'ホワイトソリッド（トリプルコート）': { en: 'Solid White (Triple Coat)', zh: '纯白色（三层被毛）' },
   'レッドリンクスポイント トリプルコート': { en: 'Red Lynx Point, Triple Coat', zh: '红色山猫重点色 三层被毛' },
   'レッドリンクスポイント（トリプルコート）': { en: 'Red Lynx Point (Triple Coat)', zh: '红色山猫重点色（三层被毛）' },
+  'シルバーパッチドタビー': { en: 'Silver Patched Tabby', zh: '银玳瑁虎斑' },
+  'ホワイト（トリプルコート）': { en: 'White (Triple Coat)', zh: '白色（三层被毛）' },
+  'シルバータビー（トリプルコート）': { en: 'Silver Tabby (Triple Coat)', zh: '银虎斑（三层被毛）' },
+  'ブラウンタビー&ホワイト': { en: 'Brown Tabby & White', zh: '棕虎斑加白' },
+  'チョコレートゴールデン(ロングヘア)': { en: 'Chocolate Golden (Longhair)', zh: '巧克力金渐层（长毛）' },
 };
 
 // Small-animal dictionaries are deliberately independent from the cat catalog.
