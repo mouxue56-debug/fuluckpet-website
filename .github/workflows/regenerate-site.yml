@@ -34,6 +34,17 @@ jobs:
       - name: Regenerate diary static pages from API
         run: node tools/generate-diary.js
 
+      # 生成直後に stage する。多くのテストは `git ls-files` で公開ページを列挙
+      # するため、掲載終了で詳細ページが削除された回は「index にはあるがディスク
+      # には無い」状態になり ENOENT で落ちる。子猫が1頭でも available/reserved →
+      # sold に変われば必ず起きるので、同期のたびに再生成が止まる。stage すれば
+      # index が実態に追いつく。commit は従来どおり最後のステップだけが行う。
+      - name: Stage generated changes so file listings match reality
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+
       - name: Run complete regression suite
         run: node --test tests/*.test.js
 
