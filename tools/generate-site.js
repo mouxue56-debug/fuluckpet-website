@@ -632,6 +632,7 @@ const COLOR_MAP = {
   'レッドリンクスポイント トリプルコート': { en: 'Red Lynx Point, Triple Coat', zh: '红色山猫重点色 三层被毛' },
   'レッドリンクスポイント（トリプルコート）': { en: 'Red Lynx Point (Triple Coat)', zh: '红色山猫重点色（三层被毛）' },
   'シルバーパッチドタビー': { en: 'Silver Patched Tabby', zh: '银玳瑁虎斑' },
+  'ブルーリンクスポイント（トリプルコート）': { en: 'Blue Lynx Point (Triple Coat)', zh: '蓝色山猫重点色（三层被毛）' },
   'ホワイト（トリプルコート）': { en: 'White (Triple Coat)', zh: '白色（三层被毛）' },
   'シルバータビー（トリプルコート）': { en: 'Silver Tabby (Triple Coat)', zh: '银虎斑（三层被毛）' },
   'ブラウンタビー&ホワイト': { en: 'Brown Tabby & White', zh: '棕虎斑加白' },
