@@ -115,6 +115,10 @@ async function main() {
       if (s.price && rec.price !== s.price) patch.price = s.price;
       if (s.birthday && rec.birthday !== s.birthday) patch.birthday = s.birthday;
 
+      // 動画 ID が同じなら書かない。つまり既存レコードの URL 形式
+      // （youtu.be/xxx?si=… の旧表記）は正規化されずそのまま残る。
+      // 生成器も実行時レンダラも描画時に embed 形へ揃えるので出力は
+      // 同一 —— 表記の不揃いは KV の中だけの話で、実害は無い。
       const v = normalizeVideo(s.video);
       if (v && normalizeVideo(rec.video) !== v) patch.video = v;
 
