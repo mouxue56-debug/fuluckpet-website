@@ -178,6 +178,15 @@ async function main() {
   console.log(`\n【重複削除】${deletes.length} 件`);
   for (const d of deletes) console.log(`   - ${d.breederId} (${d.id})  ${d.reason}`);
 
+  // 親猫。papa/mama は parents の name と厳密一致でしか繋がらない（script.js:537）。
+  // koneko 側にいるのにサイトに未登録の親は、先に作らないと子の血統欄が空のままになる。
+  const pRes = await fetch(`${WORKER}/api/parents`, { headers: H }).catch(() => null);
+  const liveParents = pRes && pRes.ok ? await pRes.json() : [];
+  const pNames = new Set(liveParents.map(p => p.name));
+  const newParents = (SNAP.parentsToCreate || []).filter(p => !pNames.has(p.name));
+  console.log(`\n【親猫追加】${newParents.length} 件`);
+  for (const p of newParents) console.log(`   + ${p.name} ${p.breed} ${p.color} ${p.gender} (${p.group})`);
+
   if (notes.length) console.log(`\n【据え置き】\n${notes.join('\n')}`);
   if (noPhoto.length) {
     console.log(`\n【警告】写真0枚 → サイトに表示されない（詳細ページも生成されない）:`);
@@ -224,6 +233,15 @@ async function main() {
 
   console.log(`--- 書き込み開始 ---`);
   let ok = 0, fail = 0;
+
+  // 親猫を最初に。子より後だと papa/mama を書いた瞬間は繋がらない
+  for (const p of newParents) {
+    const body = { ...p };
+    for (const k of Object.keys(body)) if (k.startsWith('_')) delete body[k];
+    const r = await req('POST', '/api/admin/parents', body);
+    if (r.ok) { console.log(`   ✓ 親猫追加 ${p.name}`); ok++; }
+    else { console.error(`   ✗ 親猫追加失敗 ${p.name}: ${r.why}`); fail++; }
+  }
 
   // 更新を先に。途中で落ちても「売れた子が販売中のまま」にはならない
   for (const { rec, patch } of updates) {
