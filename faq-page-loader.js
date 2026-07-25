@@ -85,6 +85,7 @@
       var button = document.createElement('button');
       button.type = 'button';
       button.className = 'faq-filter-btn' + (currentFilter === category ? ' active' : '');
+      button.setAttribute('aria-pressed', currentFilter === category ? 'true' : 'false');
       button.dataset.cat = category;
       var iconWrap = document.createElement('span');
       iconWrap.className = 'filter-icon';
@@ -97,7 +98,10 @@
       button.appendChild(count);
       button.addEventListener('click', function() {
         currentFilter = this.dataset.cat;
-        filterContainer.querySelectorAll('.faq-filter-btn').forEach(function(item) { item.classList.remove('active'); });
+        filterContainer.querySelectorAll('.faq-filter-btn').forEach(function(item) {
+          item.classList.remove('active');
+          item.setAttribute('aria-pressed', item === this ? 'true' : 'false');
+        }, this);
         this.classList.add('active');
         renderList();
       });

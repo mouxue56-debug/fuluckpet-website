@@ -403,18 +403,18 @@
         <p class="sec-desc" style="margin-top:8px;font-size:15px;" data-i18n="kittens.priceRange">料金は子猫ごとに異なります。各子猫ページの最新情報をご確認ください。</p>
       </div>
       <div class="filter-bar">
-        <button class="filter-btn active" data-filter="all" data-i18n="kittens.all">すべて</button>
-        <button class="filter-btn" data-filter="available" data-i18n="kittens.available">販売中</button>
-        <button class="filter-btn" data-filter="reserved" data-i18n="kittens.reserved">ご予約済</button>
-        <button class="filter-btn" data-filter="sold" data-i18n="kittens.sold">ご家族決定</button>
+        <button class="filter-btn active" aria-pressed="true" data-filter="all" data-i18n="kittens.all">すべて</button>
+        <button class="filter-btn" aria-pressed="false" data-filter="available" data-i18n="kittens.available">販売中</button>
+        <button class="filter-btn" aria-pressed="false" data-filter="reserved" data-i18n="kittens.reserved">ご予約済</button>
+        <button class="filter-btn" aria-pressed="false" data-filter="sold" data-i18n="kittens.sold">ご家族決定</button>
       </div>
       <div class="kittens-toolbar">
         <div class="sort-controls">
           <span class="sort-label" data-i18n="kittens.sort">並び替え:</span>
-          <button class="sort-btn active" data-sort="default">おすすめ</button>
-          <button class="sort-btn" data-sort="price-asc">価格 ↑</button>
-          <button class="sort-btn" data-sort="price-desc">価格 ↓</button>
-          <button class="sort-btn" data-sort="newest">新着順</button>
+          <button class="sort-btn active" aria-pressed="true" data-sort="default">おすすめ</button>
+          <button class="sort-btn" aria-pressed="false" data-sort="price-asc">価格 ↑</button>
+          <button class="sort-btn" aria-pressed="false" data-sort="price-desc">価格 ↓</button>
+          <button class="sort-btn" aria-pressed="false" data-sort="newest">新着順</button>
         </div>
         <span class="kittens-count"><span id="visibleCount">9</span>件表示</span>
       </div>

@@ -153,7 +153,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   filterBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      filterBtns.forEach(b => b.classList.remove('active'));
+      filterBtns.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute?.('aria-pressed', b === btn ? 'true' : 'false');
+      });
       btn.classList.add('active');
       applyKittenFilter(btn.dataset.filter, true);
     });
@@ -218,7 +221,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     sortBtns.forEach(btn => {
       btn.addEventListener('click', () => {
-        sortBtns.forEach(b => b.classList.remove('active'));
+        sortBtns.forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute?.('aria-pressed', b === btn ? 'true' : 'false');
+        });
         btn.classList.add('active');
         const sortType = btn.dataset.sort;
         renderSortedCards(sortType, true);

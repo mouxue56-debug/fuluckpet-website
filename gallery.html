@@ -172,10 +172,10 @@
       </div>
       <!-- 卒業猫フィルター -->
       <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:32px;">
-        <button class="filter-btn active" onclick="filterGallery('all')">すべて</button>
-        <button class="filter-btn" onclick="filterGallery('siberian')">サイベリアン</button>
-        <button class="filter-btn" onclick="filterGallery('british')">ブリティッシュ</button>
-        <button class="filter-btn" onclick="filterGallery('ragdoll')">ラグドール</button>
+        <button class="filter-btn active" aria-pressed="true" onclick="filterGallery('all')">すべて</button>
+        <button class="filter-btn" aria-pressed="false" onclick="filterGallery('siberian')">サイベリアン</button>
+        <button class="filter-btn" aria-pressed="false" onclick="filterGallery('british')">ブリティッシュ</button>
+        <button class="filter-btn" aria-pressed="false" onclick="filterGallery('ragdoll')">ラグドール</button>
       </div>
 
       <div class="gallery-page-grid" id="galleryGrid">
@@ -224,7 +224,7 @@
       function filterGallery(breed) {
         var items = document.querySelectorAll('#galleryGrid .gallery-item');
         var btns = document.querySelectorAll('.filter-btn');
-        btns.forEach(function(b){ b.classList.remove('active'); });
+        btns.forEach(function(b){ b.classList.remove('active'); b.setAttribute('aria-pressed', b === event.target ? 'true' : 'false'); });
         event.target.classList.add('active');
         items.forEach(function(item) {
           if (breed === 'all' || item.getAttribute('data-breed') === breed) {
