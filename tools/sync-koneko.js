@@ -25,6 +25,7 @@
 
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { resolve, dirname } from 'path';
+import { pathToFileURL } from 'url';
 
 const WORKER = 'https://fuluck-api.mouxue56.workers.dev';
 const ORIGIN = 'https://fuluckpet.com';   // private エンドポイントは Origin 必須（無いと認証前に 403）
@@ -284,4 +285,8 @@ async function main() {
   if (fail) process.exit(1);
 }
 
-main().catch(e => die(e.stack || e.message));
+const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isMain) {
+  main().catch(e => die(e.stack || e.message));
+}
+export { normalizeVideo, isThumb };
