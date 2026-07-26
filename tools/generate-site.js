@@ -1999,17 +1999,17 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja') {
     : `${breedL || ''} ${genderFullL} ${colorL || ''}`.replace(/\s+/g, ' ').trim();
   let pageTitle, metaDesc, ldName, ldDesc;
   if (lang === 'en') {
-    pageTitle = `${titleText} | Kitten Detail | Fuluck Cattery`;
+    pageTitle = `${titleText} | No.${fileId} | Kitten Detail | Fuluck Cattery`;
     metaDesc = `${breedL} kitten at Fuluck Cattery in Osaka. ${colorL || ''}, ${genderFullL}${bornL ? ', ' + bornL : ''}. ${salePrice === null ? priceInquiryText(lang) : `¥${pr} (tax incl.)`} ${statusTextL(effectiveStatus, 'en')}.`.replace(/\s+/g, ' ').trim();
     ldName = titleText;
     ldDesc = `${breedL} kitten from Fuluck Cattery (breeder: Ra Hoen) in Osaka. ${colorL || ''}, ${genderFullL}${bornL ? ', ' + bornL : ''}.`.replace(/\s+/g, ' ').trim();
   } else if (lang === 'zh') {
-    pageTitle = `${titleText}｜幼猫详情｜福楽キャッテリー`;
+    pageTitle = `${titleText}｜No.${fileId}｜幼猫详情｜福楽キャッテリー`;
     metaDesc = `大阪福楽キャッテリー的${breedL}幼猫。${colorL || ''}、${genderFullL}${bornL ? '、' + bornL : ''}。${salePrice === null ? priceInquiryText(lang) : `¥${pr}（含税）`}${statusTextL(effectiveStatus, 'zh')}。`;
     ldName = titleText;
     ldDesc = `大阪福楽キャッテリー（繁育者：罗方远）的${breedL}幼猫。${colorL || ''}、${genderFullL}${bornL ? '、' + bornL : ''}。`;
   } else {
-    pageTitle = `${titleText}｜子猫詳細｜福楽キャッテリー`;
+    pageTitle = `${titleText}｜No.${fileId}｜子猫詳細｜福楽キャッテリー`;
     metaDesc = `大阪の福楽キャッテリーの${kitten.breed || ''}の子猫。${kitten.color || ''}、${genderFull}、${bd ? bd + '生まれ' : ''}。${salePrice === null ? priceInquiryText(lang) : `¥${pr}（税込）`}${st}。`;
     ldName = titleText;
     ldDesc = `大阪の福楽キャッテリー（ブリーダー：羅方遠）の${kitten.breed || ''}の子猫。${kitten.color || ''}、${genderFull}、${bd ? bd + '生まれ' : ''}。掲載ID ${fileId}。`;
