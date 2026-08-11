@@ -224,6 +224,7 @@ function renderHarness() {
     renderPagination() {},
     t(ja) { return ja; },
     openModal() {},
+    closeModal() {},
     showToast() {},
     addLog() {},
     saveAndPublishFromUI() {},
@@ -290,6 +291,38 @@ test('promotion badge carries both translations and switches with applyAdminLang
 
   assert.equal(badge.textContent, '活动 #999');
   assert.deepEqual(badge.htmlWrites, []);
+});
+
+test('saving a new kitten keeps an empty price blank so cloud validation can accept it', () => {
+  const { context, data } = renderHarness();
+  data.kittens = [];
+  let savedPayload = null;
+  context.saveAndPublishFromUI = function(payload) {
+    savedPayload = JSON.parse(JSON.stringify(payload));
+  };
+
+  const field = (id) => context.document.getElementById(id);
+  field('kittenEditId').value = '';
+  field('kf_breederId').value = '2608-12345';
+  field('kf_breed').value = 'サイベリアン';
+  field('kf_gender').value = '♀';
+  field('kf_color').value = 'ホワイト';
+  field('kf_birthday').value = '2026-06-01';
+  field('kf_price').value = '';
+  field('kf_status').value = 'available';
+  field('kf_isNew').value = 'true';
+  field('kf_promotionTag').value = '';
+  field('kf_promotionPriority').value = '0';
+  field('kf_papa').value = '';
+  field('kf_mama').value = '';
+  field('kf_note').value = '';
+  field('kf_video').value = '';
+
+  context.saveKitten();
+
+  assert.equal(data.kittens.length, 1);
+  assert.equal(data.kittens[0].price, '');
+  assert.equal(savedPayload.kittens[0].price, '');
 });
 
 function photosHarness() {
