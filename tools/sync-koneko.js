@@ -6,6 +6,7 @@
  * 正として、サイト側 KV の子猫目録を突き合わせる。
  *
  *   node tools/sync-koneko.js                     # 差分だけ表示（デフォルト・安全）
+ *   node tools/sync-koneko.js --snapshot <path>   # 検証するスナップショットを明示
  *   node tools/sync-koneko.js --apply             # 実際に書き込む
  *   node tools/sync-koneko.js --apply --refresh-photos   # 人手で編集済みの photos も上書き
  *   node tools/sync-koneko.js --apply --force     # available→sold 大量発生ガードを外す
@@ -26,6 +27,8 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { resolve, dirname } from 'path';
 
+import { assertFreshKonekoSnapshot } from './lib/koneko-snapshot-freshness.js';
+
 const WORKER = 'https://fuluck-api.mouxue56.workers.dev';
 const ORIGIN = 'https://fuluckpet.com';   // private エンドポイントは Origin 必須（無いと認証前に 403）
 const PASS = process.env.FULUCK_ADMIN_PASS || '';
@@ -34,7 +37,16 @@ const REFRESH_PHOTOS = process.argv.includes('--refresh-photos');
 const FORCE = process.argv.includes('--force');
 const SOLD_GUARD = 8;
 
-const SNAP = JSON.parse(readFileSync(resolve(import.meta.dirname, 'koneko-snapshot.json'), 'utf-8'));
+const SNAPSHOT_ARG_INDEX = process.argv.indexOf('--snapshot');
+const SNAPSHOT_ARG_VALUE = process.argv[SNAPSHOT_ARG_INDEX + 1];
+if (SNAPSHOT_ARG_INDEX > -1 && (!SNAPSHOT_ARG_VALUE || SNAPSHOT_ARG_VALUE.startsWith('--'))) {
+  console.error('\n✗ --snapshot の後に JSON ファイルを指定してください。');
+  process.exit(1);
+}
+const SNAPSHOT_PATH = SNAPSHOT_ARG_INDEX > -1
+  ? resolve(SNAPSHOT_ARG_VALUE)
+  : resolve(import.meta.dirname, 'koneko-snapshot.json');
+const SNAP = JSON.parse(readFileSync(SNAPSHOT_PATH, 'utf-8'));
 const H = { Origin: ORIGIN, Authorization: `Bearer ${PASS}`, 'Content-Type': 'application/json' };
 
 const die = (m) => { console.error(`\n✗ ${m}`); process.exit(1); };
@@ -64,6 +76,7 @@ async function req(method, path, body) {
 }
 
 async function main() {
+  assertFreshKonekoSnapshot(SNAP);
   if (!PASS) die('FULUCK_ADMIN_PASS 未設定。~/.secrets/yuki/fuluck-admin.env を source すること。');
 
   // ---- スナップショット健全性（不完全な取得で全頭 sold 化するのを防ぐ）----
@@ -284,4 +297,4 @@ async function main() {
   if (fail) process.exit(1);
 }
 
-main().catch(e => die(e.stack || e.message));
+main().catch(e => die(e && e.message ? e.message : String(e)));
