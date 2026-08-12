@@ -25,6 +25,7 @@
 
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { resolve, dirname } from 'path';
+import { pathToFileURL } from 'url';
 
 const WORKER = 'https://fuluck-api.mouxue56.workers.dev';
 const ORIGIN = 'https://fuluckpet.com';   // private エンドポイントは Origin 必須（無いと認証前に 403）
@@ -50,6 +51,20 @@ function normalizeVideo(v) {
 
 /** koneko の縮小版 URL。原寸は _thumb_pc / _thumb_mob を外したもの。 */
 const isThumb = (u) => /_thumb_(pc|mob)/.test(u);
+
+// 掲載中（available/reserved）なのに血統欄が空の個体を洗い出す純関数。
+// severity は判定しない（それは店主の判断）——事実だけ返す。
+function inSaleMissingPedigree(kittens) {
+  const out = [];
+  for (const k of (kittens || [])) {
+    if (k.status !== 'available' && k.status !== 'reserved') continue;
+    const noPapa = !k.papa, noMama = !k.mama;
+    if (noPapa && noMama) out.push({ breederId: k.breederId, missing: '両方' });
+    else if (noMama) out.push({ breederId: k.breederId, missing: '母' });
+    else if (noPapa) out.push({ breederId: k.breederId, missing: '父' });
+  }
+  return out;
+}
 
 async function req(method, path, body) {
   try {
@@ -201,6 +216,11 @@ async function main() {
       console.warn(`\n   ! 未登記の重複: ${bid} → ${recs.map(r => r.id).join(', ')}`);
     }
   }
+  const missingPed = inSaleMissingPedigree(K);
+  if (missingPed.length) {
+    console.warn(`\n【警告】掲載中なのに血統欄が空（koneko 側で papa/mama 未設定の可能性）:`);
+    for (const m of missingPed) console.warn(`   ! ${m.breederId}（${m.missing}）`);
+  }
 
   // --emit <path>: 同期後の目録を書き出す（本番に触れずに generate-site を通す検証用）。
   // 差分計算と同じコードパスから出すので、テストと本番がズレない。
@@ -284,4 +304,8 @@ async function main() {
   if (fail) process.exit(1);
 }
 
-main().catch(e => die(e.stack || e.message));
+const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isMain) {
+  main().catch(e => die(e.stack || e.message));
+}
+export { normalizeVideo, isThumb, inSaleMissingPedigree };
