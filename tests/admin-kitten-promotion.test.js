@@ -221,7 +221,7 @@ test('kitten form exposes the exact promotion controls and localized ordering ru
 
   assert.match(ADMIN_HTML, new RegExp('data-adm-ja="' + PROMOTION_HINT_JA + '"'));
   assert.match(ADMIN_HTML, new RegExp('data-adm-zh="' + PROMOTION_HINT_ZH + '"'));
-  assert.match(ADMIN_HTML, /<script src="js\/admin-render\.js\?v=20260711a"><\/script>/);
+  assert.match(ADMIN_HTML, /<script src="js\/admin-render\.js\?v=20260811a"><\/script>/);
   assert.match(RENDER_SOURCE, /promotionTag/);
   assert.match(RENDER_SOURCE, /promotionPriority/);
 });

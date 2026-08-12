@@ -224,6 +224,7 @@ function renderHarness() {
     renderPagination() {},
     t(ja) { return ja; },
     openModal() {},
+    closeModal() {},
     showToast() {},
     addLog() {},
     saveAndPublishFromUI() {},
@@ -292,6 +293,38 @@ test('promotion badge carries both translations and switches with applyAdminLang
   assert.deepEqual(badge.htmlWrites, []);
 });
 
+test('saving a new kitten keeps an empty price blank so cloud validation can accept it', () => {
+  const { context, data } = renderHarness();
+  data.kittens = [];
+  let savedPayload = null;
+  context.saveAndPublishFromUI = function(payload) {
+    savedPayload = JSON.parse(JSON.stringify(payload));
+  };
+
+  const field = (id) => context.document.getElementById(id);
+  field('kittenEditId').value = '';
+  field('kf_breederId').value = '2608-12345';
+  field('kf_breed').value = 'サイベリアン';
+  field('kf_gender').value = '♀';
+  field('kf_color').value = 'ホワイト';
+  field('kf_birthday').value = '2026-06-01';
+  field('kf_price').value = '';
+  field('kf_status').value = 'available';
+  field('kf_isNew').value = 'true';
+  field('kf_promotionTag').value = '';
+  field('kf_promotionPriority').value = '0';
+  field('kf_papa').value = '';
+  field('kf_mama').value = '';
+  field('kf_note').value = '';
+  field('kf_video').value = '';
+
+  context.saveKitten();
+
+  assert.equal(data.kittens.length, 1);
+  assert.equal(data.kittens[0].price, '');
+  assert.equal(savedPayload.kittens[0].price, '');
+});
+
 function photosHarness() {
   const { document, elements } = createDocument({
     galleryGrid: 'div', photo_type: 'input', photo_id: 'input', newPhotoUrl: 'input',
@@ -301,17 +334,20 @@ function photosHarness() {
   elements.get('photo_id').value = 'k1';
   elements.get('uploadPhotoBtn').innerHTML = '<span>Upload</span>';
   elements.get('uploadPhotoBtn').htmlWrites = [];
-  const calls = { toasts: [], deleted: null, cover: null };
+  const calls = { toasts: [], deletedUploads: [], logs: [] };
   const data = { kittens: [{ id: 'k1', breederId: 'K1', photos: [], coverIndex: 0 }], parents: [] };
   const context = vm.createContext({
     console: { log() {}, warn() {}, error() {} },
     document,
     data,
+    remoteDataReady: true,
+    remoteDataSnapshot: { kittens: [], parents: [], reviews: [] },
+    remoteSyncPending: false,
     t(ja) { return ja; },
     showToast(message, type) { calls.toasts.push({ message, type }); },
     saveAndPublishFromUI() {},
     renderAll() {},
-    addLog() {},
+    addLog(message) { calls.logs.push(message); },
     confirm() { return true; },
     openModal() {},
     loadDrivePhotosForItem() {},
@@ -357,6 +393,223 @@ test('manual photo entry rejects dangerous protocols before mutating catalogue d
   assert.deepEqual(data.kittens[0].photos, []);
   assert.equal(calls.toasts.at(-1).type, 'error');
   assert.equal(context.__adminPhotoPwned, undefined);
+});
+
+test('device photo upload waits for catalogue sync and does not claim completion when sync fails', async () => {
+  const { context, elements, data, calls } = photosHarness();
+  elements.get('photoUploadInput').files = [{ name: 'kitten.jpg' }];
+  context.FuluckAPI = {
+    uploadFile() {
+      return Promise.resolve({
+        url: 'https://images.example.test/kitten.jpg',
+        key: 'uploads/1700000000000-a1b2c3d4.jpg',
+      });
+    },
+  };
+  context.saveAndPublishFromUI = function() {
+    return Promise.resolve(false);
+  };
+
+  const completion = context.uploadPhotosFromDevice();
+
+  assert.ok(completion && typeof completion.then === 'function', 'caller must be able to await the complete upload and sync workflow');
+  assert.equal(await completion, false);
+  assert.deepEqual(data.kittens[0].photos, ['https://images.example.test/kitten.jpg']);
+  assert.equal(calls.toasts.some((toast) => toast.type === 'success'), false);
+  assert.equal(calls.toasts.at(-1).type, 'error');
+  assert.match(calls.toasts.at(-1).message, /写真はアップロード済み.*同期に失敗/);
+  assert.equal(elements.get('uploadPhotoBtn').disabled, false);
+});
+
+test('device photo upload stops before R2 while the remote catalogue is still loading', async () => {
+  const { context, elements, data, calls } = photosHarness();
+  let uploadCalls = 0;
+  context.remoteDataReady = false;
+  elements.get('photoUploadInput').files = [{ name: 'kitten.jpg' }];
+  context.FuluckAPI = {
+    uploadFile() {
+      uploadCalls += 1;
+      return Promise.resolve({
+        url: 'https://images.example.test/kitten.jpg',
+        key: 'uploads/1700000000000-a1b2c3d4.jpg',
+      });
+    },
+  };
+
+  assert.equal(await context.uploadPhotosFromDevice(), false);
+  assert.equal(uploadCalls, 0);
+  assert.deepEqual(data.kittens[0].photos, []);
+  assert.match(calls.toasts.at(-1).message, /クラウド読込完了まで/);
+});
+
+test('a partial multi-photo upload removes only files created in that failed attempt', async () => {
+  const { context, elements, data, calls } = photosHarness();
+  data.kittens[0].photos = ['https://images.example.test/existing.jpg'];
+  elements.get('photoUploadInput').files = [{ name: 'one.jpg' }, { name: 'two.jpg' }];
+  let uploadNumber = 0;
+  let saveCalls = 0;
+  context.FuluckAPI = {
+    uploadFile() {
+      uploadNumber += 1;
+      if (uploadNumber === 2) return Promise.reject(new Error('second upload failed'));
+      return Promise.resolve({
+        url: 'https://images.example.test/one.jpg',
+        key: 'uploads/1700000000001-a1b2c3d4.jpg',
+      });
+    },
+    deleteUpload(key) {
+      calls.deletedUploads.push(key);
+      return Promise.resolve({ success: true });
+    },
+  };
+  context.saveAndPublishFromUI = function() {
+    saveCalls += 1;
+    return Promise.resolve(true);
+  };
+
+  assert.equal(await context.uploadPhotosFromDevice(), false);
+  assert.deepEqual(data.kittens[0].photos, ['https://images.example.test/existing.jpg']);
+  assert.deepEqual(calls.deletedUploads, ['uploads/1700000000001-a1b2c3d4.jpg']);
+  assert.equal(saveCalls, 0);
+  assert.equal(calls.toasts.some((toast) => toast.type === 'success'), false);
+});
+
+test('upload cleanup converts a synchronous delete failure into a recoverable warning', async () => {
+  const { context } = photosHarness();
+  context.FuluckAPI = {
+    deleteUpload() {
+      throw new Error('delete unavailable');
+    },
+  };
+
+  assert.equal(await context.cleanupNewAdminUploads([
+    'uploads/1700000000001-a1b2c3d4.jpg',
+  ]), true);
+});
+
+test('device photo upload does not announce success until catalogue persistence resolves', async () => {
+  const { context, elements, calls } = photosHarness();
+  elements.get('photoUploadInput').files = [{ name: 'kitten.jpg' }];
+  context.FuluckAPI = {
+    uploadFile() {
+      return Promise.resolve({
+        url: 'https://images.example.test/kitten.jpg',
+        key: 'uploads/1700000000002-a1b2c3d4.jpg',
+      });
+    },
+  };
+  let resolveSave;
+  context.saveAndPublishFromUI = function() {
+    return new Promise((resolve) => { resolveSave = resolve; });
+  };
+
+  const completion = context.uploadPhotosFromDevice();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(calls.toasts.some((toast) => toast.type === 'success'), false);
+
+  resolveSave(true);
+  assert.equal(await completion, true);
+  assert.equal(calls.toasts.at(-1).type, 'success');
+  assert.equal(calls.logs.length, 1);
+});
+
+test('device photo upload rebinds to the current catalogue item after data is refreshed', async () => {
+  const { context, elements, calls } = photosHarness();
+  elements.get('photoUploadInput').files = [{ name: 'kitten.jpg' }];
+  let resolveUpload;
+  context.FuluckAPI = {
+    uploadFile() {
+      return new Promise((resolve) => { resolveUpload = resolve; });
+    },
+  };
+  let savedPayload;
+  context.saveAndPublishFromUI = function(payload) {
+    savedPayload = JSON.parse(JSON.stringify(payload));
+    return Promise.resolve(true);
+  };
+
+  const completion = context.uploadPhotosFromDevice();
+  await new Promise((resolve) => setImmediate(resolve));
+  context.data = {
+    kittens: [{ id: 'k1', breederId: 'K1', photos: ['https://images.example.test/refreshed.jpg'], coverIndex: 0 }],
+    parents: [],
+  };
+  resolveUpload({
+    url: 'https://images.example.test/kitten.jpg',
+    key: 'uploads/1700000000003-a1b2c3d4.jpg',
+  });
+
+  assert.equal(await completion, true);
+  assert.deepEqual(savedPayload.kittens[0].photos, [
+    'https://images.example.test/refreshed.jpg',
+    'https://images.example.test/kitten.jpg',
+  ]);
+  assert.equal(calls.toasts.at(-1).type, 'success');
+});
+
+test('device photo upload cleans this attempt when remote state changes before persistence', async () => {
+  const { context, elements, data, calls } = photosHarness();
+  elements.get('photoUploadInput').files = [{ name: 'kitten.jpg' }];
+  let resolveUpload;
+  let saveCalls = 0;
+  context.FuluckAPI = {
+    uploadFile() {
+      return new Promise((resolve) => { resolveUpload = resolve; });
+    },
+    deleteUpload(key) {
+      calls.deletedUploads.push(key);
+      return Promise.resolve({ success: true });
+    },
+  };
+  context.saveAndPublishFromUI = function() {
+    saveCalls += 1;
+    return Promise.resolve(true);
+  };
+
+  const completion = context.uploadPhotosFromDevice();
+  await new Promise((resolve) => setImmediate(resolve));
+  context.remoteSyncPending = true;
+  resolveUpload({
+    url: 'https://images.example.test/kitten.jpg',
+    key: 'uploads/1700000000004-a1b2c3d4.jpg',
+  });
+
+  assert.equal(await completion, false);
+  assert.equal(saveCalls, 0);
+  assert.deepEqual(data.kittens[0].photos, []);
+  assert.deepEqual(calls.deletedUploads, ['uploads/1700000000004-a1b2c3d4.jpg']);
+  assert.equal(calls.toasts.some((toast) => toast.type === 'success'), false);
+});
+
+test('finishing an upload for one kitten does not overwrite another kitten photo modal', async () => {
+  const { context, elements, data } = photosHarness();
+  data.kittens.push({ id: 'k2', breederId: 'K2', photos: ['https://images.example.test/k2.jpg'], coverIndex: 0 });
+  elements.get('photoUploadInput').files = [{ name: 'k1.jpg' }];
+  let resolveUpload;
+  context.FuluckAPI = {
+    uploadFile() {
+      return new Promise((resolve) => { resolveUpload = resolve; });
+    },
+  };
+  context.saveAndPublishFromUI = function() { return Promise.resolve(true); };
+  const renderedIds = [];
+  context.renderGalleryGrid = function(item) { renderedIds.push(item && item.id); };
+
+  const completion = context.uploadPhotosFromDevice();
+  await new Promise((resolve) => setImmediate(resolve));
+  elements.get('photo_id').value = 'k2';
+  elements.get('photoUploadInput').value = 'k2-selection';
+  resolveUpload({
+    url: 'https://images.example.test/k1.jpg',
+    key: 'uploads/1700000000005-a1b2c3d4.jpg',
+  });
+
+  assert.equal(await completion, true);
+  assert.deepEqual(data.kittens[0].photos, ['https://images.example.test/k1.jpg']);
+  assert.deepEqual(data.kittens[1].photos, ['https://images.example.test/k2.jpg']);
+  assert.deepEqual(renderedIds, []);
+  assert.equal(elements.get('photo_id').value, 'k2');
+  assert.equal(elements.get('photoUploadInput').value, 'k2-selection');
 });
 
 function driveHarness(fetchImpl) {

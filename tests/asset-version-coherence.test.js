@@ -15,7 +15,8 @@ const TRUTH_RELEASE = '20260711c';
 const CATALOG_RELEASE = '20260711b';
 const KITTEN_CAROUSEL_RELEASE = '20260714g';
 const CARD_LOADER_RELEASE = '20260711d';
-const ADMIN_RENDER_RELEASE = '20260711a';
+const ADMIN_RENDER_RELEASE = '20260811a';
+const ADMIN_PHOTOS_RELEASE = '20260811a';
 const ADMIN_DIARY_RELEASE = '20260711a';
 const ADMIN_FAQ_RELEASE = TRUTH_RELEASE;
 const ADMIN_CALENDAR_RELEASE = '20260714c';
@@ -82,6 +83,8 @@ test('admin pages version every local script so immutable caches cannot retain s
     for (const reference of references) {
       const expected = reference[1] === 'admin-render.js'
         ? ADMIN_RENDER_RELEASE
+        : reference[1] === 'admin-photos.js'
+          ? ADMIN_PHOTOS_RELEASE
         : reference[1] === 'admin-diary-editor.js'
           ? ADMIN_DIARY_RELEASE
           : reference[1] === 'admin-faq.js'

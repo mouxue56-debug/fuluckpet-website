@@ -144,6 +144,30 @@ function deleteGalleryPhoto(index) {
   addLog(t((type === 'kitten' ? '子猫 ' + item.breederId : '親猫 ' + item.name) + ' の写真を削除しました', (type === 'kitten' ? '删除了子猫 ' + item.breederId : '删除了种猫 ' + item.name) + ' 的照片'));
 }
 
+function isOwnedAdminUploadKey(key) {
+  return typeof key === 'string' && /^uploads\/[0-9]+-[0-9a-f]{8}\.(?:jpg|jpeg|png|webp|gif|mp4)$/.test(key);
+}
+
+function cleanupNewAdminUploads(keys) {
+  if (!keys.length) return Promise.resolve(false);
+  if (typeof FuluckAPI === 'undefined' || typeof FuluckAPI.deleteUpload !== 'function') {
+    return Promise.resolve(true);
+  }
+  var cleanupFailed = false;
+  return Promise.all(keys.map(function(key) {
+    return Promise.resolve().then(function() {
+      return FuluckAPI.deleteUpload(key);
+    }).catch(function() {
+      cleanupFailed = true;
+    });
+  })).then(function() { return cleanupFailed; });
+}
+
+function isCurrentAdminPhotoTarget(type, id) {
+  return document.getElementById('photo_type').value === type
+    && document.getElementById('photo_id').value === id;
+}
+
 // Upload photos directly from device camera/gallery
 function uploadPhotosFromDevice() {
   var type = document.getElementById('photo_type').value;
@@ -154,19 +178,25 @@ function uploadPhotosFromDevice() {
   var files = fileInput.files;
   if (!files || files.length === 0) {
     showToast(t('写真を選択してください','请选择照片'), 'error');
-    return;
+    return Promise.resolve(false);
   }
   if (typeof FuluckAPI === 'undefined' || typeof FuluckAPI.uploadFile !== 'function') {
     showToast(t('アップロード機能が利用できません','上传功能不可用'), 'error');
-    return;
+    return Promise.resolve(false);
+  }
+  if (remoteSyncPending || !remoteDataReady || !remoteDataSnapshot) {
+    showToast(t(
+      'クラウド読込完了まで待ってから写真をアップロードしてください',
+      '请等待云端资料加载完成后再上传照片'
+    ), 'error');
+    return Promise.resolve(false);
   }
 
   var id = document.getElementById('photo_id').value;
   var item;
   if (type === 'kitten') item = data.kittens.find(function(x) { return x.id === id; });
   else item = data.parents.find(function(x) { return x.id === id; });
-  if (!item) return;
-  if (!item.photos) item.photos = [];
+  if (!item) return Promise.resolve(false);
 
   var btn = document.getElementById('uploadPhotoBtn');
   var origHTML = btn.innerHTML;
@@ -175,6 +205,9 @@ function uploadPhotosFromDevice() {
 
   var uploaded = 0;
   var total = files.length;
+  var uploadedUrls = [];
+  var uploadedKeys = [];
+  var catalogueSaveStarted = false;
   var chain = Promise.resolve();
 
   for (var i = 0; i < total; i++) {
@@ -183,33 +216,83 @@ function uploadPhotosFromDevice() {
         return FuluckAPI.uploadFile(file).then(function(res) {
           uploaded++;
           btn.innerHTML = t('⏳ アップロード中... (' + uploaded + '/' + total + ')','⏳ 上传中... (' + uploaded + '/' + total + ')');
-          if (res && res.url) {
-            var safeUploadedUrl = adminPhotoSafeUrl(res.url);
-            if (!safeUploadedUrl) throw new Error(t('アップロード先URLが安全ではありません','上传返回了不安全的图片URL'));
-            item.photos.push(safeUploadedUrl);
-            if (item.photos.length === 1) item.coverIndex = 0;
+          if (res && isOwnedAdminUploadKey(res.key)) uploadedKeys.push(res.key);
+          var safeUploadedUrl = res && adminPhotoSafeUrl(res.url);
+          if (!safeUploadedUrl || !res || !isOwnedAdminUploadKey(res.key)) {
+            throw new Error(t('アップロード応答が安全ではありません','上传返回的数据不安全'));
           }
+          uploadedUrls.push(safeUploadedUrl);
         });
       });
     })(files[i]);
   }
 
-  chain.then(function() {
-    saveAndPublishFromUI(data);
-    renderGalleryGrid(item);
-    renderAll();
-    fileInput.value = '';
-    btn.disabled = false;
-    btn.innerHTML = origHTML;
-    addLog(t(
-      (type === 'kitten' ? '子猫 ' + item.breederId : '親猫 ' + item.name) + ' に ' + uploaded + ' 枚の写真をアップロードしました',
-      (type === 'kitten' ? '给子猫 ' + item.breederId : '给种猫 ' + item.name) + ' 上传了 ' + uploaded + ' 张照片'
-    ));
-    showToast(t(uploaded + '枚アップロード完了！', uploaded + '张上传完成！'), 'success');
+  return chain.then(function() {
+    if (remoteSyncPending || !remoteDataReady || !remoteDataSnapshot) {
+      throw new Error(t(
+        'クラウドの猫情報が更新中です。写真画面を開き直してください',
+        '云端猫咪资料正在更新，请重新打开照片页面'
+      ));
+    }
+    var currentItem;
+    if (type === 'kitten') currentItem = data.kittens.find(function(x) { return x.id === id; });
+    else currentItem = data.parents.find(function(x) { return x.id === id; });
+    if (!currentItem) {
+      throw new Error(t(
+        '対象の猫情報が更新されました。写真画面を開き直してください',
+        '目标猫咪资料已更新，请重新打开照片页面'
+      ));
+    }
+    item = currentItem;
+    if (!Array.isArray(item.photos)) item.photos = [];
+    item.photos = item.photos.concat(uploadedUrls);
+    if (item.photos.length === uploadedUrls.length) item.coverIndex = 0;
+    catalogueSaveStarted = true;
+    return Promise.resolve(saveAndPublishFromUI(data)).then(function(saved) {
+      if (isCurrentAdminPhotoTarget(type, id)) {
+        renderGalleryGrid(item);
+        fileInput.value = '';
+      }
+      renderAll();
+      btn.disabled = false;
+      btn.innerHTML = origHTML;
+      if (saved !== true) {
+        showToast(t(
+          '写真はアップロード済みですが、猫情報の同期に失敗しました。上の「再試行」を押してください',
+          '照片已上传，但猫咪资料同步失败。请点击上方“重试”'
+        ), 'error');
+        return false;
+      }
+      addLog(t(
+        (type === 'kitten' ? '子猫 ' + item.breederId : '親猫 ' + item.name) + ' に ' + uploaded + ' 枚の写真をアップロードしました',
+        (type === 'kitten' ? '给子猫 ' + item.breederId : '给种猫 ' + item.name) + ' 上传了 ' + uploaded + ' 张照片'
+      ));
+      showToast(t(uploaded + '枚アップロード完了！', uploaded + '张上传完成！'), 'success');
+      return true;
+    });
   }).catch(function(err) {
+    if (catalogueSaveStarted) {
+      if (isCurrentAdminPhotoTarget(type, id)) {
+        renderGalleryGrid(item);
+        fileInput.value = '';
+      }
+      renderAll();
+      showToast(t(
+        '写真はアップロード済みですが、猫情報の同期に失敗しました。上の「再試行」を押してください',
+        '照片已上传，但猫咪资料同步失败。请点击上方“重试”'
+      ), 'error');
+      return false;
+    }
+    return cleanupNewAdminUploads(uploadedKeys).then(function(cleanupFailed) {
+      var cleanupWarning = cleanupFailed
+        ? t('（アップロード済み写真の自動削除にも失敗しました）', '（已上传照片的自动清理也失败了）')
+        : '';
+      showToast(t('アップロード失敗: ','上传失败: ') + err.message + cleanupWarning, 'error');
+      return false;
+    });
+  }).finally(function() {
     btn.disabled = false;
     btn.innerHTML = origHTML;
-    showToast(t('アップロード失敗: ','上传失败: ') + err.message, 'error');
   });
 }
 

@@ -543,6 +543,66 @@ test('generated kitten details have one main landmark, a working skip link, and 
   }
 });
 
+test('kitten detail introductions are localized, escaped, paragraph-preserving, and excluded from cards', (t) => {
+  const siteDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fuluck-detail-introductions-'));
+  copyFile(path.join(ROOT, 'kittens.html'), path.join(siteDir, 'kittens.html'));
+  const generator = loadGeneratorForSite(t, siteDir);
+  const descriptions = {
+    ja: '日本語の一行目\n二行目\n\n二つ目の段落 <script>alert("x")</script> & "引用"',
+    en: 'English first line\nsecond line\n\nSecond paragraph <img src=x onerror=alert(1)> & "quote"',
+    zh: '中文第一行\n第二行\n\n第二段 <b>不应执行</b> & "引号"',
+  };
+  const headings = { ja: '子猫の紹介', en: 'Introduction', zh: '详细介绍' };
+  const firstParagraphs = {
+    ja: '日本語の一行目<br>二行目',
+    en: 'English first line<br>second line',
+    zh: '中文第一行<br>第二行',
+  };
+  const kitten = {
+    id: 'row-introduction',
+    breederId: 'detail-introduction',
+    breed: 'サイベリアン',
+    color: 'ブルー',
+    gender: '♀',
+    birthday: '2026-05-01',
+    price: 180000,
+    status: 'available',
+    photos: ['https://images.example.test/cat.jpg'],
+    papa: 'Papa',
+    mama: 'Mama',
+    video: 'https://youtu.be/abcdefghijk',
+    description: descriptions.ja,
+    descriptionZh: descriptions.zh,
+    descriptionEn: descriptions.en,
+  };
+
+  for (const lang of ['ja', 'en', 'zh']) {
+    generator.generateKittens([kitten], lang);
+    generator.generateKittenDetailPages([kitten], [], lang);
+    const prefix = lang === 'ja' ? '' : `${lang}/`;
+    const detail = fs.readFileSync(path.join(siteDir, prefix, 'kittens/detail-introduction.html'), 'utf8');
+    const listing = fs.readFileSync(path.join(siteDir, prefix, 'kittens.html'), 'utf8');
+
+    assert.equal((detail.match(/class="kitten-detail-introduction"/g) || []).length, 1, `${lang} detail has one introduction`);
+    assert.match(detail, new RegExp(`<h2>${headings[lang]}</h2>`));
+    assert.ok(detail.includes(firstParagraphs[lang]), `${lang} detail uses its own long description`);
+    assert.match(detail, /<p>[^<]*<br>[^<]*<\/p>/, `${lang} preserves single line breaks`);
+    assert.match(detail, /<\/p>\s*<p>/, `${lang} preserves blank-line paragraph boundaries`);
+    assert.ok(detail.indexOf('kitten-detail-table') < detail.indexOf('kitten-detail-introduction'));
+    assert.ok(detail.indexOf('kitten-detail-introduction') < detail.indexOf('<!-- Parents -->'));
+    assert.ok(detail.indexOf('<!-- Parents -->') < detail.indexOf('<!-- Video -->'));
+    assert.doesNotMatch(detail, /<script>alert|<img src=x|<b>不应执行<\/b>/);
+    assert.match(detail, /&lt;(?:script|img|b)/);
+    assert.match(detail, /&amp; &quot;/);
+    assert.doesNotMatch(listing, /日本語の一行目|English first line|中文第一行/);
+  }
+
+  const noDescription = { ...kitten, breederId: 'detail-no-introduction', description: '   ', descriptionZh: null, descriptionEn: 42 };
+  generator.generateKittenDetailPages([noDescription], [], 'ja');
+  const blankDetail = fs.readFileSync(path.join(siteDir, 'kittens/detail-no-introduction.html'), 'utf8');
+  assert.doesNotMatch(blankDetail, /<section class="kitten-detail-introduction">/);
+});
+
 test('Drive enrichment uses bounded concurrency instead of one serial request per kitten', async (t) => {
   const siteDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fuluck-drive-concurrency-'));
   copyFile(path.join(ROOT, 'kittens.html'), path.join(siteDir, 'kittens.html'));

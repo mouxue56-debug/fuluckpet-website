@@ -377,6 +377,7 @@ function editKitten(id) {
 
 function saveKitten() {
   var editId = document.getElementById('kittenEditId').value;
+  var priceRaw = String(document.getElementById('kf_price').value).trim();
   var promotionTag = document.getElementById('kf_promotionTag').value;
   var promotionPriorityInput = document.getElementById('kf_promotionPriority');
   var promotionPriorityRaw = promotionPriorityInput.value;
@@ -399,7 +400,7 @@ function saveKitten() {
     gender: document.getElementById('kf_gender').value,
     color: document.getElementById('kf_color').value.trim(),
     birthday: document.getElementById('kf_birthday').value,
-    price: parseInt(document.getElementById('kf_price').value) || 0,
+    price: priceRaw === '' ? '' : parseInt(priceRaw, 10),
     status: document.getElementById('kf_status').value,
     isNew: document.getElementById('kf_isNew').value === 'true',
     promotionTag: promotionTag,
