@@ -10,6 +10,7 @@
  *   node tools/sync-koneko.js --apply             # 実際に書き込む
  *   node tools/sync-koneko.js --apply --refresh-photos   # 人手で編集済みの photos も上書き
  *   node tools/sync-koneko.js --apply --force     # available→sold 大量発生ガードを外す
+ *   node tools/sync-koneko.js --mirror-active     # 在庫中の Koneko 項目を完全ミラー（削除なし）
  *
  * 必要な環境変数: FULUCK_ADMIN_PASS（~/.secrets/yuki/fuluck-admin.env）
  *
@@ -28,6 +29,10 @@ import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { resolve, dirname } from 'path';
 
 import { assertFreshKonekoSnapshot } from './lib/koneko-snapshot-freshness.js';
+import {
+  assertCompleteActiveSource,
+  buildActiveMirrorPatch,
+} from './lib/koneko-active-mirror.js';
 
 const WORKER = 'https://fuluck-api.mouxue56.workers.dev';
 const ORIGIN = 'https://fuluckpet.com';   // private エンドポイントは Origin 必須（無いと認証前に 403）
@@ -35,6 +40,7 @@ const PASS = process.env.FULUCK_ADMIN_PASS || '';
 const APPLY = process.argv.includes('--apply');
 const REFRESH_PHOTOS = process.argv.includes('--refresh-photos');
 const FORCE = process.argv.includes('--force');
+const MIRROR_ACTIVE = process.argv.includes('--mirror-active');
 const SOLD_GUARD = 8;
 
 const SNAPSHOT_ARG_INDEX = process.argv.indexOf('--snapshot');
@@ -77,7 +83,6 @@ async function req(method, path, body) {
 
 async function main() {
   assertFreshKonekoSnapshot(SNAP);
-  if (!PASS) die('FULUCK_ADMIN_PASS 未設定。~/.secrets/yuki/fuluck-admin.env を source すること。');
 
   // ---- スナップショット健全性（不完全な取得で全頭 sold 化するのを防ぐ）----
   const K = SNAP.kittens || [];
@@ -87,6 +92,24 @@ async function main() {
   for (const acc of Object.keys(SNAP.accounts || {})) {
     if (!covered.has(acc)) die(`スナップショットに ${acc} の掲載が1件も無い。取得漏れの疑い。`);
   }
+  if (MIRROR_ACTIVE) {
+    const activeSources = K.filter(k => k.status === 'available' || k.status === 'reserved');
+    const activeCovered = new Set(activeSources.map(k => k.group));
+    for (const acc of Object.keys(SNAP.accounts || {})) {
+      if (!activeCovered.has(acc)) {
+        die(`--mirror-active のスナップショットに ${acc} の販売中または商談中掲載が無い。取得漏れの疑い。`);
+      }
+    }
+    for (const source of activeSources) {
+      try {
+        assertCompleteActiveSource(source);
+      } catch (error) {
+        die(`--mirror-active の source 検証に失敗 (${source.breederId || 'breederId 不明'}): ${error.message}`);
+      }
+    }
+  }
+
+  if (!PASS) die('FULUCK_ADMIN_PASS 未設定。~/.secrets/yuki/fuluck-admin.env を source すること。');
 
   const res = await fetch(`${WORKER}/api/admin/kittens`, { headers: H }).catch(e => ({ ok: false, e }));
   if (!res.ok) die(`目録の取得に失敗: ${res.status || res.e?.message}`);
@@ -102,7 +125,7 @@ async function main() {
   const snapByBid = new Map(K.map(k => [k.breederId, k]));
 
   // ---- 削除対象（重複登録の掃除）。id ではなく「その id が本当にその猫か」まで検証する ----
-  const deletes = (SNAP.deleteRecordIds || []).filter(d => liveById.has(d.id));
+  const deletes = MIRROR_ACTIVE ? [] : (SNAP.deleteRecordIds || []).filter(d => liveById.has(d.id));
   for (const d of deletes) {
     const actual = liveById.get(d.id).breederId;
     if (actual !== d.breederId) die(`削除中止: ${d.id} は ${d.breederId} のはずが実際は ${actual}`);
@@ -118,46 +141,54 @@ async function main() {
   for (const rec of live) {
     if (doomed.has(rec.id)) continue;
     const s = snapByBid.get(rec.breederId);
-    const patch = {};
+    let patch;
 
-    // status: koneko が絶対。スナップショットに無い個体は掲載終了とみなす
-    const want = s ? s.status : 'sold';
-    if (rec.status !== want) patch.status = want;
+    if (MIRROR_ACTIVE && s && (s.status === 'available' || s.status === 'reserved')) {
+      // The source was fully validated before credentials or network access. Strict mode
+      // owns all public active-listing fields, but never Fuluck IDs or operator metadata.
+      patch = buildActiveMirrorPatch(rec, s);
+    } else {
+      patch = {};
 
-    if (s) {
-      if (s.price && rec.price !== s.price) patch.price = s.price;
-      if (s.birthday && rec.birthday !== s.birthday) patch.birthday = s.birthday;
+      // status: koneko が絶対。スナップショットに無い個体は掲載終了とみなす
+      const want = s ? s.status : 'sold';
+      if (rec.status !== want) patch.status = want;
 
-      // 動画 ID が同じなら書かない。つまり既存レコードの URL 形式
-      // （youtu.be/xxx?si=… の旧表記）は正規化されずそのまま残る。
-      // 生成器も実行時レンダラも描画時に embed 形へ揃えるので出力は
-      // 同一 —— 表記の不揃いは KV の中だけの話で、実害は無い。
-      const v = normalizeVideo(s.video);
-      if (v && normalizeVideo(rec.video) !== v) patch.video = v;
+      if (s) {
+        if (s.price && rec.price !== s.price) patch.price = s.price;
+        if (s.birthday && rec.birthday !== s.birthday) patch.birthday = s.birthday;
 
-      // papa/mama: 空欄のときだけ補う。人手で張った関連は壊さない
-      if (s.papa && !rec.papa) patch.papa = s.papa;
-      if (s.mama && !rec.mama) patch.mama = s.mama;
+        // 動画 ID が同じなら書かない。つまり既存レコードの URL 形式
+        // （youtu.be/xxx?si=… の旧表記）は正規化されずそのまま残る。
+        // 生成器も実行時レンダラも描画時に embed 形へ揃えるので出力は
+        // 同一 —— 表記の不揃いは KV の中だけの話で、実害は無い。
+        const v = normalizeVideo(s.video);
+        if (v && normalizeVideo(rec.video) !== v) patch.video = v;
 
-      // note は掲載中の個体だけ。売却済みの子に売り文句は要らないし、
-      // 既存の日本語 note も消さない（ja 面では今も正しい）。
-      if (s.status !== 'sold' && s.notes) {
-        for (const [field, key] of [['note', 'ja'], ['noteZh', 'zh'], ['noteEn', 'en']]) {
-          const v = s.notes[key];
-          if (typeof v === 'string' && v && rec[field] !== v) patch[field] = v;
+        // papa/mama: 空欄のときだけ補う。人手で張った関連は壊さない
+        if (s.papa && !rec.papa) patch.papa = s.papa;
+        if (s.mama && !rec.mama) patch.mama = s.mama;
+
+        // note は掲載中の個体だけ。売却済みの子に売り文句は要らないし、
+        // 既存の日本語 note も消さない（ja 面では今も正しい）。
+        if (s.status !== 'sold' && s.notes) {
+          for (const [field, key] of [['note', 'ja'], ['noteZh', 'zh'], ['noteEn', 'en']]) {
+            const v = s.notes[key];
+            if (typeof v === 'string' && v && rec[field] !== v) patch[field] = v;
+          }
         }
-      }
 
-      // photos: Drive 管理下は触らない。空 or 全部サムネのときだけ差し替え
-      const cur = rec.photos || [];
-      const allThumb = cur.length > 0 && cur.every(isThumb);
-      if (s.driveManaged) {
-        if (cur.length && cur.some(u => u.includes('koneko-breeder'))) {
-          notes.push(`   · ${rec.breederId} は Drive 管理のため photos 据え置き`);
+        // photos: Drive 管理下は触らない。空 or 全部サムネのときだけ差し替え
+        const cur = rec.photos || [];
+        const allThumb = cur.length > 0 && cur.every(isThumb);
+        if (s.driveManaged) {
+          if (cur.length && cur.some(u => u.includes('koneko-breeder'))) {
+            notes.push(`   · ${rec.breederId} は Drive 管理のため photos 据え置き`);
+          }
+        } else if (s.photos.length && (cur.length === 0 || allThumb || REFRESH_PHOTOS)) {
+          patch.photos = s.photos;
+          patch.coverIndex = 0;   // 配列を差し替えたら必ず添え直す（旧 index の範囲外を防ぐ）
         }
-      } else if (s.photos.length && (cur.length === 0 || allThumb || REFRESH_PHOTOS)) {
-        patch.photos = s.photos;
-        patch.coverIndex = 0;   // 配列を差し替えたら必ず添え直す（旧 index の範囲外を防ぐ）
       }
     }
 
@@ -233,6 +264,9 @@ async function main() {
         note: (a.notes && a.notes.ja) || '',
         noteZh: (a.notes && a.notes.zh) || '',
         noteEn: (a.notes && a.notes.en) || '',
+        description: (a.descriptions && a.descriptions.ja) || '',
+        descriptionZh: (a.descriptions && a.descriptions.zh) || '',
+        descriptionEn: (a.descriptions && a.descriptions.en) || '',
         isNew: true,
       })));
     writeFileSync(process.argv[emitIdx + 1], JSON.stringify(patched, null, 1));
@@ -276,6 +310,9 @@ async function main() {
       note: (a.notes && a.notes.ja) || '',
       noteZh: (a.notes && a.notes.zh) || '',
       noteEn: (a.notes && a.notes.en) || '',
+      description: (a.descriptions && a.descriptions.ja) || '',
+      descriptionZh: (a.descriptions && a.descriptions.zh) || '',
+      descriptionEn: (a.descriptions && a.descriptions.en) || '',
       isNew: true,
     });
     if (r.ok) { console.log(`   ✓ 追加 ${a.breederId}`); ok++; }
