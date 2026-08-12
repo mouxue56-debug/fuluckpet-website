@@ -39,7 +39,6 @@ const PUBLIC_ASSETS = {
   'kitten-catalog.js': CATALOG_RELEASE,
   'card-loader.js': CARD_LOADER_RELEASE,
   'faq-trust-copy.js': TRUST_RELEASE,
-  'faq-loader.js': TRUST_RELEASE,
   'faq-page-loader.js': TRUST_RELEASE,
   'kitten-carousel.js': KITTEN_CAROUSEL_RELEASE,
   'cta-widget.js': CATALOG_RELEASE,

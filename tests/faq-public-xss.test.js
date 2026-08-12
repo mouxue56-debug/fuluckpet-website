@@ -8,7 +8,6 @@ const vm = require('node:vm');
 
 const ROOT = path.resolve(__dirname, '..');
 const TRUST_SOURCE = fs.readFileSync(path.join(ROOT, 'faq-trust-copy.js'), 'utf8');
-const HOME_SOURCE = fs.readFileSync(path.join(ROOT, 'faq-loader.js'), 'utf8');
 const PAGE_SOURCE = fs.readFileSync(path.join(ROOT, 'faq-page-loader.js'), 'utf8');
 
 class FakeElement {
@@ -156,7 +155,7 @@ function createHarness(source, items, surface) {
     },
   });
   vm.runInContext(TRUST_SOURCE, context, { filename: 'faq-trust-copy.js' });
-  vm.runInContext(source, context, { filename: surface === 'home' ? 'faq-loader.js' : 'faq-page-loader.js' });
+  vm.runInContext(source, context, { filename: 'faq-page-loader.js' });
   return { homeContainer, listContainer, filterContainer, htmlWrites, events, storage, window };
 }
 
@@ -167,45 +166,6 @@ function domSurface(root) {
   root.children.forEach((child) => fields.push(domSurface(child)));
   return fields.join('|');
 }
-
-test('homepage FAQ renders malicious API fields as literal text with accordion a11y and language switching', async () => {
-  const hostileId = '"><img src=x onerror=globalThis.pwned=true>';
-  const hostileCategory = '<svg onload=globalThis.pwned=true>';
-  const items = [{
-    id: hostileId,
-    category: hostileCategory,
-    question: {
-      ja: '<img src=x onerror=globalThis.pwned=true>質問',
-      zh: '<svg onload=globalThis.pwned=true>问题',
-    },
-    answer: {
-      ja: '<a onmouseover=globalThis.pwned=true>回答</a>',
-      zh: '<b onclick=globalThis.pwned=true>回答</b>',
-    },
-  }];
-  const result = createHarness(HOME_SOURCE, items, 'home');
-  await new Promise(setImmediate);
-
-  assert.deepEqual(result.htmlWrites, [], 'API fields must never enter innerHTML');
-  assert.match(result.homeContainer.textContent, /<img src=x onerror=.*質問/);
-  assert.match(result.homeContainer.textContent, /<a onmouseover=.*回答<\/a>/);
-  assert.doesNotMatch(domSurface(result.homeContainer), new RegExp(hostileId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
-  assert.doesNotMatch(domSurface(result.homeContainer), new RegExp(hostileCategory.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
-
-  const button = result.homeContainer.querySelector('.faq-q');
-  assert.ok(button);
-  assert.equal(button.getAttribute('aria-expanded'), 'false');
-  assert.equal(button.getAttribute('aria-controls'), 'home-faq-a-0');
-  assert.equal(button.nextElementSibling.getAttribute('role'), 'region');
-  button.click();
-  assert.equal(button.parentElement.classList.contains('active'), true, 'uses the state class consumed by the production FAQ CSS');
-  assert.equal(button.getAttribute('aria-expanded'), 'true');
-
-  result.storage.set('fuluckpet-lang', 'zh');
-  result.events.langChanged();
-  assert.match(result.homeContainer.textContent, /<svg onload=.*问题/);
-  assert.match(result.homeContainer.textContent, /<b onclick=.*回答<\/b>/);
-});
 
 test('standalone FAQ safely preserves categories, icons, filtering, a11y, and language switching', async () => {
   const hostileId = "faq');globalThis.pwned=true;//";

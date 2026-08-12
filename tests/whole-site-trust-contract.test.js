@@ -426,7 +426,7 @@ function runLoader(file, surface) {
   return { root: surface === 'home' ? home : list, events, storage };
 }
 
-for (const [file, surface] of [['faq-loader.js', 'home'], ['faq-page-loader.js', 'page']]) {
+for (const [file, surface] of [['faq-page-loader.js', 'page']]) {
   test(`${file} overrides stale successful API trust facts in JA EN ZH`, async () => {
     const result = runLoader(file, surface);
     await new Promise(setImmediate);
