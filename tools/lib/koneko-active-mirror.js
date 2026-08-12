@@ -34,7 +34,7 @@ function youtubeId(value) {
   return match ? match[1] : '';
 }
 
-function canonicalVideo(value) {
+export function canonicalizeYouTubeVideo(value) {
   const id = youtubeId(value);
   return id ? `https://www.youtube.com/embed/${id}` : '';
 }
@@ -62,7 +62,9 @@ export function assertCompleteActiveSource(source) {
   if (!Array.isArray(source.photos) || source.photos.length === 0 || !source.photos.every(isNonBlankString)) {
     throw new Error('active source photos must contain at least one non-empty URL');
   }
-  if (!youtubeId(source.video)) throw new Error('active source video must contain a valid YouTube ID');
+  if (!canonicalizeYouTubeVideo(source.video)) {
+    throw new Error('active source video must contain a valid YouTube ID');
+  }
   for (const [group, locale] of REQUIRED_LOCALIZED_TEXT) {
     if (!isNonBlankString(sourceText(source, group, locale))) {
       throw new Error(`active source ${group}.${locale} is required`);
@@ -89,7 +91,7 @@ export function buildActiveMirrorPatch(current, source) {
   if (!isDeepStrictEqual(currentRecord.photos, wantedPhotos)) patch.photos = wantedPhotos;
   if (currentRecord.coverIndex !== 0) patch.coverIndex = 0;
 
-  const wantedVideo = canonicalVideo(sourceRecord.video);
+  const wantedVideo = canonicalizeYouTubeVideo(sourceRecord.video);
   const currentVideoId = youtubeId(currentRecord.video);
   if (
     (wantedVideo && currentVideoId !== youtubeId(wantedVideo))
@@ -111,4 +113,29 @@ export function buildActiveMirrorPatch(current, source) {
   }
 
   return patch;
+}
+
+/** Build the complete item body shared by strict-mode emit and POST paths. */
+export function buildActiveMirrorRecord(source) {
+  return {
+    breederId: source.breederId,
+    status: source.status,
+    breed: source.breed,
+    color: source.color,
+    gender: source.gender,
+    price: source.price,
+    birthday: source.birthday,
+    photos: [...source.photos],
+    coverIndex: 0,
+    video: canonicalizeYouTubeVideo(source.video),
+    papa: source.papa ?? '',
+    mama: source.mama ?? '',
+    note: sourceText(source, 'notes', 'ja') ?? '',
+    noteZh: sourceText(source, 'notes', 'zh') ?? '',
+    noteEn: sourceText(source, 'notes', 'en') ?? '',
+    description: sourceText(source, 'descriptions', 'ja') ?? '',
+    descriptionZh: sourceText(source, 'descriptions', 'zh') ?? '',
+    descriptionEn: sourceText(source, 'descriptions', 'en') ?? '',
+    isNew: true,
+  };
 }

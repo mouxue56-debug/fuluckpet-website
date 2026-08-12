@@ -32,6 +32,7 @@ import { assertFreshKonekoSnapshot } from './lib/koneko-snapshot-freshness.js';
 import {
   assertCompleteActiveSource,
   buildActiveMirrorPatch,
+  buildActiveMirrorRecord,
 } from './lib/koneko-active-mirror.js';
 
 const WORKER = 'https://fuluck-api.mouxue56.workers.dev';
@@ -64,6 +65,31 @@ function normalizeVideo(v) {
     /(?:youtube(?:-nocookie)?\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/
   );
   return m ? `https://www.youtube.com/embed/${m[1]}` : '';
+}
+
+function buildNewKittenRecord(source) {
+  if (MIRROR_ACTIVE) return buildActiveMirrorRecord(source);
+  return {
+    breederId: source.breederId,
+    breed: source.breed,
+    color: source.color,
+    gender: source.gender,
+    price: source.price,
+    status: source.status,
+    birthday: source.birthday,
+    photos: source.photos,
+    coverIndex: 0,
+    video: normalizeVideo(source.video),
+    papa: source.papa || '',
+    mama: source.mama || '',
+    note: (source.notes && source.notes.ja) || '',
+    noteZh: (source.notes && source.notes.zh) || '',
+    noteEn: (source.notes && source.notes.en) || '',
+    description: (source.descriptions && source.descriptions.ja) || '',
+    descriptionZh: (source.descriptions && source.descriptions.zh) || '',
+    descriptionEn: (source.descriptions && source.descriptions.en) || '',
+    isNew: true,
+  };
 }
 
 /** koneko の縮小版 URL。原寸は _thumb_pc / _thumb_mob を外したもの。 */
@@ -256,19 +282,7 @@ async function main() {
         const u = updates.find(x => x.rec.id === r.id);
         return u ? { ...r, ...u.patch } : r;
       })
-      .concat(adds.map(a => ({
-        id: `sim-${a.breederId}`, breederId: a.breederId, breed: a.breed, color: a.color,
-        gender: a.gender, price: a.price, status: a.status, birthday: a.birthday,
-        photos: a.photos, coverIndex: 0, video: normalizeVideo(a.video),
-        papa: a.papa || '', mama: a.mama || '',
-        note: (a.notes && a.notes.ja) || '',
-        noteZh: (a.notes && a.notes.zh) || '',
-        noteEn: (a.notes && a.notes.en) || '',
-        description: (a.descriptions && a.descriptions.ja) || '',
-        descriptionZh: (a.descriptions && a.descriptions.zh) || '',
-        descriptionEn: (a.descriptions && a.descriptions.en) || '',
-        isNew: true,
-      })));
+      .concat(adds.map(a => ({ ...buildNewKittenRecord(a), id: `sim-${a.breederId}` })));
     writeFileSync(process.argv[emitIdx + 1], JSON.stringify(patched, null, 1));
     console.log(`\n同期後の目録を書き出し: ${process.argv[emitIdx + 1]}（${patched.length} 件）`);
   }
@@ -302,19 +316,7 @@ async function main() {
   }
 
   for (const a of adds) {
-    const r = await req('POST', '/api/admin/kittens', {
-      breederId: a.breederId, breed: a.breed, color: a.color, gender: a.gender,
-      price: a.price, status: a.status, birthday: a.birthday,
-      photos: a.photos, coverIndex: 0,
-      video: normalizeVideo(a.video), papa: a.papa || '', mama: a.mama || '',
-      note: (a.notes && a.notes.ja) || '',
-      noteZh: (a.notes && a.notes.zh) || '',
-      noteEn: (a.notes && a.notes.en) || '',
-      description: (a.descriptions && a.descriptions.ja) || '',
-      descriptionZh: (a.descriptions && a.descriptions.zh) || '',
-      descriptionEn: (a.descriptions && a.descriptions.en) || '',
-      isNew: true,
-    });
+    const r = await req('POST', '/api/admin/kittens', buildNewKittenRecord(a));
     if (r.ok) { console.log(`   ✓ 追加 ${a.breederId}`); ok++; }
     else { console.error(`   ✗ 追加失敗 ${a.breederId}: ${r.why}`); fail++; }
   }
