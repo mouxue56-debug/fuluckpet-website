@@ -36,7 +36,7 @@ const PUBLIC_KITTEN_FIELDS = Object.freeze([
   // note は言語別。noteZh / noteEn が空の言語は日本語へ落とさず非表示にする
   // （自由文なので翻訳表が作れない。generate-site.js の noteFor() を参照）
   'photos', 'coverIndex', 'video', 'isNew', 'papa', 'mama',
-  'note', 'noteZh', 'noteEn',
+  'note', 'noteZh', 'noteEn', 'description', 'descriptionZh', 'descriptionEn',
   'promotionTag', 'promotionPriority',
 ]);
 

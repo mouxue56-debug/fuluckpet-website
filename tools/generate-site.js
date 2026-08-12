@@ -291,6 +291,27 @@ function noteFor(kitten, lang) {
   return typeof pick === 'string' ? pick : '';
 }
 
+function descriptionFor(kitten, lang) {
+  if (!kitten) return '';
+  const pick = lang === 'en' ? kitten.descriptionEn : lang === 'zh' ? kitten.descriptionZh : kitten.description;
+  return typeof pick === 'string' ? pick.trim() : '';
+}
+
+function descriptionHtml(kitten, lang) {
+  const description = descriptionFor(kitten, lang);
+  if (!description) return '';
+  const heading = lang === 'en' ? 'Introduction' : lang === 'zh' ? '详细介绍' : '子猫の紹介';
+  const paragraphs = description
+    .split(/\r?\n[ \t]*\r?\n/)
+    .map((paragraph) => `<p>${escapeHtml(paragraph).replace(/\r?\n/g, '<br>')}</p>`)
+    .join('\n      ');
+  return `
+      <section class="kitten-detail-introduction">
+        <h2>${heading}</h2>
+        ${paragraphs}
+      </section>`;
+}
+
 function statusText(status) {
   switch (status) {
     case 'available': return '販売中';
@@ -2254,6 +2275,19 @@ ${productSchemaHtml}  <script type="application/ld+json">
     font-weight: 500;
     white-space: nowrap;
   }
+  .kitten-detail-introduction {
+    margin: 0 0 32px;
+  }
+  .kitten-detail-introduction h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 12px;
+    color: var(--text-main);
+  }
+  .kitten-detail-introduction p {
+    margin: 0 0 12px;
+    line-height: 1.8;
+  }
   .kitten-detail-parents {
     margin-bottom: 32px;
   }
@@ -2417,6 +2451,8 @@ ${headerHtml}
         <tr><th data-i18n="kitten.status">状態</th><td${statusI18nKey(effectiveStatus) ? ` data-i18n="${statusI18nKey(effectiveStatus)}"` : ''}>${escapeHtml(stL)}</td></tr>
         ${noteRow}
       </table>
+
+      ${descriptionHtml(kitten, lang)}
 
       ${parentsHtml}
 
