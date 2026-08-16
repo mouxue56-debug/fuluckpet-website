@@ -528,6 +528,35 @@ export async function createNotifyIntent(env, spec, nowMs) {
   return { created: true, itemKey, dueKey, item };
 }
 
+export async function ensureNotifyIntent(env, spec, nowMs) {
+  const result = await createNotifyIntent(env, spec, nowMs);
+  if (result.created) return { ...result, repaired: false };
+
+  const { item, itemKey } = result;
+  const options = putOptions();
+  let repaired = false;
+
+  if (!['sent', 'failed', 'dead_letter'].includes(item.status)) {
+    assertString(item.due_key, 'item.due_key');
+    const dueReference = await env.DATA.get(item.due_key);
+    if (dueReference !== itemKey) {
+      await env.DATA.put(item.due_key, itemKey, options);
+      repaired = true;
+    }
+  }
+
+  const createdAt = Number.isSafeInteger(item.created_at) && item.created_at >= 0
+    ? item.created_at : nowMs;
+  const dailyKey = dailyReferenceKey(createdAt, itemKey);
+  const dailyReference = await env.DATA.get(dailyKey);
+  if (dailyReference !== itemKey) {
+    await env.DATA.put(dailyKey, itemKey, options);
+    repaired = true;
+  }
+
+  return { ...result, repaired };
+}
+
 export async function readNotifyItem(env, itemKey) {
   assertEnv(env);
   assertString(itemKey, 'itemKey');

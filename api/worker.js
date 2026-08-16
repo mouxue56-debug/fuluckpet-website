@@ -30,7 +30,7 @@
 
 import launchConfig from '../small-animals-launch.json' with { type: 'json' };
 import { canDeleteCalendarEvent, canUpdateCalendarEvent, canWriteCalendarEvent } from './calendar-dog-policy.mjs';
-import { attemptNotifyIntent, createNotifyIntent } from './notify.js';
+import { attemptNotifyIntent, ensureNotifyIntent } from './notify.js';
 
 const PUBLIC_KITTEN_FIELDS = Object.freeze([
   'id', 'breederId', 'breed', 'color', 'gender', 'price', 'status', 'birthday',
@@ -1976,6 +1976,14 @@ async function appendVisitEventFromBooking(env, data, bookingId) {
   }
 }
 
+async function hasVisitEventForBooking(env, bookingId) {
+  if (!bookingId) return false;
+  const doc = await env.DATA.get('calendar_events', 'json');
+  return Array.isArray(doc?.events) && doc.events.some((event) => (
+    event && event.bookingId === bookingId
+  ));
+}
+
 // Booking→calendar status sync: when a booking's status changes (contacted/archived)
 // or it's deleted, drive the linked visit event(s) to the mapped event status. Thin
 // KV wrapper around applyBookingCalendarSync — no-op when no linked event is found.
@@ -2817,50 +2825,50 @@ export default {
             : `${String(Number.MAX_SAFE_INTEGER - ts).padStart(16, '0')}:`;
           const kvKey = `booking:${sortKey}${id}`;
 
+          let duplicate = false;
+          let stored = null;
           if (submissionId) {
-            const existing = await env.DATA.get(kvKey, 'json');
-            if (existing) {
-              if (existing.submission_fingerprint !== submissionFingerprint) {
+            stored = await env.DATA.get(kvKey, 'json');
+            if (stored) {
+              if (stored.submission_fingerprint !== submissionFingerprint) {
                 return addCors(json({ error: 'submission_conflict' }, 409));
               }
-              return addCors(json({
-                ok: true,
-                duplicate: true,
-                request_id: existing.request_id || '',
-              }, 200));
+              duplicate = true;
             }
           }
 
-          const isoTs = new Date(ts).toISOString();
-          const stored = {
-            id,                              // admin list page lookups (DELETE/PUT by id)
-            ...data,                         // snake_case fields from validateBooking
-            // camelCase aliases — admin/js/admin-bookings.js reads these names.
-            // Without these, the row-meta strip (kitten / date / source) is silently empty.
-            kittenId: data.kitten_id || '',
-            preferredDate: data.preferred_date || '',
-            preferredDate2: data.preferred_date2 || '',
-            preferredTime: data.preferred_time || '',
-            visitMethod: data.visit_method || '',
-            source,
-            submission_fingerprint: submissionFingerprint,
-            request_id: requestId,
-            created_at: isoTs,               // snake_case kept for legacy callers
-            createdAt: isoTs,                // camelCase for admin/bookings.html
-            status: 'new',                   // admin uses status filter (new/contacted/archived)
-            user_agent: request.headers.get('User-Agent') || '',
-            ip: request.headers.get('CF-Connecting-IP') || '',
-          };
-          await env.DATA.put(kvKey, JSON.stringify(stored), { expirationTtl: 90 * 24 * 3600 });
+          if (!stored) {
+            const isoTs = new Date(ts).toISOString();
+            stored = {
+              id,                              // admin list page lookups (DELETE/PUT by id)
+              ...data,                         // snake_case fields from validateBooking
+              // camelCase aliases — admin/js/admin-bookings.js reads these names.
+              // Without these, the row-meta strip (kitten / date / source) is silently empty.
+              kittenId: data.kitten_id || '',
+              preferredDate: data.preferred_date || '',
+              preferredDate2: data.preferred_date2 || '',
+              preferredTime: data.preferred_time || '',
+              visitMethod: data.visit_method || '',
+              source,
+              submission_fingerprint: submissionFingerprint,
+              request_id: requestId,
+              created_at: isoTs,               // snake_case kept for legacy callers
+              createdAt: isoTs,                // camelCase for admin/bookings.html
+              status: 'new',                   // admin uses status filter (new/contacted/archived)
+              user_agent: request.headers.get('User-Agent') || '',
+              ip: request.headers.get('CF-Connecting-IP') || '',
+            };
+            await env.DATA.put(kvKey, JSON.stringify(stored), { expirationTtl: 90 * 24 * 3600 });
+          }
 
           const notificationIntents = [];
           for (const channel of ['email', 'telegram']) {
             const recipientIdentity = channel === 'email'
               ? 'mouxue56@gmail.com'
               : (env.TELEGRAM_CHAT_ID || 'unconfigured');
-            notificationIntents.push(await createNotifyIntent(env, {
+            notificationIntents.push(await ensureNotifyIntent(env, {
               entityKind: 'booking',
-              entityId: id,
+              entityId: stored.id,
               channel,
               template: 'owner_booking_v1',
               sourceKey: kvKey,
@@ -2870,17 +2878,26 @@ export default {
           }
 
           // The source and both channel intents are durable before any background work
-          // starts. Delivery state is independent and never changes the booking response.
-          ctx.waitUntil(Promise.allSettled(notificationIntents.map(({ itemKey }) => (
-            attemptNotifyIntent(env, itemKey, ts, { fetchImpl: fetch })
-          ))));
+          // starts. A partial setup retry re-attempts both channels; a fully complete
+          // duplicate performs no second delivery work.
+          if (notificationIntents.some(({ created, repaired }) => created || repaired)) {
+            ctx.waitUntil(Promise.allSettled(notificationIntents.map(({ itemKey }) => (
+              attemptNotifyIntent(env, itemKey, ts, { fetchImpl: fetch })
+            ))));
+          }
 
           // Calendar hook: mirror this booking as a pending visit event on the shared
           // calendar. Best-effort & fully isolated — appendVisitEventFromBooking swallows
           // its own errors, and this .catch is a second net so it can never break booking.
-          ctx.waitUntil(appendVisitEventFromBooking(env, data, id).catch(e => console.error('[calendar-hook]', e)));
+          if (!(await hasVisitEventForBooking(env, stored.id))) {
+            ctx.waitUntil(appendVisitEventFromBooking(env, stored, stored.id).catch(e => console.error('[calendar-hook]', e)));
+          }
 
-          return addCors(json({ ok: true, request_id: requestId }, 200));
+          return addCors(json({
+            ok: true,
+            ...(duplicate ? { duplicate: true } : {}),
+            request_id: duplicate ? (stored.request_id || '') : requestId,
+          }, 200));
         } catch (err) {
           return addCors(internalError(err, requestId));
         }

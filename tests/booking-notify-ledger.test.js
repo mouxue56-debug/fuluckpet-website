@@ -15,6 +15,11 @@ class MemoryKV {
   constructor() {
     this.store = new Map();
     this.operations = [];
+    this.putFailures = [];
+  }
+
+  failPutOnce(predicate) {
+    this.putFailures.push(predicate);
   }
 
   async get(key, type) {
@@ -30,6 +35,11 @@ class MemoryKV {
 
   async put(key, value, options) {
     this.operations.push({ operation: 'put', key, value, options });
+    const failureIndex = this.putFailures.findIndex((predicate) => predicate({ key, value, options }));
+    if (failureIndex >= 0) {
+      this.putFailures.splice(failureIndex, 1);
+      throw new Error(`synthetic KV put failure for ${key}`);
+    }
     this.store.set(key, value);
   }
 
@@ -114,6 +124,7 @@ function notifyItemKeys(DATA) {
 async function submit(harness, body) {
   const deferred = [];
   const waitUntilSnapshots = [];
+  const waitUntilLedgerSnapshots = [];
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (...args) => {
     harness.telegramCalls.push(args);
@@ -123,11 +134,14 @@ async function submit(harness, body) {
     const response = await worker.fetch(bookingRequest(body), harness.env, {
       waitUntil(promise) {
         waitUntilSnapshots.push(notifyItemKeys(harness.DATA));
+        waitUntilLedgerSnapshots.push(
+          [...harness.DATA.store.keys()].filter((key) => key.startsWith('notify:')).sort(),
+        );
         deferred.push(Promise.resolve(promise));
       },
     });
     await Promise.allSettled(deferred);
-    return { response, waitUntilSnapshots };
+    return { response, waitUntilSnapshots, waitUntilLedgerSnapshots };
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -207,6 +221,98 @@ test('sequential duplicate reuses its request id without new intents or delivery
   assert.equal(duplicate.waitUntilSnapshots.length, 0);
   assert.equal(harness.emailCalls.length, 1);
   assert.equal(harness.telegramCalls.length, 1);
+});
+
+test('duplicate retry repairs a missing second-channel intent before delivery and calendar work', async (t) => {
+  t.mock.method(console, 'error', () => {});
+  const harness = createHarness();
+  const submitted = payload({ submission_id: SUBMISSION_ID });
+  const emailItemKey = `notify:item:booking:${SUBMISSION_ID}:email:owner_booking_v1`;
+  const telegramItemKey = `notify:item:booking:${SUBMISSION_ID}:telegram:owner_booking_v1`;
+  harness.DATA.failPutOnce(({ key }) => key === telegramItemKey);
+
+  const first = await submit(harness, submitted);
+  const firstBody = await first.response.json();
+
+  assert.equal(first.response.status, 500);
+  assert.equal(firstBody.error, 'INTERNAL_ERROR');
+  assert.equal(harness.DATA.store.has(`booking:${SUBMISSION_ID}`), true);
+  assert.deepEqual(notifyItemKeys(harness.DATA), [emailItemKey]);
+  assert.deepEqual(first.waitUntilSnapshots, []);
+  assert.equal(harness.DATA.store.has('calendar_events'), false);
+  assert.equal(harness.emailCalls.length, 0);
+  assert.equal(harness.telegramCalls.length, 0);
+
+  const retry = await submit(harness, submitted);
+  const retryBody = await retry.response.json();
+
+  assert.equal(retry.response.status, 200);
+  assert.equal(retryBody.ok, true);
+  assert.equal(retryBody.duplicate, true);
+  assert.equal(retryBody.request_id, firstBody.request_id);
+  assert.deepEqual(notifyItemKeys(harness.DATA), [emailItemKey, telegramItemKey]);
+  assert.equal(retry.waitUntilSnapshots.length, 2);
+  for (const snapshot of retry.waitUntilSnapshots) {
+    assert.deepEqual(snapshot, [emailItemKey, telegramItemKey]);
+  }
+  const emailItem = JSON.parse(harness.DATA.store.get(emailItemKey));
+  const telegramItem = JSON.parse(harness.DATA.store.get(telegramItemKey));
+  assert.equal(emailItem.status, 'sent');
+  assert.equal(telegramItem.status, 'sent');
+  assert.equal(harness.emailCalls.length, 1);
+  assert.equal(harness.telegramCalls.length, 1);
+  const calendar = JSON.parse(harness.DATA.store.get('calendar_events'));
+  assert.equal(calendar.events.filter(({ bookingId }) => bookingId === SUBMISSION_ID).length, 1);
+  assert.equal(
+    harness.DATA.operations.filter(({ operation, key }) => operation === 'put' && key === 'calendar_events').length,
+    1,
+  );
+});
+
+test('duplicate retry repairs a missing due reference before delivery and calendar work', async (t) => {
+  t.mock.method(console, 'error', () => {});
+  const harness = createHarness();
+  const submitted = payload({ submission_id: SUBMISSION_ID });
+  const emailItemKey = `notify:item:booking:${SUBMISSION_ID}:email:owner_booking_v1`;
+  const telegramItemKey = `notify:item:booking:${SUBMISSION_ID}:telegram:owner_booking_v1`;
+  harness.DATA.failPutOnce(({ key, value }) => (
+    key.startsWith('notify:due:') && value === telegramItemKey
+  ));
+
+  const first = await submit(harness, submitted);
+  const firstBody = await first.response.json();
+
+  assert.equal(first.response.status, 500);
+  assert.equal(firstBody.error, 'INTERNAL_ERROR');
+  assert.deepEqual(notifyItemKeys(harness.DATA), [emailItemKey, telegramItemKey]);
+  const orphan = JSON.parse(harness.DATA.store.get(telegramItemKey));
+  assert.equal(orphan.status, 'pending');
+  assert.equal(harness.DATA.store.has(orphan.due_key), false);
+  assert.deepEqual(first.waitUntilSnapshots, []);
+  assert.equal(harness.DATA.store.has('calendar_events'), false);
+
+  const retry = await submit(harness, submitted);
+  const retryBody = await retry.response.json();
+
+  assert.equal(retry.response.status, 200);
+  assert.equal(retryBody.ok, true);
+  assert.equal(retryBody.duplicate, true);
+  assert.equal(retryBody.request_id, firstBody.request_id);
+  assert.equal(retry.waitUntilLedgerSnapshots.length, 2);
+  for (const snapshot of retry.waitUntilLedgerSnapshots) {
+    assert.equal(snapshot.includes(orphan.due_key), true);
+  }
+  const repaired = JSON.parse(harness.DATA.store.get(telegramItemKey));
+  assert.equal(repaired.status, 'sent');
+  assert.equal(repaired.due_key, null);
+  assert.equal(harness.emailCalls.length, 1);
+  assert.equal(harness.telegramCalls.length, 1);
+  const calendar = JSON.parse(harness.DATA.store.get('calendar_events'));
+  assert.equal(calendar.events.filter(({ bookingId }) => bookingId === SUBMISSION_ID).length, 1);
+  assert.equal(
+    harness.DATA.operations.filter(({ operation, key }) => operation === 'put' && key === 'calendar_events').length,
+    1,
+  );
 });
 
 test('missing EMAIL binding keeps the accepted booking and records the email failure', async () => {
