@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 
 let attemptNotifyIntent;
+let buildDailyOwnerMessage;
 let createNotifyIntent;
 let ensureDailyReconcileSummary;
 let markNotifyFailure;
@@ -16,6 +17,7 @@ let reconcileDueNotifications;
 test.before(async () => {
   ({
     attemptNotifyIntent,
+    buildDailyOwnerMessage,
     createNotifyIntent,
     ensureDailyReconcileSummary,
     markNotifyFailure,
@@ -69,6 +71,44 @@ class MemoryKV {
       list_complete: !hasMore,
       cursor: hasMore ? names.at(-1) : undefined,
     };
+  }
+}
+
+class StaleReadRaceKV extends MemoryKV {
+  constructor(itemKey) {
+    super();
+    this.itemKey = itemKey;
+    this.armed = false;
+    this.raceReads = 0;
+    this.releaseReads = null;
+    this.readBarrier = new Promise((resolve) => { this.releaseReads = resolve; });
+    this.releaseRetryPut = null;
+    this.sentPut = new Promise((resolve) => { this.releaseRetryPut = resolve; });
+  }
+
+  arm() {
+    this.armed = true;
+  }
+
+  async get(key, type) {
+    const snapshot = await super.get(key, type);
+    if (this.armed && key === this.itemKey && type === 'json' && this.raceReads < 2) {
+      this.raceReads += 1;
+      if (this.raceReads === 2) this.releaseReads();
+      await this.readBarrier;
+    }
+    return snapshot;
+  }
+
+  async put(key, value, options) {
+    if (key === this.itemKey) {
+      const status = JSON.parse(value).status;
+      if (status === 'retry') await this.sentPut;
+      await super.put(key, value, options);
+      if (status === 'sent') this.releaseRetryPut();
+      return;
+    }
+    await super.put(key, value, options);
   }
 }
 
@@ -171,6 +211,80 @@ test('a late retryable failure cannot resurrect a dead-letter item', async () =>
   assert.equal(result.last_error_code, 'source_missing');
   assert.equal(result.due_key, null);
   assert.equal([...DATA.store.keys()].some((key) => key.startsWith('notify:due:')), false);
+});
+
+test('a concurrent stale-read failure cannot overwrite a confirmed sent item', async () => {
+  const nowMs = Date.parse('2026-08-16T00:00:45.000Z');
+  const spec = notificationSpec({ channel: 'telegram', entityId: 'sent-race-1' });
+  const itemKey = notifyItemKey(spec);
+  const DATA = new StaleReadRaceKV(itemKey);
+  const { bindings } = createEnv();
+  bindings.DATA = DATA;
+  await putJson(DATA, spec.sourceKey, bookingSource());
+  await createNotifyIntent(bindings, spec, nowMs);
+  DATA.arm();
+
+  await Promise.all([
+    markNotifySent(bindings, itemKey, { providerMessageId: 'telegram-confirmed-1' }, nowMs + 1),
+    markNotifyFailure(
+      bindings,
+      itemKey,
+      { code: 'telegram_network_error', detail: 'synthetic concurrent failure' },
+      nowMs + 2,
+    ),
+  ]);
+
+  const persisted = await readNotifyItem(bindings, itemKey);
+  assert.equal(persisted.status, 'sent');
+  assert.equal(persisted.due_key, null);
+  assert.deepEqual(persisted.result, { provider_message_id: 'telegram-confirmed-1' });
+  assert.equal([...DATA.store.keys()].some((key) => key.startsWith('notify:due:')), false);
+});
+
+test('authoritative reads, attempts, and reconciliation preserve sent over stale retry state', async () => {
+  const { bindings, DATA, emailCalls } = createEnv();
+  const nowMs = Date.parse('2026-08-16T00:00:50.000Z');
+  const spec = notificationSpec({ entityId: 'sent-authoritative-1' });
+  await putJson(DATA, spec.sourceKey, bookingSource());
+  const intent = await createNotifyIntent(bindings, spec, nowMs);
+  const sent = await markNotifySent(
+    bindings,
+    intent.itemKey,
+    { providerMessageId: 'email-confirmed-1' },
+    nowMs + 1,
+  );
+  const staleDueKey = notifyDueKey(nowMs + 2, intent.itemKey);
+  const staleRetry = {
+    ...intent.item,
+    status: 'retry',
+    attempt_count: 1,
+    updated_at: nowMs + 2,
+    next_attempt_ms: nowMs + 2,
+    due_key: staleDueKey,
+    result: null,
+  };
+
+  await putJson(DATA, intent.itemKey, staleRetry);
+  await DATA.put(staleDueKey, intent.itemKey);
+  const authoritativeRead = await readNotifyItem(bindings, intent.itemKey);
+  assert.equal(authoritativeRead.status, 'sent');
+  assert.equal(authoritativeRead.due_key, null);
+  assert.deepEqual(authoritativeRead.result, sent.result);
+  assert.equal(DATA.store.has(staleDueKey), false);
+
+  await putJson(DATA, intent.itemKey, staleRetry);
+  await DATA.put(staleDueKey, intent.itemKey);
+  const attemptResult = await attemptNotifyIntent(bindings, intent.itemKey, nowMs + 2, {});
+  assert.equal(attemptResult.status, 'sent');
+  assert.equal(DATA.store.has(staleDueKey), false);
+  assert.equal(emailCalls.length, 0);
+
+  await putJson(DATA, intent.itemKey, staleRetry);
+  await DATA.put(staleDueKey, intent.itemKey);
+  const reconcileResult = await reconcileDueNotifications(bindings, nowMs + 2, {});
+  assert.deepEqual(reconcileResult, { processed: 1, attempted: 0, stale_deleted: 1 });
+  assert.equal(DATA.store.has(staleDueKey), false);
+  assert.equal(emailCalls.length, 0);
 });
 
 test('a missing source dead-letters the item with source_missing and removes its due key', async () => {
@@ -387,6 +501,7 @@ test('JST 09:00 creates one prior-day source and two deterministic intents only 
     failed: 0,
     dead_letter: 0,
   });
+  assert.deepEqual(source.notes, ['email: sent', 'telegram: retry']);
   assert.equal(first.source_created, true);
   assert.deepEqual(first.created_item_keys.sort(), [
     notifyItemKey({ entityKind: 'summary', entityId: '2026-08-15', channel: 'email', template: 'owner_daily_v1' }),
@@ -395,4 +510,24 @@ test('JST 09:00 creates one prior-day source and two deterministic intents only 
   assert.equal(second.source_created, false);
   assert.deepEqual(second.created_item_keys, []);
   assert.equal(DATA.operations.length, putsAfterFirst);
+});
+
+test('daily owner messages stay deterministic and bounded for 100 two-hundred-character notes', () => {
+  const notes = Array.from({ length: 100 }, (_unused, index) => (
+    `${String(index).padStart(3, '0')}:${'"'.repeat(196)}`
+  ));
+  assert.equal(notes.every((note) => note.length === 200), true);
+  const source = {
+    dateJst: '2026-08-15',
+    summary: '"'.repeat(200),
+    notes,
+  };
+
+  const first = buildDailyOwnerMessage(source);
+  const second = buildDailyOwnerMessage(source);
+
+  assert.deepEqual(first, second);
+  assert.ok(first.telegramText.length <= 4_096, `Telegram length was ${first.telegramText.length}`);
+  assert.ok(first.text.length <= 2_000, `email text length was ${first.text.length}`);
+  assert.ok(first.html.length <= 8_000, `email HTML length was ${first.html.length}`);
 });

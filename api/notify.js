@@ -14,9 +14,15 @@ const OWNER_EMAIL_TO = 'mouxue56@gmail.com';
 const OWNER_EMAIL_FROM = { email: 'noreply@fuluckpet.com', name: 'fuluckpet 通知' };
 const ADMIN_URL = 'https://fuluckpet.com/admin/';
 const DUE_PREFIX = 'notify:due:';
+const SENT_MARKER_PREFIX = 'notify:sent:';
 const MAX_DUE_PER_RECONCILE = 100;
 const LIST_PAGE_LIMIT = 1_000;
 const HOUR_MS = 60 * 60_000;
+const TELEGRAM_MAX_TEXT_LENGTH = 4_096;
+const MAX_DAILY_DATE_LENGTH = 32;
+const MAX_DAILY_SUMMARY_LENGTH = 200;
+const MAX_DAILY_NOTES = 6;
+const MAX_DAILY_NOTE_LENGTH = 100;
 
 export function notifyItemKey({ entityKind, entityId, channel, template }) {
   return `notify:item:${entityKind}:${entityId}:${channel}:${template}`;
@@ -24,6 +30,10 @@ export function notifyItemKey({ entityKind, entityId, channel, template }) {
 
 export function notifyDueKey(nextAttemptMs, itemKey) {
   return `notify:due:${String(nextAttemptMs).padStart(13, '0')}:${encodeURIComponent(itemKey)}`;
+}
+
+async function notifySentMarkerKey(itemKey) {
+  return `${SENT_MARKER_PREFIX}${await sha256(itemKey)}`;
 }
 
 function assertString(value, field, maxLength = MAX_FIELD_LENGTH) {
@@ -99,6 +109,12 @@ function trimText(value, maxLength) {
   return text.length > maxLength ? `${text.slice(0, maxLength)}…` : text;
 }
 
+function boundedDisplayText(value, maxLength) {
+  const text = String(value ?? '');
+  if (text.length <= maxLength) return text;
+  return maxLength <= 1 ? text.slice(0, maxLength) : `${text.slice(0, maxLength - 1)}…`;
+}
+
 function boundedDetail(value) {
   if (value === null || value === undefined) return undefined;
   const text = typeof value === 'string' ? value : JSON.stringify(value);
@@ -150,6 +166,48 @@ async function readJson(env, key) {
     try { return JSON.parse(value); } catch (_error) { return null; }
   }
   return value;
+}
+
+function isSentMarker(marker) {
+  return marker?.status === 'sent'
+    && Number.isSafeInteger(marker.sent_at)
+    && marker.sent_at >= 0;
+}
+
+async function readSentMarker(env, itemKey) {
+  const marker = await readJson(env, await notifySentMarkerKey(itemKey));
+  return isSentMarker(marker) ? marker : null;
+}
+
+function projectSentItem(item, marker) {
+  return {
+    ...item,
+    status: 'sent',
+    updated_at: Number.isSafeInteger(marker.updated_at) ? marker.updated_at : marker.sent_at,
+    sent_at: marker.sent_at,
+    next_attempt_ms: null,
+    due_key: null,
+    result: marker.result ?? null,
+  };
+}
+
+async function repairSentItem(env, itemKey, item, marker) {
+  const updated = projectSentItem(item, marker);
+  const needsItemRepair = item.status !== 'sent'
+    || item.sent_at !== updated.sent_at
+    || item.next_attempt_ms !== null
+    || item.due_key !== null
+    || JSON.stringify(item.result ?? null) !== JSON.stringify(updated.result);
+  if (needsItemRepair) await env.DATA.put(itemKey, encodeItem(updated), putOptions());
+  if (item.due_key && typeof env.DATA.delete === 'function') await env.DATA.delete(item.due_key);
+  return updated;
+}
+
+async function readAuthoritativeNotifyItem(env, itemKey) {
+  const item = await readJson(env, itemKey);
+  if (!item) return null;
+  const marker = await readSentMarker(env, itemKey);
+  return marker ? repairSentItem(env, itemKey, item, marker) : item;
 }
 
 function putOptions() {
@@ -282,9 +340,11 @@ export function buildChatOwnerMessage(source) {
 
 export function buildDailyOwnerMessage(source) {
   const data = source && typeof source === 'object' ? source : {};
-  const dateJst = String(data.dateJst || '');
-  const summary = String(data.summary || '');
-  const notes = Array.isArray(data.notes) ? data.notes.map((note) => String(note)) : [];
+  const dateJst = boundedDisplayText(data.dateJst, MAX_DAILY_DATE_LENGTH);
+  const summary = boundedDisplayText(data.summary, MAX_DAILY_SUMMARY_LENGTH);
+  const notes = Array.isArray(data.notes)
+    ? data.notes.slice(0, MAX_DAILY_NOTES).map((note) => boundedDisplayText(note, MAX_DAILY_NOTE_LENGTH))
+    : [];
   const text = [
     `【fuluckpet 通知】${dateJst} 日次サマリー`,
     '',
@@ -299,11 +359,16 @@ export function buildDailyOwnerMessage(source) {
 <p>${escapeHtml(summary)}</p>
 ${htmlNotes}
 </body></html>`;
-  const telegramText = [
+  const telegramLines = [
     `<b>【fuluckpet 通知】${escapeHtml(dateJst)} 日次サマリー</b>`,
     escapeHtml(summary),
-    ...(notes.length ? ['', ...notes.map((note) => `• ${escapeHtml(note)}`)] : []),
-  ].join('\n');
+  ];
+  for (const note of notes) {
+    const noteLines = telegramLines.length === 2 ? ['', `• ${escapeHtml(note)}`] : [`• ${escapeHtml(note)}`];
+    if ([...telegramLines, ...noteLines].join('\n').length > TELEGRAM_MAX_TEXT_LENGTH) break;
+    telegramLines.push(...noteLines);
+  }
+  const telegramText = telegramLines.join('\n');
   return messageEnvelope(`[fuluckpet 通知] ${dateJst} 日次サマリー`, text, html, telegramText, null);
 }
 
@@ -427,7 +492,7 @@ export async function createNotifyIntent(env, spec, nowMs) {
   assertNow(nowMs);
 
   const itemKey = notifyItemKey(spec);
-  const existing = await readJson(env, itemKey);
+  const existing = await readAuthoritativeNotifyItem(env, itemKey);
   if (existing) {
     return { created: false, itemKey, dueKey: existing.due_key ?? null, item: existing };
   }
@@ -466,7 +531,7 @@ export async function createNotifyIntent(env, spec, nowMs) {
 export async function readNotifyItem(env, itemKey) {
   assertEnv(env);
   assertString(itemKey, 'itemKey');
-  return readJson(env, itemKey);
+  return readAuthoritativeNotifyItem(env, itemKey);
 }
 
 export async function markNotifySent(env, itemKey, result, nowMs) {
@@ -474,28 +539,25 @@ export async function markNotifySent(env, itemKey, result, nowMs) {
   assertString(itemKey, 'itemKey');
   assertNow(nowMs);
   const item = await readJson(env, itemKey);
-  if (!item || item.status === 'sent') return item;
+  if (!item) return item;
+  const existingMarker = await readSentMarker(env, itemKey);
+  if (existingMarker) return repairSentItem(env, itemKey, item, existingMarker);
   const sanitizedResult = sanitizeProviderResult(result);
-
-  const updated = {
-    ...item,
+  const marker = {
     status: 'sent',
     updated_at: nowMs,
     sent_at: nowMs,
-    next_attempt_ms: null,
-    due_key: null,
     result: sanitizedResult,
   };
-  await env.DATA.put(itemKey, encodeItem(updated), putOptions());
-  if (item.due_key && typeof env.DATA.delete === 'function') await env.DATA.delete(item.due_key);
-  return updated;
+  await env.DATA.put(await notifySentMarkerKey(itemKey), toJson(marker, 'notification sent marker', MAX_RESULT_LENGTH), putOptions());
+  return repairSentItem(env, itemKey, item, marker);
 }
 
 export async function markNotifyFailure(env, itemKey, error, nowMs) {
   assertEnv(env);
   assertString(itemKey, 'itemKey');
   assertNow(nowMs);
-  const item = await readJson(env, itemKey);
+  const item = await readAuthoritativeNotifyItem(env, itemKey);
   if (!item || ['sent', 'failed', 'dead_letter'].includes(item.status)) return item;
 
   const attemptCount = Number.isSafeInteger(item.attempt_count) && item.attempt_count >= 0
@@ -521,11 +583,13 @@ export async function markNotifyFailure(env, itemKey, error, nowMs) {
   if (item.due_key && item.due_key !== dueKey && typeof env.DATA.delete === 'function') {
     await env.DATA.delete(item.due_key);
   }
+  const sentMarker = await readSentMarker(env, itemKey);
+  if (sentMarker) return repairSentItem(env, itemKey, updated, sentMarker);
   return updated;
 }
 
 async function markNotifyDeadLetter(env, itemKey, error, nowMs, countAttempt = false) {
-  const item = await readJson(env, itemKey);
+  const item = await readAuthoritativeNotifyItem(env, itemKey);
   if (!item || ['sent', 'failed', 'dead_letter'].includes(item.status)) return item;
   const sanitizedError = sanitizeError(error);
   const attemptCount = countAttempt
@@ -543,6 +607,8 @@ async function markNotifyDeadLetter(env, itemKey, error, nowMs, countAttempt = f
   };
   await env.DATA.put(itemKey, encodeItem(updated), putOptions());
   if (item.due_key && typeof env.DATA.delete === 'function') await env.DATA.delete(item.due_key);
+  const sentMarker = await readSentMarker(env, itemKey);
+  if (sentMarker) return repairSentItem(env, itemKey, updated, sentMarker);
   return updated;
 }
 
@@ -568,7 +634,7 @@ export async function attemptNotifyIntent(env, itemKey, nowMs, dependencies = {}
   assertEnv(env);
   assertString(itemKey, 'itemKey');
   assertNow(nowMs);
-  const item = await readJson(env, itemKey);
+  const item = await readAuthoritativeNotifyItem(env, itemKey);
   if (!item || ['sent', 'failed', 'dead_letter'].includes(item.status)) return item;
   if (Number.isSafeInteger(item.next_attempt_ms) && item.next_attempt_ms > nowMs) return item;
 
@@ -628,7 +694,7 @@ export async function reconcileDueNotifications(env, nowMs, dependencies = {}) {
       }
       processed += 1;
       const itemKey = await env.DATA.get(dueKey);
-      const item = typeof itemKey === 'string' ? await readJson(env, itemKey) : null;
+      const item = typeof itemKey === 'string' ? await readAuthoritativeNotifyItem(env, itemKey) : null;
       if (!item || item.due_key !== dueKey) {
         await env.DATA.delete(dueKey);
         staleDeleted += 1;
@@ -680,8 +746,11 @@ async function buildDailySummarySource(env, dateJst) {
     if (Object.prototype.hasOwnProperty.call(counts, item.status) && item.status !== 'total') {
       counts[item.status] += 1;
     }
-    if (notes.length < 100) {
-      notes.push(trimText(`${item.entity_kind}:${item.entity_id} ${item.channel} ${item.status}`, 200));
+    if (notes.length < MAX_DAILY_NOTES) {
+      const channel = ['email', 'telegram'].includes(item.channel) ? item.channel : 'unknown';
+      const status = ['sent', 'pending', 'retry', 'failed', 'dead_letter'].includes(item.status)
+        ? item.status : 'unknown';
+      notes.push(`${channel}: ${status}`);
     }
   }
   const summary = [
