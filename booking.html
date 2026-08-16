@@ -871,7 +871,7 @@
   <script>
   // ===== Booking Form Submission — POSTs to fuluck-api Worker =====
   // Worker endpoint: /api/booking (CORS locked to https://fuluckpet.com)
-  // On success: KV-saves the submission + emails mouxue56@gmail.com via MailChannels.
+  // On success: KV-saves the submission and durably schedules email + Telegram owner notifications.
   (function() {
     var API_URL = 'https://fuluck-api.mouxue56.workers.dev/api/booking';
 

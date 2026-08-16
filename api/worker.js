@@ -30,6 +30,7 @@
 
 import launchConfig from '../small-animals-launch.json' with { type: 'json' };
 import { canDeleteCalendarEvent, canUpdateCalendarEvent, canWriteCalendarEvent } from './calendar-dog-policy.mjs';
+import { attemptNotifyIntent, createNotifyIntent } from './notify.js';
 
 const PUBLIC_KITTEN_FIELDS = Object.freeze([
   'id', 'breederId', 'breed', 'color', 'gender', 'price', 'status', 'birthday',
@@ -2001,119 +2002,6 @@ function escapeHtml(s) {
     .replace(/'/g, '&#39;');
 }
 
-// Build plain-text and HTML email bodies for a booking submission.
-function buildBookingEmail(submission, requestId) {
-  const adminUrl = 'https://fuluckpet.com/admin/';
-  const lines = [
-    '【fuluckpet 予約】新しい見学予約が届きました',
-    '',
-    `■ お名前: ${submission.name}`,
-    `■ メール: ${submission.email}`,
-    `■ 電話: ${submission.phone || '（未記入）'}`,
-    `■ 第一希望日: ${submission.preferred_date}`,
-    submission.preferred_date2 ? `■ 第二希望日: ${submission.preferred_date2}` : null,
-    submission.preferred_time ? `■ 希望時間: ${submission.preferred_time}` : null,
-    submission.visit_method ? `■ 見学方法: ${submission.visit_method}` : null,
-    submission.kitten_id ? `■ 気になる子猫: ${submission.kitten_id}` : null,
-    '',
-    '■ メッセージ:',
-    submission.message || '（なし）',
-    '',
-    `管理画面: ${adminUrl}`,
-    `Request ID: ${requestId}`,
-    '',
-    '────────────',
-    `自動送信メール — このメールに返信せず、${submission.email} に直接ご返信ください`,
-  ].filter(Boolean);
-  const text = lines.join('\n');
-
-  const html = `<!doctype html><html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#333;max-width:560px;margin:0 auto;padding:20px;">
-<h2 style="color:#5a8a6e;margin:0 0 16px;">【fuluckpet 予約】新しい見学予約</h2>
-<table style="width:100%;border-collapse:collapse;font-size:14px;">
-<tr><td style="padding:6px 0;color:#666;width:120px;">お名前</td><td style="padding:6px 0;font-weight:600;">${escapeHtml(submission.name)}</td></tr>
-<tr><td style="padding:6px 0;color:#666;">メール</td><td style="padding:6px 0;"><a href="mailto:${escapeHtml(submission.email)}">${escapeHtml(submission.email)}</a></td></tr>
-<tr><td style="padding:6px 0;color:#666;">電話</td><td style="padding:6px 0;">${escapeHtml(submission.phone || '（未記入）')}</td></tr>
-<tr><td style="padding:6px 0;color:#666;">第一希望日</td><td style="padding:6px 0;">${escapeHtml(submission.preferred_date)}</td></tr>
-${submission.preferred_date2 ? `<tr><td style="padding:6px 0;color:#666;">第二希望日</td><td style="padding:6px 0;">${escapeHtml(submission.preferred_date2)}</td></tr>` : ''}
-${submission.preferred_time ? `<tr><td style="padding:6px 0;color:#666;">希望時間</td><td style="padding:6px 0;">${escapeHtml(submission.preferred_time)}</td></tr>` : ''}
-${submission.visit_method ? `<tr><td style="padding:6px 0;color:#666;">見学方法</td><td style="padding:6px 0;">${escapeHtml(submission.visit_method)}</td></tr>` : ''}
-${submission.kitten_id ? `<tr><td style="padding:6px 0;color:#666;">気になる子猫</td><td style="padding:6px 0;">${escapeHtml(submission.kitten_id)}</td></tr>` : ''}
-</table>
-<div style="margin-top:18px;padding:14px;background:#f7f9f6;border-left:3px solid #5a8a6e;font-size:14px;line-height:1.6;white-space:pre-wrap;">${escapeHtml(submission.message || '（なし）')}</div>
-<p style="margin:20px 0 8px;"><a href="${adminUrl}" style="display:inline-block;padding:10px 18px;background:#5a8a6e;color:#fff;text-decoration:none;border-radius:6px;">管理画面で確認する</a></p>
-<p style="font-size:12px;color:#999;margin-top:24px;">Request ID: ${escapeHtml(requestId)}</p>
-<p style="font-size:12px;color:#999;border-top:1px solid #eee;padding-top:12px;">自動送信メール — このメールに返信せず、<a href="mailto:${escapeHtml(submission.email)}">${escapeHtml(submission.email)}</a> に直接ご返信ください</p>
-</body></html>`;
-
-  return { text, html };
-}
-
-// Send booking notification via Resend. (MailChannels discontinued its free Cloudflare
-// Workers email service in 2024, so the old path always failed.) Graceful no-op until
-// RESEND_API_KEY is set — Telegram still notifies the owner of every booking. To enable
-// email: free Resend account → verify fuluckpet.com → `wrangler secret put RESEND_API_KEY`
-// (optional RESEND_FROM, e.g. "fuluckpet 予約 <noreply@fuluckpet.com>").
-async function sendBookingEmail(env, submission, requestId) {
-  const key = env.RESEND_API_KEY;
-  if (!key) return { skipped: 'no_resend_key' };
-  const subject = `[fuluckpet 予約] ${submission.name} さんから新しい見学予約`;
-  const { text, html } = buildBookingEmail(submission, requestId);
-
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
-    body: JSON.stringify({
-      from: env.RESEND_FROM || 'fuluckpet 予約システム <noreply@fuluckpet.com>',
-      to: ['mouxue56@gmail.com'],
-      reply_to: submission.email,
-      subject,
-      text,
-      html,
-    }),
-  });
-  if (!res.ok) {
-    const detail = await res.text().catch(() => '');
-    throw new Error(`Resend ${res.status}: ${detail.slice(0, 300)}`);
-  }
-  return { sent: true };
-}
-
-// Optional Telegram fallback (fires alongside email if env vars are present).
-async function sendBookingTelegram(env, submission, requestId) {
-  const token = env.TELEGRAM_BOT_TOKEN;
-  const chatId = env.TELEGRAM_CHAT_ID;
-  if (!token || !chatId) return; // disabled
-
-  const lines = [
-    '*【fuluckpet 予約】*',
-    `名前: ${submission.name}`,
-    `メール: ${submission.email}`,
-    submission.phone ? `電話: ${submission.phone}` : null,
-    `第一希望日: ${submission.preferred_date}`,
-    submission.preferred_date2 ? `第二希望日: ${submission.preferred_date2}` : null,
-    submission.preferred_time ? `時間: ${submission.preferred_time}` : null,
-    submission.visit_method ? `方法: ${submission.visit_method}` : null,
-    submission.kitten_id ? `子猫: ${submission.kitten_id}` : null,
-    submission.message ? `\nメッセージ:\n${submission.message}` : null,
-    `\n\`${requestId}\``,
-  ].filter(Boolean);
-  // Escape Telegram MarkdownV2-special chars in user data — but stay on Markdown
-  // (legacy) for simplicity: Markdown is more forgiving and we already strip _ * [ ` from
-  // most user fields naturally. Plain text is safest:
-  const text = lines.map(l => l.replace(/[*_`]/g, '')).join('\n');
-
-  try {
-    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text, disable_web_page_preview: true }),
-    });
-  } catch (e) {
-    // Non-fatal — email is the source of truth.
-    console.warn(`[${requestId}] telegram fallback failed:`, e && e.message);
-  }
-}
-
 // Generic Telegram message sender (HTML parse mode).
 // Used for live chat-sync forwarding and NEW LEAD alerts.
 async function sendTelegramMessage(env, text) {
@@ -2897,8 +2785,8 @@ export default {
 
       // ===== BOOKING (PUBLIC WRITE; CORS LOCKED) =====
       //
-      // POST /api/booking — accept booking submission, save to KV, email owner.
-      // Save to KV happens FIRST so we never lose a submission even if email fails.
+      // POST /api/booking — accept a booking and durably enqueue owner notifications.
+      // Save to KV happens FIRST so a channel failure can never lose a submission.
       if (path === '/api/booking' && method === 'POST') {
         const requestId = crypto.randomUUID();
         try {
@@ -2965,32 +2853,33 @@ export default {
           };
           await env.DATA.put(kvKey, JSON.stringify(stored), { expirationTtl: 90 * 24 * 3600 });
 
+          const notificationIntents = [];
+          for (const channel of ['email', 'telegram']) {
+            const recipientIdentity = channel === 'email'
+              ? 'mouxue56@gmail.com'
+              : (env.TELEGRAM_CHAT_ID || 'unconfigured');
+            notificationIntents.push(await createNotifyIntent(env, {
+              entityKind: 'booking',
+              entityId: id,
+              channel,
+              template: 'owner_booking_v1',
+              sourceKey: kvKey,
+              payloadHash: submissionFingerprint,
+              recipientFingerprint: `sha256:${await sha256HexText(`${channel}:${recipientIdentity}`)}`,
+            }, ts));
+          }
+
+          // The source and both channel intents are durable before any background work
+          // starts. Delivery state is independent and never changes the booking response.
+          ctx.waitUntil(Promise.allSettled(notificationIntents.map(({ itemKey }) => (
+            attemptNotifyIntent(env, itemKey, ts, { fetchImpl: fetch })
+          ))));
+
           // Calendar hook: mirror this booking as a pending visit event on the shared
           // calendar. Best-effort & fully isolated — appendVisitEventFromBooking swallows
           // its own errors, and this .catch is a second net so it can never break booking.
           ctx.waitUntil(appendVisitEventFromBooking(env, data, id).catch(e => console.error('[calendar-hook]', e)));
 
-          // Email via Resend (no-op until RESEND_API_KEY is set). Telegram always fires and
-          // the booking is already in KV, so a missing/failed email never loses the lead.
-          let emailErr = null;
-          try {
-            await sendBookingEmail(env, data, requestId);
-          } catch (e) {
-            emailErr = e;
-            console.error(`[${requestId}] email send failed:`, e && e.stack ? e.stack : e);
-          }
-
-          // Telegram fallback (best-effort, non-blocking via waitUntil).
-          ctx.waitUntil(sendBookingTelegram(env, data, requestId));
-
-          if (emailErr) {
-            // KV saved, email failed — owner still has the data.
-            return addCors(json({
-              ok: true,
-              request_id: requestId,
-              warning: 'saved_but_email_failed',
-            }, 200));
-          }
           return addCors(json({ ok: true, request_id: requestId }, 200));
         } catch (err) {
           return addCors(internalError(err, requestId));
