@@ -308,11 +308,11 @@ ${submission.kitten_id ? `<tr><td style="padding:6px 0;color:#666;">気になる
 
 export function buildChatOwnerMessage(source) {
   const data = source && typeof source === 'object' ? source : {};
-  const sessionId = String(data.sessionId || '');
+  const sessionId = String(data.sessionId || data.sid || '');
   const sidShort = sessionId.slice(0, 8);
   const provider = String(data.provider || 'fallback');
-  const userMessage = trimText(data.userMessage, 600);
-  const assistantMessage = trimText(data.assistantMessage, 600);
+  const userMessage = trimText(data.userMessage ?? data.user, 600);
+  const assistantMessage = trimText(data.assistantMessage ?? data.assistant, 600);
   const text = [
     `【fuluckpet chat】新しい会話 ${sidShort}`,
     '',
@@ -646,6 +646,7 @@ function messageForItem(item, source) {
     case 'owner_booking_v1':
       return buildBookingOwnerMessage(source, item.entity_id);
     case 'owner_chat_v1':
+    case 'owner_chat_round_v1':
       return buildChatOwnerMessage(source);
     case 'owner_daily_v1':
       return buildDailyOwnerMessage(source);

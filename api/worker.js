@@ -2048,17 +2048,6 @@ async function sendTelegramMessage(env, text) {
   }
 }
 
-// Build chat-sync forward message for owner's Telegram.
-function buildChatTelegramMessage(sid, userMsg, assistantMsg, provider) {
-  const sidShort = String(sid || '').slice(0, 8);
-  const trim = (s, n) => (s && s.length > n ? s.slice(0, n) + '…' : (s || ''));
-  return [
-    `💬 <b>新しい会話</b> <code>${escapeHtml(sidShort)}</code> · ${escapeHtml(provider || 'fallback')}`,
-    `<b>👤 ユーザー:</b>\n${escapeHtml(trim(userMsg, 600))}`,
-    `<b>🐱 ふくにゃん:</b>\n${escapeHtml(trim(assistantMsg, 600))}`,
-  ].join('\n\n');
-}
-
 // Detect contact info in a user message (email / Japanese phone / LINE ID).
 const CONTACT_PATTERNS = {
   email: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,
@@ -2458,19 +2447,70 @@ export default {
         }
 
         const userMsg = cleaned[cleaned.length - 1].content;
+        const ts = Date.now();
+        const roundId = `${sid}:${ts}`;
+        const logKey = `chat:log:${sid}:${ts}`;
+        const sourceRecord = {
+          ts,
+          sid,
+          provider,
+          user: userMsg,
+          assistant: reply,
+          notification: {
+            channels: ['email', 'telegram'],
+            entity_id: roundId,
+            template: 'owner_chat_round_v1',
+          },
+        };
 
-        // Live chat-sync — forward this turn to owner's Telegram.
-        // AWAIT (not waitUntil) so the chat response includes telegram_status,
-        // making delivery failures visible in production. Adds ~200-400ms but
-        // prevents silent silent-failure (which is exactly what was happening).
-        let telegramStatus = null;
-        try {
-          const tgMsg = buildChatTelegramMessage(sid, userMsg, reply, provider);
-          const tgResult = await sendTelegramMessage(env, tgMsg);
-          telegramStatus = tgResult && tgResult.ok ? 'sent' : `failed: ${JSON.stringify(tgResult).slice(0, 200)}`;
-        } catch (e) {
-          telegramStatus = 'threw: ' + (e && e.message);
-          console.error('[tg] chat-sync threw:', e && e.message, e && e.stack);
+        // The bounded 30-day chat source is the recovery anchor. Persist it before
+        // creating either 90-day ledger item so a partial setup can be discovered by
+        // the chat:log prefix without copying customer text into notification records.
+        await env.DATA.put(
+          logKey,
+          JSON.stringify(sourceRecord),
+          { expirationTtl: CHAT_LOG_TTL },
+        );
+
+        const payloadHash = `sha256:${await sha256HexText(JSON.stringify(sourceRecord))}`;
+        let notificationIntents = null;
+        let notificationSetupError = null;
+
+        // Retry one partial KV setup synchronously. ensureNotifyIntent repairs an item
+        // whose due/daily reference failed, while deterministic keys prevent a second
+        // logical round intent. A persistent failure still returns the completed answer;
+        // the durable source metadata remains listable for scheduled repair.
+        for (let setupAttempt = 0; setupAttempt < 2 && !notificationIntents; setupAttempt += 1) {
+          try {
+            const ensured = [];
+            for (const channel of ['email', 'telegram']) {
+              const recipientIdentity = channel === 'email'
+                ? 'mouxue56@gmail.com'
+                : (env.TELEGRAM_CHAT_ID || 'unconfigured');
+              ensured.push(await ensureNotifyIntent(env, {
+                entityKind: 'chat',
+                entityId: roundId,
+                channel,
+                template: 'owner_chat_round_v1',
+                sourceKey: logKey,
+                payloadHash,
+                recipientFingerprint: `sha256:${await sha256HexText(`${channel}:${recipientIdentity}`)}`,
+              }, ts));
+            }
+            notificationIntents = ensured;
+          } catch (error) {
+            notificationSetupError = error;
+          }
+        }
+
+        // No provider call is made here. Both channel intents are durable before the
+        // single background boundary, and allSettled keeps their outcomes independent.
+        if (notificationIntents) {
+          ctx.waitUntil(Promise.allSettled(notificationIntents.map(({ itemKey }) => (
+            attemptNotifyIntent(env, itemKey, ts, { fetchImpl: fetch })
+          ))));
+        } else {
+          console.error('[notify] chat intent setup deferred to repair:', notificationSetupError && notificationSetupError.message);
         }
 
         // Lead capture — if user message contains email / phone / LINE, fire NEW LEAD alert + persist.
@@ -2499,18 +2539,12 @@ export default {
           ctx.waitUntil(sendTelegramMessage(env, leadLines.join('\n')));
         }
 
-        // Fire-and-forget log
-        const ts = Date.now();
-        const logKey = `chat:log:${sid}:${ts}`;
-        ctx.waitUntil(
-          env.DATA.put(
-            logKey,
-            JSON.stringify({ ts, sid, provider, user: userMsg, assistant: reply }),
-            { expirationTtl: CHAT_LOG_TTL },
-          ).catch(() => {}),
-        );
-
-        return addCors(json({ message: reply, session_id: sid, provider, telegram_status: telegramStatus }, 200, 'no-store'));
+        return addCors(json({
+          message: reply,
+          session_id: sid,
+          provider,
+          notification_status: 'queued',
+        }, 200, 'no-store'));
       }
 
       // ===== STORY CARD AI GENERATION (PUBLIC) =====
