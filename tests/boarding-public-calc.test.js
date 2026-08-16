@@ -191,6 +191,76 @@ test('cat care rejects non-record quantity shapes', () => {
   }
 });
 
+test('pet transport returns an exact empty state when no distance tier is selected', () => {
+  const calc = require(calcPath);
+
+  assert.deepEqual(calc.calculatePetTransport({ tierId: '', tripType: 'oneWay' }), {
+    status: 'none',
+    subtotal: 0,
+    needsQuote: false,
+  });
+});
+
+test('pet transport keeps all six canonical prices exact and outside discounts or rounding', () => {
+  const calc = require(calcPath);
+  const pricedCases = [
+    ['within3', 'oneWay', '3km以内', 1650],
+    ['within3', 'roundTrip', '3km以内', 3300],
+    ['over3to5', 'oneWay', '3kmを超え5km以内', 2200],
+    ['over3to5', 'roundTrip', '3kmを超え5km以内', 4400],
+    ['over5to10', 'oneWay', '5kmを超え10km以内', 3300],
+    ['over5to10', 'roundTrip', '5kmを超え10km以内', 6600],
+  ];
+
+  for (const [tierId, tripType, label, subtotal] of pricedCases) {
+    assert.deepEqual(calc.calculatePetTransport({ tierId, tripType }), {
+      status: 'priced',
+      tierId,
+      tripType,
+      label,
+      subtotal,
+      needsQuote: false,
+      discountEligible: false,
+    });
+  }
+});
+
+test('pet transport returns quote and unavailable states without presenting zero yen as a price', () => {
+  const calc = require(calcPath);
+
+  assert.deepEqual(calc.calculatePetTransport({ tierId: 'over10to20', tripType: 'roundTrip' }), {
+    status: 'quote',
+    tierId: 'over10to20',
+    tripType: 'roundTrip',
+    label: '10kmを超え20km以内',
+    subtotal: 0,
+    needsQuote: true,
+    discountEligible: false,
+  });
+  assert.deepEqual(calc.calculatePetTransport({ tierId: 'over20', tripType: 'oneWay' }), {
+    status: 'unavailable',
+    tierId: 'over20',
+    tripType: 'oneWay',
+    label: '20km超',
+    subtotal: 0,
+    needsQuote: false,
+    error: 'transport_unavailable',
+  });
+});
+
+test('pet transport rejects unknown distance and trip identifiers explicitly', () => {
+  const calc = require(calcPath);
+
+  assert.deepEqual(
+    calc.calculatePetTransport({ tierId: 'elsewhere', tripType: 'oneWay' }),
+    { error: 'unknown_transport_tier' },
+  );
+  assert.deepEqual(
+    calc.calculatePetTransport({ tierId: 'within3', tripType: 'twoStops' }),
+    { error: 'unknown_transport_trip' },
+  );
+});
+
 test('invalid and unknown service inputs fail closed', () => {
   const calc = require(calcPath);
   assert.equal(calc.calculateBoarding({ animalType: 'dog', checkInDate: '2026-06-01', checkOutDate: '2026-06-02' }).error, 'unknown_type');

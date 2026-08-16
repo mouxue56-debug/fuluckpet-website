@@ -280,6 +280,52 @@
     };
   }
 
+  function calculatePetTransport(input) {
+    input = input || {};
+    if (!input.tierId) return { status: 'none', subtotal: 0, needsQuote: false };
+
+    var tiers = CONFIG.petTransport && CONFIG.petTransport.tiers;
+    var tier = Array.isArray(tiers) ? findById(tiers, input.tierId) : null;
+    if (!tier) return { error: 'unknown_transport_tier' };
+    if (input.tripType !== 'oneWay' && input.tripType !== 'roundTrip') {
+      return { error: 'unknown_transport_trip' };
+    }
+
+    if (tier.status === 'quote') {
+      return {
+        status: 'quote',
+        tierId: tier.id,
+        tripType: input.tripType,
+        label: tier.label,
+        subtotal: 0,
+        needsQuote: true,
+        discountEligible: false,
+      };
+    }
+    if (tier.status === 'unavailable') {
+      return {
+        status: 'unavailable',
+        tierId: tier.id,
+        tripType: input.tripType,
+        label: tier.label,
+        subtotal: 0,
+        needsQuote: false,
+        error: 'transport_unavailable',
+      };
+    }
+    if (tier.status !== 'priced') return { error: 'unknown_transport_tier' };
+
+    return {
+      status: 'priced',
+      tierId: tier.id,
+      tripType: input.tripType,
+      label: tier.label,
+      subtotal: input.tripType === 'oneWay' ? tier.oneWayPrice : tier.roundTripPrice,
+      needsQuote: false,
+      discountEligible: false,
+    };
+  }
+
   function unavailableDogService() {
     return { available: false, error: 'unavailable' };
   }
@@ -370,6 +416,7 @@
     getCatGroomingRate: getCatGroomingRate,
     calculateCatCare: calculateCatCare,
     calculateCatGrooming: calculateCatGrooming,
+    calculatePetTransport: calculatePetTransport,
     calculateDogBoarding: calculateDogBoarding,
     calculateDogCare: calculateDogCare,
     calculateDogBasicCare: calculateDogBasicCare,

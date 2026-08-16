@@ -41,6 +41,19 @@ test('estimate replaces the static cat menu with catalog-backed cat and dog fiel
   assert.match(html, /福楽卒業猫（お預かり・猫のケア 30%OFF／併用不可）/);
 });
 
+test('estimate exposes transport distance and trip selectors with a fail-closed initial state', () => {
+  const html = read('boarding/estimate.html');
+  const distance = tagWithId(html, 'select', 'transportDistance');
+  const trip = tagWithId(html, 'select', 'transportTrip');
+
+  assert.match(html, /4\. 送迎を利用しますか？/);
+  assert.match(distance, /\baria-describedby=["']transportHelp["']/);
+  assert.match(trip, /\bdisabled\b/);
+  assert.match(trip, /\baria-describedby=["']transportHelp["']/);
+  assert.match(html, /id=["']transportHelp["']/);
+  assert.match(html, /送迎料金は割引対象外/);
+});
+
 test('species state exposes cat controls only for cats and dog controls only for dogs', () => {
   const api = require('../boarding/boarding-public-estimate.js');
 
@@ -175,6 +188,67 @@ test('selected dog care uses planned wording only in stopped screen results and 
   assert.equal(api.dogReviewMessageFor(false, true), '');
 });
 
+test('transport presentation adds priced transport only after the discounted service subtotal', () => {
+  const api = require('../boarding/boarding-public-estimate.js');
+  const serviceLines = [{ label: 'お預かり割引', detail: '30%OFF', value: '-¥1,200' }];
+  const result = api.applyTransportEstimate(serviceLines, 2800, [], {
+    status: 'priced', tierId: 'within3', tripType: 'oneWay', label: '3km以内',
+    subtotal: 1650, needsQuote: false, discountEligible: false,
+  });
+
+  assert.deepEqual(result, {
+    lines: [
+      serviceLines[0],
+      { label: '送迎', detail: '3km以内・片道1回', value: '+¥1,650' },
+    ],
+    total: 4450,
+    reviewMessages: [],
+    unavailableMessage: '',
+  });
+});
+
+test('transport quote copy names the chosen distance and trip without a zero-yen display', () => {
+  const api = require('../boarding/boarding-public-estimate.js');
+  const result = api.applyTransportEstimate([], 4000, [], {
+    status: 'quote', tierId: 'over10to20', tripType: 'roundTrip', label: '10kmを超え20km以内',
+    subtotal: 0, needsQuote: true, discountEligible: false,
+  });
+  const quote = api.buildQuoteText({
+    type: 'cat', dogAccepting: false, animalLabel: '猫',
+    checkIn: '2026-08-20', checkOut: '2026-08-21', nights: 1,
+    lines: result.lines, total: result.total,
+  });
+
+  assert.equal(result.total, 4000);
+  assert.match(result.reviewMessages[0], /LINE/);
+  assert.match(quote, /送迎（10kmを超え20km以内・お迎え＋お送り） LINE見積り/);
+  assert.doesNotMatch(quote, /送迎[^\n]*¥0/);
+});
+
+test('unavailable transport blocks the service estimate with the required no-service message', () => {
+  const api = require('../boarding/boarding-public-estimate.js');
+  const result = api.applyTransportEstimate([], 4000, [], {
+    status: 'unavailable', tierId: 'over20', tripType: 'oneWay', label: '20km超',
+    subtotal: 0, needsQuote: false, error: 'transport_unavailable',
+  });
+
+  assert.equal(result.unavailableMessage, '20kmを超える住所への送迎は承っていません。');
+  assert.deepEqual(result.lines, []);
+});
+
+test('estimator builds transport options from canonical config and recomputes on both changes', () => {
+  const source = read('boarding/boarding-public-estimate.js');
+
+  assert.match(source, /Config\.petTransport\.tiers\.forEach\(/);
+  assert.match(source, /elements\.transportDistance\.appendChild\(makeOption\(tier\.id,\s*tier\.label\)\)/);
+  assert.match(source, /elements\.transportDistance\.addEventListener\(['"]change['"]/);
+  assert.match(source, /elements\.transportTrip\.addEventListener\(['"]change['"]/);
+  assert.match(source, /elements\.transportTrip\.disabled\s*=\s*!elements\.transportDistance\.value/);
+  assert.match(source, /Calc\.calculatePetTransport\(\{\s*tierId:\s*elements\.transportDistance\.value,\s*tripType:\s*elements\.transportTrip\.value,?\s*\}\)/s);
+  assert.match(source, /\.textContent\s*=/);
+  assert.doesNotMatch(source, /\.innerHTML\s*=/);
+});
+
 test('estimator consumes the canonical care catalogs without legacy aliases', () => {
   const source = read('boarding/boarding-public-estimate.js');
   const config = require('../boarding-public-config.js');
@@ -203,4 +277,12 @@ test('estimate CSS keeps compact semantic care controls touch-safe and narrow-sc
   assert.match(css, /\.estimate-care-list/);
   assert.match(css, /\.estimate-care-control[^}]*min-height:\s*44px/s);
   assert.match(css, /@media\s*\(max-width:\s*600px\)[\s\S]*?\.estimate-care-list[\s\S]*?grid-template-columns:\s*1fr/);
+});
+
+test('transport selectors keep disabled and narrow-screen help states readable', () => {
+  const css = read('services.css');
+
+  assert.match(css, /\.estimate-field\s+select:disabled[^}]*cursor:\s*not-allowed/s);
+  assert.match(css, /\.estimate-transport-help/);
+  assert.match(css, /@media\s*\(max-width:\s*600px\)[\s\S]*?\.estimate-transport-help/);
 });
