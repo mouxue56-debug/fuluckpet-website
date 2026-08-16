@@ -69,7 +69,7 @@
       : '30泊以上は日程とお世話内容を確認後に正式料金をご案内します。';
   }
 
-  function applyTransportEstimate(lines, total, reviewMessages, transport) {
+  function applyTransportEstimate(lines, total, reviewMessages, transport, isStoppedDog) {
     var result = {
       lines: lines.slice(),
       total: total,
@@ -92,8 +92,13 @@
       result.lines.push({ label: '送迎', detail: detail, value: '+' + quoteMoney(transport.subtotal) });
       result.total += transport.subtotal;
     } else if (transport.status === 'quote') {
-      result.lines.push({ label: '送迎', detail: detail, value: 'LINE見積り' });
-      result.reviewMessages.push(transport.label + 'の送迎は、住所と日程を確認後にLINEで正式料金をご案内します。');
+      if (isStoppedDog) {
+        result.lines.push({ label: '送迎', detail: detail, value: '受付開始後にご案内' });
+        result.reviewMessages.push('犬の送迎は受付開始後にご案内します。');
+      } else {
+        result.lines.push({ label: '送迎', detail: detail, value: 'LINE見積り' });
+        result.reviewMessages.push(transport.label + 'の送迎は、住所と日程を確認後にLINEで正式料金をご案内します。');
+      }
     } else {
       result.unavailableMessage = '送迎料金情報を確認できませんでした。選択内容をご確認ください。';
     }
@@ -397,7 +402,8 @@
         tierId: elements.transportDistance.value,
         tripType: elements.transportTrip.value,
       });
-      var estimate = applyTransportEstimate(lines, total, reviewMessages, transport);
+      var isStoppedDog = /^dog_/.test(type) && !(dogProjection && dogProjection.public === true);
+      var estimate = applyTransportEstimate(lines, total, reviewMessages, transport, isStoppedDog);
       if (estimate.unavailableMessage) {
         setEmpty(estimate.unavailableMessage, type, 'error');
         return;

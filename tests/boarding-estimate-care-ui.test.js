@@ -225,6 +225,27 @@ test('transport quote copy names the chosen distance and trip without a zero-yen
   assert.doesNotMatch(quote, /送迎[^\n]*¥0/);
 });
 
+test('stopped dog transport quote stays copy-only without any LINE invitation', () => {
+  const api = require('../boarding/boarding-public-estimate.js');
+  const result = api.applyTransportEstimate([], 5000, [], {
+    status: 'quote', tierId: 'over10to20', tripType: 'roundTrip', label: '10kmを超え20km以内',
+    subtotal: 0, needsQuote: true, discountEligible: false,
+  }, true);
+  const quote = api.buildQuoteText({
+    type: 'dog_small', dogAccepting: false, animalLabel: '小型犬',
+    checkIn: '2026-08-20', checkOut: '2026-08-21', nights: 1,
+    lines: result.lines, total: result.total,
+  });
+
+  assert.deepEqual(result.lines, [{
+    label: '送迎', detail: '10kmを超え20km以内・お迎え＋お送り', value: '受付開始後にご案内',
+  }]);
+  assert.match(result.reviewMessages.join(' '), /受付開始後にご案内/);
+  assert.doesNotMatch(result.reviewMessages.join(' '), /LINE/);
+  assert.match(quote, /受付開始後にご案内/);
+  assert.doesNotMatch(quote, /LINE|LINE見積り/);
+});
+
 test('unavailable transport blocks the service estimate with the required no-service message', () => {
   const api = require('../boarding/boarding-public-estimate.js');
   const result = api.applyTransportEstimate([], 4000, [], {
@@ -245,6 +266,7 @@ test('estimator builds transport options from canonical config and recomputes on
   assert.match(source, /elements\.transportTrip\.addEventListener\(['"]change['"]/);
   assert.match(source, /elements\.transportTrip\.disabled\s*=\s*!elements\.transportDistance\.value/);
   assert.match(source, /Calc\.calculatePetTransport\(\{\s*tierId:\s*elements\.transportDistance\.value,\s*tripType:\s*elements\.transportTrip\.value,?\s*\}\)/s);
+  assert.match(source, /applyTransportEstimate\(lines,\s*total,\s*reviewMessages,\s*transport,\s*isStoppedDog\)/);
   assert.match(source, /\.textContent\s*=/);
   assert.doesNotMatch(source, /\.innerHTML\s*=/);
 });
