@@ -41,6 +41,15 @@ binding = "DATA"
 id = "d319e99874ef40d5b5836587edfee243"
 # preview_id = "YOUR_KV_PREVIEW_ID_HERE"  # ローカル開発用
 
+# Native Cloudflare Email Service binding restricted to the verified owner.
+[[send_email]]
+name = "EMAIL"
+destination_address = "mouxue56@gmail.com"
+
+# One scheduler owns source repair, due retries, and the 09:00 JST summary.
+[triggers]
+crons = ["*/5 * * * *"]
+
 # Exact tombstone for a legacy owner-gated pricing asset that was once published
 # with an immutable one-year cache policy. The source file is deleted; this route
 # makes the bare cached URL fail closed without widening the Worker over the site.

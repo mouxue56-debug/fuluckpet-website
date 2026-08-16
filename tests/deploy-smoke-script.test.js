@@ -63,6 +63,15 @@ test('post-deploy waits for the exact release header before smoke', () => {
   assert.match(SCRIPT, /propagation timeout/i);
 });
 
+test('worker smoke verifies the read-only notification health release and all config booleans', () => {
+  assert.match(SCRIPT, /\/api\/notification-health/);
+  assert.match(SCRIPT, /email_binding/);
+  assert.match(SCRIPT, /telegram_config/);
+  assert.match(SCRIPT, /cron_version/);
+  assert.match(SCRIPT, /notification health.*HTTP.*200|HTTP.*200.*notification health/i);
+  assert.match(SCRIPT, /notification health.*RELEASE_SHA|RELEASE_SHA.*notification health/i);
+});
+
 test('worker deploy is explicit and default execution is smoke-only', () => {
   assert.match(SCRIPT, /--deploy/);
   assert.match(SCRIPT, /default.*smoke[- ]only|smoke[- ]only.*default/i);

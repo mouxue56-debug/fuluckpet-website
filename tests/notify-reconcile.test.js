@@ -142,7 +142,10 @@ function notificationSpec({
   entityKind = 'booking',
   entityId = 'b-1',
   channel = 'email',
-  template = 'owner_booking_v1',
+  // Most tests in this file isolate transport/retry state-machine behavior. Use
+  // a supported non-group template so those tests cannot bypass the production
+  // chat/booking two-channel readiness contract with a forged marker.
+  template = 'owner_daily_v1',
   sourceKey = `booking:${entityId}`,
   groupReadyKey,
   payloadHash = `sha256:${entityKind}-${entityId}`,
@@ -301,7 +304,7 @@ test('authoritative reads, attempts, and reconciliation preserve sent over stale
   await putJson(DATA, intent.itemKey, staleRetry);
   await DATA.put(staleDueKey, intent.itemKey);
   const reconcileResult = await reconcileDueNotifications(bindings, nowMs + 2, {});
-  assert.deepEqual(reconcileResult, { processed: 1, attempted: 0, stale_deleted: 1 });
+  assert.deepEqual(reconcileResult, { processed: 0, attempted: 0, stale_deleted: 1 });
   assert.equal(DATA.store.has(staleDueKey), false);
   assert.equal(emailCalls.length, 0);
 });
@@ -465,6 +468,37 @@ test('email success and Telegram failure leave independent item states', async (
   assert.equal(telegramItem.attempt_count, 1);
 });
 
+test('Cloudflare Email E_* failures enter permanent or retry state without persisted customer detail', async (t) => {
+  for (const fixture of [
+    { code: 'E_VALIDATION_ERROR', wantStatus: 'dead_letter', wantAttempt: 1 },
+    { code: 'E_RATE_LIMIT_EXCEEDED', wantStatus: 'retry', wantAttempt: 1 },
+  ]) {
+    await t.test(fixture.code, async () => {
+      const { bindings, DATA } = createEnv();
+      const nowMs = Date.parse('2026-08-16T00:05:10.000Z');
+      const spec = notificationSpec({ entityId: `email-${fixture.code.toLowerCase()}` });
+      await putJson(DATA, spec.sourceKey, bookingSource('Private Customer Name'));
+      bindings.EMAIL.send = async () => {
+        throw Object.assign(
+          new Error('Private Customer Name private@example.test private message'.repeat(20)),
+          { code: fixture.code },
+        );
+      };
+      const intent = await createNotifyIntent(bindings, spec, nowMs);
+
+      const result = await attemptNotifyIntent(bindings, intent.itemKey, nowMs, {});
+
+      assert.equal(result.status, fixture.wantStatus);
+      assert.equal(result.attempt_count, fixture.wantAttempt);
+      assert.equal(result.last_error_code, fixture.code);
+      const serialized = DATA.store.get(intent.itemKey);
+      assert.equal(serialized.includes('Private Customer Name'), false);
+      assert.equal(serialized.includes('private@example.test'), false);
+      assert.equal(serialized.includes('private message'), false);
+    });
+  }
+});
+
 test('chat due items stay quarantined until Task 6 marks the complete group ready', async () => {
   const { bindings, DATA, emailCalls } = createEnv();
   const nowMs = Date.parse('2026-08-16T00:05:30.000Z');
@@ -561,19 +595,42 @@ test('one hundred quarantined chat items cannot consume the booking delivery bud
     }), chatDueMs);
   }
 
-  const bookingSourceKey = 'booking:after-quarantined-chat';
+  const bookingId = '9005000000000000-66666666666666666666666666666666';
+  const bookingSourceKey = `booking:${bookingId}`;
   await putJson(DATA, bookingSourceKey, bookingSource('Booking Must Not Starve'));
-  const bookingIntent = await createNotifyIntent(bindings, notificationSpec({
-    entityId: 'after-quarantined-chat',
+  const bookingGroup = {
+    entityKind: 'booking',
+    entityId: bookingId,
+    template: 'owner_booking_v1',
     sourceKey: bookingSourceKey,
-  }), bookingDueMs);
+    payloadHash: 'sha256:frozen-booking-payload',
+    channels: ['email', 'telegram'],
+  };
+  const bookingReadyKey = notifyGroupReadyKey(bookingGroup);
+  const bookingIntents = {};
+  for (const channel of ['email', 'telegram']) {
+    bookingIntents[channel] = await createNotifyIntent(bindings, notificationSpec({
+      ...bookingGroup,
+      channel,
+      groupReadyKey: bookingReadyKey,
+    }), bookingDueMs);
+  }
+  await markNotifyGroupReady(bindings, bookingGroup, bookingDueMs);
+  let telegramCalls = 0;
 
-  const result = await reconcileDueNotifications(bindings, bookingDueMs, {});
+  const result = await reconcileDueNotifications(bindings, bookingDueMs, {
+    fetchImpl: async () => {
+      telegramCalls += 1;
+      return telegramResponse();
+    },
+  });
 
   assert.equal(emailCalls.length, 1);
-  assert.equal((await readNotifyItem(bindings, bookingIntent.itemKey)).status, 'sent');
-  assert.equal(result.processed, 1);
-  assert.equal(result.attempted, 1);
+  assert.equal(telegramCalls, 1);
+  assert.equal((await readNotifyItem(bindings, bookingIntents.email.itemKey)).status, 'sent');
+  assert.equal((await readNotifyItem(bindings, bookingIntents.telegram.itemKey)).status, 'sent');
+  assert.equal(result.processed, 2);
+  assert.equal(result.attempted, 2);
   assert.equal([...DATA.store.keys()].filter((key) => key.startsWith('notify:due:')).length, 0);
   assert.equal(
     [...DATA.store.values()].filter((value) => {
@@ -586,6 +643,42 @@ test('one hundred quarantined chat items cannot consume the booking delivery bud
     100,
     'quarantine keeps every durable chat item recoverable for Task 6',
   );
+});
+
+test('one hundred failed or dead-letter stale due keys cannot starve a later active notification', async () => {
+  const { bindings, DATA, emailCalls } = createEnv();
+  const terminalDueMs = Date.parse('2026-08-16T00:05:40.000Z');
+  const activeDueMs = terminalDueMs + 1_000;
+
+  for (let index = 0; index < 100; index += 1) {
+    const spec = notificationSpec({ entityId: `terminal-${String(index).padStart(3, '0')}` });
+    const intent = await createNotifyIntent(bindings, spec, terminalDueMs);
+    await putJson(DATA, intent.itemKey, {
+      ...intent.item,
+      status: index % 2 === 0 ? 'failed' : 'dead_letter',
+      next_attempt_ms: terminalDueMs,
+      due_key: intent.dueKey,
+    });
+  }
+
+  const activeSpec = notificationSpec({ entityId: 'active-after-terminal-stale-due' });
+  await putJson(DATA, activeSpec.sourceKey, bookingSource('Active After Terminal'));
+  const active = await createNotifyIntent(bindings, activeSpec, activeDueMs);
+
+  const result = await reconcileDueNotifications(bindings, activeDueMs, {});
+
+  assert.equal(emailCalls.length, 1);
+  assert.equal((await readNotifyItem(bindings, active.itemKey)).status, 'sent');
+  assert.deepEqual(result, { processed: 1, attempted: 1, stale_deleted: 100 });
+  assert.equal([...DATA.store.keys()].some((key) => key.startsWith('notify:due:')), false);
+  for (let index = 0; index < 100; index += 1) {
+    const item = await readNotifyItem(
+      bindings,
+      notifyItemKey(notificationSpec({ entityId: `terminal-${String(index).padStart(3, '0')}` })),
+    );
+    assert.equal(item.due_key, null);
+    assert.equal(item.next_attempt_ms, null);
+  }
 });
 
 test('a scheduled reconciliation paginates due keys and processes at most 100 entries', async () => {
@@ -638,6 +731,7 @@ test('JST 09:00 creates one prior-day source and two deterministic intents only 
   assert.deepEqual(source.counts, {
     total: 2,
     sent: 1,
+    sent_unknown: 0,
     pending: 0,
     retry: 1,
     failed: 0,
@@ -686,6 +780,7 @@ test('daily summaries treat sent markers as authoritative over stale terminal it
       assert.deepEqual(source.counts, {
         total: 1,
         sent: 1,
+        sent_unknown: 0,
         pending: 0,
         retry: 0,
         failed: 0,

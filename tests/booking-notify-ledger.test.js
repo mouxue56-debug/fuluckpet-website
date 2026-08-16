@@ -6,9 +6,11 @@ const test = require('node:test');
 const ORIGIN = 'https://fuluckpet.com';
 const SUBMISSION_ID = '9005000000000000-0123456789abcdef0123456789abcdef';
 let worker;
+let reconcileDueNotifications;
 
 test.before(async () => {
   ({ default: worker } = await import('../api/worker.js'));
+  ({ reconcileDueNotifications } = await import('../api/notify.js'));
 });
 
 class MemoryKV {
@@ -171,6 +173,16 @@ test('accepted booking persists its exact source key before both owner notificat
   assert.equal(bookingKeys.length, 1);
   assert.match(bookingKeys[0], /^booking:\d{16}:\d+-[0-9a-f]{8}$/);
   const booking = JSON.parse(harness.DATA.store.get(bookingKeys[0]));
+  assert.deepEqual(booking.notification, {
+    notification_status: 'pending',
+    version: 1,
+    booking_id: booking.id,
+    template: 'owner_booking_v1',
+    channels: ['email', 'telegram'],
+    source_ts: Date.parse(booking.created_at),
+    payload_hash: booking.submission_fingerprint,
+    payload_hash_rule: 'sha256:submission-fingerprint-v1',
+  });
   const itemKeys = notifyItemKeys(harness.DATA);
   assert.deepEqual(itemKeys, [
     `notify:item:booking:${booking.id}:email:owner_booking_v1`,
@@ -190,6 +202,10 @@ test('accepted booking persists its exact source key before both owner notificat
     assert.equal(item.entity_id, booking.id);
     assert.equal(item.source_key, bookingKeys[0]);
     assert.equal(item.payload_hash, booking.submission_fingerprint);
+    assert.equal(
+      item.group_ready_key,
+      `notify:ready:booking:${booking.id}:owner_booking_v1`,
+    );
     assert.match(item.recipient_fingerprint, /^sha256:[0-9a-f]{64}$/);
     for (const privateValue of [
       submitted.email,
@@ -205,6 +221,10 @@ test('accepted booking persists its exact source key before both owner notificat
 
   assert.equal(waitUntilSnapshots.length, 2);
   for (const snapshot of waitUntilSnapshots) assert.deepEqual(snapshot, itemKeys);
+  assert.equal(
+    harness.DATA.store.has(`notify:ready:booking:${booking.id}:owner_booking_v1`),
+    true,
+  );
   assert.equal(harness.emailCalls.length, 1);
   assert.equal(harness.telegramCalls.length, 1);
 });
@@ -255,6 +275,15 @@ test('duplicate retry repairs a missing second-channel intent before delivery an
   assert.equal(harness.emailCalls.length, 0);
   assert.equal(harness.telegramCalls.length, 0);
 
+  await reconcileDueNotifications(harness.env, Date.now() + 60_000, {
+    fetchImpl: async (...args) => {
+      harness.telegramCalls.push(args);
+      return telegramResponse();
+    },
+  });
+  assert.equal(harness.emailCalls.length, 0, 'partial group must not send before repair');
+  assert.equal(harness.telegramCalls.length, 0);
+
   const retry = await submit(harness, submitted);
   const retryBody = await retry.response.json();
 
@@ -278,6 +307,37 @@ test('duplicate retry repairs a missing second-channel intent before delivery an
   assert.equal(
     harness.DATA.operations.filter(({ operation, key }) => operation === 'put' && key === 'calendar_events').length,
     1,
+  );
+});
+
+test('a legacy duplicate without a booking notification descriptor is accepted without replay', async () => {
+  const harness = createHarness();
+  const submitted = payload({ submission_id: SUBMISSION_ID });
+  const first = await submit(harness, submitted);
+  const firstBody = await first.response.json();
+  const bookingKey = `booking:${SUBMISSION_ID}`;
+  const legacy = JSON.parse(harness.DATA.store.get(bookingKey));
+  delete legacy.notification;
+  harness.DATA.store.set(bookingKey, JSON.stringify(legacy));
+  for (const key of [...harness.DATA.store.keys()]) {
+    if (key.startsWith('notify:')) harness.DATA.store.delete(key);
+  }
+  harness.DATA.operations.length = 0;
+  harness.emailCalls.length = 0;
+  harness.telegramCalls.length = 0;
+
+  const duplicate = await submit(harness, submitted);
+  const body = await duplicate.response.json();
+
+  assert.equal(duplicate.response.status, 200);
+  assert.equal(body.duplicate, true);
+  assert.equal(body.request_id, firstBody.request_id);
+  assert.equal(notifyItemKeys(harness.DATA).length, 0);
+  assert.equal(harness.emailCalls.length, 0);
+  assert.equal(harness.telegramCalls.length, 0);
+  assert.equal(
+    harness.DATA.operations.some(({ operation, key }) => operation === 'put' && key.startsWith('notify:')),
+    false,
   );
 });
 

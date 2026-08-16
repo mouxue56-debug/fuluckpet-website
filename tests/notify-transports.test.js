@@ -59,6 +59,44 @@ test('buildBookingOwnerMessage escapes hostile customer fields for html and tele
   assert.match(message.telegramText, /&lt;script&gt;alert\(1\)&lt;\/script&gt; &amp; &quot;quoted&quot;/);
 });
 
+test('maximum valid booking content keeps Telegram HTML well formed and at most 4096 units', () => {
+  const requestId = '9005000000000000-0123456789abcdef0123456789abcdef';
+  const source = {
+    name: '&'.repeat(100),
+    email: `${'a'.repeat(180)}@example.test`,
+    phone: '090-1111-2222',
+    preferred_date: '2026-08-20',
+    preferred_date2: '2026-08-21',
+    preferred_time: '&'.repeat(50),
+    visit_method: '&'.repeat(50),
+    kitten_id: '&'.repeat(100),
+    message: `${'&🐾'.repeat(666)}&&`,
+  };
+  assert.equal(source.message.length, 2_000);
+
+  const message = buildBookingOwnerMessage(source, requestId);
+
+  assert.ok(message.telegramText.length <= 4_096, message.telegramText.length);
+  assert.equal(message.telegramText.isWellFormed(), true);
+  assert.match(message.telegramText, /<b>名前:<\/b>/);
+  assert.match(message.telegramText, new RegExp(source.email));
+  assert.match(message.telegramText, /090-1111-2222/);
+  assert.match(message.telegramText, /2026-08-20/);
+  assert.match(message.telegramText, /2026-08-21/);
+  assert.match(message.telegramText, new RegExp(`<code>${requestId}<\\/code>$`));
+  assert.match(message.telegramText, /🐾/);
+  assert.equal(
+    message.telegramText.replace(/&(amp|lt|gt|quot|#39);/g, '').includes('&'),
+    false,
+    'escaped output must contain no partial entity',
+  );
+  const tags = message.telegramText.match(/<[^>]+>/g) || [];
+  assert.equal(tags.filter((tag) => tag === '<b>').length, tags.filter((tag) => tag === '</b>').length);
+  assert.equal(tags.filter((tag) => tag === '<code>').length, 1);
+  assert.equal(tags.filter((tag) => tag === '</code>').length, 1);
+  assert.equal(tags.every((tag) => ['<b>', '</b>', '<code>', '</code>'].includes(tag)), true);
+});
+
 test('buildChatOwnerMessage and buildDailyOwnerMessage produce owner-safe message envelopes', () => {
   const chat = buildChatOwnerMessage({
     sessionId: 'session-1234567890',
@@ -184,6 +222,53 @@ test('sendEmailTransport fails closed when the Cloudflare Email binding is missi
       return true;
     },
   );
+});
+
+test('sendEmailTransport classifies Cloudflare E_* failures without exposing provider or customer detail', async (t) => {
+  const permanentCodes = [
+    'E_VALIDATION_ERROR',
+    'E_FIELD_MISSING',
+    'E_SENDER_NOT_VERIFIED',
+    'E_RECIPIENT_NOT_ALLOWED',
+    'E_CONTENT_TOO_LARGE',
+    'E_HEADER_VALUE_INVALID',
+  ];
+  const retryableCodes = [
+    'E_RATE_LIMIT_EXCEEDED',
+    'E_DAILY_LIMIT_EXCEEDED',
+    'E_DELIVERY_FAILED',
+    'E_INTERNAL_SERVER_ERROR',
+  ];
+  const secretDetail = 'private booking message customer@example.test';
+
+  for (const [code, permanent] of [
+    ...permanentCodes.map((value) => [value, true]),
+    ...retryableCodes.map((value) => [value, false]),
+  ]) {
+    await t.test(code, async () => {
+      await assert.rejects(
+        sendEmailTransport({
+          EMAIL: {
+            async send() {
+              throw Object.assign(new Error(secretDetail.repeat(20)), { code, status: 429 });
+            },
+          },
+        }, {
+          subject: 'Subject', text: 'Body', html: '<p>Body</p>', replyTo: 'customer@example.test',
+        }),
+        (error) => {
+          assert.ok(error instanceof NotifyTransportError);
+          assert.equal(error.code, code);
+          assert.equal(error.permanent, permanent);
+          assert.equal(error.statusCode, 429);
+          assert.ok(error.detail.length <= 200);
+          assert.equal(error.detail.includes('private booking message'), false);
+          assert.equal(error.detail.includes('customer@example.test'), false);
+          return true;
+        },
+      );
+    });
+  }
 });
 
 test('sendTelegramTransport classifies HTTP 500 as retryable', async () => {

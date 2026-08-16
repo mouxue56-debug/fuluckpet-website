@@ -32,12 +32,16 @@ import launchConfig from '../small-animals-launch.json' with { type: 'json' };
 import { canDeleteCalendarEvent, canUpdateCalendarEvent, canWriteCalendarEvent } from './calendar-dog-policy.mjs';
 import {
   attemptNotifyIntent,
+  BOOKING_NOTIFY_DESCRIPTOR_VERSION,
+  BOOKING_SOURCE_PAYLOAD_HASH_RULE,
+  bookingNotificationGroupFromSource,
   CHAT_NOTIFY_DESCRIPTOR_VERSION,
   CHAT_SOURCE_PAYLOAD_HASH_RULE,
   chatSourcePayloadHash,
   ensureNotifyIntent,
   markNotifyGroupReady,
   notifyGroupReadyKey,
+  runScheduledNotificationRecovery,
 } from './notify.js';
 
 const PUBLIC_KITTEN_FIELDS = Object.freeze([
@@ -2318,6 +2322,21 @@ export default {
     try {
       // ===== PUBLIC ROUTES =====
 
+      // Side-effect-free release/config diagnostic. It intentionally does not
+      // touch KV or call either provider and exposes no address, token, ID, count,
+      // customer field, or transport result.
+      if (path === '/api/notification-health' && method === 'GET') {
+        return addCors(json({
+          release: releaseValue,
+          email_binding: typeof env.EMAIL?.send === 'function',
+          telegram_config: typeof env.TELEGRAM_BOT_TOKEN === 'string'
+            && env.TELEGRAM_BOT_TOKEN.length > 0
+            && typeof env.TELEGRAM_CHAT_ID === 'string'
+            && env.TELEGRAM_CHAT_ID.length > 0,
+          cron_version: true,
+        }, 200, 'no-store'));
+      }
+
       // GET /api/kittens — 公開：子猫一覧
       if (path === '/api/kittens' && method === 'GET') {
         const data = await env.DATA.get('kittens', 'json');
@@ -3003,30 +3022,49 @@ export default {
               status: 'new',                   // admin uses status filter (new/contacted/archived)
               user_agent: request.headers.get('User-Agent') || '',
               ip: request.headers.get('CF-Connecting-IP') || '',
+              notification: {
+                notification_status: 'pending',
+                version: BOOKING_NOTIFY_DESCRIPTOR_VERSION,
+                booking_id: id,
+                template: 'owner_booking_v1',
+                channels: ['email', 'telegram'],
+                source_ts: ts,
+                payload_hash: submissionFingerprint,
+                payload_hash_rule: BOOKING_SOURCE_PAYLOAD_HASH_RULE,
+              },
             };
             await env.DATA.put(kvKey, JSON.stringify(stored), { expirationTtl: 90 * 24 * 3600 });
           }
 
           const notificationIntents = [];
-          for (const channel of ['email', 'telegram']) {
-            const recipientIdentity = channel === 'email'
-              ? 'mouxue56@gmail.com'
-              : (env.TELEGRAM_CHAT_ID || 'unconfigured');
-            notificationIntents.push(await ensureNotifyIntent(env, {
-              entityKind: 'booking',
-              entityId: stored.id,
-              channel,
-              template: 'owner_booking_v1',
-              sourceKey: kvKey,
-              payloadHash: submissionFingerprint,
-              recipientFingerprint: `sha256:${await sha256HexText(`${channel}:${recipientIdentity}`)}`,
-            }, ts));
+          let notificationReadiness = null;
+          const notificationGroup = bookingNotificationGroupFromSource(kvKey, stored);
+          if (notificationGroup) {
+            const groupReadyKey = notifyGroupReadyKey(notificationGroup);
+            for (const channel of ['email', 'telegram']) {
+              const recipientIdentity = channel === 'email'
+                ? 'mouxue56@gmail.com'
+                : (env.TELEGRAM_CHAT_ID || 'unconfigured');
+              notificationIntents.push(await ensureNotifyIntent(env, {
+                entityKind: 'booking',
+                entityId: stored.id,
+                channel,
+                template: 'owner_booking_v1',
+                sourceKey: kvKey,
+                payloadHash: stored.submission_fingerprint,
+                recipientFingerprint: `sha256:${await sha256HexText(`${channel}:${recipientIdentity}`)}`,
+                groupReadyKey,
+              }, notificationGroup.sourceTs));
+            }
+            notificationReadiness = await markNotifyGroupReady(env, notificationGroup, ts);
           }
 
           // The source and both channel intents are durable before any background work
           // starts. A partial setup retry re-attempts both channels; a fully complete
           // duplicate performs no second delivery work.
-          if (notificationIntents.some(({ created, repaired }) => created || repaired)) {
+          if (notificationReadiness
+            && (notificationReadiness.created
+              || notificationIntents.some(({ created, repaired }) => created || repaired))) {
             ctx.waitUntil(Promise.allSettled(notificationIntents.map(({ itemKey }) => (
               attemptNotifyIntent(env, itemKey, ts, { fetchImpl: fetch })
             ))));
@@ -4044,6 +4082,14 @@ export default {
 
       return addCors(json({ error: 'INTERNAL_ERROR', request_id: requestId }, 500));
     }
+  },
+
+  async scheduled(controller, env, ctx) {
+    const scheduledTime = Number.isSafeInteger(controller?.scheduledTime)
+      && controller.scheduledTime >= 0
+      ? controller.scheduledTime
+      : Date.now();
+    ctx.waitUntil(runScheduledNotificationRecovery(env, scheduledTime, { fetchImpl: fetch }));
   },
 };
 

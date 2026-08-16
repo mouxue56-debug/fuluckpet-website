@@ -252,7 +252,51 @@ echo ""
 echo "== SMOKE TESTS against $API_BASE =="
 
 # ---------------------------------------------------------------------------
-# 2. GET /api/kittens -> 200 + a non-empty array
+# 2. Read-only notification health: HTTP 200, all bindings/contracts present,
+#    and notification health release must equal RELEASE_SHA in deploy mode.
+# ---------------------------------------------------------------------------
+health_body="$(curl -s -w $'\n%{http_code}' "$API_BASE/api/notification-health")"
+health_code="$(printf '%s' "$health_body" | tail -n1)"
+health_json="$(printf '%s' "$health_body" | sed '$d')"
+health_headers="$(curl -s -D - -o /dev/null "$API_BASE/api/notification-health")"
+health_release="$(printf '%s' "$health_headers" | tr -d '\r' | awk -F': ' 'tolower($1)=="x-fuluck-release"{print $2}')"
+health_contract="$(printf '%s' "$health_json" | node -e '
+  let text = "";
+  process.stdin.on("data", chunk => { text += chunk; });
+  process.stdin.on("end", () => {
+    try {
+      const value = JSON.parse(text);
+      const keys = Object.keys(value).sort();
+      const expected = ["cron_version", "email_binding", "release", "telegram_config"];
+      if (JSON.stringify(keys) !== JSON.stringify(expected)
+        || value.email_binding !== true
+        || value.telegram_config !== true
+        || value.cron_version !== true
+        || typeof value.release !== "string"
+        || value.release.length === 0) process.exit(2);
+      process.stdout.write(value.release);
+    } catch { process.exit(3); }
+  });
+' 2>/dev/null || echo invalid)"
+if [ "$health_code" = "200" ] && [ "$health_contract" != "invalid" ]; then
+  pass "notification health -> HTTP 200 with email_binding, telegram_config, cron_version true"
+else
+  fail "notification health -> HTTP $health_code with config=${health_contract:-invalid} (expected 200/all true)"
+fi
+if [ "$MODE" = "deploy" ]; then
+  if [ "$health_release" = "$RELEASE_SHA" ] && [ "$health_contract" = "$RELEASE_SHA" ]; then
+    pass "notification health exact release=$RELEASE_SHA"
+  else
+    fail "notification health release header/body=${health_release:-missing}/${health_contract:-missing} (expected RELEASE_SHA=$RELEASE_SHA)"
+  fi
+elif [ -n "$health_release" ] && [ "$health_release" = "$health_contract" ]; then
+  pass "notification health release header matches body ($health_release)"
+else
+  fail "notification health release header/body mismatch (${health_release:-missing}/${health_contract:-missing})"
+fi
+
+# ---------------------------------------------------------------------------
+# 3. GET /api/kittens -> 200 + a non-empty array
 # ---------------------------------------------------------------------------
 body="$(curl -s -w $'\n%{http_code}' "$API_BASE/api/kittens")"
 code="$(printf '%s' "$body" | tail -n1)"

@@ -4,6 +4,8 @@ export const NOTIFY_TTL_SECONDS = 90 * 24 * 60 * 60;
 export const RETRY_DELAYS_MS = [5 * 60_000, 30 * 60_000, 6 * 3_600_000, 24 * 3_600_000];
 export const CHAT_NOTIFY_DESCRIPTOR_VERSION = 1;
 export const CHAT_SOURCE_PAYLOAD_HASH_RULE = 'sha256:json-v1:[ts,sid,provider,user,assistant]';
+export const BOOKING_NOTIFY_DESCRIPTOR_VERSION = 1;
+export const BOOKING_SOURCE_PAYLOAD_HASH_RULE = 'sha256:submission-fingerprint-v1';
 
 const MAX_FIELD_LENGTH = 512;
 const MAX_ERROR_LENGTH = 1_000;
@@ -28,8 +30,35 @@ const MAX_DAILY_SUMMARY_LENGTH = 200;
 const MAX_DAILY_NOTES = 6;
 const MAX_DAILY_NOTE_LENGTH = 100;
 const CHAT_ROUND_TEMPLATE = 'owner_chat_round_v1';
-const CHAT_ROUND_CHANNELS = Object.freeze(['email', 'telegram']);
+const BOOKING_TEMPLATE = 'owner_booking_v1';
+const OWNER_CHANNELS = Object.freeze(['email', 'telegram']);
 const OPAQUE_ROUND_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const OPAQUE_BOOKING_ID_RE = /^(?:\d{16}-[0-9a-f]{32}|\d{13}-[0-9a-f]{8})$/i;
+const SHA256_RE = /^(?:sha256:)?[0-9a-f]{64}$/i;
+const TERMINAL_STATUSES = Object.freeze(['sent', 'failed', 'dead_letter', 'sent_unknown']);
+const SOURCE_REPAIR_PAGE_LIMIT = 25;
+const REPAIR_CURSOR_KEYS = Object.freeze({
+  chat: 'notify:repair:cursor:chat:v1',
+  booking: 'notify:repair:cursor:booking:v1',
+});
+const MAX_REPAIR_CURSOR_LENGTH = 1_024;
+const EMAIL_PERMANENT_ERROR_CODES = new Set([
+  'E_VALIDATION_ERROR',
+  'E_FIELD_MISSING',
+  'E_TOO_MANY_RECIPIENTS',
+  'E_SENDER_NOT_VERIFIED',
+  'E_RECIPIENT_NOT_ALLOWED',
+  'E_RECIPIENT_SUPPRESSED',
+  'E_SENDER_DOMAIN_NOT_AVAILABLE',
+  'E_CONTENT_TOO_LARGE',
+  'E_HEADER_NOT_ALLOWED',
+  'E_HEADER_USE_API_FIELD',
+  'E_HEADER_VALUE_INVALID',
+  'E_HEADER_VALUE_TOO_LONG',
+  'E_HEADER_NAME_INVALID',
+  'E_HEADERS_TOO_LARGE',
+  'E_HEADERS_TOO_MANY',
+]);
 
 export function notifyItemKey({ entityKind, entityId, channel, template }) {
   return `notify:item:${entityKind}:${entityId}:${channel}:${template}`;
@@ -66,6 +95,13 @@ function validateSpec(spec) {
     if (spec.groupReadyKey !== notifyGroupReadyKey(spec)) {
       throw new TypeError('chat notification groupReadyKey must match its deterministic group key');
     }
+  } else if (spec.template === BOOKING_TEMPLATE && spec.groupReadyKey !== undefined) {
+    if (spec.entityKind !== 'booking' || !OPAQUE_BOOKING_ID_RE.test(spec.entityId)) {
+      throw new TypeError('booking notification entityId must be opaque');
+    }
+    if (spec.groupReadyKey !== notifyGroupReadyKey(spec)) {
+      throw new TypeError('booking notification groupReadyKey must match its deterministic group key');
+    }
   }
 }
 
@@ -76,14 +112,24 @@ function validateGroupSpec(spec) {
   for (const field of ['entityKind', 'entityId', 'template', 'sourceKey', 'payloadHash']) {
     assertString(spec[field], field);
   }
-  if (spec.entityKind !== 'chat' || spec.template !== CHAT_ROUND_TEMPLATE || !OPAQUE_ROUND_ID_RE.test(spec.entityId)) {
-    throw new TypeError('notification group must identify one opaque chat round');
+  const validChat = spec.entityKind === 'chat'
+    && spec.template === CHAT_ROUND_TEMPLATE
+    && OPAQUE_ROUND_ID_RE.test(spec.entityId);
+  const validBooking = spec.entityKind === 'booking'
+    && spec.template === BOOKING_TEMPLATE
+    && OPAQUE_BOOKING_ID_RE.test(spec.entityId);
+  if (!validChat && !validBooking) {
+    throw new TypeError('notification group must identify one opaque chat round or booking');
   }
   if (!Array.isArray(spec.channels)
-    || spec.channels.length !== CHAT_ROUND_CHANNELS.length
-    || spec.channels.some((channel, index) => channel !== CHAT_ROUND_CHANNELS[index])) {
+    || spec.channels.length !== OWNER_CHANNELS.length
+    || spec.channels.some((channel, index) => channel !== OWNER_CHANNELS[index])) {
     throw new TypeError('notification group channels must be exactly email and telegram');
   }
+}
+
+function isTerminalStatus(status) {
+  return TERMINAL_STATUSES.includes(status);
 }
 
 function assertNow(nowMs) {
@@ -152,14 +198,23 @@ function trimText(value, maxLength) {
 }
 
 function escapeHtmlWithin(value, maxLength) {
-  const text = String(value ?? '');
+  if (!Number.isSafeInteger(maxLength) || maxLength <= 0) return '';
   let escaped = '';
-  for (const character of text) {
+  for (const character of wellFormedCodePoints(value)) {
     const piece = escapeHtml(character);
-    if (escaped.length + piece.length > maxLength - 1) return `${escaped}…`;
+    if (escaped.length + piece.length > maxLength) {
+      return escaped.length < maxLength ? `${escaped}…` : escaped;
+    }
     escaped += piece;
   }
   return escaped;
+}
+
+function boundedCodePointField(value, maxLength) {
+  const characters = wellFormedCodePoints(value);
+  return characters.length <= maxLength
+    ? characters.join('')
+    : `${characters.slice(0, Math.max(0, maxLength - 1)).join('')}…`;
 }
 
 function boundedDisplayText(value, maxLength) {
@@ -256,11 +311,27 @@ async function repairSentItem(env, itemKey, item, marker) {
   return updated;
 }
 
+async function repairTerminalSchedule(env, itemKey, item) {
+  const hasSchedule = item.next_attempt_ms !== null || item.due_key !== null;
+  const updated = hasSchedule ? {
+    ...item,
+    next_attempt_ms: null,
+    due_key: null,
+  } : item;
+  if (hasSchedule) await env.DATA.put(itemKey, encodeItem(updated), putOptions());
+  if (item.due_key && typeof env.DATA.delete === 'function') await env.DATA.delete(item.due_key);
+  return updated;
+}
+
 async function readAuthoritativeNotifyItem(env, itemKey) {
   const item = await readJson(env, itemKey);
   if (!item) return null;
+  if (item.status === 'sent_unknown') return repairTerminalSchedule(env, itemKey, item);
   const marker = await readSentMarker(env, itemKey);
-  return marker ? repairSentItem(env, itemKey, item, marker) : item;
+  if (marker) return repairSentItem(env, itemKey, item, marker);
+  return isTerminalStatus(item.status)
+    ? repairTerminalSchedule(env, itemKey, item)
+    : item;
 }
 
 function putOptions() {
@@ -344,22 +415,26 @@ ${submission.kitten_id ? `<tr><td style="padding:6px 0;color:#666;">気になる
 <p style="margin:20px 0 8px;"><a href="${ADMIN_URL}" style="display:inline-block;padding:10px 18px;background:#5a8a6e;color:#fff;text-decoration:none;border-radius:6px;">管理画面で確認する</a></p>
 <p style="font-size:12px;color:#999;margin-top:24px;">Request ID: ${escapeHtml(requestId)}</p>
 </body></html>`;
-  const telegramText = [
+  const telegramPrefix = [
     '<b>【fuluckpet 予約】</b>',
-    `<b>名前:</b> ${escapeHtml(submission.name ?? '')}`,
-    `<b>メール:</b> ${escapeHtml(submission.email ?? '')}`,
-    `<b>電話:</b> ${escapeHtml(submission.phone || '（未記入）')}`,
-    `<b>第一希望日:</b> ${escapeHtml(submission.preferred_date ?? '')}`,
-    submission.preferred_date2 ? `<b>第二希望日:</b> ${escapeHtml(submission.preferred_date2)}` : null,
-    submission.preferred_time ? `<b>希望時間:</b> ${escapeHtml(submission.preferred_time)}` : null,
-    submission.visit_method ? `<b>見学方法:</b> ${escapeHtml(submission.visit_method)}` : null,
-    submission.kitten_id ? `<b>気になる子猫:</b> ${escapeHtml(submission.kitten_id)}` : null,
+    `<b>名前:</b> ${escapeHtml(boundedCodePointField(submission.name ?? '', 100))}`,
+    `<b>メール:</b> ${escapeHtml(boundedCodePointField(submission.email ?? '', 200))}`,
+    `<b>電話:</b> ${escapeHtml(boundedCodePointField(submission.phone || '（未記入）', 20))}`,
+    `<b>第一希望日:</b> ${escapeHtml(boundedCodePointField(submission.preferred_date ?? '', 10))}`,
+    submission.preferred_date2 ? `<b>第二希望日:</b> ${escapeHtml(boundedCodePointField(submission.preferred_date2, 10))}` : null,
+    submission.preferred_time ? `<b>希望時間:</b> ${escapeHtml(boundedCodePointField(submission.preferred_time, 50))}` : null,
+    submission.visit_method ? `<b>見学方法:</b> ${escapeHtml(boundedCodePointField(submission.visit_method, 50))}` : null,
+    submission.kitten_id ? `<b>気になる子猫:</b> ${escapeHtml(boundedCodePointField(submission.kitten_id, 100))}` : null,
     '',
     '<b>メッセージ:</b>',
-    escapeHtml(submission.message || '（なし）'),
-    '',
-    `<code>${escapeHtml(requestId)}</code>`,
   ].filter(Boolean).join('\n');
+  const telegramSuffix = `\n\n<code>${escapeHtml(boundedCodePointField(requestId, 64))}</code>`;
+  const freeTextBudget = Math.max(
+    0,
+    TELEGRAM_MAX_TEXT_LENGTH - telegramPrefix.length - telegramSuffix.length - 1,
+  );
+  const telegramMessage = escapeHtmlWithin(submission.message || '（なし）', freeTextBudget);
+  const telegramText = `${telegramPrefix}\n${telegramMessage}${telegramSuffix}`;
 
   return messageEnvelope(
     `[fuluckpet 予約] ${submission.name ?? ''} さんから新しい見学予約`,
@@ -466,10 +541,19 @@ export async function sendEmailTransport(env, message) {
       providerStatusCode: Number.isInteger(result?.status) ? result.status : 200,
     };
   } catch (error) {
+    const providerCode = typeof error?.code === 'string' && /^E_[A-Z0-9_]{1,96}$/.test(error.code)
+      ? error.code
+      : 'email_send_failed';
+    const permanent = EMAIL_PERMANENT_ERROR_CODES.has(providerCode);
     throw new NotifyTransportError({
-      code: 'email_send_failed',
-      permanent: false,
-      detail: error instanceof Error ? error.message : String(error),
+      code: providerCode,
+      permanent,
+      statusCode: Number.isInteger(error?.statusCode)
+        ? error.statusCode
+        : (Number.isInteger(error?.status) ? error.status : null),
+      detail: permanent
+        ? 'Cloudflare Email Service rejected the request'
+        : 'Cloudflare Email Service temporary failure',
     });
   }
 }
@@ -609,7 +693,7 @@ export async function ensureNotifyIntent(env, spec, nowMs) {
   const options = putOptions();
   let repaired = false;
 
-  if (!['sent', 'failed', 'dead_letter'].includes(item.status)) {
+  if (!isTerminalStatus(item.status)) {
     assertString(item.due_key, 'item.due_key');
     const dueReference = await env.DATA.get(item.due_key);
     if (dueReference !== itemKey) {
@@ -639,14 +723,58 @@ function groupMarkerMatchesItem(marker, item) {
     && marker.source_key === item.source_key
     && marker.payload_hash === item.payload_hash
     && Array.isArray(marker.channels)
-    && marker.channels.length === CHAT_ROUND_CHANNELS.length
-    && marker.channels.every((channel, index) => channel === CHAT_ROUND_CHANNELS[index]);
+    && marker.channels.length === OWNER_CHANNELS.length
+    && marker.channels.every((channel, index) => channel === OWNER_CHANNELS[index]);
 }
 
 async function notifyGroupIsReady(env, item) {
-  if (item.template !== CHAT_ROUND_TEMPLATE) return true;
+  if (![CHAT_ROUND_TEMPLATE, BOOKING_TEMPLATE].includes(item.template)) return true;
   if (typeof item.group_ready_key !== 'string') return false;
-  return groupMarkerMatchesItem(await readJson(env, item.group_ready_key), item);
+  try {
+    const marker = await readJson(env, item.group_ready_key);
+    return groupMarkerMatchesItem(marker, item)
+      && await notificationGroupMembersAreDurable(env, marker, item.group_ready_key);
+  } catch (_error) {
+    // Readiness is a fail-closed send gate. Source repair can rebuild a missing
+    // member/reference, while an unrelated due candidate remains isolated.
+    return false;
+  }
+}
+
+async function notificationGroupMembersAreDurable(env, marker, readyKey) {
+  if (readyKey !== notifyGroupReadyKey({
+    entityKind: marker?.entity_kind,
+    entityId: marker?.entity_id,
+    template: marker?.template,
+  })) return false;
+
+  for (const channel of OWNER_CHANNELS) {
+    const itemKey = notifyItemKey({
+      entityKind: marker.entity_kind,
+      entityId: marker.entity_id,
+      channel,
+      template: marker.template,
+    });
+    const member = await readAuthoritativeNotifyItem(env, itemKey);
+    if (!member
+      || member.item_key !== itemKey
+      || member.channel !== channel
+      || member.group_ready_key !== readyKey
+      || !groupMarkerMatchesItem(marker, member)
+      || !Number.isSafeInteger(member.created_at)
+      || member.created_at < 0) return false;
+
+    if (!isTerminalStatus(member.status)) {
+      if (typeof member.due_key !== 'string'
+        || await env.DATA.get(member.due_key) !== itemKey) return false;
+    } else if (member.due_key !== null || member.next_attempt_ms !== null) {
+      return false;
+    }
+
+    const dailyKey = dailyReferenceKey(member.created_at, itemKey);
+    if (await env.DATA.get(dailyKey) !== itemKey) return false;
+  }
+  return true;
 }
 
 export async function markNotifyGroupReady(env, spec, nowMs) {
@@ -654,31 +782,6 @@ export async function markNotifyGroupReady(env, spec, nowMs) {
   validateGroupSpec(spec);
   assertNow(nowMs);
   const readyKey = notifyGroupReadyKey(spec);
-
-  for (const channel of CHAT_ROUND_CHANNELS) {
-    const itemKey = notifyItemKey({ ...spec, channel });
-    const item = await readAuthoritativeNotifyItem(env, itemKey);
-    const itemMatches = item
-      && item.entity_kind === spec.entityKind
-      && item.entity_id === spec.entityId
-      && item.channel === channel
-      && item.template === spec.template
-      && item.source_key === spec.sourceKey
-      && item.payload_hash === spec.payloadHash
-      && item.group_ready_key === readyKey;
-    if (!itemMatches) throw new Error('both notification channels must be durable before group readiness');
-
-    if (!['sent', 'failed', 'dead_letter'].includes(item.status)) {
-      const dueReference = item.due_key ? await env.DATA.get(item.due_key) : null;
-      if (dueReference !== itemKey) {
-        throw new Error('both notification channels must be durable before group readiness');
-      }
-    }
-    const dailyKey = dailyReferenceKey(item.created_at, itemKey);
-    if (await env.DATA.get(dailyKey) !== itemKey) {
-      throw new Error('both notification channels must be durable before group readiness');
-    }
-  }
 
   const marker = {
     version: 1,
@@ -688,9 +791,12 @@ export async function markNotifyGroupReady(env, spec, nowMs) {
     template: spec.template,
     source_key: spec.sourceKey,
     payload_hash: spec.payloadHash,
-    channels: [...CHAT_ROUND_CHANNELS],
+    channels: [...OWNER_CHANNELS],
     ready_at: nowMs,
   };
+  if (!(await notificationGroupMembersAreDurable(env, marker, readyKey))) {
+    throw new Error('both notification channels must be durable before group readiness');
+  }
   const existing = await readJson(env, readyKey);
   if (existing && groupMarkerMatchesItem(existing, {
     entity_kind: spec.entityKind,
@@ -717,6 +823,7 @@ export async function markNotifySent(env, itemKey, result, nowMs) {
   assertNow(nowMs);
   const item = await readJson(env, itemKey);
   if (!item) return item;
+  if (item.status === 'sent_unknown') return repairTerminalSchedule(env, itemKey, item);
   const existingMarker = await readSentMarker(env, itemKey);
   if (existingMarker) return repairSentItem(env, itemKey, item, existingMarker);
   const sanitizedResult = sanitizeProviderResult(result);
@@ -735,7 +842,7 @@ export async function markNotifyFailure(env, itemKey, error, nowMs) {
   assertString(itemKey, 'itemKey');
   assertNow(nowMs);
   const item = await readAuthoritativeNotifyItem(env, itemKey);
-  if (!item || ['sent', 'failed', 'dead_letter'].includes(item.status)) return item;
+  if (!item || isTerminalStatus(item.status)) return item;
 
   const attemptCount = Number.isSafeInteger(item.attempt_count) && item.attempt_count >= 0
     ? item.attempt_count + 1 : 1;
@@ -767,7 +874,7 @@ export async function markNotifyFailure(env, itemKey, error, nowMs) {
 
 async function markNotifyDeadLetter(env, itemKey, error, nowMs, countAttempt = false) {
   const item = await readAuthoritativeNotifyItem(env, itemKey);
-  if (!item || ['sent', 'failed', 'dead_letter'].includes(item.status)) return item;
+  if (!item || isTerminalStatus(item.status)) return item;
   const sanitizedError = sanitizeError(error);
   const attemptCount = countAttempt
     ? (Number.isSafeInteger(item.attempt_count) && item.attempt_count >= 0 ? item.attempt_count + 1 : 1)
@@ -813,7 +920,7 @@ export async function attemptNotifyIntent(env, itemKey, nowMs, dependencies = {}
   assertString(itemKey, 'itemKey');
   assertNow(nowMs);
   const item = await readAuthoritativeNotifyItem(env, itemKey);
-  if (!item || ['sent', 'failed', 'dead_letter'].includes(item.status)) return item;
+  if (!item || isTerminalStatus(item.status)) return item;
   if (!(await notifyGroupIsReady(env, item))) return item;
   if (Number.isSafeInteger(item.next_attempt_ms) && item.next_attempt_ms > nowMs) return item;
 
@@ -844,6 +951,221 @@ export async function attemptNotifyIntent(env, itemKey, nowMs, dependencies = {}
   }
 
   return markNotifySent(env, itemKey, result, nowMs);
+}
+
+function descriptorHasExactChannels(descriptor) {
+  return Array.isArray(descriptor?.channels)
+    && descriptor.channels.length === OWNER_CHANNELS.length
+    && descriptor.channels.every((channel, index) => channel === OWNER_CHANNELS[index]);
+}
+
+function chatNotificationGroupFromSource(sourceKey, source) {
+  const descriptor = source?.notification;
+  if (typeof sourceKey !== 'string' || !sourceKey.startsWith('chat:log:')) return null;
+  if (!descriptor || typeof descriptor !== 'object' || Array.isArray(descriptor)) return null;
+  if (descriptor.notification_status !== 'pending'
+    || descriptor.version !== CHAT_NOTIFY_DESCRIPTOR_VERSION
+    || descriptor.template !== CHAT_ROUND_TEMPLATE
+    || !descriptorHasExactChannels(descriptor)
+    || !OPAQUE_ROUND_ID_RE.test(descriptor.round_id)
+    || !Number.isSafeInteger(descriptor.source_ts)
+    || descriptor.source_ts < 0
+    || descriptor.source_ts !== source.ts
+    || descriptor.payload_hash_rule !== CHAT_SOURCE_PAYLOAD_HASH_RULE
+    || !SHA256_RE.test(descriptor.payload_hash)) return null;
+  return {
+    entityKind: 'chat',
+    entityId: descriptor.round_id,
+    template: CHAT_ROUND_TEMPLATE,
+    sourceKey,
+    payloadHash: descriptor.payload_hash,
+    channels: [...OWNER_CHANNELS],
+    sourceTs: descriptor.source_ts,
+  };
+}
+
+export function bookingNotificationGroupFromSource(sourceKey, source) {
+  const descriptor = source?.notification;
+  const sourceTimestamp = typeof source?.created_at === 'string'
+    ? Date.parse(source.created_at)
+    : Number.NaN;
+  if (typeof sourceKey !== 'string' || !sourceKey.startsWith('booking:')) return null;
+  if (!descriptor || typeof descriptor !== 'object' || Array.isArray(descriptor)) return null;
+  if (descriptor.notification_status !== 'pending'
+    || descriptor.version !== BOOKING_NOTIFY_DESCRIPTOR_VERSION
+    || descriptor.booking_id !== source.id
+    || descriptor.template !== BOOKING_TEMPLATE
+    || !descriptorHasExactChannels(descriptor)
+    || !OPAQUE_BOOKING_ID_RE.test(descriptor.booking_id)
+    || !Number.isSafeInteger(descriptor.source_ts)
+    || descriptor.source_ts < 0
+    || !Number.isSafeInteger(sourceTimestamp)
+    || descriptor.source_ts !== sourceTimestamp
+    || descriptor.payload_hash_rule !== BOOKING_SOURCE_PAYLOAD_HASH_RULE
+    || !SHA256_RE.test(descriptor.payload_hash)
+    || descriptor.payload_hash !== source.submission_fingerprint) return null;
+  return {
+    entityKind: 'booking',
+    entityId: descriptor.booking_id,
+    template: BOOKING_TEMPLATE,
+    sourceKey,
+    payloadHash: descriptor.payload_hash,
+    channels: [...OWNER_CHANNELS],
+    sourceTs: descriptor.source_ts,
+  };
+}
+
+async function ownerRecipientFingerprint(channel, env) {
+  const identity = channel === 'email' ? OWNER_EMAIL_TO : (env.TELEGRAM_CHAT_ID || 'unconfigured');
+  return sha256(`${channel}:${identity}`);
+}
+
+async function repairNotificationGroup(env, group, nowMs) {
+  const groupReadyKey = notifyGroupReadyKey(group);
+  const ensured = [];
+  for (const channel of OWNER_CHANNELS) {
+    ensured.push(await ensureNotifyIntent(env, {
+      entityKind: group.entityKind,
+      entityId: group.entityId,
+      channel,
+      template: group.template,
+      sourceKey: group.sourceKey,
+      payloadHash: group.payloadHash,
+      recipientFingerprint: await ownerRecipientFingerprint(channel, env),
+      groupReadyKey,
+    }, group.sourceTs));
+  }
+  const readiness = await markNotifyGroupReady(env, group, nowMs);
+  return {
+    changed: readiness.created || ensured.some(({ created, repaired }) => created || repaired),
+    readyKey: readiness.readyKey,
+  };
+}
+
+async function readRepairCursor(env, kind) {
+  const state = await readJson(env, REPAIR_CURSOR_KEYS[kind]);
+  if (state?.version !== 1 || !isBoundedRepairCursor(state.cursor)) {
+    return '';
+  }
+  return state.cursor;
+}
+
+function isBoundedRepairCursor(value) {
+  return typeof value === 'string'
+    && value.length > 0
+    && value.length <= MAX_REPAIR_CURSOR_LENGTH;
+}
+
+async function persistRepairCursor(env, kind, page, previousCursor, nowMs) {
+  const key = REPAIR_CURSOR_KEYS[kind];
+  if (page?.list_complete !== false) {
+    if (typeof env.DATA.delete === 'function') await env.DATA.delete(key);
+    return { listComplete: true, cursorPersisted: false };
+  }
+  const cursor = page?.cursor;
+  if (!isBoundedRepairCursor(cursor)
+    || cursor === previousCursor
+  ) {
+    return { listComplete: false, cursorPersisted: false };
+  }
+  await env.DATA.put(key, toJson({ version: 1, cursor, updated_at: nowMs }, 'repair cursor', 8_000), putOptions());
+  return { listComplete: false, cursorPersisted: true };
+}
+
+async function repairNotificationSources(env, kind, nowMs) {
+  assertEnv(env);
+  assertNow(nowMs);
+  if (typeof env.DATA.list !== 'function') throw new TypeError('env.DATA list method is required');
+  const prefix = kind === 'chat' ? 'chat:log:' : 'booking:';
+  const cursor = await readRepairCursor(env, kind);
+  const page = await env.DATA.list({ prefix, cursor, limit: SOURCE_REPAIR_PAGE_LIMIT });
+  const entries = Array.isArray(page?.keys) ? page.keys.slice(0, SOURCE_REPAIR_PAGE_LIMIT) : [];
+  const result = {
+    candidates: 0,
+    eligible: 0,
+    ready: 0,
+    changed: 0,
+    skipped: 0,
+    failed: 0,
+    list_complete: page?.list_complete !== false,
+    cursor_persisted: false,
+  };
+
+  for (const entry of entries) {
+    const sourceKey = entry?.name;
+    if (typeof sourceKey !== 'string' || !sourceKey.startsWith(prefix)) continue;
+    result.candidates += 1;
+    try {
+      const source = await readJson(env, sourceKey);
+      if (!source) {
+        result.skipped += 1;
+        continue;
+      }
+      let group;
+      if (kind === 'chat') {
+        group = chatNotificationGroupFromSource(sourceKey, source);
+        if (!group || await chatSourcePayloadHash(source) !== group.payloadHash) {
+          result.skipped += 1;
+          continue;
+        }
+      } else {
+        group = bookingNotificationGroupFromSource(sourceKey, source);
+        if (!group) {
+          result.skipped += 1;
+          continue;
+        }
+      }
+      result.eligible += 1;
+      const repaired = await repairNotificationGroup(env, group, nowMs);
+      result.ready += 1;
+      if (repaired.changed) result.changed += 1;
+    } catch (_error) {
+      // Source/customer data and provider/KV exception text are intentionally not
+      // logged. The persisted cursor eventually cycles back for another attempt.
+      result.failed += 1;
+    }
+  }
+
+  const cursorResult = await persistRepairCursor(env, kind, page, cursor, nowMs);
+  result.list_complete = cursorResult.listComplete;
+  result.cursor_persisted = cursorResult.cursorPersisted;
+  return result;
+}
+
+export async function repairChatNotificationSources(env, nowMs) {
+  return repairNotificationSources(env, 'chat', nowMs);
+}
+
+export async function repairBookingNotificationSources(env, nowMs) {
+  return repairNotificationSources(env, 'booking', nowMs);
+}
+
+async function settleScheduledPhase(operation) {
+  try {
+    return { ok: true, value: await operation() };
+  } catch (_error) {
+    // Scheduled results remain content-free. Provider/KV exceptions may contain
+    // source keys or transport payloads and must not become metrics or logs here.
+    return { ok: false, value: null };
+  }
+}
+
+export async function runScheduledNotificationRecovery(env, nowMs, dependencies = {}) {
+  assertEnv(env);
+  assertNow(nowMs);
+  const chatRepair = await settleScheduledPhase(
+    () => repairChatNotificationSources(env, nowMs),
+  );
+  const bookingRepair = await settleScheduledPhase(
+    () => repairBookingNotificationSources(env, nowMs),
+  );
+  const due = await settleScheduledPhase(
+    () => reconcileDueNotifications(env, nowMs, dependencies),
+  );
+  const daily = await settleScheduledPhase(
+    () => ensureDailyReconcileSummary(env, nowMs, dependencies),
+  );
+  return { chat_repair: chatRepair, booking_repair: bookingRepair, due, daily };
 }
 
 export async function reconcileDueNotifications(env, nowMs, dependencies = {}) {
@@ -878,6 +1200,11 @@ export async function reconcileDueNotifications(env, nowMs, dependencies = {}) {
       scanned += 1;
       const itemKey = await env.DATA.get(dueKey);
       const item = typeof itemKey === 'string' ? await readAuthoritativeNotifyItem(env, itemKey) : null;
+      if (item && isTerminalStatus(item.status)) {
+        await env.DATA.delete(dueKey);
+        staleDeleted += 1;
+        continue;
+      }
       if (!item || item.due_key !== dueKey) {
         processed += 1;
         await env.DATA.delete(dueKey);
@@ -885,8 +1212,8 @@ export async function reconcileDueNotifications(env, nowMs, dependencies = {}) {
         continue;
       }
       if (!(await notifyGroupIsReady(env, item))) {
-        // A Task 6 source repair can deterministically recreate this reference.
-        // Removing it keeps incomplete chat groups out of the ordinary delivery
+        // Source repair can deterministically recreate this reference. Removing
+        // it keeps incomplete chat or booking groups out of the ordinary delivery
         // queue, while the attempt-level readiness check remains the race guard.
         await env.DATA.delete(dueKey);
         continue;
@@ -928,6 +1255,7 @@ async function buildDailySummarySource(env, dateJst) {
   const counts = {
     total: 0,
     sent: 0,
+    sent_unknown: 0,
     pending: 0,
     retry: 0,
     failed: 0,
@@ -943,7 +1271,7 @@ async function buildDailySummarySource(env, dateJst) {
     }
     if (notes.length < MAX_DAILY_NOTES) {
       const channel = ['email', 'telegram'].includes(item.channel) ? item.channel : 'unknown';
-      const status = ['sent', 'pending', 'retry', 'failed', 'dead_letter'].includes(item.status)
+      const status = ['sent', 'sent_unknown', 'pending', 'retry', 'failed', 'dead_letter'].includes(item.status)
         ? item.status : 'unknown';
       notes.push(`${channel}: ${status}`);
     }
@@ -951,6 +1279,7 @@ async function buildDailySummarySource(env, dateJst) {
   const summary = [
     `Total ${counts.total}`,
     `Sent ${counts.sent}`,
+    `Sent unknown ${counts.sent_unknown}`,
     `Pending ${counts.pending}`,
     `Retry ${counts.retry}`,
     `Failed ${counts.failed}`,
