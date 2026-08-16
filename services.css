@@ -515,6 +515,16 @@
   font: inherit;
 }
 
+.estimate-field select:disabled {
+  background: #f3f5f4;
+  color: var(--text-note);
+  cursor: not-allowed;
+}
+
+.estimate-transport-help {
+  margin-top: 14px;
+}
+
 .estimate-checks {
   display: grid;
   gap: 12px;
@@ -752,5 +762,9 @@ select.estimate-care-control {
   .estimate-care-list,
   .estimate-result-actions {
     grid-template-columns: 1fr;
+  }
+  .estimate-transport-help {
+    margin-top: 12px;
+    font-size: .82rem;
   }
 }

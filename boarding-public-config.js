@@ -1,5 +1,6 @@
 /* boarding-public-config.js — licensed public boarding and cat-care price source.
- * Values are the owner-approved 2026-07-14 unified prices. Dog prices are retained
+ * The unified base policy began 2026-07-14; dog and pet-transport prices were
+ * owner-approved on 2026-08-16. Dog prices are retained
  * only as a disabled capability while dog services remain受付停止.
  * Browser: window.BOARDING_CONFIG; Node: require(). */
 (function (root) {
@@ -63,12 +64,23 @@
       public: false,
       preparingVisible: true,
       locationNotice: '大阪・針中野での受付開始を予定しています。開始時期は決まり次第お知らせします。',
-      boardingBasePrice: { small: 5000, medium: 5500, large: 6500 },
+      boardingBasePrice: { small: 5000, medium: 7500, large: 9500 },
       weightBands: {
         small: { minKg: 0, maxKgExclusive: 10 },
         medium: { minKg: 10, maxKgExclusive: 20 },
         large: { minKg: 20, maxKgExclusive: null },
       },
+    },
+
+    petTransport: {
+      discountEligible: false,
+      tiers: [
+        { id: 'within3', label: '3km以内', maxKmInclusive: 3, status: 'priced', oneWayPrice: 1650, roundTripPrice: 3300 },
+        { id: 'over3to5', label: '3kmを超え5km以内', minKmExclusive: 3, maxKmInclusive: 5, status: 'priced', oneWayPrice: 2200, roundTripPrice: 4400 },
+        { id: 'over5to10', label: '5kmを超え10km以内', minKmExclusive: 5, maxKmInclusive: 10, status: 'priced', oneWayPrice: 3300, roundTripPrice: 6600 },
+        { id: 'over10to20', label: '10kmを超え20km以内', minKmExclusive: 10, maxKmInclusive: 20, status: 'quote', oneWayPrice: null, roundTripPrice: null },
+        { id: 'over20', label: '20km超', minKmExclusive: 20, maxKmInclusive: null, status: 'unavailable', oneWayPrice: null, roundTripPrice: null },
+      ],
     },
 
     careCatalog: {

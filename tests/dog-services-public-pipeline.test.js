@@ -71,8 +71,8 @@ test('enabled projection copies only approved dog prices, weight bands and safe 
   assert.equal(value.version, 3);
   assert.deepEqual(value.sizes, {
     small: { label: '小型犬', boardingPerNight: 5000 },
-    medium: { label: '中型犬', boardingPerNight: 5500 },
-    large: { label: '大型犬', boardingPerNight: 6500 },
+    medium: { label: '中型犬', boardingPerNight: 7500 },
+    large: { label: '大型犬', boardingPerNight: 9500 },
   });
   assert.deepEqual(value.weightBands, {
     small: { minKg: 0, maxKgExclusive: 10 },
@@ -185,7 +185,7 @@ test('shared UI emits no dog offer when false and complete offers, CTA and schem
   }
 
   const boarding = ui.renderSurface('boarding', enabled);
-  for (const copy of ['小型犬', '10kg未満', '¥5,000', '中型犬', '10kg以上20kg未満', '¥5,500', '大型犬', '20kg以上', '¥6,500', 'LINEで予約相談']) {
+  for (const copy of ['小型犬', '10kg未満', '¥5,000', '中型犬', '10kg以上20kg未満', '¥7,500', '大型犬', '20kg以上', '¥9,500', 'LINEで予約相談']) {
     assert.match(boarding, new RegExp(copy));
   }
   assert.match(boarding, /体重別の税込基本料金です/);
@@ -206,7 +206,7 @@ test('shared UI emits no dog offer when false and complete offers, CTA and schem
   const schemas = ui.buildSchemaObjects(enabled);
   assert.equal(schemas.length, 2);
   assert.deepEqual(schemas.map((schema) => schema.offers.map((offer) => Number(offer.price))), [
-    [5000, 5500, 6500],
+    [5000, 7500, 9500],
     [660, 880, 1100, 660, 880, 1100, 660, 880, 1100, 1650, 2200, 2750],
   ]);
 });
@@ -231,7 +231,7 @@ test('preparing UI shows stopped dog prices and calculator without booking CTA o
   const estimateBoarding = ui.renderSurface('estimate', preparing);
   assert.match(estimateBoarding, /犬は現在受付停止/);
   assert.equal((estimateBoarding.match(/税込予定価格/g) || []).length, 4);
-  for (const price of ['¥5,000', '¥5,500', '¥6,500']) {
+  for (const price of ['¥5,000', '¥7,500', '¥9,500']) {
     assert.match(estimateBoarding, new RegExp(`${price}[^<]*税込予定価格`));
   }
 

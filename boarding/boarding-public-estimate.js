@@ -69,6 +69,42 @@
       : '30泊以上は日程とお世話内容を確認後に正式料金をご案内します。';
   }
 
+  function applyTransportEstimate(lines, total, reviewMessages, transport, isStoppedDog) {
+    var result = {
+      lines: lines.slice(),
+      total: total,
+      reviewMessages: reviewMessages.slice(),
+      unavailableMessage: '',
+    };
+    if (!transport || transport.status === 'none') return result;
+    if (transport.status === 'unavailable' && transport.error === 'transport_unavailable') {
+      result.unavailableMessage = '20kmを超える住所への送迎は承っていません。';
+      return result;
+    }
+    if (transport.error) {
+      result.unavailableMessage = '送迎料金情報を確認できませんでした。選択内容をご確認ください。';
+      return result;
+    }
+
+    var tripLabel = transport.tripType === 'oneWay' ? '片道1回' : 'お迎え＋お送り';
+    var detail = transport.label + '・' + tripLabel;
+    if (transport.status === 'priced') {
+      result.lines.push({ label: '送迎', detail: detail, value: '+' + quoteMoney(transport.subtotal) });
+      result.total += transport.subtotal;
+    } else if (transport.status === 'quote') {
+      if (isStoppedDog) {
+        result.lines.push({ label: '送迎', detail: detail, value: '受付開始後にご案内' });
+        result.reviewMessages.push('犬の送迎は受付開始後にご案内します。');
+      } else {
+        result.lines.push({ label: '送迎', detail: detail, value: 'LINE見積り' });
+        result.reviewMessages.push(transport.label + 'の送迎は、住所と日程を確認後にLINEで正式料金をご案内します。');
+      }
+    } else {
+      result.unavailableMessage = '送迎料金情報を確認できませんでした。選択内容をご確認ください。';
+    }
+    return result;
+  }
+
   function buildQuoteText(input) {
     var pricing = priceSemanticsFor(input.type, input.dogAccepting);
     var output = [
@@ -149,6 +185,8 @@
       catCarePackage: byId('catCarePackage'),
       catCareItems: byId('catCareItems'),
       dogCareField: null,
+      transportDistance: byId('transportDistance'),
+      transportTrip: byId('transportTrip'),
       resultEmpty: byId('resultEmpty'),
       resultBody: byId('resultBody'),
       resultLines: byId('resultLines'),
@@ -171,6 +209,24 @@
       option.value = value;
       option.textContent = label;
       return option;
+    }
+
+    function buildTransportControls() {
+      elements.transportDistance.textContent = '';
+      elements.transportDistance.appendChild(makeOption('', '送迎を利用しない'));
+      Config.petTransport.tiers.forEach(function (tier) {
+        elements.transportDistance.appendChild(makeOption(tier.id, tier.label));
+      });
+
+      elements.transportTrip.textContent = '';
+      elements.transportTrip.appendChild(makeOption('oneWay', '片道1回'));
+      elements.transportTrip.appendChild(makeOption('roundTrip', 'お迎え＋お送り'));
+      elements.transportTrip.disabled = !elements.transportDistance.value;
+      elements.transportDistance.addEventListener('change', function () {
+        elements.transportTrip.disabled = !elements.transportDistance.value;
+        compute();
+      });
+      elements.transportTrip.addEventListener('change', compute);
     }
 
     function itemPriceText(item) {
@@ -341,6 +397,20 @@
       });
     }
 
+    function renderWithTransport(type, checkIn, checkOut, nights, lines, total, reviewMessages) {
+      var transport = Calc.calculatePetTransport({
+        tierId: elements.transportDistance.value,
+        tripType: elements.transportTrip.value,
+      });
+      var isStoppedDog = /^dog_/.test(type) && !(dogProjection && dogProjection.public === true);
+      var estimate = applyTransportEstimate(lines, total, reviewMessages, transport, isStoppedDog);
+      if (estimate.unavailableMessage) {
+        setEmpty(estimate.unavailableMessage, type, 'error');
+        return;
+      }
+      render(type, checkIn, checkOut, nights, estimate.lines, estimate.total, estimate.reviewMessages.join(' '));
+    }
+
     function boardingDiscountLabel(type, nights, rate, isGraduatedCat) {
       if (!(rate < 1)) return '';
       if (type === 'cat' && isGraduatedCat && rate === Config.graduatedCatDiscount) {
@@ -441,7 +511,7 @@
         var small = Calc.calculateSmallPetBoarding({ animalType: type, checkInDate: checkIn, checkOutDate: checkOut });
         var smallLines = [{ label: '基本料金', detail: money(small.basePricePerNight) + ' × ' + nights + '泊', value: money(small.boardingSubtotal) }];
         addBoardingDiscountLine(smallLines, type, small, nights, false);
-        render(type, checkIn, checkOut, nights, smallLines, small.boardingTotal, '');
+        renderWithTransport(type, checkIn, checkOut, nights, smallLines, small.boardingTotal, []);
         return;
       }
 
@@ -474,14 +544,15 @@
           dogLines.push(dogCareLineFor(dogCareLabel(dogCareOffer), dogCare.subtotal, dogPricing.planned));
           dogTotal += dogCare.subtotal;
         }
-        render(
+        var dogReviewMessage = dogReviewMessageFor(dogBoarding.needsReview, dogPricing.planned);
+        renderWithTransport(
           type,
           checkIn,
           checkOut,
           nights,
           dogLines,
           dogTotal,
-          dogReviewMessageFor(dogBoarding.needsReview, dogPricing.planned),
+          dogReviewMessage ? [dogReviewMessage] : [],
         );
         return;
       }
@@ -509,7 +580,7 @@
       var reviewMessages = [];
       if (boarding.needsReview) reviewMessages.push('30泊以上は日程とお世話内容を確認後に正式料金をご案内します。');
       if (care.needsQuote) reviewMessages.push('「要相談」のケアは内容確認後に正式料金をご案内します。');
-      render(type, checkIn, checkOut, nights, lines, total, reviewMessages.join(' '));
+      renderWithTransport(type, checkIn, checkOut, nights, lines, total, reviewMessages);
     }
 
     function copyQuote() {
@@ -543,6 +614,7 @@
       });
     }
 
+    buildTransportControls();
     buildCatCareControls();
     bindPetTypeInputs();
     [elements.checkIn, elements.checkOut, elements.isGraduatedCat].forEach(function (input) {
@@ -594,6 +666,7 @@
 
   return {
     actionStateFor: actionStateFor,
+    applyTransportEstimate: applyTransportEstimate,
     applyCatPackageSelection: applyCatPackageSelection,
     buildQuoteText: buildQuoteText,
     dogCareLineFor: dogCareLineFor,
