@@ -30,7 +30,7 @@ test('dog boarding and canonical care prices stay behind one disabled public gat
     public: false,
     preparingVisible: true,
     locationNotice: '大阪・針中野での受付開始を予定しています。開始時期は決まり次第お知らせします。',
-    boardingBasePrice: { small: 5000, medium: 5500, large: 6500 },
+    boardingBasePrice: { small: 5000, medium: 7500, large: 9500 },
     weightBands: {
       small: { minKg: 0, maxKgExclusive: 10 },
       medium: { minKg: 10, maxKgExclusive: 20 },
@@ -61,7 +61,7 @@ test('dog boarding and canonical care prices stay behind one disabled public gat
   assert.deepEqual(source.match(/\bpublic\s*:\s*(?:true|false)/g), ['public: false']);
   assert.doesNotMatch(source, /basicCareBasePrice/);
   assert.doesNotMatch(`${source}\n${calcSource}`, /allowDraft/);
-  assert.doesNotMatch(calcSource, /\b(?:5000|5500|6500|7400|8200|8900)\b/);
+  assert.doesNotMatch(calcSource, /\b(?:5000|7500|9500|7400|8200|8900)\b/);
 });
 
 test('dog calculators fail closed while the public gate is false', () => {
@@ -136,15 +136,15 @@ test('the single config flip projects unified dog boarding and undiscounted care
     }, projection);
     assert.deepEqual(
       [weekend.boardingTotal, schoolVacation.boardingTotal, highSeason.boardingTotal],
-      [5000, 5500, 6500],
+      [5000, 7500, 9500],
     );
 
     const stays = [
       ['small', '2026-02-08', 7, 0.95, 33300],
       ['small', '2026-02-15', 14, 0.90, 63000],
       ['small', '2026-03-03', 30, 0.80, 120000],
-      ['medium', '2026-03-03', 30, 0.80, 132000],
-      ['large', '2026-03-03', 30, 0.80, 156000],
+      ['medium', '2026-03-03', 30, 0.80, 180000],
+      ['large', '2026-03-03', 30, 0.80, 228000],
     ];
     for (const [size, checkOutDate, nights, rate, total] of stays) {
       const result = calc.calculateDogBoarding({

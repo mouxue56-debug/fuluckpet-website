@@ -63,7 +63,7 @@
       public: false,
       preparingVisible: true,
       locationNotice: '大阪・針中野での受付開始を予定しています。開始時期は決まり次第お知らせします。',
-      boardingBasePrice: { small: 5000, medium: 5500, large: 6500 },
+      boardingBasePrice: { small: 5000, medium: 7500, large: 9500 },
       weightBands: {
         small: { minKg: 0, maxKgExclusive: 10 },
         medium: { minKg: 10, maxKgExclusive: 20 },
