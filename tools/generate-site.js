@@ -52,22 +52,75 @@ function writeDogServicesProjection() {
   console.log(`  dog-services-preparing.json: ${JSON.parse(preparingOutput).preparing ? 'visible' : 'hidden'}`);
 }
 
-function writeCatCarePage() {
-  const { CONFIG } = require('../boarding-public-config.js');
-  const CareCatalogStatic = require('./care-catalog-static.js');
-  const filepath = path.join(SITE_DIR, 'grooming', 'index.html');
-  const changed = CareCatalogStatic.writeGroomingPage(filepath, CONFIG.careCatalog.cat);
-  console.log(`  grooming/index.html: cat care catalog ${changed ? 'updated' : 'current'}`);
-}
-
-function writeTransportPages() {
+function writeServicePages() {
   const { CONFIG } = require('../boarding-public-config.js');
   const TransportServiceStatic = require('./transport-service-static.js');
-  for (const relative of ['boarding/index.html', 'grooming/index.html']) {
-    const filepath = path.join(SITE_DIR, relative);
-    const changed = TransportServiceStatic.writeTransportPage(filepath, CONFIG.petTransport);
-    console.log(`  ${relative}: pet transport ${changed ? 'updated' : 'current'}`);
+  const CareCatalogStatic = require('./care-catalog-static.js');
+  const boardingPath = path.join(SITE_DIR, 'boarding', 'index.html');
+  const groomingPath = path.join(SITE_DIR, 'grooming', 'index.html');
+
+  // Build the complete two-page service release before staging either target.
+  // A damaged later marker must not leave an updated boarding page beside the
+  // previous grooming page.
+  const boardingSource = fs.readFileSync(boardingPath, 'utf8');
+  const groomingSource = fs.readFileSync(groomingPath, 'utf8');
+  const boardingMode = fs.statSync(boardingPath).mode & 0o777;
+  const groomingMode = fs.statSync(groomingPath).mode & 0o777;
+  const boardingOutput = TransportServiceStatic.buildTransportPage(boardingSource, CONFIG.petTransport);
+  const groomingWithTransport = TransportServiceStatic.buildTransportPage(groomingSource, CONFIG.petTransport);
+  const groomingOutput = CareCatalogStatic.buildGroomingPage(groomingWithTransport, CONFIG.careCatalog.cat);
+  const stamp = `${process.pid}-${Date.now()}`;
+  const releases = [
+    {
+      filepath: boardingPath,
+      output: boardingOutput,
+      source: boardingSource,
+      mode: boardingMode,
+      temp: path.join(path.dirname(boardingPath), `.index.html.service-${stamp}-boarding.tmp`),
+    },
+    {
+      filepath: groomingPath,
+      output: groomingOutput,
+      source: groomingSource,
+      mode: groomingMode,
+      temp: path.join(path.dirname(groomingPath), `.index.html.service-${stamp}-grooming.tmp`),
+    },
+  ];
+  const staged = [];
+  let releaseError = null;
+  try {
+    for (const release of releases) {
+      if (release.output === release.source) continue;
+      staged.push(release);
+      fs.writeFileSync(release.temp, release.output, {
+        encoding: 'utf8',
+        flag: 'wx',
+        mode: release.mode,
+      });
+      fs.chmodSync(release.temp, release.mode);
+    }
+    for (const release of staged) fs.renameSync(release.temp, release.filepath);
+  } catch (error) {
+    releaseError = error;
   }
+  const cleanupErrors = [];
+  for (const release of staged) {
+    try {
+      if (fs.existsSync(release.temp)) fs.unlinkSync(release.temp);
+    } catch (error) {
+      cleanupErrors.push(error);
+    }
+  }
+  if (releaseError || cleanupErrors.length) {
+    throw new AggregateError(
+      [releaseError].concat(cleanupErrors).filter(Boolean),
+      'service page release failed',
+    );
+  }
+
+  console.log(`  boarding/index.html: pet transport ${boardingOutput === boardingSource ? 'current' : 'updated'}`);
+  console.log(`  grooming/index.html: pet transport ${groomingWithTransport === groomingSource ? 'current' : 'updated'}`);
+  console.log(`  grooming/index.html: cat care catalog ${groomingOutput === groomingWithTransport ? 'current' : 'updated'}`);
 }
 
 // ── Breed Config ──────────────────────────────────────────────
@@ -3164,8 +3217,7 @@ async function main() {
 
   // Deterministic service projections. They are written only after the complete API
   // snapshot passes the no-partial-write gates.
-  writeTransportPages();
-  writeCatCarePage();
+  writeServicePages();
   writeDogServicesProjection();
 
   // Emit the single-source catalog value translations first — client renderers

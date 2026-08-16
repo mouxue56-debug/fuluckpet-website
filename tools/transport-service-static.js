@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const TRANSPORT_START = '<!-- BEGIN GENERATED PET TRANSPORT -->';
 const TRANSPORT_END = '<!-- END GENERATED PET TRANSPORT -->';
 const LINE_URL = 'https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true';
+const TRANSPORT_CONFIRMATION_COPY = '表示は税込の参考価格です。距離と送迎可否は、住所と日程を確認のうえ当店が確定します。';
 
 const TIER_CONTRACT = [
   { id: 'within3', status: 'priced', minKmExclusive: undefined, maxKmInclusive: 3 },
@@ -86,6 +87,7 @@ function renderTransportSection(config) {
     '<div class="service-table-wrap"><table class="service-table" aria-labelledby="pet-transport-heading">' +
     '<thead><tr><th scope="col">片道距離</th><th scope="col">片道1回</th><th scope="col">お迎え＋お送り</th></tr></thead>' +
     `<tbody>${rows}</tbody></table></div>` +
+    `<p class="service-note">${TRANSPORT_CONFIRMATION_COPY}</p>` +
     '<p class="service-note">送迎料金は割引対象外です。子猫のお届けとは別料金です。</p>' +
     '</div></section>';
 }
@@ -136,7 +138,7 @@ function formatTransportKnowledge(config) {
     if (tier.status === 'quote') return `${tier.label}はLINEでお見積り`;
     return `${tier.label}は送迎対応なし`;
   });
-  return `ペット送迎はお預かり・ケア利用時のサービスで、${tiers.join('、')}。割引対象外で、子猫のお届けとは別料金。`;
+  return `ペット送迎はお預かり・ケア利用時のサービスで、${tiers.join('、')}。割引対象外で、子猫のお届けとは別料金。${TRANSPORT_CONFIRMATION_COPY}`;
 }
 
 module.exports = {

@@ -1,5 +1,6 @@
 /* boarding-public-config.js — licensed public boarding and cat-care price source.
- * Values are the owner-approved 2026-07-14 unified prices. Dog prices are retained
+ * The unified base policy began 2026-07-14; dog and pet-transport prices were
+ * owner-approved on 2026-08-16. Dog prices are retained
  * only as a disabled capability while dog services remain受付停止.
  * Browser: window.BOARDING_CONFIG; Node: require(). */
 (function (root) {

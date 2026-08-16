@@ -52,6 +52,7 @@ test('transport renderer emits one accessible table with all prices and boundari
     '5kmを超え10km以内', '¥6,600',
     '10kmを超え20km以内', 'LINEでお見積り',
     '20km超', '送迎対応なし', '割引対象外', '子猫のお届けとは別料金',
+    '表示は税込の参考価格です。距離と送迎可否は、住所と日程を確認のうえ当店が確定します。',
   ]) assert.match(rendered, new RegExp(copy.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   assert.equal((rendered.match(/<tbody>[\s\S]*?<\/tbody>/)[0].match(/<tr>/g) || []).length, 5);
 });
@@ -106,7 +107,17 @@ test('transport knowledge contains the three numeric tiers and service limits', 
     '5kmを超え10km以内は片道1回3,300円・お迎え＋お送り6,600円',
     '10kmを超え20km以内はLINEでお見積り', '20km超は送迎対応なし',
     '割引対象外', '子猫のお届けとは別料金',
+    '表示は税込の参考価格です。距離と送迎可否は、住所と日程を確認のうえ当店が確定します。',
   ]) assert.match(text, new RegExp(copy.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+});
+
+test('both generated service pages publish the exact tax and final-confirmation sentence', () => {
+  const sentence = '表示は税込の参考価格です。距離と送迎可否は、住所と日程を確認のうえ当店が確定します。';
+  for (const relative of ['boarding/index.html', 'grooming/index.html']) {
+    const source = fs.readFileSync(path.join(ROOT, relative), 'utf8');
+    assert.equal(source.split(sentence).length - 1, 1, relative);
+    assert.equal(isTransportPageFresh(source, CONFIG.petTransport), true, relative);
+  }
 });
 
 test('verify-generated rejects either stale transport page', (t) => {

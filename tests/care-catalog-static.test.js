@@ -141,6 +141,7 @@ test('care knowledge is config-derived and keeps stopped dog prices next to thei
     '5kmを超え10km以内は片道1回3,300円・お迎え＋お送り6,600円',
     '10kmを超え20km以内はLINEでお見積り', '20km超は送迎対応なし',
     '割引対象外', '子猫のお届けとは別料金',
+    '表示は税込の参考価格です。距離と送迎可否は、住所と日程を確認のうえ当店が確定します。',
     'https://fuluckpet.com/boarding/', 'https://fuluckpet.com/boarding/estimate.html', 'https://fuluckpet.com/grooming/',
   ]) assert.match(text, new RegExp(value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   assert.match(text, /犬[^。]{0,240}予定価格[^。]{0,240}現在受付停止/);
