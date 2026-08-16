@@ -13,6 +13,10 @@ const SPEC_FIELDS = [...KEY_FIELDS, 'sourceKey', 'payloadHash', 'recipientFinger
 const OWNER_EMAIL_TO = 'mouxue56@gmail.com';
 const OWNER_EMAIL_FROM = { email: 'noreply@fuluckpet.com', name: 'fuluckpet 通知' };
 const ADMIN_URL = 'https://fuluckpet.com/admin/';
+const DUE_PREFIX = 'notify:due:';
+const MAX_DUE_PER_RECONCILE = 100;
+const LIST_PAGE_LIMIT = 1_000;
+const HOUR_MS = 60 * 60_000;
 
 export function notifyItemKey({ entityKind, entityId, channel, template }) {
   return `notify:item:${entityKind}:${entityId}:${channel}:${template}`;
@@ -58,6 +62,10 @@ function jstDate(nowMs) {
 
 function dailyReferenceKey(nowMs, itemKey) {
   return `notify:daily:${jstDate(nowMs)}:${encodeURIComponent(itemKey)}`;
+}
+
+function previousJstDate(nowMs) {
+  return jstDate(nowMs - 24 * HOUR_MS);
 }
 
 function toJson(value, field, maxLength) {
@@ -150,6 +158,11 @@ function putOptions() {
 
 function encodeItem(item) {
   return toJson(item, 'notification item', MAX_RESULT_LENGTH);
+}
+
+async function sha256(value) {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(value)));
+  return `sha256:${[...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('')}`;
 }
 
 function normalizeReplyTo(value) {
@@ -437,6 +450,7 @@ export async function createNotifyIntent(env, spec, nowMs) {
     due_key: dueKey,
     sent_at: null,
     last_error: null,
+    last_error_code: null,
     result: null,
   };
 
@@ -472,8 +486,8 @@ export async function markNotifySent(env, itemKey, result, nowMs) {
     due_key: null,
     result: sanitizedResult,
   };
-  if (item.due_key && typeof env.DATA.delete === 'function') await env.DATA.delete(item.due_key);
   await env.DATA.put(itemKey, encodeItem(updated), putOptions());
+  if (item.due_key && typeof env.DATA.delete === 'function') await env.DATA.delete(item.due_key);
   return updated;
 }
 
@@ -482,7 +496,7 @@ export async function markNotifyFailure(env, itemKey, error, nowMs) {
   assertString(itemKey, 'itemKey');
   assertNow(nowMs);
   const item = await readJson(env, itemKey);
-  if (!item || item.status === 'sent' || item.status === 'failed') return item;
+  if (!item || ['sent', 'failed', 'dead_letter'].includes(item.status)) return item;
 
   const attemptCount = Number.isSafeInteger(item.attempt_count) && item.attempt_count >= 0
     ? item.attempt_count + 1 : 1;
@@ -499,12 +513,228 @@ export async function markNotifyFailure(env, itemKey, error, nowMs) {
     next_attempt_ms: nextAttemptMs,
     due_key: dueKey,
     last_error: sanitizedError,
+    last_error_code: sanitizedError.code,
   };
 
+  if (dueKey) await env.DATA.put(dueKey, itemKey, putOptions());
+  await env.DATA.put(itemKey, encodeItem(updated), putOptions());
   if (item.due_key && item.due_key !== dueKey && typeof env.DATA.delete === 'function') {
     await env.DATA.delete(item.due_key);
   }
-  await env.DATA.put(itemKey, encodeItem(updated), putOptions());
-  if (dueKey) await env.DATA.put(dueKey, itemKey, putOptions());
   return updated;
+}
+
+async function markNotifyDeadLetter(env, itemKey, error, nowMs, countAttempt = false) {
+  const item = await readJson(env, itemKey);
+  if (!item || ['sent', 'failed', 'dead_letter'].includes(item.status)) return item;
+  const sanitizedError = sanitizeError(error);
+  const attemptCount = countAttempt
+    ? (Number.isSafeInteger(item.attempt_count) && item.attempt_count >= 0 ? item.attempt_count + 1 : 1)
+    : item.attempt_count;
+  const updated = {
+    ...item,
+    status: 'dead_letter',
+    attempt_count: attemptCount,
+    updated_at: nowMs,
+    next_attempt_ms: null,
+    due_key: null,
+    last_error: sanitizedError,
+    last_error_code: sanitizedError.code,
+  };
+  await env.DATA.put(itemKey, encodeItem(updated), putOptions());
+  if (item.due_key && typeof env.DATA.delete === 'function') await env.DATA.delete(item.due_key);
+  return updated;
+}
+
+function messageForItem(item, source) {
+  switch (item.template) {
+    case 'owner_booking_v1':
+      return buildBookingOwnerMessage(source, item.entity_id);
+    case 'owner_chat_v1':
+      return buildChatOwnerMessage(source);
+    case 'owner_daily_v1':
+      return buildDailyOwnerMessage(source);
+    default:
+      return null;
+  }
+}
+
+function dueTimeFromKey(dueKey) {
+  const match = /^notify:due:(\d{13}):/.exec(dueKey);
+  return match ? Number(match[1]) : null;
+}
+
+export async function attemptNotifyIntent(env, itemKey, nowMs, dependencies = {}) {
+  assertEnv(env);
+  assertString(itemKey, 'itemKey');
+  assertNow(nowMs);
+  const item = await readJson(env, itemKey);
+  if (!item || ['sent', 'failed', 'dead_letter'].includes(item.status)) return item;
+  if (Number.isSafeInteger(item.next_attempt_ms) && item.next_attempt_ms > nowMs) return item;
+
+  const source = await readJson(env, item.source_key);
+  if (!source) {
+    return markNotifyDeadLetter(env, itemKey, { code: 'source_missing' }, nowMs);
+  }
+
+  const message = messageForItem(item, source);
+  if (!message) {
+    return markNotifyDeadLetter(env, itemKey, { code: 'template_unsupported' }, nowMs);
+  }
+
+  let result;
+  try {
+    if (item.channel === 'email') {
+      result = await sendEmailTransport(env, message);
+    } else if (item.channel === 'telegram') {
+      result = await sendTelegramTransport(env, message, dependencies.fetchImpl, dependencies.signal);
+    } else {
+      return markNotifyDeadLetter(env, itemKey, { code: 'channel_unsupported' }, nowMs);
+    }
+  } catch (error) {
+    if (error instanceof NotifyTransportError && error.permanent) {
+      return markNotifyDeadLetter(env, itemKey, error, nowMs, true);
+    }
+    return markNotifyFailure(env, itemKey, error, nowMs);
+  }
+
+  return markNotifySent(env, itemKey, result, nowMs);
+}
+
+export async function reconcileDueNotifications(env, nowMs, dependencies = {}) {
+  assertEnv(env);
+  assertNow(nowMs);
+  if (typeof env.DATA.list !== 'function' || typeof env.DATA.delete !== 'function') {
+    throw new TypeError('env.DATA list and delete methods are required');
+  }
+
+  let cursor = '';
+  let processed = 0;
+  let attempted = 0;
+  let staleDeleted = 0;
+  let reachedFuture = false;
+
+  while (processed < MAX_DUE_PER_RECONCILE && !reachedFuture) {
+    const page = await env.DATA.list({ prefix: DUE_PREFIX, cursor, limit: LIST_PAGE_LIMIT });
+    const keys = Array.isArray(page?.keys) ? page.keys : [];
+    for (const entry of keys) {
+      if (processed >= MAX_DUE_PER_RECONCILE) break;
+      const dueKey = entry?.name;
+      if (typeof dueKey !== 'string') continue;
+      const dueTime = dueTimeFromKey(dueKey);
+      if (dueTime !== null && dueTime > nowMs) {
+        reachedFuture = true;
+        break;
+      }
+      processed += 1;
+      const itemKey = await env.DATA.get(dueKey);
+      const item = typeof itemKey === 'string' ? await readJson(env, itemKey) : null;
+      if (!item || item.due_key !== dueKey) {
+        await env.DATA.delete(dueKey);
+        staleDeleted += 1;
+        continue;
+      }
+      attempted += 1;
+      await attemptNotifyIntent(env, itemKey, nowMs, dependencies);
+    }
+
+    if (processed >= MAX_DUE_PER_RECONCILE || reachedFuture || page?.list_complete !== false) break;
+    if (typeof page.cursor !== 'string' || page.cursor.length === 0 || page.cursor === cursor) break;
+    cursor = page.cursor;
+  }
+
+  return { processed, attempted, stale_deleted: staleDeleted };
+}
+
+async function listReferenceItemKeys(env, prefix) {
+  const itemKeys = [];
+  let cursor = '';
+  do {
+    const page = await env.DATA.list({ prefix, cursor, limit: LIST_PAGE_LIMIT });
+    for (const entry of Array.isArray(page?.keys) ? page.keys : []) {
+      const itemKey = await env.DATA.get(entry.name);
+      if (typeof itemKey === 'string') itemKeys.push(itemKey);
+    }
+    if (page?.list_complete !== false) break;
+    if (typeof page.cursor !== 'string' || page.cursor.length === 0 || page.cursor === cursor) break;
+    cursor = page.cursor;
+  } while (true);
+  return [...new Set(itemKeys)].sort();
+}
+
+async function buildDailySummarySource(env, dateJst) {
+  const itemKeys = await listReferenceItemKeys(env, `notify:daily:${dateJst}:`);
+  const counts = {
+    total: 0,
+    sent: 0,
+    pending: 0,
+    retry: 0,
+    failed: 0,
+    dead_letter: 0,
+  };
+  const notes = [];
+  for (const itemKey of itemKeys) {
+    const item = await readJson(env, itemKey);
+    if (!item) continue;
+    counts.total += 1;
+    if (Object.prototype.hasOwnProperty.call(counts, item.status) && item.status !== 'total') {
+      counts[item.status] += 1;
+    }
+    if (notes.length < 100) {
+      notes.push(trimText(`${item.entity_kind}:${item.entity_id} ${item.channel} ${item.status}`, 200));
+    }
+  }
+  const summary = [
+    `Total ${counts.total}`,
+    `Sent ${counts.sent}`,
+    `Pending ${counts.pending}`,
+    `Retry ${counts.retry}`,
+    `Failed ${counts.failed}`,
+    `Dead letter ${counts.dead_letter}`,
+  ].join(' / ');
+  return { dateJst, summary, counts, notes };
+}
+
+export async function ensureDailyReconcileSummary(env, nowMs, dependencies = {}) {
+  assertEnv(env);
+  assertNow(nowMs);
+  if (typeof env.DATA.list !== 'function') throw new TypeError('env.DATA list method is required');
+  if (new Date(nowMs).getUTCHours() !== 0) {
+    return { active: false, source_created: false, created_item_keys: [] };
+  }
+
+  const dateJst = previousJstDate(nowMs);
+  const summaryKey = `notify:summary:${dateJst}`;
+  let source = await readJson(env, summaryKey);
+  let sourceCreated = false;
+  if (!source) {
+    source = await buildDailySummarySource(env, dateJst);
+    await env.DATA.put(summaryKey, JSON.stringify(source), putOptions());
+    sourceCreated = true;
+  }
+
+  const payloadHash = await sha256(JSON.stringify(source));
+  const createdItemKeys = [];
+  for (const channel of ['email', 'telegram']) {
+    const recipientIdentity = channel === 'email' ? OWNER_EMAIL_TO : (env.TELEGRAM_CHAT_ID || 'unconfigured');
+    const result = await createNotifyIntent(env, {
+      entityKind: 'summary',
+      entityId: dateJst,
+      channel,
+      template: 'owner_daily_v1',
+      sourceKey: summaryKey,
+      payloadHash,
+      recipientFingerprint: await sha256(`${channel}:${recipientIdentity}`),
+    }, nowMs);
+    if (result.created) createdItemKeys.push(result.itemKey);
+  }
+
+  void dependencies;
+  return {
+    active: true,
+    date_jst: dateJst,
+    summary_key: summaryKey,
+    source_created: sourceCreated,
+    created_item_keys: createdItemKeys,
+  };
 }
