@@ -136,6 +136,11 @@ test('care knowledge is config-derived and keeps stopped dog prices next to thei
     '小型犬（10kg未満）5,000円', '中型犬（10kg以上20kg未満）7,500円', '大型犬（20kg以上）9,500円',
     '660円／880円／1,100円', '1,650円／2,200円／2,750円',
     '予定価格', '現在受付停止',
+    '3km以内は片道1回1,650円・お迎え＋お送り3,300円',
+    '3kmを超え5km以内は片道1回2,200円・お迎え＋お送り4,400円',
+    '5kmを超え10km以内は片道1回3,300円・お迎え＋お送り6,600円',
+    '10kmを超え20km以内はLINEでお見積り', '20km超は送迎対応なし',
+    '割引対象外', '子猫のお届けとは別料金',
     'https://fuluckpet.com/boarding/', 'https://fuluckpet.com/boarding/estimate.html', 'https://fuluckpet.com/grooming/',
   ]) assert.match(text, new RegExp(value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   assert.match(text, /犬[^。]{0,240}予定価格[^。]{0,240}現在受付停止/);
@@ -147,8 +152,9 @@ test('verify-generated rejects a stale grooming menu or schema block', (t) => {
   t.after(() => fs.rmSync(site, { recursive: true, force: true }));
   for (const relative of [
     'tools/verify-generated.js', 'tools/robots-meta.js', 'tools/safe-json-for-html.js',
-    'tools/care-catalog-static.js', 'boarding-public-config.js', 'dog-services-projection.js',
+    'tools/care-catalog-static.js', 'tools/transport-service-static.js', 'boarding-public-config.js', 'dog-services-projection.js',
     'dog-services-launch.json', 'dog-services-preparing.json', 'grooming/index.html',
+    'boarding/index.html',
   ]) {
     const target = path.join(site, relative);
     fs.mkdirSync(path.dirname(target), { recursive: true });

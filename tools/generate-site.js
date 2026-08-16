@@ -60,6 +60,16 @@ function writeCatCarePage() {
   console.log(`  grooming/index.html: cat care catalog ${changed ? 'updated' : 'current'}`);
 }
 
+function writeTransportPages() {
+  const { CONFIG } = require('../boarding-public-config.js');
+  const TransportServiceStatic = require('./transport-service-static.js');
+  for (const relative of ['boarding/index.html', 'grooming/index.html']) {
+    const filepath = path.join(SITE_DIR, relative);
+    const changed = TransportServiceStatic.writeTransportPage(filepath, CONFIG.petTransport);
+    console.log(`  ${relative}: pet transport ${changed ? 'updated' : 'current'}`);
+  }
+}
+
 // ── Breed Config ──────────────────────────────────────────────
 
 const BREED_CONFIG = [
@@ -3152,8 +3162,9 @@ async function main() {
   // Generate pages
   console.log('Generating pages...');
 
-  // Deterministic public projection of the one owner-controlled dog-service gate.
-  // It is written only after the complete API snapshot passes the no-partial-write gates.
+  // Deterministic service projections. They are written only after the complete API
+  // snapshot passes the no-partial-write gates.
+  writeTransportPages();
   writeCatCarePage();
   writeDogServicesProjection();
 

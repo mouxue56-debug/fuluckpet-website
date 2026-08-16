@@ -19,6 +19,32 @@ const errors = [];
 const BASE_URL = 'https://fuluckpet.com';
 const SHARED_ASSETS = ['style.css', 'i18n.js', 'nav.js', 'nav.css'];
 
+// --- Check 0b: generated pet-transport page freshness ---
+// Boarding and care must project the same canonical transport contract.
+const transportFiles = [
+  'boarding-public-config.js', 'tools/transport-service-static.js',
+  'boarding/index.html', 'grooming/index.html',
+];
+const transportPresence = transportFiles.map(rel => fs.existsSync(path.join(SITE, rel)));
+if (transportPresence.some(Boolean)) {
+  if (!transportPresence.every(Boolean)) {
+    errors.push('[pet-transport] generated transport inputs/outputs are incomplete');
+  } else {
+    try {
+      const { CONFIG } = require('../boarding-public-config.js');
+      const TransportServiceStatic = require('./transport-service-static.js');
+      for (const relative of ['boarding/index.html', 'grooming/index.html']) {
+        const source = fs.readFileSync(path.join(SITE, relative), 'utf8');
+        if (!TransportServiceStatic.isTransportPageFresh(source, CONFIG.petTransport)) {
+          errors.push(`[pet-transport] ${relative} is stale`);
+        }
+      }
+    } catch (_) {
+      errors.push('[pet-transport] generated transport pages are stale');
+    }
+  }
+}
+
 // --- Check 0a: generated cat-care page freshness ---
 // The visible menu and JSON-LD must always describe the canonical catalog together.
 const catCareFiles = [

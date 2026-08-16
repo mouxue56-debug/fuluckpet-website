@@ -71,6 +71,17 @@
       },
     },
 
+    petTransport: {
+      discountEligible: false,
+      tiers: [
+        { id: 'within3', label: '3km以内', maxKmInclusive: 3, status: 'priced', oneWayPrice: 1650, roundTripPrice: 3300 },
+        { id: 'over3to5', label: '3kmを超え5km以内', minKmExclusive: 3, maxKmInclusive: 5, status: 'priced', oneWayPrice: 2200, roundTripPrice: 4400 },
+        { id: 'over5to10', label: '5kmを超え10km以内', minKmExclusive: 5, maxKmInclusive: 10, status: 'priced', oneWayPrice: 3300, roundTripPrice: 6600 },
+        { id: 'over10to20', label: '10kmを超え20km以内', minKmExclusive: 10, maxKmInclusive: 20, status: 'quote', oneWayPrice: null, roundTripPrice: null },
+        { id: 'over20', label: '20km超', minKmExclusive: 20, maxKmInclusive: null, status: 'unavailable', oneWayPrice: null, roundTripPrice: null },
+      ],
+    },
+
     careCatalog: {
       cat: CAT_CARE_CATALOG,
       dog: DOG_CARE_CATALOG,
