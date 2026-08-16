@@ -196,7 +196,7 @@
         if (value) dogProjectionApi = value;
         resolve(value);
       }
-      script.src = '/dog-services-projection.js?v=20260714f';
+      script.src = '/dog-services-projection.js?v=20260816a';
       script.async = true;
       script.onload = function () { finish(window.DogServicesProjection || null); };
       script.onerror = function () { finish(null); };

@@ -20,15 +20,16 @@ const ADMIN_PHOTOS_RELEASE = '20260811a';
 const ADMIN_DIARY_RELEASE = '20260711a';
 const ADMIN_FAQ_RELEASE = TRUTH_RELEASE;
 const ADMIN_CALENDAR_RELEASE = '20260714c';
-const NAV_RELEASE = '20260714f';
+const NAV_RELEASE = '20260816a';
 const I18N_RELEASE = '20260713a';
 const NAV_STYLE_RELEASE = '20260711c';
 const CHAT_STYLE_RELEASE = '20260712e';
 const CHAT_RELEASE = '20260714g';
-const SERVICE_STYLE_RELEASE = '20260714g';
-const SERVICE_RELEASE = '20260714f';
-const DOG_UI_RELEASE = '20260714f';
-const ESTIMATE_RELEASE = '20260714f';
+const SERVICE_STYLE_RELEASE = '20260816a';
+const SERVICE_RELEASE = '20260816a';
+const SERVICE_CALC_RELEASE = '20260816a';
+const DOG_UI_RELEASE = '20260816a';
+const ESTIMATE_RELEASE = '20260816a';
 const PUBLIC_ASSETS = {
   'style.css': STYLE_RELEASE,
   'nav.css': NAV_STYLE_RELEASE,
@@ -50,7 +51,7 @@ const PUBLIC_ASSETS = {
   'assets/chat/widget.js': CHAT_RELEASE,
   'services.css': SERVICE_STYLE_RELEASE,
   'boarding-public-config.js': SERVICE_RELEASE,
-  'boarding-public-calc.js': SERVICE_RELEASE,
+  'boarding-public-calc.js': SERVICE_CALC_RELEASE,
   'dog-services-projection.js': SERVICE_RELEASE,
   'dog-services-public-ui.js': DOG_UI_RELEASE,
   'boarding/boarding-public-estimate.js': ESTIMATE_RELEASE,

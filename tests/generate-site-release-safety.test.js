@@ -54,12 +54,14 @@ function createRunnableLastGoodSite(t, kittenMode) {
     'tools/robots-meta.js',
     'tools/safe-json-for-html.js',
     'tools/care-catalog-static.js',
+    'tools/transport-service-static.js',
     'kitten-catalog.js',
     'small-animals-launch.json',
     'boarding-public-config.js',
     'dog-services-projection.js',
     'dog-services-launch.json',
     'dog-services-preparing.json',
+    'boarding/index.html',
     'grooming/index.html',
     'index.html',
     'kittens.html',
@@ -284,6 +286,39 @@ test('grooming care marker damage fails before changing any last-good artifact',
   assert.match(`${result.stdout}\n${result.stderr}`, /cat care marker|generated cat care/i);
   assert.deepEqual([...after.keys()], [...before.keys()]);
   for (const [rel, bytes] of before) assert.deepEqual(after.get(rel), bytes, rel);
+});
+
+test('stale boarding plus damaged grooming markers leaves both service pages byte-identical', (t) => {
+  const { siteDir, preloadPath } = createRunnableLastGoodSite(t, 'empty');
+  const boardingPath = path.join(siteDir, 'boarding/index.html');
+  const groomingPath = path.join(siteDir, 'grooming/index.html');
+  fs.writeFileSync(
+    boardingPath,
+    fs.readFileSync(boardingPath, 'utf8').replace('¥1,650', '¥1,651'),
+    'utf8',
+  );
+  fs.writeFileSync(
+    groomingPath,
+    fs.readFileSync(groomingPath, 'utf8').replace('<!-- BEGIN GENERATED CAT CARE MENU -->', ''),
+    'utf8',
+  );
+  const boardingBefore = fs.readFileSync(boardingPath);
+  const groomingBefore = fs.readFileSync(groomingPath);
+
+  const result = childProcess.spawnSync(
+    process.execPath,
+    ['--require', preloadPath, path.join(siteDir, 'tools/generate-site.js')],
+    {
+      cwd: siteDir,
+      encoding: 'utf8',
+      env: { ...process.env, SMALL_ANIMALS_DARK_SLUG: '', FULUCK_ADMIN_PASS: '' },
+    },
+  );
+
+  assert.notEqual(result.status, 0);
+  assert.match(`${result.stdout}\n${result.stderr}`, /cat care marker|generated cat care/i);
+  assert.equal(fs.readFileSync(boardingPath).equals(boardingBefore), true, 'stale boarding must not be updated early');
+  assert.equal(fs.readFileSync(groomingPath).equals(groomingBefore), true, 'damaged grooming must remain untouched');
 });
 
 function loadGeneratorForSite(t, siteDir) {

@@ -2,6 +2,7 @@
 
 const fs = require('node:fs');
 const { safeJsonForHtmlScript } = require('./safe-json-for-html');
+const { formatTransportKnowledge } = require('./transport-service-static');
 
 const SCHEMA_START = '<!-- BEGIN GENERATED CAT CARE SCHEMA -->';
 const SCHEMA_END = '<!-- END GENERATED CAT CARE SCHEMA -->';
@@ -211,6 +212,7 @@ function formatCareKnowledge(config) {
     `長期料金は全動物共通で${longStayText(config.longStayDiscount)}。土日祝・繁忙期の加算はない。` +
     `福楽卒業猫はお預かり・猫のケアとも30%OFF、他の割引と併用不可。猫のシャンプー・基本ケアは${packageText}。部分ケアは${itemText}。` +
     `犬のお預かりは予定価格として${dogBoarding}、現在受付停止。犬のケアも予定価格として、単項目が体型別に${dogItems}、セットが${dogBundles}で、現在受付停止。` +
+    formatTransportKnowledge(config.petTransport) +
     '長期料金を含む概算は https://fuluckpet.com/boarding/ と https://fuluckpet.com/boarding/estimate.html 、猫の基本ケアは https://fuluckpet.com/grooming/ を確認し、正式料金はLINE相談後に確定する。';
 }
 
