@@ -512,6 +512,50 @@ test('JST 09:00 creates one prior-day source and two deterministic intents only 
   assert.equal(DATA.operations.length, putsAfterFirst);
 });
 
+test('daily summaries treat sent markers as authoritative over stale terminal item copies', async (t) => {
+  for (const staleStatus of ['retry', 'failed']) {
+    await t.test(staleStatus, async () => {
+      const { bindings, DATA } = createEnv();
+      const previousDayMs = Date.parse('2026-08-15T04:00:00.000Z');
+      const nowMs = Date.parse('2026-08-16T00:20:00.000Z');
+      const spec = notificationSpec({ entityId: `daily-stale-${staleStatus}` });
+      const intent = await createNotifyIntent(bindings, spec, previousDayMs);
+      await markNotifySent(
+        bindings,
+        intent.itemKey,
+        { providerMessageId: `email-${staleStatus}-confirmed` },
+        previousDayMs + 1,
+      );
+      const staleDueKey = notifyDueKey(previousDayMs + 2, intent.itemKey);
+      await putJson(DATA, intent.itemKey, {
+        ...intent.item,
+        status: staleStatus,
+        attempt_count: staleStatus === 'retry' ? 1 : 5,
+        updated_at: previousDayMs + 2,
+        next_attempt_ms: previousDayMs + 2,
+        due_key: staleDueKey,
+        result: null,
+      });
+      await DATA.put(staleDueKey, intent.itemKey);
+
+      const result = await ensureDailyReconcileSummary(bindings, nowMs, {});
+      const source = JSON.parse(DATA.store.get(result.summary_key));
+
+      assert.deepEqual(source.counts, {
+        total: 1,
+        sent: 1,
+        pending: 0,
+        retry: 0,
+        failed: 0,
+        dead_letter: 0,
+      });
+      assert.deepEqual(source.notes, ['email: sent']);
+      assert.equal(DATA.store.has(staleDueKey), false);
+      assert.equal(JSON.parse(DATA.store.get(intent.itemKey)).status, 'sent');
+    });
+  }
+});
+
 test('daily owner messages stay deterministic and bounded for 100 two-hundred-character notes', () => {
   const notes = Array.from({ length: 100 }, (_unused, index) => (
     `${String(index).padStart(3, '0')}:${'"'.repeat(196)}`

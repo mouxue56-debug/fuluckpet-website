@@ -740,7 +740,7 @@ async function buildDailySummarySource(env, dateJst) {
   };
   const notes = [];
   for (const itemKey of itemKeys) {
-    const item = await readJson(env, itemKey);
+    const item = await readAuthoritativeNotifyItem(env, itemKey);
     if (!item) continue;
     counts.total += 1;
     if (Object.prototype.hasOwnProperty.call(counts, item.status) && item.status !== 'total') {
