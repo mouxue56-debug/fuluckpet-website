@@ -118,11 +118,16 @@ test('second create is idempotent and does not reset an already-sent item', asyn
 test('marking a notification failure schedules the first retry', async () => {
   const { env: bindings } = env();
   const first = await createNotifyIntent(bindings, spec, 1_700_000_000_000);
-  const failed = await markNotifyFailure(bindings, first.itemKey, new Error('SMTP unavailable'), 1_700_000_001_000);
+  const error = Object.assign(new Error('customer email and password must never persist'), {
+    code: 'smtp_unavailable',
+    detail: 'temporary timeout',
+    password: 'secret-value',
+  });
+  const failed = await markNotifyFailure(bindings, first.itemKey, error, 1_700_000_001_000);
 
-  assert.equal(failed.status, 'pending');
+  assert.equal(failed.status, 'retry');
   assert.equal(failed.attempt_count, 1);
-  assert.equal(failed.last_error, 'SMTP unavailable');
+  assert.deepEqual(failed.last_error, { code: 'smtp_unavailable', detail: 'temporary timeout' });
   assert.equal(failed.next_attempt_ms, 1_700_000_001_000 + RETRY_DELAYS_MS[0]);
   assert.equal(failed.due_key, notifyDueKey(failed.next_attempt_ms, first.itemKey));
 });
@@ -130,11 +135,35 @@ test('marking a notification failure schedules the first retry', async () => {
 test('marking a notification sent removes its due reference and records the result', async () => {
   const { env: bindings, DATA } = env();
   const first = await createNotifyIntent(bindings, spec, 1_700_000_000_000);
-  const sent = await markNotifySent(bindings, first.itemKey, { provider_id: 'p-1' }, 1_700_000_001_000);
+  const sent = await markNotifySent(bindings, first.itemKey, {
+    providerMessageId: 'p-1',
+    providerStatusCode: 200,
+    secret: 'must-not-persist',
+  }, 1_700_000_001_000);
 
   assert.equal(sent.status, 'sent');
   assert.equal(sent.sent_at, 1_700_000_001_000);
-  assert.deepEqual(sent.result, { provider_id: 'p-1' });
+  assert.deepEqual(sent.result, { provider_message_id: 'p-1' });
   assert.equal(DATA.store.has(first.dueKey), false);
   assert.equal((await readNotifyItem(bindings, first.itemKey)).status, 'sent');
+});
+
+test('the fifth failed attempt is terminal and leaves no due reference', async () => {
+  const { env: bindings, DATA } = env();
+  const first = await createNotifyIntent(bindings, spec, 1_700_000_000_000);
+  let item = first.item;
+  for (let attempt = 1; attempt <= 5; attempt += 1) {
+    item = await markNotifyFailure(bindings, first.itemKey, {
+      code: 'telegram_unavailable',
+      detail: `attempt ${attempt}`,
+      token: 'must-not-persist',
+    }, 1_700_000_001_000 + attempt);
+  }
+
+  assert.equal(item.attempt_count, 5);
+  assert.equal(item.status, 'failed');
+  assert.equal(item.next_attempt_ms, null);
+  assert.equal(item.due_key, null);
+  assert.deepEqual(item.last_error, { code: 'telegram_unavailable', detail: 'attempt 5' });
+  assert.equal([...DATA.store.keys()].some((key) => key.startsWith('notify:due:')), false);
 });

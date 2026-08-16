@@ -5,6 +5,7 @@ export const RETRY_DELAYS_MS = [5 * 60_000, 30 * 60_000, 6 * 3_600_000, 24 * 3_6
 
 const MAX_FIELD_LENGTH = 512;
 const MAX_ERROR_LENGTH = 1_000;
+const MAX_PROVIDER_ID_LENGTH = 256;
 const MAX_RESULT_LENGTH = 4_000;
 const KEY_FIELDS = ['entityKind', 'entityId', 'channel', 'template'];
 const SPEC_FIELDS = [...KEY_FIELDS, 'sourceKey', 'payloadHash', 'recipientFingerprint'];
@@ -66,6 +67,31 @@ function toJson(value, field, maxLength) {
     throw new TypeError(`${field} is too large`);
   }
   return serialized;
+}
+
+function boundedString(value, maxLength) {
+  return typeof value === 'string' && value.length > 0 && value.length <= maxLength ? value : null;
+}
+
+function sanitizeProviderResult(result) {
+  if (!result || typeof result !== 'object' || Array.isArray(result)) return null;
+  const providerMessageId = boundedString(
+    result.providerMessageId
+      ?? result.provider_message_id
+      ?? result.providerId
+      ?? result.provider_id
+      ?? result.messageId
+      ?? result.message_id,
+    MAX_PROVIDER_ID_LENGTH,
+  );
+  return providerMessageId ? { provider_message_id: providerMessageId } : null;
+}
+
+function sanitizeError(error) {
+  const input = error && typeof error === 'object' ? error : {};
+  const code = boundedString(input.code, 128) ?? 'unknown';
+  const detail = boundedString(input.detail, MAX_ERROR_LENGTH);
+  return { code, detail };
 }
 
 async function readJson(env, key) {
@@ -138,7 +164,7 @@ export async function markNotifySent(env, itemKey, result, nowMs) {
   assertNow(nowMs);
   const item = await readJson(env, itemKey);
   if (!item || item.status === 'sent') return item;
-  toJson(result, 'result', MAX_RESULT_LENGTH);
+  const sanitizedResult = sanitizeProviderResult(result);
 
   const updated = {
     ...item,
@@ -147,7 +173,7 @@ export async function markNotifySent(env, itemKey, result, nowMs) {
     sent_at: nowMs,
     next_attempt_ms: null,
     due_key: null,
-    result,
+    result: sanitizedResult,
   };
   if (item.due_key && typeof env.DATA.delete === 'function') await env.DATA.delete(item.due_key);
   await env.DATA.put(itemKey, encodeItem(updated), putOptions());
@@ -163,19 +189,19 @@ export async function markNotifyFailure(env, itemKey, error, nowMs) {
 
   const attemptCount = Number.isSafeInteger(item.attempt_count) && item.attempt_count >= 0
     ? item.attempt_count + 1 : 1;
-  const errorText = String(error instanceof Error ? error.message : error).slice(0, MAX_ERROR_LENGTH);
+  const sanitizedError = sanitizeError(error);
   const retryIndex = attemptCount - 1;
   const canRetry = retryIndex < RETRY_DELAYS_MS.length;
   const nextAttemptMs = canRetry ? nowMs + RETRY_DELAYS_MS[retryIndex] : null;
   const dueKey = canRetry ? notifyDueKey(nextAttemptMs, itemKey) : null;
   const updated = {
     ...item,
-    status: canRetry ? 'pending' : 'failed',
+    status: canRetry ? 'retry' : 'failed',
     attempt_count: attemptCount,
     updated_at: nowMs,
     next_attempt_ms: nextAttemptMs,
     due_key: dueKey,
-    last_error: errorText,
+    last_error: sanitizedError,
   };
 
   if (item.due_key && item.due_key !== dueKey && typeof env.DATA.delete === 'function') {
