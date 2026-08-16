@@ -97,6 +97,20 @@ function boundedDetail(value) {
   return text.length > MAX_TRANSPORT_DETAIL_LENGTH ? text.slice(0, MAX_TRANSPORT_DETAIL_LENGTH) : text;
 }
 
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function sanitizeTelegramDetail(detail, token) {
+  if (detail === null || detail === undefined) return undefined;
+  let text = typeof detail === 'string' ? detail : JSON.stringify(detail);
+  text = text.replace(/https:\/\/api\.telegram\.org\/bot[^/\s?]+\/sendMessage(?:\?[^\s]*)?/g, '[REDACTED_TELEGRAM_URL]');
+  if (token) {
+    text = text.replace(new RegExp(escapeRegExp(token), 'g'), '[REDACTED]');
+  }
+  return boundedDetail(text);
+}
+
 function providerMessageIdFrom(result) {
   if (!result || typeof result !== 'object' || Array.isArray(result)) return null;
   const providerMessageId = result.providerMessageId
@@ -311,8 +325,9 @@ export async function sendEmailTransport(env, message) {
 }
 
 function classifyTelegramStatus(statusCode) {
-  if ([400, 401, 403].includes(statusCode)) return true;
+  if (!Number.isInteger(statusCode)) return false;
   if ([408, 429].includes(statusCode) || statusCode >= 500) return false;
+  if (statusCode >= 400 && statusCode < 500) return true;
   return false;
 }
 
@@ -351,7 +366,7 @@ export async function sendTelegramTransport(env, message, fetchImpl, signal) {
     throw new NotifyTransportError({
       code: 'telegram_network_error',
       permanent: false,
-      detail: error instanceof Error ? error.message : String(error),
+      detail: sanitizeTelegramDetail(error instanceof Error ? error.message : String(error), token),
     });
   }
 
@@ -361,7 +376,7 @@ export async function sendTelegramTransport(env, message, fetchImpl, signal) {
       code: 'telegram_http_error',
       permanent: classifyTelegramStatus(response.status),
       statusCode: response.status,
-      detail,
+      detail: sanitizeTelegramDetail(detail, token),
     });
   }
 
@@ -373,7 +388,7 @@ export async function sendTelegramTransport(env, message, fetchImpl, signal) {
       code: 'telegram_invalid_response',
       permanent: false,
       statusCode: response.status,
-      detail: error instanceof Error ? error.message : String(error),
+      detail: sanitizeTelegramDetail(error instanceof Error ? error.message : String(error), token),
     });
   }
 
@@ -383,7 +398,7 @@ export async function sendTelegramTransport(env, message, fetchImpl, signal) {
       code: 'telegram_api_error',
       permanent: classifyTelegramStatus(statusCode),
       statusCode,
-      detail: body?.description ?? 'Telegram API rejected the message',
+      detail: sanitizeTelegramDetail(body?.description ?? 'Telegram API rejected the message', token),
     });
   }
 

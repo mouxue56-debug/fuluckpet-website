@@ -180,6 +180,55 @@ test('sendTelegramTransport classifies HTTP 429 as retryable', async () => {
   );
 });
 
+test('sendTelegramTransport redacts token-bearing request URLs from network exceptions', async () => {
+  const env = {
+    TELEGRAM_BOT_TOKEN: 'top-secret-token',
+    TELEGRAM_CHAT_ID: '123456',
+  };
+
+  await assert.rejects(
+    sendTelegramTransport(
+      env,
+      { telegramText: 'Hello' },
+      async () => {
+        throw new Error('fetch failed for https://api.telegram.org/bottop-secret-token/sendMessage?chat_id=123456');
+      },
+    ),
+    (error) => {
+      assert.ok(error instanceof NotifyTransportError);
+      assert.equal(error.code, 'telegram_network_error');
+      assert.equal(error.permanent, false);
+      assert.equal(error.statusCode, null);
+      assert.equal(error.detail.includes('top-secret-token'), false);
+      assert.equal(error.detail.includes('https://api.telegram.org/bot'), false);
+      return true;
+    },
+  );
+});
+
+test('sendTelegramTransport classifies HTTP 404 as permanent', async () => {
+  const env = {
+    TELEGRAM_BOT_TOKEN: 'top-secret-token',
+    TELEGRAM_CHAT_ID: '123456',
+  };
+
+  await assert.rejects(
+    sendTelegramTransport(
+      env,
+      { telegramText: 'Hello' },
+      async () => createResponse({ ok: false, status: 404, textBody: 'endpoint missing' }),
+    ),
+    (error) => {
+      assert.ok(error instanceof NotifyTransportError);
+      assert.equal(error.code, 'telegram_http_error');
+      assert.equal(error.permanent, true);
+      assert.equal(error.statusCode, 404);
+      assert.equal(error.detail, 'endpoint missing');
+      return true;
+    },
+  );
+});
+
 test('sendTelegramTransport fails closed when token or chat id is missing', async () => {
   await assert.rejects(
     sendTelegramTransport(
@@ -192,6 +241,60 @@ test('sendTelegramTransport fails closed when token or chat id is missing', asyn
       assert.equal(error.code, 'telegram_unconfigured');
       assert.equal(error.permanent, true);
       assert.equal(error.statusCode, null);
+      return true;
+    },
+  );
+});
+
+test('sendTelegramTransport classifies API-level 422 rejection as permanent', async () => {
+  const env = {
+    TELEGRAM_BOT_TOKEN: 'top-secret-token',
+    TELEGRAM_CHAT_ID: '123456',
+  };
+
+  await assert.rejects(
+    sendTelegramTransport(
+      env,
+      { telegramText: 'Hello' },
+      async () => createResponse({
+        ok: true,
+        status: 200,
+        jsonBody: { ok: false, error_code: 422, description: 'invalid entity payload' },
+      }),
+    ),
+    (error) => {
+      assert.ok(error instanceof NotifyTransportError);
+      assert.equal(error.code, 'telegram_api_error');
+      assert.equal(error.permanent, true);
+      assert.equal(error.statusCode, 422);
+      assert.equal(error.detail, 'invalid entity payload');
+      return true;
+    },
+  );
+});
+
+test('sendTelegramTransport keeps API-level 429 rejection retryable', async () => {
+  const env = {
+    TELEGRAM_BOT_TOKEN: 'top-secret-token',
+    TELEGRAM_CHAT_ID: '123456',
+  };
+
+  await assert.rejects(
+    sendTelegramTransport(
+      env,
+      { telegramText: 'Hello' },
+      async () => createResponse({
+        ok: true,
+        status: 200,
+        jsonBody: { ok: false, error_code: 429, description: 'too many requests' },
+      }),
+    ),
+    (error) => {
+      assert.ok(error instanceof NotifyTransportError);
+      assert.equal(error.code, 'telegram_api_error');
+      assert.equal(error.permanent, false);
+      assert.equal(error.statusCode, 429);
+      assert.equal(error.detail, 'too many requests');
       return true;
     },
   );
