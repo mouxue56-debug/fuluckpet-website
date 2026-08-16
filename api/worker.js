@@ -530,6 +530,11 @@ const CHAT_MAX_MESSAGE_ITEMS = 40;
 const CHAT_MAX_BODY_BYTES = 64 * 1024;
 const CHAT_FORGET_RATE_LIMIT_PER_HOUR = 60;
 const CHAT_FORGET_DELETE_BATCH = 500;
+const CHAT_FORGET_CURSOR_TTL = 60 * 60;
+const CHAT_FORGET_PROVIDER_CURSOR_MAX = 2048;
+const CHAT_FORGET_CURSOR_PREFIX = 'chat:forget:cursor:';
+const CHAT_CURRENT_LOG_SUFFIX_RE = /^\d{13}:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const CHAT_LEGACY_LOG_SUFFIX_RE = /^\d{13}$/;
 
 const AUTH_MAX_BODY_BYTES = 4 * 1024;
 const STORY_GENERATE_MAX_BODY_BYTES = 32 * 1024;
@@ -568,26 +573,102 @@ function validateStoryTextFields(value) {
   return { ok: true };
 }
 
-async function deleteChatLogBatch(env, sessionRef, cursor) {
+async function chatForgetCursorStateKey(token) {
+  return `${CHAT_FORGET_CURSOR_PREFIX}${await sha256HexText(token)}`;
+}
+
+async function loadChatForgetCursor(env, sessionRef, token) {
+  if (!token) return { phase: 'current', cursor: '' };
+  const stateKey = await chatForgetCursorStateKey(token);
+  const encoded = await env.DATA.get(stateKey);
+  let state = null;
+  try {
+    state = typeof encoded === 'string' ? JSON.parse(encoded) : encoded;
+  } catch (_) { /* an unknown/expired token safely restarts from current */ }
+  const valid = isPlainObject(state)
+    && state.version === 1
+    && state.session_ref === sessionRef
+    && (state.phase === 'current' || state.phase === 'legacy')
+    && typeof state.cursor === 'string'
+    && state.cursor.length <= CHAT_FORGET_PROVIDER_CURSOR_MAX;
+  if (!valid) return { phase: 'current', cursor: '' };
+  // Continuations are single-use. A failed request can safely restart at current.
+  await env.DATA.delete(stateKey);
+  return { phase: state.phase, cursor: state.cursor };
+}
+
+async function saveChatForgetCursor(env, sessionRef, phase, cursor) {
+  if (typeof cursor !== 'string' || cursor.length > CHAT_FORGET_PROVIDER_CURSOR_MAX) {
+    throw new Error('KV list continuation cursor invalid');
+  }
+  const token = crypto.randomUUID();
+  await env.DATA.put(
+    await chatForgetCursorStateKey(token),
+    JSON.stringify({ version: 1, session_ref: sessionRef, phase, cursor }),
+    { expirationTtl: CHAT_FORGET_CURSOR_TTL },
+  );
+  return token;
+}
+
+function chatLogKeyMatchesPhase(keyName, prefix, phase) {
+  if (typeof keyName !== 'string' || !keyName.startsWith(prefix)) return false;
+  const suffix = keyName.slice(prefix.length);
+  return phase === 'legacy'
+    ? CHAT_LEGACY_LOG_SUFFIX_RE.test(suffix)
+    : CHAT_CURRENT_LOG_SUFFIX_RE.test(suffix);
+}
+
+async function deleteChatLogBatch(env, sid, sessionRef, continuation) {
   // Carry KV's opaque list cursor across requests. Re-listing page one immediately
   // after deletes is unsafe because Workers KV can keep returning a stale page for
   // a short period; the cursor lets us advance through that same list view while
   // keeping each invocation within the KV operation budget.
-  const page = await env.DATA.list({
-    prefix: `chat:log:${sessionRef}:`,
-    limit: CHAT_FORGET_DELETE_BATCH,
-    ...(cursor ? { cursor } : {}),
-  });
-  const keys = page.keys || [];
-  await Promise.all(keys.map((key) => env.DATA.delete(key.name)));
-  const more = page.list_complete === false;
-  if (more && (typeof page.cursor !== 'string' || !page.cursor)) {
-    throw new Error('KV list continuation cursor missing');
+  let { phase, cursor } = await loadChatForgetCursor(env, sessionRef, continuation);
+  let remaining = CHAT_FORGET_DELETE_BATCH;
+  let deleted = 0;
+
+  while (remaining > 0) {
+    const prefix = phase === 'legacy'
+      ? `chat:log:${sid}:`
+      : `chat:log:${sessionRef}:`;
+    const page = await env.DATA.list({
+      prefix,
+      limit: remaining,
+      ...(cursor ? { cursor } : {}),
+    });
+    const keys = Array.isArray(page.keys) ? page.keys : [];
+    const ownedKeys = keys.filter(({ name }) => chatLogKeyMatchesPhase(name, prefix, phase));
+    await Promise.all(ownedKeys.map(({ name }) => env.DATA.delete(name)));
+    deleted += ownedKeys.length;
+    remaining -= keys.length;
+
+    if (page.list_complete === false) {
+      if (typeof page.cursor !== 'string' || !page.cursor) {
+        throw new Error('KV list continuation cursor missing');
+      }
+      return {
+        deleted,
+        more: true,
+        cursor: await saveChatForgetCursor(env, sessionRef, phase, page.cursor),
+      };
+    }
+
+    if (phase === 'legacy') return { deleted, more: false, cursor: '' };
+    phase = 'legacy';
+    cursor = '';
+    if (remaining === 0) {
+      return {
+        deleted,
+        more: true,
+        cursor: await saveChatForgetCursor(env, sessionRef, phase, cursor),
+      };
+    }
   }
+
   return {
-    deleted: keys.length,
-    more,
-    cursor: more ? page.cursor : '',
+    deleted,
+    more: true,
+    cursor: await saveChatForgetCursor(env, sessionRef, phase, cursor),
   };
 }
 
@@ -2358,7 +2439,7 @@ export default {
             }));
           }
           try {
-            const deletion = await deleteChatLogBatch(env, sessionRef, forgetCursor);
+            const deletion = await deleteChatLogBatch(env, sid, sessionRef, forgetCursor);
             if (deletion.more) {
               return addCors(json({
                 success: true,

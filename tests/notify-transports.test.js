@@ -112,6 +112,29 @@ test('chat Telegram message stays within 4096 after escaping without broken HTML
   assert.equal(tags.every((tag) => ['<b>', '</b>', '<code>', '</code>'].includes(tag)), true);
 });
 
+test('chat truncation preserves an emoji that crosses the 600 UTF-16-unit boundary', () => {
+  const boundaryText = `${'a'.repeat(599)}🐾z-after-boundary`;
+  const message = buildChatOwnerMessage({
+    sessionId: `${'s'.repeat(7)}🐾z-after-boundary`,
+    userMessage: boundaryText,
+    assistantMessage: boundaryText,
+    provider: 'mayuki-grok-4.3',
+  });
+
+  assert.equal(message.subject.isWellFormed(), true);
+  assert.equal(message.text.isWellFormed(), true);
+  assert.equal(message.html.isWellFormed(), true);
+  assert.equal(message.telegramText.isWellFormed(), true);
+  assert.match(message.telegramText, /🐾/);
+  assert.match(message.telegramText, /<code>sssssss🐾<\/code>/);
+  assert.ok(message.telegramText.length <= 4_096, message.telegramText.length);
+  const tags = message.telegramText.match(/<[^>]+>/g) || [];
+  assert.equal(tags.filter((tag) => tag === '<b>').length, 3);
+  assert.equal(tags.filter((tag) => tag === '</b>').length, 3);
+  assert.equal(tags.filter((tag) => tag === '<code>').length, 1);
+  assert.equal(tags.filter((tag) => tag === '</code>').length, 1);
+});
+
 test('sendEmailTransport uses the Cloudflare Email binding and returns provider metadata', async () => {
   const calls = [];
   const env = {

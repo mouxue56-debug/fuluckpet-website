@@ -141,9 +141,14 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
+function wellFormedCodePoints(value) {
+  return [...String(value ?? '').toWellFormed()];
+}
+
 function trimText(value, maxLength) {
-  const text = String(value ?? '');
-  return text.length > maxLength ? `${text.slice(0, maxLength)}…` : text;
+  const characters = wellFormedCodePoints(value);
+  const text = characters.join('');
+  return characters.length > maxLength ? `${characters.slice(0, maxLength).join('')}…` : text;
 }
 
 function escapeHtmlWithin(value, maxLength) {
@@ -368,7 +373,7 @@ ${submission.kitten_id ? `<tr><td style="padding:6px 0;color:#666;">気になる
 export function buildChatOwnerMessage(source) {
   const data = source && typeof source === 'object' ? source : {};
   const sessionId = String(data.sessionId || data.sid || '');
-  const sidShort = sessionId.slice(0, 8);
+  const sidShort = wellFormedCodePoints(sessionId).slice(0, 8).join('');
   const provider = trimText(data.provider || 'fallback', 100);
   const userMessage = trimText(data.userMessage ?? data.user, 600);
   const assistantMessage = trimText(data.assistantMessage ?? data.assistant, 600);
