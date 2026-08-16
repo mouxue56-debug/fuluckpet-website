@@ -2,6 +2,8 @@
 
 export const NOTIFY_TTL_SECONDS = 90 * 24 * 60 * 60;
 export const RETRY_DELAYS_MS = [5 * 60_000, 30 * 60_000, 6 * 3_600_000, 24 * 3_600_000];
+export const CHAT_NOTIFY_DESCRIPTOR_VERSION = 1;
+export const CHAT_SOURCE_PAYLOAD_HASH_RULE = 'sha256:json-v1:[ts,sid,provider,user,assistant]';
 
 const MAX_FIELD_LENGTH = 512;
 const MAX_ERROR_LENGTH = 1_000;
@@ -14,8 +16,10 @@ const OWNER_EMAIL_TO = 'mouxue56@gmail.com';
 const OWNER_EMAIL_FROM = { email: 'noreply@fuluckpet.com', name: 'fuluckpet 通知' };
 const ADMIN_URL = 'https://fuluckpet.com/admin/';
 const DUE_PREFIX = 'notify:due:';
+const READY_PREFIX = 'notify:ready:';
 const SENT_MARKER_PREFIX = 'notify:sent:';
 const MAX_DUE_PER_RECONCILE = 100;
+const MAX_DUE_KEYS_SCANNED_PER_RECONCILE = MAX_DUE_PER_RECONCILE * 2;
 const LIST_PAGE_LIMIT = 1_000;
 const HOUR_MS = 60 * 60_000;
 const TELEGRAM_MAX_TEXT_LENGTH = 4_096;
@@ -23,6 +27,9 @@ const MAX_DAILY_DATE_LENGTH = 32;
 const MAX_DAILY_SUMMARY_LENGTH = 200;
 const MAX_DAILY_NOTES = 6;
 const MAX_DAILY_NOTE_LENGTH = 100;
+const CHAT_ROUND_TEMPLATE = 'owner_chat_round_v1';
+const CHAT_ROUND_CHANNELS = Object.freeze(['email', 'telegram']);
+const OPAQUE_ROUND_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export function notifyItemKey({ entityKind, entityId, channel, template }) {
   return `notify:item:${entityKind}:${entityId}:${channel}:${template}`;
@@ -30,6 +37,10 @@ export function notifyItemKey({ entityKind, entityId, channel, template }) {
 
 export function notifyDueKey(nextAttemptMs, itemKey) {
   return `notify:due:${String(nextAttemptMs).padStart(13, '0')}:${encodeURIComponent(itemKey)}`;
+}
+
+export function notifyGroupReadyKey({ entityKind, entityId, template }) {
+  return `${READY_PREFIX}${entityKind}:${entityId}:${template}`;
 }
 
 async function notifySentMarkerKey(itemKey) {
@@ -47,6 +58,32 @@ function validateSpec(spec) {
     throw new TypeError('notification spec must be an object');
   }
   for (const field of SPEC_FIELDS) assertString(spec[field], field);
+  if (spec.groupReadyKey !== undefined) assertString(spec.groupReadyKey, 'groupReadyKey');
+  if (spec.template === CHAT_ROUND_TEMPLATE) {
+    if (spec.entityKind !== 'chat' || !OPAQUE_ROUND_ID_RE.test(spec.entityId)) {
+      throw new TypeError('chat notification entityId must be an opaque UUID');
+    }
+    if (spec.groupReadyKey !== notifyGroupReadyKey(spec)) {
+      throw new TypeError('chat notification groupReadyKey must match its deterministic group key');
+    }
+  }
+}
+
+function validateGroupSpec(spec) {
+  if (!spec || typeof spec !== 'object' || Array.isArray(spec)) {
+    throw new TypeError('notification group spec must be an object');
+  }
+  for (const field of ['entityKind', 'entityId', 'template', 'sourceKey', 'payloadHash']) {
+    assertString(spec[field], field);
+  }
+  if (spec.entityKind !== 'chat' || spec.template !== CHAT_ROUND_TEMPLATE || !OPAQUE_ROUND_ID_RE.test(spec.entityId)) {
+    throw new TypeError('notification group must identify one opaque chat round');
+  }
+  if (!Array.isArray(spec.channels)
+    || spec.channels.length !== CHAT_ROUND_CHANNELS.length
+    || spec.channels.some((channel, index) => channel !== CHAT_ROUND_CHANNELS[index])) {
+    throw new TypeError('notification group channels must be exactly email and telegram');
+  }
 }
 
 function assertNow(nowMs) {
@@ -107,6 +144,17 @@ function escapeHtml(value) {
 function trimText(value, maxLength) {
   const text = String(value ?? '');
   return text.length > maxLength ? `${text.slice(0, maxLength)}…` : text;
+}
+
+function escapeHtmlWithin(value, maxLength) {
+  const text = String(value ?? '');
+  let escaped = '';
+  for (const character of text) {
+    const piece = escapeHtml(character);
+    if (escaped.length + piece.length > maxLength - 1) return `${escaped}…`;
+    escaped += piece;
+  }
+  return escaped;
 }
 
 function boundedDisplayText(value, maxLength) {
@@ -223,6 +271,17 @@ async function sha256(value) {
   return `sha256:${[...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('')}`;
 }
 
+export async function chatSourcePayloadHash(source) {
+  const data = source && typeof source === 'object' ? source : {};
+  return sha256(JSON.stringify({
+    ts: data.ts,
+    sid: data.sid,
+    provider: data.provider,
+    user: data.user,
+    assistant: data.assistant,
+  }));
+}
+
 function normalizeReplyTo(value) {
   return boundedString(value, MAX_FIELD_LENGTH);
 }
@@ -310,7 +369,7 @@ export function buildChatOwnerMessage(source) {
   const data = source && typeof source === 'object' ? source : {};
   const sessionId = String(data.sessionId || data.sid || '');
   const sidShort = sessionId.slice(0, 8);
-  const provider = String(data.provider || 'fallback');
+  const provider = trimText(data.provider || 'fallback', 100);
   const userMessage = trimText(data.userMessage ?? data.user, 600);
   const assistantMessage = trimText(data.assistantMessage ?? data.assistant, 600);
   const text = [
@@ -330,11 +389,19 @@ export function buildChatOwnerMessage(source) {
 <p><b>👤 ユーザー:</b><br>${escapeHtml(userMessage).replace(/\n/g, '<br>')}</p>
 <p><b>🐱 ふくにゃん:</b><br>${escapeHtml(assistantMessage).replace(/\n/g, '<br>')}</p>
 </body></html>`;
-  const telegramText = [
-    `💬 <b>新しい会話</b> <code>${escapeHtml(sidShort)}</code> · ${escapeHtml(provider)}`,
-    `<b>👤 ユーザー:</b>\n${escapeHtml(userMessage)}`,
-    `<b>🐱 ふくにゃん:</b>\n${escapeHtml(assistantMessage)}`,
-  ].join('\n\n');
+  const telegramHeader = `💬 <b>新しい会話</b> <code>${escapeHtml(sidShort)}</code> · ${escapeHtml(provider)}`;
+  const telegramUserLabel = '<b>👤 ユーザー:</b>\n';
+  const telegramAssistantLabel = '<b>🐱 ふくにゃん:</b>\n';
+  const telegramSeparator = '\n\n';
+  const fixedTelegramLength = telegramHeader.length
+    + telegramSeparator.length + telegramUserLabel.length
+    + telegramSeparator.length + telegramAssistantLabel.length;
+  const telegramContentBudget = TELEGRAM_MAX_TEXT_LENGTH - fixedTelegramLength;
+  const telegramUserBudget = Math.floor(telegramContentBudget / 2);
+  const telegramAssistantBudget = telegramContentBudget - telegramUserBudget;
+  const telegramText = telegramHeader
+    + telegramSeparator + telegramUserLabel + escapeHtmlWithin(userMessage, telegramUserBudget)
+    + telegramSeparator + telegramAssistantLabel + escapeHtmlWithin(assistantMessage, telegramAssistantBudget);
   return messageEnvelope(`[fuluckpet chat] 新しい会話 ${sidShort}`, text, html, telegramText, null);
 }
 
@@ -507,6 +574,7 @@ export async function createNotifyIntent(env, spec, nowMs) {
     source_key: spec.sourceKey,
     payload_hash: spec.payloadHash,
     recipient_fingerprint: spec.recipientFingerprint,
+    group_ready_key: spec.groupReadyKey ?? null,
     status: 'pending',
     attempt_count: 0,
     created_at: nowMs,
@@ -555,6 +623,81 @@ export async function ensureNotifyIntent(env, spec, nowMs) {
   }
 
   return { ...result, repaired };
+}
+
+function groupMarkerMatchesItem(marker, item) {
+  return marker?.version === 1
+    && marker.status === 'ready'
+    && marker.entity_kind === item.entity_kind
+    && marker.entity_id === item.entity_id
+    && marker.template === item.template
+    && marker.source_key === item.source_key
+    && marker.payload_hash === item.payload_hash
+    && Array.isArray(marker.channels)
+    && marker.channels.length === CHAT_ROUND_CHANNELS.length
+    && marker.channels.every((channel, index) => channel === CHAT_ROUND_CHANNELS[index]);
+}
+
+async function notifyGroupIsReady(env, item) {
+  if (item.template !== CHAT_ROUND_TEMPLATE) return true;
+  if (typeof item.group_ready_key !== 'string') return false;
+  return groupMarkerMatchesItem(await readJson(env, item.group_ready_key), item);
+}
+
+export async function markNotifyGroupReady(env, spec, nowMs) {
+  assertEnv(env);
+  validateGroupSpec(spec);
+  assertNow(nowMs);
+  const readyKey = notifyGroupReadyKey(spec);
+
+  for (const channel of CHAT_ROUND_CHANNELS) {
+    const itemKey = notifyItemKey({ ...spec, channel });
+    const item = await readAuthoritativeNotifyItem(env, itemKey);
+    const itemMatches = item
+      && item.entity_kind === spec.entityKind
+      && item.entity_id === spec.entityId
+      && item.channel === channel
+      && item.template === spec.template
+      && item.source_key === spec.sourceKey
+      && item.payload_hash === spec.payloadHash
+      && item.group_ready_key === readyKey;
+    if (!itemMatches) throw new Error('both notification channels must be durable before group readiness');
+
+    if (!['sent', 'failed', 'dead_letter'].includes(item.status)) {
+      const dueReference = item.due_key ? await env.DATA.get(item.due_key) : null;
+      if (dueReference !== itemKey) {
+        throw new Error('both notification channels must be durable before group readiness');
+      }
+    }
+    const dailyKey = dailyReferenceKey(item.created_at, itemKey);
+    if (await env.DATA.get(dailyKey) !== itemKey) {
+      throw new Error('both notification channels must be durable before group readiness');
+    }
+  }
+
+  const marker = {
+    version: 1,
+    status: 'ready',
+    entity_kind: spec.entityKind,
+    entity_id: spec.entityId,
+    template: spec.template,
+    source_key: spec.sourceKey,
+    payload_hash: spec.payloadHash,
+    channels: [...CHAT_ROUND_CHANNELS],
+    ready_at: nowMs,
+  };
+  const existing = await readJson(env, readyKey);
+  if (existing && groupMarkerMatchesItem(existing, {
+    entity_kind: spec.entityKind,
+    entity_id: spec.entityId,
+    template: spec.template,
+    source_key: spec.sourceKey,
+    payload_hash: spec.payloadHash,
+  })) {
+    return { created: false, readyKey, marker: existing };
+  }
+  await env.DATA.put(readyKey, toJson(marker, 'notification group marker', MAX_RESULT_LENGTH), putOptions());
+  return { created: true, readyKey, marker };
 }
 
 export async function readNotifyItem(env, itemKey) {
@@ -666,6 +809,7 @@ export async function attemptNotifyIntent(env, itemKey, nowMs, dependencies = {}
   assertNow(nowMs);
   const item = await readAuthoritativeNotifyItem(env, itemKey);
   if (!item || ['sent', 'failed', 'dead_letter'].includes(item.status)) return item;
+  if (!(await notifyGroupIsReady(env, item))) return item;
   if (Number.isSafeInteger(item.next_attempt_ms) && item.next_attempt_ms > nowMs) return item;
 
   const source = await readJson(env, item.source_key);
@@ -706,15 +850,19 @@ export async function reconcileDueNotifications(env, nowMs, dependencies = {}) {
 
   let cursor = '';
   let processed = 0;
+  let scanned = 0;
   let attempted = 0;
   let staleDeleted = 0;
   let reachedFuture = false;
 
-  while (processed < MAX_DUE_PER_RECONCILE && !reachedFuture) {
+  while (processed < MAX_DUE_PER_RECONCILE
+    && scanned < MAX_DUE_KEYS_SCANNED_PER_RECONCILE
+    && !reachedFuture) {
     const page = await env.DATA.list({ prefix: DUE_PREFIX, cursor, limit: LIST_PAGE_LIMIT });
     const keys = Array.isArray(page?.keys) ? page.keys : [];
     for (const entry of keys) {
-      if (processed >= MAX_DUE_PER_RECONCILE) break;
+      if (processed >= MAX_DUE_PER_RECONCILE
+        || scanned >= MAX_DUE_KEYS_SCANNED_PER_RECONCILE) break;
       const dueKey = entry?.name;
       if (typeof dueKey !== 'string') continue;
       const dueTime = dueTimeFromKey(dueKey);
@@ -722,19 +870,31 @@ export async function reconcileDueNotifications(env, nowMs, dependencies = {}) {
         reachedFuture = true;
         break;
       }
-      processed += 1;
+      scanned += 1;
       const itemKey = await env.DATA.get(dueKey);
       const item = typeof itemKey === 'string' ? await readAuthoritativeNotifyItem(env, itemKey) : null;
       if (!item || item.due_key !== dueKey) {
+        processed += 1;
         await env.DATA.delete(dueKey);
         staleDeleted += 1;
         continue;
       }
+      if (!(await notifyGroupIsReady(env, item))) {
+        // A Task 6 source repair can deterministically recreate this reference.
+        // Removing it keeps incomplete chat groups out of the ordinary delivery
+        // queue, while the attempt-level readiness check remains the race guard.
+        await env.DATA.delete(dueKey);
+        continue;
+      }
+      processed += 1;
       attempted += 1;
       await attemptNotifyIntent(env, itemKey, nowMs, dependencies);
     }
 
-    if (processed >= MAX_DUE_PER_RECONCILE || reachedFuture || page?.list_complete !== false) break;
+    if (processed >= MAX_DUE_PER_RECONCILE
+      || scanned >= MAX_DUE_KEYS_SCANNED_PER_RECONCILE
+      || reachedFuture
+      || page?.list_complete !== false) break;
     if (typeof page.cursor !== 'string' || page.cursor.length === 0 || page.cursor === cursor) break;
     cursor = page.cursor;
   }

@@ -1,23 +1,32 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const { createHash } = require('node:crypto');
 const test = require('node:test');
 
 const ORIGIN = 'https://fuluckpet.com';
 const NOW_MS = 1_900_000_000_000;
 const SID = 'chat-session-1234567890';
-const SOURCE_KEY = `chat:log:${SID}:${NOW_MS}`;
-const ROUND_ID = `${SID}:${NOW_MS}`;
+const SESSION_REF = createHash('sha256').update(SID).digest('hex');
+const ROUND_ID = '00000000-0000-4000-8000-000000000001';
+const SECOND_ROUND_ID = '00000000-0000-4000-8000-000000000002';
+const SOURCE_KEY = `chat:log:${SESSION_REF}:${NOW_MS}:${ROUND_ID}`;
 
 let worker;
+let consoleErrors;
+let reconcileDueNotifications;
 
 test.before(async () => {
   ({ default: worker } = await import('../api/worker.js'));
+  ({ reconcileDueNotifications } = await import('../api/notify.js'));
 });
 
 test.beforeEach((t) => {
+  consoleErrors = [];
   t.mock.method(console, 'log', () => {});
-  t.mock.method(console, 'error', () => {});
+  t.mock.method(console, 'error', (...args) => {
+    consoleErrors.push(args.map((value) => String(value)).join(' '));
+  });
 });
 
 class MemoryKV {
@@ -71,7 +80,7 @@ class MemoryKV {
   }
 }
 
-function chatRequest(question) {
+function chatRequest(question, sessionId = SID) {
   return new Request('https://fuluckpet.com/api/chat', {
     method: 'POST',
     headers: {
@@ -80,7 +89,7 @@ function chatRequest(question) {
       'CF-Connecting-IP': '203.0.113.52',
     },
     body: JSON.stringify({
-      session_id: SID,
+      session_id: sessionId,
       messages: [{ role: 'user', content: question }],
     }),
   });
@@ -115,11 +124,17 @@ function telegramResponse() {
   };
 }
 
-function createHarness({ answer = 'AI answer marker', providerFails = false, emailFails = false } = {}) {
+function createHarness({
+  answer = 'AI answer marker',
+  providerFails = false,
+  emailFails = false,
+  roundTokens = [ROUND_ID, SECOND_ROUND_ID],
+} = {}) {
   const DATA = new MemoryKV();
   const emailCalls = [];
   const telegramCalls = [];
   const providerCalls = [];
+  let roundTokenIndex = 0;
   const env = {
     DATA,
     CORS_ORIGIN: ORIGIN,
@@ -146,7 +161,20 @@ function createHarness({ answer = 'AI answer marker', providerFails = false, ema
     }
     throw new Error(`unexpected fetch URL: ${url}`);
   };
-  return { DATA, emailCalls, env, fetchImpl, providerCalls, telegramCalls };
+  return {
+    DATA,
+    emailCalls,
+    env,
+    fetchImpl,
+    nextRoundToken() {
+      const token = roundTokens[roundTokenIndex];
+      roundTokenIndex += 1;
+      if (!token) throw new Error('test round token sequence exhausted');
+      return token;
+    },
+    providerCalls,
+    telegramCalls,
+  };
 }
 
 function notifyItemKeys(DATA) {
@@ -157,15 +185,17 @@ function chatSourceKeys(DATA) {
   return [...DATA.store.keys()].filter((key) => key.startsWith('chat:log:')).sort();
 }
 
-async function submit(harness, question) {
+async function submit(harness, question, { sessionId = SID } = {}) {
   const deferred = [];
   const waitUntilSnapshots = [];
   const originalFetch = globalThis.fetch;
   const originalNow = Date.now;
+  const originalRandomUUID = globalThis.crypto.randomUUID;
   globalThis.fetch = harness.fetchImpl;
   Date.now = () => NOW_MS;
+  globalThis.crypto.randomUUID = () => harness.nextRoundToken();
   try {
-    const response = await worker.fetch(chatRequest(question), harness.env, {
+    const response = await worker.fetch(chatRequest(question, sessionId), harness.env, {
       waitUntil(promise) {
         waitUntilSnapshots.push(notifyItemKeys(harness.DATA));
         deferred.push(Promise.resolve(promise));
@@ -176,8 +206,107 @@ async function submit(harness, question) {
   } finally {
     globalThis.fetch = originalFetch;
     Date.now = originalNow;
+    globalThis.crypto.randomUUID = originalRandomUUID;
   }
 }
+
+async function submitConcurrently(harness, questions, { sessionId = SID } = {}) {
+  const deferred = [];
+  const originalFetch = globalThis.fetch;
+  const originalNow = Date.now;
+  const originalRandomUUID = globalThis.crypto.randomUUID;
+  globalThis.fetch = harness.fetchImpl;
+  Date.now = () => NOW_MS;
+  globalThis.crypto.randomUUID = () => harness.nextRoundToken();
+  try {
+    const responses = await Promise.all(questions.map((question) => worker.fetch(
+      chatRequest(question, sessionId),
+      harness.env,
+      { waitUntil(promise) { deferred.push(Promise.resolve(promise)); } },
+    )));
+    await Promise.allSettled(deferred);
+    return responses;
+  } finally {
+    globalThis.fetch = originalFetch;
+    Date.now = originalNow;
+    globalThis.crypto.randomUUID = originalRandomUUID;
+  }
+}
+
+test('same session and millisecond sequential rounds keep distinct sources and notification pairs', async () => {
+  const harness = createHarness();
+
+  const first = await submit(harness, 'Sequential round one');
+  const second = await submit(harness, 'Sequential round two');
+
+  assert.equal(first.response.status, 200);
+  assert.equal(second.response.status, 200);
+  assert.equal(chatSourceKeys(harness.DATA).length, 2);
+  assert.equal(notifyItemKeys(harness.DATA).length, 4);
+  assert.equal(harness.emailCalls.length, 2);
+  assert.equal(harness.telegramCalls.length, 2);
+});
+
+test('same session and millisecond concurrent rounds keep distinct sources and notification pairs', async () => {
+  const harness = createHarness();
+
+  const responses = await submitConcurrently(harness, [
+    'Concurrent round one',
+    'Concurrent round two',
+  ]);
+
+  assert.deepEqual(responses.map(({ status }) => status), [200, 200]);
+  assert.equal(chatSourceKeys(harness.DATA).length, 2);
+  assert.equal(notifyItemKeys(harness.DATA).length, 4);
+  assert.equal(harness.emailCalls.length, 2);
+  assert.equal(harness.telegramCalls.length, 2);
+});
+
+test('same-millisecond contact rounds use distinct lead keys tied to their round identity', async () => {
+  const harness = createHarness();
+
+  await submit(harness, 'first-contact@example.test');
+  await submit(harness, 'second-contact@example.test');
+
+  const leadKeys = [...harness.DATA.store.keys()].filter((key) => key.startsWith('lead:')).sort();
+  assert.equal(leadKeys.length, 2);
+  assert.equal(new Set(leadKeys).size, 2);
+  assert.equal(harness.emailCalls.length, 2);
+  assert.equal(harness.telegramCalls.length, 4);
+});
+
+test('hostile session id stays out of every long-lived notification key, value, and error log', async () => {
+  const hostileSessionId = 'private-contact@example.test';
+  const harness = createHarness();
+
+  const readyResponse = await submit(harness, 'Privacy boundary question: lead@example.test', {
+    sessionId: hostileSessionId,
+  });
+  harness.DATA.failPutTimes(
+    ({ key }) => key.startsWith('notify:item:chat:') && key.includes(':telegram:owner_chat_round_v1'),
+    10,
+  );
+  const partialResponse = await submit(harness, 'Second privacy question: other-lead@example.test', {
+    sessionId: hostileSessionId,
+  });
+
+  assert.equal(readyResponse.response.status, 200);
+  assert.equal(partialResponse.response.status, 200);
+  const sourceKeys = chatSourceKeys(harness.DATA);
+  assert.equal(sourceKeys.length, 2);
+  for (const sourceKey of sourceKeys) {
+    assert.equal(sourceKey.includes(hostileSessionId), false);
+    assert.equal(JSON.parse(harness.DATA.store.get(sourceKey)).sid, hostileSessionId);
+  }
+  for (const [key, value] of harness.DATA.store.entries()) {
+    assert.equal(key.includes(hostileSessionId), false, key);
+    if (!key.startsWith('chat:log:')) assert.equal(String(value).includes(hostileSessionId), false, key);
+  }
+  for (const { options } of harness.telegramCalls) {
+    assert.equal(String(options.body).includes(hostileSessionId), false);
+  }
+  assert.equal(consoleErrors.some((line) => line.includes(hostileSessionId)), false);
+});
 
 test('completed AI round durably queues exactly one email and Telegram intent from one source', async () => {
   const question = `Question marker <b>private</b> ${'q'.repeat(700)}`;
@@ -192,6 +321,24 @@ test('completed AI round durably queues exactly one email and Telegram intent fr
   assert.equal(Object.hasOwn(body, 'telegram_status'), false);
   assert.equal(JSON.stringify(body).includes('sent'), false);
   assert.deepEqual(chatSourceKeys(harness.DATA), [SOURCE_KEY]);
+  const source = JSON.parse(harness.DATA.store.get(SOURCE_KEY));
+  const expectedPayloadHash = `sha256:${createHash('sha256').update(JSON.stringify({
+    ts: NOW_MS,
+    sid: SID,
+    provider: 'mayuki-grok-4.3',
+    user: question,
+    assistant: answer,
+  })).digest('hex')}`;
+  assert.deepEqual(source.notification, {
+    notification_status: 'pending',
+    version: 1,
+    round_id: ROUND_ID,
+    template: 'owner_chat_round_v1',
+    channels: ['email', 'telegram'],
+    source_ts: NOW_MS,
+    payload_hash: expectedPayloadHash,
+    payload_hash_rule: 'sha256:json-v1:[ts,sid,provider,user,assistant]',
+  });
 
   const itemKeys = notifyItemKeys(harness.DATA);
   assert.deepEqual(itemKeys, [
@@ -212,11 +359,19 @@ test('completed AI round durably queues exactly one email and Telegram intent fr
     const item = JSON.parse(itemJson);
     assert.equal(item.entity_id, ROUND_ID);
     assert.equal(item.source_key, SOURCE_KEY);
-    assert.match(item.payload_hash, /^sha256:[0-9a-f]{64}$/);
+    assert.equal(item.payload_hash, expectedPayloadHash);
+    assert.equal(
+      item.group_ready_key,
+      `notify:ready:chat:${ROUND_ID}:owner_chat_round_v1`,
+    );
     assert.match(item.recipient_fingerprint, /^sha256:[0-9a-f]{64}$/);
     assert.equal(itemJson.includes('Question marker'), false);
     assert.equal(itemJson.includes('Answer marker'), false);
   }
+  assert.equal(
+    harness.DATA.store.has(`notify:ready:chat:${ROUND_ID}:owner_chat_round_v1`),
+    true,
+  );
 
   assert.equal(harness.emailCalls.length, 1);
   const [email] = harness.emailCalls;
@@ -332,12 +487,27 @@ test('unrepaired intent setup still returns the answer with a discoverable durab
   assert.deepEqual(chatSourceKeys(harness.DATA), [SOURCE_KEY]);
   const source = JSON.parse(harness.DATA.store.get(SOURCE_KEY));
   assert.deepEqual(source.notification, {
-    channels: ['email', 'telegram'],
-    entity_id: ROUND_ID,
+    notification_status: 'pending',
+    version: 1,
+    round_id: ROUND_ID,
     template: 'owner_chat_round_v1',
+    channels: ['email', 'telegram'],
+    source_ts: NOW_MS,
+    payload_hash: `sha256:${createHash('sha256').update(JSON.stringify({
+      ts: NOW_MS,
+      sid: SID,
+      provider: 'mayuki-grok-4.3',
+      user: 'Keep this completed answer recoverable',
+      assistant: 'AI answer marker',
+    })).digest('hex')}`,
+    payload_hash_rule: 'sha256:json-v1:[ts,sid,provider,user,assistant]',
   });
   const listed = await harness.DATA.list({ prefix: 'chat:log:' });
   assert.deepEqual(listed.keys, [{ name: SOURCE_KEY }]);
   assert.equal(harness.emailCalls.length, 0);
+  assert.equal(harness.telegramCalls.length, 0);
+
+  await reconcileDueNotifications(harness.env, NOW_MS, { fetchImpl: harness.fetchImpl });
+  assert.equal(harness.emailCalls.length, 0, 'partial email due must remain quarantined');
   assert.equal(harness.telegramCalls.length, 0);
 });

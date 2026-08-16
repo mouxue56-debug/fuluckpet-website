@@ -2,9 +2,14 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const { createHash } = require('node:crypto');
 
 const SITE_ORIGIN = 'https://fuluckpet.com';
 const FOREIGN_ORIGIN = 'https://evil.example.com';
+
+function sessionRef(sessionId) {
+  return createHash('sha256').update(sessionId).digest('hex');
+}
 
 let worker;
 
@@ -143,8 +148,8 @@ test('same-origin chat preflight and forget remain functional with site-scoped A
   preflightHarness.DATA.assertUntouched();
 
   const forgetHarness = makeHarness({
-    'chat:log:same-origin:1': JSON.stringify({ private: true }),
-    'chat:ratelimit:same-origin': '2',
+    [`chat:log:${sessionRef('same-origin')}:1`]: JSON.stringify({ private: true }),
+    [`chat:ratelimit:${sessionRef('same-origin')}`]: '2',
   });
   const forgotten = await worker.fetch(request('/api/chat', {
     method: 'POST',
@@ -156,9 +161,9 @@ test('same-origin chat preflight and forget remain functional with site-scoped A
   assert.equal(forgotten.headers.get('Access-Control-Allow-Origin'), SITE_ORIGIN);
   assert.equal(forgotten.headers.get('Vary'), 'Origin');
   assert.deepEqual(await forgotten.json(), { success: true, forgotten: true });
-  assert.deepEqual(forgetHarness.DATA.deletes, ['chat:log:same-origin:1']);
+  assert.deepEqual(forgetHarness.DATA.deletes, [`chat:log:${sessionRef('same-origin')}:1`]);
   assert.equal(
-    forgetHarness.DATA.store.get('chat:ratelimit:same-origin'),
+    forgetHarness.DATA.store.get(`chat:ratelimit:${sessionRef('same-origin')}`),
     '2',
     'forget must not reset the abuse counter',
   );

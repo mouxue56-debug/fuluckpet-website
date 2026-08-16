@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const { createHash } = require('node:crypto');
 const test = require('node:test');
 
 const SITE_ORIGIN = 'https://fuluckpet.com';
@@ -13,11 +14,12 @@ test.before(async () => {
 
 class PagedKV {
   constructor({ failDelete = false } = {}) {
+    const safePrefix = `chat:log:${sessionRef('safe-session')}:`;
     this.store = new Map([
-      ['chat:ratelimit:safe-session', '29'],
-      ['chat:log:safe-session:1', '{}'],
-      ['chat:log:safe-session:2', '{}'],
-      ['chat:log:safe-session:3', '{}'],
+      [`chat:ratelimit:${sessionRef('safe-session')}`, '29'],
+      [`${safePrefix}1`, '{}'],
+      [`${safePrefix}2`, '{}'],
+      [`${safePrefix}3`, '{}'],
     ]);
     this.failDelete = failDelete;
     this.listCalls = [];
@@ -70,6 +72,25 @@ async function run(DATA, sessionId, cursor) {
   }, { waitUntil() {} });
 }
 
+function sessionRef(sessionId) {
+  return createHash('sha256').update(sessionId).digest('hex');
+}
+
+test('forget derives the opaque session prefix instead of listing the client session id', async () => {
+  const sessionId = 'private-contact@example.test';
+  const safePrefix = `chat:log:${sessionRef(sessionId)}:`;
+  const DATA = new PagedKV();
+  DATA.store.clear();
+  DATA.store.set(`${safePrefix}1900000000000:round-a`, '{}');
+
+  const response = await run(DATA, sessionId);
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { success: true, forgotten: true });
+  assert.equal(DATA.listCalls[0].prefix, safePrefix);
+  assert.deepEqual(DATA.deletes, [`${safePrefix}1900000000000:round-a`]);
+});
+
 test('forget deletes a bounded first batch and preserves the abuse counter', async () => {
   const DATA = new PagedKV();
   const response = await run(DATA);
@@ -78,19 +99,20 @@ test('forget deletes a bounded first batch and preserves the abuse counter', asy
   assert.equal(DATA.listCalls.length, 1);
   assert.equal(DATA.listCalls[0].limit, 500);
   assert.deepEqual(DATA.deletes.sort(), [
-    'chat:log:safe-session:1',
-    'chat:log:safe-session:2',
-    'chat:log:safe-session:3',
+    `chat:log:${sessionRef('safe-session')}:1`,
+    `chat:log:${sessionRef('safe-session')}:2`,
+    `chat:log:${sessionRef('safe-session')}:3`,
   ]);
-  assert.equal(DATA.store.get('chat:ratelimit:safe-session'), '29');
+  assert.equal(DATA.store.get(`chat:ratelimit:${sessionRef('safe-session')}`), '29');
 });
 
 test('large sessions are deleted over bounded continuation calls', async () => {
   const DATA = new PagedKV();
   DATA.store.clear();
-  DATA.store.set('chat:ratelimit:safe-session', '29');
+  DATA.store.set(`chat:ratelimit:${sessionRef('safe-session')}`, '29');
+  const safePrefix = `chat:log:${sessionRef('safe-session')}:`;
   for (let index = 0; index < 1201; index += 1) {
-    DATA.store.set(`chat:log:safe-session:${String(index).padStart(4, '0')}`, '{}');
+    DATA.store.set(`${safePrefix}${String(index).padStart(4, '0')}`, '{}');
   }
   // Model KV's eventually-consistent list view: deleted keys remain visible in this
   // snapshot, so only an opaque cursor can advance without repeatedly deleting page 1.
@@ -114,7 +136,7 @@ test('large sessions are deleted over bounded continuation calls', async () => {
   assert.deepEqual(batchSizes, [500, 500, 201]);
   assert.deepEqual(result, { success: true, forgotten: true });
   assert.equal([...DATA.store.keys()].filter((key) => key.startsWith('chat:log:')).length, 0);
-  assert.equal(DATA.store.get('chat:ratelimit:safe-session'), '29');
+  assert.equal(DATA.store.get(`chat:ratelimit:${sessionRef('safe-session')}`), '29');
   assert.equal(DATA.deletes.length, 1201, 'stale list pages must not be deleted repeatedly');
 });
 

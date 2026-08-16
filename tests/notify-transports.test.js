@@ -82,6 +82,36 @@ test('buildChatOwnerMessage and buildDailyOwnerMessage produce owner-safe messag
   assert.match(daily.telegramText, /&lt;b&gt;booking:b-1&lt;\/b&gt;/);
 });
 
+test('chat Telegram message stays within 4096 after escaping without broken HTML entities', () => {
+  const adversarial = `&<>"'猫🐾`.repeat(120);
+  const message = buildChatOwnerMessage({
+    sessionId: 'session-escape-boundary',
+    userMessage: adversarial,
+    assistantMessage: adversarial,
+    provider: 'mayuki-grok-4.3',
+  });
+
+  assert.ok(message.telegramText.length <= 4_096, message.telegramText.length);
+  assert.match(message.telegramText, /&amp;/);
+  assert.match(message.telegramText, /&lt;/);
+  assert.match(message.telegramText, /&gt;/);
+  assert.match(message.telegramText, /&quot;/);
+  assert.match(message.telegramText, /&#39;/);
+  assert.match(message.telegramText, /猫/);
+  assert.match(message.telegramText, /🐾/);
+  assert.equal(
+    message.telegramText.replace(/&(amp|lt|gt|quot|#39);/g, '').includes('&'),
+    false,
+    'escaped output must not end with a partial HTML entity',
+  );
+  const tags = message.telegramText.match(/<[^>]+>/g) || [];
+  assert.equal(tags.filter((tag) => tag === '<b>').length, 3);
+  assert.equal(tags.filter((tag) => tag === '</b>').length, 3);
+  assert.equal(tags.filter((tag) => tag === '<code>').length, 1);
+  assert.equal(tags.filter((tag) => tag === '</code>').length, 1);
+  assert.equal(tags.every((tag) => ['<b>', '</b>', '<code>', '</code>'].includes(tag)), true);
+});
+
 test('sendEmailTransport uses the Cloudflare Email binding and returns provider metadata', async () => {
   const calls = [];
   const env = {

@@ -30,7 +30,15 @@
 
 import launchConfig from '../small-animals-launch.json' with { type: 'json' };
 import { canDeleteCalendarEvent, canUpdateCalendarEvent, canWriteCalendarEvent } from './calendar-dog-policy.mjs';
-import { attemptNotifyIntent, ensureNotifyIntent } from './notify.js';
+import {
+  attemptNotifyIntent,
+  CHAT_NOTIFY_DESCRIPTOR_VERSION,
+  CHAT_SOURCE_PAYLOAD_HASH_RULE,
+  chatSourcePayloadHash,
+  ensureNotifyIntent,
+  markNotifyGroupReady,
+  notifyGroupReadyKey,
+} from './notify.js';
 
 const PUBLIC_KITTEN_FIELDS = Object.freeze([
   'id', 'breederId', 'breed', 'color', 'gender', 'price', 'status', 'birthday',
@@ -560,13 +568,13 @@ function validateStoryTextFields(value) {
   return { ok: true };
 }
 
-async function deleteChatLogBatch(env, sid, cursor) {
+async function deleteChatLogBatch(env, sessionRef, cursor) {
   // Carry KV's opaque list cursor across requests. Re-listing page one immediately
   // after deletes is unsafe because Workers KV can keep returning a stale page for
   // a short period; the cursor lets us advance through that same list view while
   // keeping each invocation within the KV operation budget.
   const page = await env.DATA.list({
-    prefix: `chat:log:${sid}:`,
+    prefix: `chat:log:${sessionRef}:`,
     limit: CHAT_FORGET_DELETE_BATCH,
     ...(cursor ? { cursor } : {}),
   });
@@ -2328,6 +2336,7 @@ export default {
         if (!parsed.ok) return addCors(boundedJsonError(parsed));
         const body = isPlainObject(parsed.value) ? parsed.value : {};
         const sid = String(body.session_id || '').slice(0, 64) || crypto.randomUUID();
+        const sessionRef = await sha256HexText(sid);
 
         // Forget action — independently throttled so rotating session IDs cannot
         // turn deletion into an unbounded KV list workload. The session message
@@ -2349,7 +2358,7 @@ export default {
             }));
           }
           try {
-            const deletion = await deleteChatLogBatch(env, sid, forgetCursor);
+            const deletion = await deleteChatLogBatch(env, sessionRef, forgetCursor);
             if (deletion.more) {
               return addCors(json({
                 success: true,
@@ -2391,7 +2400,7 @@ export default {
         }
 
         // Rate limit: 30 messages / hour / session
-        const rlKey = `chat:ratelimit:${sid}`;
+        const rlKey = `chat:ratelimit:${sessionRef}`;
         let rl = parseInt((await env.DATA.get(rlKey)) || '0', 10);
         if (rl >= CHAT_RATE_LIMIT_PER_HOUR) {
           return addCors(json({ error: 'rate_limited' }, 429));
@@ -2448,18 +2457,36 @@ export default {
 
         const userMsg = cleaned[cleaned.length - 1].content;
         const ts = Date.now();
-        const roundId = `${sid}:${ts}`;
-        const logKey = `chat:log:${sid}:${ts}`;
-        const sourceRecord = {
+        const roundId = crypto.randomUUID();
+        const logKey = `chat:log:${sessionRef}:${ts}:${roundId}`;
+        const sourceCore = {
           ts,
           sid,
           provider,
           user: userMsg,
           assistant: reply,
+        };
+        const payloadHash = await chatSourcePayloadHash(sourceCore);
+        const notificationGroup = {
+          entityKind: 'chat',
+          entityId: roundId,
+          template: 'owner_chat_round_v1',
+          sourceKey: logKey,
+          payloadHash,
+          channels: ['email', 'telegram'],
+        };
+        const groupReadyKey = notifyGroupReadyKey(notificationGroup);
+        const sourceRecord = {
+          ...sourceCore,
           notification: {
-            channels: ['email', 'telegram'],
-            entity_id: roundId,
+            notification_status: 'pending',
+            version: CHAT_NOTIFY_DESCRIPTOR_VERSION,
+            round_id: roundId,
             template: 'owner_chat_round_v1',
+            channels: ['email', 'telegram'],
+            source_ts: ts,
+            payload_hash: payloadHash,
+            payload_hash_rule: CHAT_SOURCE_PAYLOAD_HASH_RULE,
           },
         };
 
@@ -2472,9 +2499,7 @@ export default {
           { expirationTtl: CHAT_LOG_TTL },
         );
 
-        const payloadHash = `sha256:${await sha256HexText(JSON.stringify(sourceRecord))}`;
         let notificationIntents = null;
-        let notificationSetupError = null;
 
         // Retry one partial KV setup synchronously. ensureNotifyIntent repairs an item
         // whose due/daily reference failed, while deterministic keys prevent a second
@@ -2495,12 +2520,12 @@ export default {
                 sourceKey: logKey,
                 payloadHash,
                 recipientFingerprint: `sha256:${await sha256HexText(`${channel}:${recipientIdentity}`)}`,
+                groupReadyKey,
               }, ts));
             }
+            await markNotifyGroupReady(env, notificationGroup, ts);
             notificationIntents = ensured;
-          } catch (error) {
-            notificationSetupError = error;
-          }
+          } catch (_error) {}
         }
 
         // No provider call is made here. Both channel intents are durable before the
@@ -2510,15 +2535,16 @@ export default {
             attemptNotifyIntent(env, itemKey, ts, { fetchImpl: fetch })
           ))));
         } else {
-          console.error('[notify] chat intent setup deferred to repair:', notificationSetupError && notificationSetupError.message);
+          console.error('[notify] chat intent setup deferred to repair');
         }
 
         // Lead capture — if user message contains email / phone / LINE, fire NEW LEAD alert + persist.
         const contacts = extractContacts(userMsg);
         if (contacts) {
-          const leadKey = `lead:${Date.now()}:${sid.slice(0, 8)}`;
+          const leadKey = `lead:${ts}:${roundId}`;
           const leadRecord = {
-            sid,
+            session_ref: sessionRef,
+            round_id: roundId,
             contacts,
             user_message: userMsg.slice(0, 1000),
             last_assistant: reply.slice(0, 500),
@@ -2534,7 +2560,7 @@ export default {
           if (contacts.email) leadLines.push(`📧 <b>Email:</b> ${escapeHtml(contacts.email.join(', '))}`);
           if (contacts.phone) leadLines.push(`📞 <b>Phone:</b> ${escapeHtml(contacts.phone.join(', '))}`);
           if (contacts.line) leadLines.push(`💚 <b>LINE:</b> ${escapeHtml(contacts.line.join(', '))}`);
-          leadLines.push(`<b>Session:</b> <code>${escapeHtml(sid.slice(0, 8))}</code>`);
+          leadLines.push(`<b>Round:</b> <code>${escapeHtml(roundId.slice(0, 8))}</code>`);
           leadLines.push(`<b>Message:</b>\n${escapeHtml(userMsg.slice(0, 600))}`);
           ctx.waitUntil(sendTelegramMessage(env, leadLines.join('\n')));
         }

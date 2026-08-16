@@ -6,10 +6,13 @@ const test = require('node:test');
 let attemptNotifyIntent;
 let buildDailyOwnerMessage;
 let createNotifyIntent;
+let ensureNotifyIntent;
 let ensureDailyReconcileSummary;
 let markNotifyFailure;
+let markNotifyGroupReady;
 let markNotifySent;
 let notifyDueKey;
+let notifyGroupReadyKey;
 let notifyItemKey;
 let readNotifyItem;
 let reconcileDueNotifications;
@@ -19,10 +22,13 @@ test.before(async () => {
     attemptNotifyIntent,
     buildDailyOwnerMessage,
     createNotifyIntent,
+    ensureNotifyIntent,
     ensureDailyReconcileSummary,
     markNotifyFailure,
+    markNotifyGroupReady,
     markNotifySent,
     notifyDueKey,
+    notifyGroupReadyKey,
     notifyItemKey,
     readNotifyItem,
     reconcileDueNotifications,
@@ -138,6 +144,8 @@ function notificationSpec({
   channel = 'email',
   template = 'owner_booking_v1',
   sourceKey = `booking:${entityId}`,
+  groupReadyKey,
+  payloadHash = `sha256:${entityKind}-${entityId}`,
 } = {}) {
   return {
     entityKind,
@@ -145,8 +153,9 @@ function notificationSpec({
     channel,
     template,
     sourceKey,
-    payloadHash: `sha256:${entityKind}-${entityId}`,
+    payloadHash,
     recipientFingerprint: `sha256:owner-${channel}`,
+    ...(groupReadyKey ? { groupReadyKey } : {}),
   };
 }
 
@@ -157,6 +166,16 @@ function bookingSource(name = 'Synthetic Customer') {
     phone: '000-0000-0000',
     preferred_date: '2026-08-20',
     message: 'Synthetic notification test',
+  };
+}
+
+function chatSource() {
+  return {
+    ts: 1_900_000_000_000,
+    sid: 'private-source-session',
+    provider: 'mayuki-grok-4.3',
+    user: 'Question',
+    assistant: 'Answer',
   };
 }
 
@@ -444,6 +463,129 @@ test('email success and Telegram failure leave independent item states', async (
   assert.deepEqual(emailItem.result, { provider_message_id: 'email-1' });
   assert.equal(telegramItem.status, 'retry');
   assert.equal(telegramItem.attempt_count, 1);
+});
+
+test('chat due items stay quarantined until Task 6 marks the complete group ready', async () => {
+  const { bindings, DATA, emailCalls } = createEnv();
+  const nowMs = Date.parse('2026-08-16T00:05:30.000Z');
+  const entityId = '00000000-0000-4000-8000-000000000099';
+  const sourceKey = 'chat:log:opaque-session:1900000000000:opaque-round';
+  const payloadHash = 'sha256:frozen-chat-payload';
+  const template = 'owner_chat_round_v1';
+  const groupSpec = {
+    entityKind: 'chat',
+    entityId,
+    template,
+    sourceKey,
+    payloadHash,
+    channels: ['email', 'telegram'],
+  };
+  const groupReadyKey = notifyGroupReadyKey(groupSpec);
+  await putJson(DATA, sourceKey, chatSource());
+  const emailIntent = await createNotifyIntent(bindings, notificationSpec({
+    entityKind: 'chat',
+    entityId,
+    channel: 'email',
+    template,
+    sourceKey,
+    groupReadyKey,
+    payloadHash,
+  }), nowMs);
+
+  await reconcileDueNotifications(bindings, nowMs, {});
+  assert.equal(emailCalls.length, 0);
+  assert.equal((await readNotifyItem(bindings, emailIntent.itemKey)).status, 'pending');
+  await assert.rejects(
+    markNotifyGroupReady(bindings, groupSpec, nowMs),
+    /both notification channels must be durable/,
+  );
+
+  const telegramIntent = await createNotifyIntent(bindings, {
+    ...notificationSpec({
+      entityKind: 'chat',
+      entityId,
+      channel: 'telegram',
+      template,
+      sourceKey,
+      groupReadyKey,
+      payloadHash,
+    }),
+  }, nowMs);
+  await ensureNotifyIntent(bindings, notificationSpec({
+    entityKind: 'chat',
+    entityId,
+    channel: 'email',
+    template,
+    sourceKey,
+    groupReadyKey,
+    payloadHash,
+  }), nowMs);
+  await markNotifyGroupReady(bindings, groupSpec, nowMs);
+  let telegramCalls = 0;
+
+  await reconcileDueNotifications(bindings, nowMs, {
+    fetchImpl: async () => {
+      telegramCalls += 1;
+      return telegramResponse();
+    },
+  });
+
+  assert.equal(emailCalls.length, 1);
+  assert.equal(telegramCalls, 1);
+  assert.equal((await readNotifyItem(bindings, emailIntent.itemKey)).status, 'sent');
+  assert.equal((await readNotifyItem(bindings, telegramIntent.itemKey)).status, 'sent');
+});
+
+test('one hundred quarantined chat items cannot consume the booking delivery budget', async () => {
+  const { bindings, DATA, emailCalls } = createEnv();
+  const chatDueMs = Date.parse('2026-08-16T00:05:00.000Z');
+  const bookingDueMs = chatDueMs + 1_000;
+
+  for (let index = 0; index < 100; index += 1) {
+    const entityId = `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
+    const sourceKey = `chat:log:opaque-session:${chatDueMs}:${entityId}`;
+    const template = 'owner_chat_round_v1';
+    const groupSpec = {
+      entityKind: 'chat',
+      entityId,
+      template,
+      sourceKey,
+      payloadHash: `sha256:frozen-chat-payload-${index}`,
+      channels: ['email', 'telegram'],
+    };
+    await putJson(DATA, sourceKey, chatSource());
+    await createNotifyIntent(bindings, notificationSpec({
+      ...groupSpec,
+      channel: 'email',
+      groupReadyKey: notifyGroupReadyKey(groupSpec),
+    }), chatDueMs);
+  }
+
+  const bookingSourceKey = 'booking:after-quarantined-chat';
+  await putJson(DATA, bookingSourceKey, bookingSource('Booking Must Not Starve'));
+  const bookingIntent = await createNotifyIntent(bindings, notificationSpec({
+    entityId: 'after-quarantined-chat',
+    sourceKey: bookingSourceKey,
+  }), bookingDueMs);
+
+  const result = await reconcileDueNotifications(bindings, bookingDueMs, {});
+
+  assert.equal(emailCalls.length, 1);
+  assert.equal((await readNotifyItem(bindings, bookingIntent.itemKey)).status, 'sent');
+  assert.equal(result.processed, 1);
+  assert.equal(result.attempted, 1);
+  assert.equal([...DATA.store.keys()].filter((key) => key.startsWith('notify:due:')).length, 0);
+  assert.equal(
+    [...DATA.store.values()].filter((value) => {
+      try {
+        return JSON.parse(value)?.template === 'owner_chat_round_v1';
+      } catch (_error) {
+        return false;
+      }
+    }).length,
+    100,
+    'quarantine keeps every durable chat item recoverable for Task 6',
+  );
 });
 
 test('a scheduled reconciliation paginates due keys and processes at most 100 entries', async () => {

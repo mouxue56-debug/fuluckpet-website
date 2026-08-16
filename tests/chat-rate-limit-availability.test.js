@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const { createHash } = require('node:crypto');
 const test = require('node:test');
 
 const SITE_ORIGIN = 'https://fuluckpet.com';
@@ -53,7 +54,8 @@ test('chat preserves its availability policy when only the shared IP-throttle KV
     assert.equal(response.status, 200);
     assert.equal((await response.json()).message, 'Available through the existing chat policy.');
     assert.equal(providerCalls, 1);
-    assert.ok(puts.some((entry) => entry.key === 'chat:ratelimit:chat-availability'));
+    const sessionRef = createHash('sha256').update('chat-availability').digest('hex');
+    assert.ok(puts.some((entry) => entry.key === `chat:ratelimit:${sessionRef}`));
   } finally {
     global.fetch = originalFetch;
   }
