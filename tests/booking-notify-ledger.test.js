@@ -15,7 +15,12 @@ class MemoryKV {
   constructor() {
     this.store = new Map();
     this.operations = [];
+    this.getFailures = [];
     this.putFailures = [];
+  }
+
+  failGetTimes(predicate, remaining = 1) {
+    this.getFailures.push({ predicate, remaining });
   }
 
   failPutOnce(predicate) {
@@ -24,6 +29,13 @@ class MemoryKV {
 
   async get(key, type) {
     this.operations.push({ operation: 'get', key, type });
+    const failureIndex = this.getFailures.findIndex(({ predicate }) => predicate({ key, type }));
+    if (failureIndex >= 0) {
+      const failure = this.getFailures[failureIndex];
+      failure.remaining -= 1;
+      if (failure.remaining === 0) this.getFailures.splice(failureIndex, 1);
+      throw new Error(`synthetic KV get failure for ${key}`);
+    }
     const value = this.store.get(key) ?? null;
     if (type !== 'json' || value === null) return value;
     try {
@@ -307,6 +319,70 @@ test('duplicate retry repairs a missing due reference before delivery and calend
   assert.equal(repaired.due_key, null);
   assert.equal(harness.emailCalls.length, 1);
   assert.equal(harness.telegramCalls.length, 1);
+  const calendar = JSON.parse(harness.DATA.store.get('calendar_events'));
+  assert.equal(calendar.events.filter(({ bookingId }) => bookingId === SUBMISSION_ID).length, 1);
+  assert.equal(
+    harness.DATA.operations.filter(({ operation, key }) => operation === 'put' && key === 'calendar_events').length,
+    1,
+  );
+});
+
+test('calendar foreground read failure preserves the accepted response and owner notifications', async (t) => {
+  t.mock.method(console, 'error', () => {});
+  const harness = createHarness();
+  const submitted = payload({ submission_id: SUBMISSION_ID });
+  harness.DATA.failGetTimes(({ key }) => key === 'calendar_events');
+
+  const first = await submit(harness, submitted);
+  const firstBody = await first.response.json();
+
+  assert.equal(first.response.status, 200);
+  assert.equal(firstBody.ok, true);
+  assert.equal(firstBody.request_id.length > 0, true);
+  assert.equal(harness.DATA.store.has(`booking:${SUBMISSION_ID}`), true);
+  assert.deepEqual(notifyItemKeys(harness.DATA), [
+    `notify:item:booking:${SUBMISSION_ID}:email:owner_booking_v1`,
+    `notify:item:booking:${SUBMISSION_ID}:telegram:owner_booking_v1`,
+  ]);
+  assert.equal(first.waitUntilSnapshots.length, 2);
+  assert.equal(harness.emailCalls.length, 1);
+  assert.equal(harness.telegramCalls.length, 1);
+  const calendar = JSON.parse(harness.DATA.store.get('calendar_events'));
+  assert.equal(calendar.events.filter(({ bookingId }) => bookingId === SUBMISSION_ID).length, 1);
+});
+
+test('duplicate repairs calendar after isolated read failures without repeating notifications', async (t) => {
+  t.mock.method(console, 'error', () => {});
+  const harness = createHarness();
+  const submitted = payload({ submission_id: SUBMISSION_ID });
+  harness.DATA.failGetTimes(({ key }) => key === 'calendar_events', 2);
+
+  const first = await submit(harness, submitted);
+  const firstBody = await first.response.json();
+
+  assert.equal(first.response.status, 200);
+  assert.equal(firstBody.ok, true);
+  assert.equal(first.waitUntilSnapshots.length, 2);
+  assert.equal(harness.DATA.store.has('calendar_events'), false);
+  assert.equal(harness.emailCalls.length, 1);
+  assert.equal(harness.telegramCalls.length, 1);
+  const notificationPutsBeforeRetry = harness.DATA.operations.filter(
+    ({ operation, key }) => operation === 'put' && key.startsWith('notify:'),
+  ).length;
+
+  const duplicate = await submit(harness, submitted);
+  const duplicateBody = await duplicate.response.json();
+
+  assert.equal(duplicate.response.status, 200);
+  assert.equal(duplicateBody.ok, true);
+  assert.equal(duplicateBody.duplicate, true);
+  assert.equal(duplicateBody.request_id, firstBody.request_id);
+  assert.equal(duplicate.waitUntilSnapshots.length, 1);
+  assert.equal(harness.emailCalls.length, 1);
+  assert.equal(harness.telegramCalls.length, 1);
+  assert.equal(harness.DATA.operations.filter(
+    ({ operation, key }) => operation === 'put' && key.startsWith('notify:'),
+  ).length, notificationPutsBeforeRetry);
   const calendar = JSON.parse(harness.DATA.store.get('calendar_events'));
   assert.equal(calendar.events.filter(({ bookingId }) => bookingId === SUBMISSION_ID).length, 1);
   assert.equal(

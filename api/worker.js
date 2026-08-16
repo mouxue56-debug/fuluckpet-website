@@ -1978,10 +1978,15 @@ async function appendVisitEventFromBooking(env, data, bookingId) {
 
 async function hasVisitEventForBooking(env, bookingId) {
   if (!bookingId) return false;
-  const doc = await env.DATA.get('calendar_events', 'json');
-  return Array.isArray(doc?.events) && doc.events.some((event) => (
-    event && event.bookingId === bookingId
-  ));
+  try {
+    const doc = await env.DATA.get('calendar_events', 'json');
+    return Array.isArray(doc?.events) && doc.events.some((event) => (
+      event && event.bookingId === bookingId
+    ));
+  } catch (error) {
+    console.error('[calendar-check]', error && error.stack ? error.stack : error);
+    return false;
+  }
 }
 
 // Booking→calendar status sync: when a booking's status changes (contacted/archived)
