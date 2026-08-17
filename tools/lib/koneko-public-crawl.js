@@ -79,20 +79,16 @@ async function readBoundedText(response) {
   return chunks.join('');
 }
 
-/**
- * Fetches an approved public page with an anonymous, bounded GET request.
- * Internal callers may opt into JSON or an authoritative HTML 404, but never
- * into arbitrary hosts, methods, credentials, or response sizes.
- */
-export async function fetchPublicText(url, {
+async function fetchApprovedText(url, {
   fetchImpl = globalThis.fetch,
   acceptedContentTypes = ['text/html'],
-  allowedStatuses = [],
+  expectedFinalUrl,
+  allowExactTarget404 = false,
 } = {}) {
   const requested = checkedUrl(url);
   if (typeof fetchImpl !== 'function') throw new Error('fetch implementation is required');
   if (!Array.isArray(acceptedContentTypes) || acceptedContentTypes.length === 0) throw new Error('accepted content types are required');
-  if (!Array.isArray(allowedStatuses) || allowedStatuses.some(status => !Number.isInteger(status))) throw new Error('allowed statuses are invalid');
+  const expected = expectedFinalUrl === undefined ? null : checkedUrl(expectedFinalUrl);
 
   let response;
   let lastError;
@@ -127,7 +123,9 @@ export async function fetchPublicText(url, {
   if (finalUrl.protocol !== 'https:' || !ALLOWED_HOSTS.has(finalUrl.hostname) || finalUrl.hostname !== requested.hostname) {
     throw new Error('redirect host is not allowed');
   }
-  if (!(response.status >= 200 && response.status < 300) && !allowedStatuses.includes(response.status)) {
+  if (expected && finalUrl.href !== expected.href) throw new Error('public response final URL does not match the requested target');
+  const isAuthoritativeTarget404 = allowExactTarget404 && response.status === 404 && expected && finalUrl.href === expected.href;
+  if (!(response.status >= 200 && response.status < 300) && !isAuthoritativeTarget404) {
     throw new Error(`public fetch returned non-2xx status: ${response.status}`);
   }
   const contentType = response.headers?.get?.('content-type') || '';
@@ -141,6 +139,14 @@ export async function fetchPublicText(url, {
     contentType,
     sha256: createHash('sha256').update(text).digest('hex'),
   };
+}
+
+/** Fetches an approved public page with an anonymous, bounded GET request. */
+export async function fetchPublicText(url, {
+  fetchImpl = globalThis.fetch,
+  acceptedContentTypes = ['text/html'],
+} = {}) {
+  return fetchApprovedText(url, { fetchImpl, acceptedContentTypes });
 }
 
 function breederListUrl(accountId) {
@@ -230,6 +236,16 @@ function localeUrl(breederId, locale) {
   return `${FULUCK_ORIGIN}${prefix}/kittens/${encodeURIComponent(breederId)}.html`;
 }
 
+async function fetchFuluckRenderedTarget(url, fetchImpl) {
+  const target = checkedUrl(url);
+  if (target.origin !== FULUCK_ORIGIN) throw new Error('Fuluck rendered target URL is invalid');
+  return fetchApprovedText(target.href, {
+    fetchImpl,
+    expectedFinalUrl: target.href,
+    allowExactTarget404: true,
+  });
+}
+
 export async function readFuluckPublicTarget({ activeIds, fetchImpl = globalThis.fetch } = {}) {
   if (!Array.isArray(activeIds)) throw new Error('source active breeder IDs must be an array');
   const sourceIds = new Set();
@@ -258,10 +274,7 @@ export async function readFuluckPublicTarget({ activeIds, fetchImpl = globalThis
     if (!apiIds.has(breederId)) continue;
     for (const locale of ['ja', 'en', 'zh']) {
       const url = localeUrl(breederId, locale);
-      const fetched = await fetchPublicText(url, {
-        fetchImpl,
-        allowedStatuses: [404],
-      });
+      const fetched = await fetchFuluckRenderedTarget(url, fetchImpl);
       checkedUrls.push(fetched.url);
       if (fetched.status === 404) {
         renderedPages.push({ breederId, locale, state: 'rendered_page_missing', url: fetched.url });

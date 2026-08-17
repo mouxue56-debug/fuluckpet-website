@@ -72,6 +72,26 @@ test('fetchPublicText rejects disallowed schemes, hosts, content types, oversize
   await assert.rejects(fetchPublicText(url, { fetchImpl: async () => publicResponse({ status: 404 }) }), /non-2xx|404/i);
 });
 
+test('fetchPublicText cannot be configured to accept non-2xx statuses', async () => {
+  const url = `${KONEKO_ORIGIN}/breederDetail.php?breeder_id=c995680`;
+  await assert.rejects(
+    fetchPublicText(url, { fetchImpl: async () => publicResponse({ status: 404, url }), allowedStatuses: [404] }),
+    /non-2xx|404/i,
+  );
+  await assert.rejects(
+    fetchPublicText(url, { fetchImpl: async () => publicResponse({ status: 500, url }), allowedStatuses: [500] }),
+    /non-2xx|500/i,
+  );
+  await assert.rejects(
+    fetchPublicText(url, {
+      fetchImpl: async () => publicResponse({ status: 404, url }),
+      expectedFinalUrl: url,
+      allowExactTarget404: true,
+    }),
+    /non-2xx|404/i,
+  );
+});
+
 function listCard(id, status = '') {
   const statusMarkup = status
     ? `<div class="listLmtInfStt"><span class="business">${status}</span></div>`
@@ -172,4 +192,25 @@ test('readFuluckPublicTarget records authoritative target 404s but blocks on mal
   await assert.rejects(readFuluckPublicTarget({ activeIds: ['2608-00001'], fetchImpl: async () => { throw new DOMException('timed out', 'TimeoutError'); } }), /timeout|abort/i);
   await assert.rejects(readFuluckPublicTarget({ activeIds: ['2608-00001'], fetchImpl: async url => publicResponse({ body: url === api ? JSON.stringify([{ breederId: '2608-00001' }]) : '<title>Just a moment...</title>', contentType: url === api ? 'application/json' : 'text/html', url }) }), /challenge|interstitial/i);
   await assert.rejects(readFuluckPublicTarget({ activeIds: ['2608-00001'], fetchImpl: async url => publicResponse({ body: url === api ? JSON.stringify([{ breederId: '2608-00001' }]) : fuluckDetail('2608-00002', 'ja'), contentType: url === api ? 'application/json' : 'text/html', url }) }), /SKU|breeder/i);
+});
+
+test('readFuluckPublicTarget blocks same-host redirected 404s instead of treating them as target-page absence', async () => {
+  const api = `${API_ORIGIN}/api/kittens`;
+  for (const redirectedUrl of [
+    `${FULUCK_ORIGIN}/not-found.html`,
+    `${FULUCK_ORIGIN}/kittens/2608-00002.html`,
+  ]) {
+    await assert.rejects(
+      readFuluckPublicTarget({
+        activeIds: ['2608-00001'],
+        fetchImpl: async url => publicResponse({
+          body: url === api ? JSON.stringify([{ breederId: '2608-00001' }]) : '<html><body>not found</body></html>',
+          contentType: url === api ? 'application/json' : 'text/html',
+          status: url === api ? 200 : 404,
+          url: url === api ? url : redirectedUrl,
+        }),
+      }),
+      /target|redirect|non-2xx|404/i,
+    );
+  }
 });
