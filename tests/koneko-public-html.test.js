@@ -42,12 +42,13 @@ function stateClassCard(id, className, stateHtml) {
   );
 }
 
-function listPage(cards, { total = 4, start = 1, end = 3, next = true, links } = {}) {
+function listPage(cards, { total = 4, start = 1, end = 3, next = true, links, afterPagination = '' } = {}) {
   const paginationLinks = links ?? (next ? '<li><a href="breederDetail.php?pageNum=2&amp;breeder_id=c995680#cat_list">次へ</a></li>' : '');
   return `<!doctype html><html><body>
     <div class="pagenation"><div class="disp_pagePosition">全<span class="totalNum">${total}</span>件中&nbsp;&nbsp;${start}～${end}件を表示</div>
       <ul class="list_pagenation">${paginationLinks}</ul>
     </div>
+    ${afterPagination}
     <ul id="cat_list">${cards.join('\n')}</ul>
   </body></html>`;
 }
@@ -91,14 +92,30 @@ test('uses only visible explicit same-host pagination next links', () => {
       total: 2,
       end: 1,
       next: false,
-      links: '<li><a href="breederDetail.php?pageNum=2&amp;breeder_id=c995680">Next</a></li>',
+      links: '<li><a href="breederDetail.php?pageNum=2&amp;breeder_id=c995680"><span>Next</span></a></li>',
     }),
     LIST_OPTIONS,
   );
   assert.equal(englishNextPage.nextPageUrl, 'https://www.koneko-breeder.com/breederDetail.php?pageNum=2&breeder_id=c995680');
 
+  const externalNextPage = parseKonekoListPage(
+    listPage([listCard('2608-00001')], {
+      total: 1,
+      end: 1,
+      next: false,
+      afterPagination: '<nav><a href="breederDetail.php?pageNum=2&amp;breeder_id=c995680">Next</a></nav>',
+    }),
+    LIST_OPTIONS,
+  );
+  assert.equal(externalNextPage.nextPageUrl, '');
+
   for (const links of [
     '<li><a hidden href="breederDetail.php?pageNum=2&amp;breeder_id=c995680">次へ</a></li>',
+    '<li><a aria-hidden="true" href="breederDetail.php?pageNum=2&amp;breeder_id=c995680">次へ</a></li>',
+    '<li><a style="display:none" href="breederDetail.php?pageNum=2&amp;breeder_id=c995680">次へ</a></li>',
+    '<li><a style="visibility: hidden" href="breederDetail.php?pageNum=2&amp;breeder_id=c995680">Next</a></li>',
+    '<li><a href="breederDetail.php?pageNum=2&amp;breeder_id=c995680"><span hidden>次へ</span></a></li>',
+    '<li hidden><a href="breederDetail.php?pageNum=2&amp;breeder_id=c995680">次へ</a></li>',
     '<li><a href="breederDetail.php?pageNum=2&amp;breeder_id=c995680">詳しく見る</a></li>',
     '<li><a href="breederDetail.php?pageNum=2&amp;breeder_id=c995680">Next results</a></li>',
   ]) {

@@ -10,6 +10,8 @@ const STATUS_TEXT = new Map([
 ]);
 
 const YOUTUBE_ID = /(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:[^\s#]*?&)?v=|embed\/|shorts\/))([A-Za-z0-9_-]{11})(?:[?&#/]|$)/i;
+const VOID_HTML_TAGS = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
+const NON_VISIBLE_TEXT_TAGS = new Set(['script', 'style', 'template']);
 
 function nonBlank(value) {
   return typeof value === 'string' && value.trim() !== '';
@@ -55,21 +57,77 @@ function classOpening(html, className, tag = '[a-z][a-z0-9]*') {
   return re;
 }
 
-function extractElementByClass(html, className) {
-  const match = classOpening(html, className).exec(html);
-  if (!match) return '';
-  const tag = match[1];
+function balancedElementContent(html, opening) {
+  const tag = opening[1];
   const token = new RegExp(`<\\/?${tag}\\b[^>]*>`, 'ig');
-  token.lastIndex = match.index + match[0].length;
+  token.lastIndex = opening.index + opening[0].length;
   let depth = 1;
-  let cursor = token.lastIndex;
+  const cursor = token.lastIndex;
   let next;
   while ((next = token.exec(html))) {
     if (/^<\//.test(next[0])) depth -= 1;
     else if (!/\/\s*>$/.test(next[0])) depth += 1;
     if (depth === 0) return html.slice(cursor, next.index);
   }
-  return html.slice(cursor);
+  return null;
+}
+
+function extractElementByClass(html, className) {
+  const match = classOpening(html, className).exec(html);
+  if (!match) return '';
+  return balancedElementContent(html, match) ?? html.slice(match.index + match[0].length);
+}
+
+function balancedElementsByClass(html, className) {
+  return [...html.matchAll(classOpening(html, className))].flatMap(opening => {
+    const content = balancedElementContent(html, opening);
+    return content === null ? [] : [{ content, attributes: opening[0].replace(/^<[^\s>]+\b|>$/g, '') }];
+  });
+}
+
+function hasHiddenAttributes(attributes) {
+  if (/(?:^|\s)hidden(?=\s|=|$)/i.test(attributes)) return true;
+  if (/\baria-hidden\s*=\s*(?:["']\s*true\s*["']|true\b)/i.test(attributes)) return true;
+  const style = attributes.match(/\bstyle\s*=\s*["']([^"']*)["']/i)?.[1] || '';
+  return /\bdisplay\s*:\s*none\b|\bvisibility\s*:\s*hidden\b/i.test(style);
+}
+
+function visibleAnchors(html, { ancestorHidden = false } = {}) {
+  const anchors = [];
+  const stack = [];
+  let hiddenDepth = ancestorHidden ? 1 : 0;
+  let currentAnchor = null;
+  const token = /<(\/)?([a-z][a-z0-9]*)([^>]*)>/gi;
+  let cursor = 0;
+  let match;
+  const appendText = end => {
+    if (currentAnchor && hiddenDepth === 0) currentAnchor.label += html.slice(cursor, end);
+  };
+  while ((match = token.exec(html))) {
+    appendText(match.index);
+    const closing = match[1] === '/';
+    const tag = match[2].toLowerCase();
+    const attributes = match[3] || '';
+    if (closing) {
+      const current = stack.at(-1);
+      if (current?.tag === tag) {
+        if (tag === 'a' && currentAnchor && hiddenDepth === 0) anchors.push(currentAnchor);
+        stack.pop();
+        if (current.hidden) hiddenDepth -= 1;
+        if (tag === 'a') currentAnchor = null;
+      }
+    } else {
+      const hidden = hasHiddenAttributes(attributes) || NON_VISIBLE_TEXT_TAGS.has(tag);
+      if (tag === 'a') currentAnchor = { attributes, label: '' };
+      if (!VOID_HTML_TAGS.has(tag) && !/\/\s*$/.test(attributes)) {
+        stack.push({ tag, hidden });
+        if (hidden) hiddenDepth += 1;
+      }
+    }
+    cursor = token.lastIndex;
+  }
+  appendText(html.length);
+  return anchors;
 }
 
 function absoluteUrl(value, pageUrl) {
@@ -274,11 +332,11 @@ export function parseKonekoListPage(html, { accountId, pageUrl } = {}) {
     cards.push({ breederId, status, detailUrl: absoluteUrl(href, pageUrl) });
   }
   if (!cards.length) throw new Error('no Koneko cards found');
-  const paginationRegions = [...html.matchAll(/<div\b[^>]*\bclass\s*=\s*["'][^"']*\bpagenation\b[^"']*["'][^>]*>([\s\S]*?)(?=<div\b[^>]*\bclass\s*=\s*["'][^"']*\bpagenation\b|<\/body\b|$)/gi)].map(match => match[1]);
-  const pagination = paginationRegions.find(region => {
-    const range = region.match(/(\d+)\s*[～〜~-]\s*(\d+)\s*件を表示/i);
+  const paginationElement = balancedElementsByClass(html, 'pagenation').find(element => {
+    const range = element.content.match(/(\d+)\s*[～〜~-]\s*(\d+)\s*件を表示/i);
     return range && cards.length === Number(range[2]) - Number(range[1]) + 1;
-  }) || '';
+  });
+  const pagination = paginationElement?.content || '';
   const declaredMatch = pagination.match(/<span\b[^>]*\bclass\s*=\s*["'][^"']*\btotalNum\b[^"']*["'][^>]*>\s*(\d+)/i);
   const rangeMatch = pagination.match(/(\d+)\s*[～〜~-]\s*(\d+)\s*件を表示/i);
   if (!declaredMatch || !rangeMatch) throw new Error('pagination range receipt is missing');
@@ -286,14 +344,13 @@ export function parseKonekoListPage(html, { accountId, pageUrl } = {}) {
   const rangeEnd = Number(rangeMatch[2]);
   if (cards.length !== rangeEnd - rangeStart + 1) throw new Error('range/card count mismatch');
   let nextPageUrl = '';
-  for (const match of pagination.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a\s*>/gi)) {
-    const attributes = match[1];
+  for (const { attributes, label } of visibleAnchors(pagination, { ancestorHidden: hasHiddenAttributes(paginationElement?.attributes || '') })) {
     const rawHref = attributes.match(/\bhref\s*=\s*["']([^"']+)["']/i)?.[1];
-    if (!rawHref || /(?:^|\s)hidden(?=\s|=|$)/i.test(attributes) || /\baria-hidden\s*=\s*["']true["']/i.test(attributes)) continue;
+    if (!rawHref) continue;
     const href = absoluteUrl(rawHref, pageUrl);
     if (!href) continue;
     try { if (new URL(href).origin !== new URL(pageUrl).origin) continue; } catch { continue; }
-    if (/pageNum=\d+/i.test(href) && /^(?:次へ|next)$/i.test(decodeHtmlText(match[2]))) { nextPageUrl = href; break; }
+    if (/pageNum=\d+/i.test(href) && /^(?:次へ|next)$/i.test(decodeHtmlText(label))) { nextPageUrl = href; break; }
   }
   return {
     accountId,
