@@ -28,6 +28,13 @@ function listCard(id, status = '', imageId = id) {
   </li>`;
 }
 
+function directStateCard(id, stateHtml) {
+  return listCard(id).replace(
+    /<div class="listLmtInfStt">[\s\S]*?<\/div>/,
+    `<div class="listLmtInfStt">${stateHtml}</div>`,
+  );
+}
+
 function listPage(cards, { total = 4, start = 1, end = 3, next = true } = {}) {
   return `<!doctype html><html><body>
     <div class="pagenation"><div class="disp_pagePosition">全<span class="totalNum">${total}</span>件中&nbsp;&nbsp;${start}～${end}件を表示</div>
@@ -71,6 +78,23 @@ test('maps 事前成約申請 to reserved and rejects unknown status, duplicate 
   assert.throws(() => parseKonekoListPage(listPage([listCard('2608-00001')], { total: 1, end: 2 }), LIST_OPTIONS), /range|card/i);
 });
 
+test('maps exact unwrapped Japanese list status containers', () => {
+  const cases = [
+    ['販売中', 'available'],
+    ['商談中', 'reserved'],
+    ['事前成約申請', 'reserved'],
+    ['成約済み', 'sold'],
+    ['販売終了', 'sold'],
+  ];
+  for (const [label, status] of cases) {
+    const page = parseKonekoListPage(
+      listPage([directStateCard('2608-00001', label)], { total: 1, end: 1 }),
+      LIST_OPTIONS,
+    );
+    assert.equal(page.cards[0].status, status, label);
+  }
+});
+
 test('fails closed for out-of-contract, repeated, or unmarked list states', () => {
   assert.throws(() => parseKonekoListPage(listPage([listCard('2608-00001', '成約済み（引き渡し前）')], { total: 1, end: 1 }), LIST_OPTIONS), /unknown status/i);
   const repeated = listCard('2608-00001', '販売中').replace('</li>', '<span class="business">掲載停止</span></li>');
@@ -79,6 +103,12 @@ test('fails closed for out-of-contract, repeated, or unmarked list states', () =
   assert.throws(() => parseKonekoListPage(listPage([unmarked], { total: 1, end: 1 }), LIST_OPTIONS), /live|marker|status/i);
   const bareNew = listCard('2608-00001').replace(/<div class="listLmtInfStt">[\s\S]*?<\/div>/, '<div class="listLmtInfStt">NEW</div>');
   assert.throws(() => parseKonekoListPage(listPage([bareNew], { total: 1, end: 1 }), LIST_OPTIONS), /live|marker|status/i);
+  const unknownDirect = directStateCard('2608-00001', '掲載停止');
+  assert.throws(() => parseKonekoListPage(listPage([unknownDirect], { total: 1, end: 1 }), LIST_OPTIONS), /unknown status/i);
+  const conflicting = directStateCard('2608-00001', '成約済み').replace('</li>', '<span class="business">販売中</span></li>');
+  assert.throws(() => parseKonekoListPage(listPage([conflicting], { total: 1, end: 1 }), LIST_OPTIONS), /conflicting status/i);
+  const misleadingNew = directStateCard('2608-00001', '<span class="new status">NEW</span>');
+  assert.throws(() => parseKonekoListPage(listPage([misleadingNew], { total: 1, end: 1 }), LIST_OPTIONS), /unknown status/i);
   const hyphenatedNew = listCard('2608-00001').replace('class="new"', 'class="new-status"');
   assert.throws(() => parseKonekoListPage(listPage([hyphenatedNew], { total: 1, end: 1 }), LIST_OPTIONS), /live|marker|status/i);
   const spacedNew = listCard('2608-00001').replace('class="new"', 'class="foo new bar"');
