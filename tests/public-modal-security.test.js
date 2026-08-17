@@ -283,7 +283,8 @@ function runMainScript(options = {}) {
     driveFolder: '',
     name: options.kittenName || '',
     status: options.kittenStatus || 'available',
-    new: 'true',
+    new: options.isNew === false ? 'false' : 'true',
+    promotionTag: options.promotionTag || '',
     papa: options.papa || '',
     mama: options.mama || '',
     breederId: options.breederId || '',
@@ -487,6 +488,26 @@ test('kitten modal follows the active document language instead of publishing Ja
       /販売中|猫種|性別|カラー|誕生日|掲載ID|両親|パパ|ママ|動物愛護管理法に基づく対面販売|この子についてLINEで相談|見学を予約/,
       `${entry.lang} modal must not fall back to Japanese labels`,
     );
+  }
+});
+
+test('featured kitten modal shows localized recommendation instead of NEW', () => {
+  const cases = [
+    ['ja', 'おすすめ'],
+    ['en', 'Featured'],
+    ['zh', '推荐'],
+  ];
+
+  for (const [lang, expected] of cases) {
+    const result = runMainScript({ lang, promotionTag: 'featured', isNew: true });
+    result.kittenCard.click();
+    const status = result.kittenModal.querySelector('.modal-status-row');
+    const promotion = status.querySelector('.kitten-promotion-chip');
+
+    assert.ok(promotion, lang);
+    assert.equal(promotion.textContent, expected, lang);
+    assert.equal(promotion.getAttribute('data-promotion-tag'), 'featured', lang);
+    assert.equal(status.querySelector('.kit-badge-new'), null, lang);
   }
 });
 
