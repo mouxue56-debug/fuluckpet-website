@@ -256,10 +256,12 @@ export function parseKonekoListPage(html, { accountId, pageUrl } = {}) {
       if (distinct.length !== 1) throw new Error(`conflicting status markup: ${labels.join(', ')}`);
       status = distinct[0];
     } else {
-      const stateText = decodeHtmlText(extractElementByClass(cardHtml, 'listLmtInfStt'));
-      if (!stateText) throw new Error('live-list marker or status is missing');
-      if (!STATUS_TEXT.has(stateText)) throw new Error(`unknown status markup: ${stateText}`);
-      status = STATUS_TEXT.get(stateText);
+      const stateHtml = extractElementByClass(cardHtml, 'listLmtInfStt');
+      const liveMarker = stateHtml.match(/<span\b[^>]*\bclass\s*=\s*["'][^"']*\bnew\b[^"']*["'][^>]*>([\s\S]*?)<\/span\s*>/i);
+      if (!liveMarker) throw new Error('live-list marker or status is missing');
+      const stateText = decodeHtmlText(liveMarker[1]);
+      if (stateText !== 'NEW') throw new Error(`unknown status markup: ${stateText}`);
+      status = 'available';
     }
     const href = cardHtml.match(/href\s*=\s*["']([^"']*cat\d{4}-\d{5}\.html[^"']*)["']/i)?.[1] || '';
     cards.push({ breederId, status, detailUrl: absoluteUrl(href, pageUrl) });
