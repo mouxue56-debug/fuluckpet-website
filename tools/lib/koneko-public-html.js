@@ -245,7 +245,7 @@ export function parseKonekoListPage(html, { accountId, pageUrl } = {}) {
     const breederId = linkIds[0];
     if (ids.has(breederId)) throw new Error(`duplicate card ID: ${breederId}`);
     ids.add(breederId);
-    const statusNodes = [...cardHtml.matchAll(/<(?:span|p|div)\b[^>]*\bclass\s*=\s*["'][^"']*\b(?:business|closed|sold|status)\b[^"']*["'][^>]*>([\s\S]*?)<\/(?:span|p|div)\s*>/gi)];
+    const statusNodes = [...cardHtml.matchAll(/<(?:span|p|div)\b[^>]*\bclass\s*=\s*["'](?:[^"']*\s)?(?:business|closed|sold|status)(?=\s|["'])[^"']*["'][^>]*>([\s\S]*?)<\/(?:span|p|div)\s*>/gi)];
     let status = 'available';
     if (statusNodes.length) {
       const labels = statusNodes.map(node => decodeHtmlText(node[1]));
@@ -257,7 +257,7 @@ export function parseKonekoListPage(html, { accountId, pageUrl } = {}) {
       status = distinct[0];
     } else {
       const stateHtml = extractElementByClass(cardHtml, 'listLmtInfStt');
-      const liveMarker = stateHtml.match(/<span\b[^>]*\bclass\s*=\s*["'][^"']*\bnew\b[^"']*["'][^>]*>([\s\S]*?)<\/span\s*>/i);
+      const liveMarker = stateHtml.match(/<span\b[^>]*\bclass\s*=\s*["'](?:[^"']*\s)?new(?=\s|["'])[^"']*["'][^>]*>([\s\S]*?)<\/span\s*>/i);
       if (!liveMarker) throw new Error('live-list marker or status is missing');
       const stateText = decodeHtmlText(liveMarker[1]);
       if (stateText !== 'NEW') throw new Error(`unknown status markup: ${stateText}`);

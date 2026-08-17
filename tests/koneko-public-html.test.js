@@ -79,6 +79,10 @@ test('fails closed for out-of-contract, repeated, or unmarked list states', () =
   assert.throws(() => parseKonekoListPage(listPage([unmarked], { total: 1, end: 1 }), LIST_OPTIONS), /live|marker|status/i);
   const bareNew = listCard('2608-00001').replace(/<div class="listLmtInfStt">[\s\S]*?<\/div>/, '<div class="listLmtInfStt">NEW</div>');
   assert.throws(() => parseKonekoListPage(listPage([bareNew], { total: 1, end: 1 }), LIST_OPTIONS), /live|marker|status/i);
+  const hyphenatedNew = listCard('2608-00001').replace('class="new"', 'class="new-status"');
+  assert.throws(() => parseKonekoListPage(listPage([hyphenatedNew], { total: 1, end: 1 }), LIST_OPTIONS), /live|marker|status/i);
+  const spacedNew = listCard('2608-00001').replace('class="new"', 'class="foo new bar"');
+  assert.equal(parseKonekoListPage(listPage([spacedNew], { total: 1, end: 1 }), LIST_OPTIONS).cards[0].status, 'available');
 });
 
 test('ignores unrelated totalNum markup, rejects challenge pages, and rejects off-host next links', () => {
