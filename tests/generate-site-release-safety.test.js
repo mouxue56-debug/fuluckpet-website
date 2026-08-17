@@ -638,6 +638,49 @@ test('kitten detail introductions are localized, escaped, paragraph-preserving, 
   assert.doesNotMatch(blankDetail, /<section class="kitten-detail-introduction">/);
 });
 
+test('featured kitten details show localized recommendation context and suppress NEW', (t) => {
+  const siteDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fuluck-featured-detail-'));
+  copyFile(path.join(ROOT, 'kittens.html'), path.join(siteDir, 'kittens.html'));
+  const generator = loadGeneratorForSite(t, siteDir);
+  const kitten = {
+    id: 'row-featured',
+    breederId: 'featured-detail',
+    breed: 'サイベリアン',
+    color: 'ブルー',
+    gender: '♂',
+    birthday: '2025-03-09',
+    price: 100000,
+    status: 'available',
+    photos: ['https://images.example.test/featured.jpg'],
+    isNew: false,
+    promotionTag: 'featured',
+    promotionPriority: 0,
+    papa: 'Papa',
+    mama: 'Mama',
+  };
+  const expected = {
+    ja: ['おすすめ', '月齢を重ねた子の魅力', 'ご家庭との相性をゆっくり確かめていただけます'],
+    en: ['Featured', 'Why an older kitten can be a great fit', 'giving families more time to consider the fit'],
+    zh: ['推荐', '月龄较大猫咪的优势', '更从容地确认它与家庭生活是否合适'],
+  };
+
+  for (const lang of ['ja', 'en', 'zh']) {
+    generator.generateKittenDetailPages([kitten], [], lang);
+    const prefix = lang === 'ja' ? '' : `${lang}/`;
+    const detail = fs.readFileSync(path.join(siteDir, prefix, 'kittens/featured-detail.html'), 'utf8');
+    assert.equal((detail.match(/class="kitten-detail-featured"/g) || []).length, 1);
+    assert.match(detail, /kitten-promotion-chip[^>]*data-promotion-tag="featured"/);
+    for (const literal of expected[lang]) assert.ok(detail.includes(literal), `${lang}: ${literal}`);
+    assert.doesNotMatch(detail, /kit-badge-new[^>]*>NEW</);
+    assert.ok(detail.indexOf('kitten-detail-table') < detail.indexOf('kitten-detail-featured'));
+    assert.ok(detail.indexOf('kitten-detail-featured') < detail.indexOf('<!-- Parents -->'));
+  }
+
+  generator.generateKittenDetailPages([{ ...kitten, breederId: 'plain-detail', promotionTag: '' }], [], 'ja');
+  const plain = fs.readFileSync(path.join(siteDir, 'kittens/plain-detail.html'), 'utf8');
+    assert.doesNotMatch(plain, /<section class="kitten-detail-featured">|data-promotion-tag="featured"/);
+});
+
 test('Drive enrichment uses bounded concurrency instead of one serial request per kitten', async (t) => {
   const siteDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fuluck-drive-concurrency-'));
   copyFile(path.join(ROOT, 'kittens.html'), path.join(siteDir, 'kittens.html'));

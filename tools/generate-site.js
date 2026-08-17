@@ -375,6 +375,32 @@ function descriptionHtml(kitten, lang) {
       </section>`;
 }
 
+const FEATURED_DETAIL_COPY = Object.freeze({
+  ja: {
+    title: '月齢を重ねた子の魅力',
+    body: '月齢を重ねた子は、体格や日々の過ごし方を実際に見ながら、ご家庭との相性をゆっくり確かめていただけます。現在の性格や生活リズムは、下の個体紹介をご覧ください。',
+  },
+  en: {
+    title: 'Why an older kitten can be a great fit',
+    body: 'With an older kitten, their build and daily routines are easier to observe, giving families more time to consider the fit. See the individual profile below for current details.',
+  },
+  zh: {
+    title: '月龄较大猫咪的优势',
+    body: '月龄较大的猫，体型和日常习惯更容易通过实际观察来了解，您可以更从容地确认它与家庭生活是否合适。每只猫当前的性格与生活节奏，请查看下方个体介绍。',
+  },
+});
+
+function featuredDetailHtml(kitten, lang) {
+  if (KittenCatalog.normalizePromotionTag(kitten && kitten.promotionTag) !== 'featured') return '';
+  const selectedLang = lang === 'en' || lang === 'zh' ? lang : 'ja';
+  const copy = FEATURED_DETAIL_COPY[selectedLang];
+  return `
+      <section class="kitten-detail-featured">
+        <h2>${escapeHtml(copy.title)}</h2>
+        <p>${escapeHtml(copy.body)}</p>
+      </section>`;
+}
+
 function statusText(status) {
   switch (status) {
     case 'available': return '販売中';
@@ -2205,8 +2231,14 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja') {
     ? `<tr><th data-i18n="kitten.note">備考</th><td>${escapeHtml(noteDetailL)}</td></tr>`
     : '';
 
-  // New badge
-  const newBadge = kitten.isNew ? ' <span class="kit-badge-new">NEW</span>' : '';
+  // A reviewed promotion is the current merchandising state and takes precedence over
+  // a stale legacy NEW flag. The production data update also clears isNew, but this
+  // display guard prevents a contradictory intermediate page.
+  const promotionTag = KittenCatalog.normalizePromotionTag(kitten.promotionTag);
+  const promotionChip = promotionTag
+    ? ` <span class="kitten-promotion-chip usp-chip usp-chip--card" data-promotion-tag="${escapeHtml(promotionTag)}">${escapeHtml(KittenCatalog.promotionLabel(promotionTag, lang))}</span>`
+    : '';
+  const newBadge = kitten.isNew && !promotionTag ? ' <span class="kit-badge-new">NEW</span>' : '';
 
   return `<!DOCTYPE html>
 <html lang="${htmlLang}">
@@ -2349,6 +2381,23 @@ ${productSchemaHtml}  <script type="application/ld+json">
   }
   .kitten-detail-introduction p {
     margin: 0 0 12px;
+    line-height: 1.8;
+  }
+  .kitten-detail-featured {
+    margin: 0 0 24px;
+    padding: 18px 20px;
+    border: 1px solid rgba(125, 211, 192, 0.42);
+    border-radius: var(--radius-sm);
+    background: rgba(240, 255, 250, 0.72);
+  }
+  .kitten-detail-featured h2 {
+    margin: 0 0 8px;
+    color: var(--text-main);
+    font-size: 1.05rem;
+  }
+  .kitten-detail-featured p {
+    margin: 0;
+    color: var(--text-note-strong);
     line-height: 1.8;
   }
   .kitten-detail-parents {
@@ -2497,9 +2546,9 @@ ${headerHtml}
     <div class="container">
       <h1>${escapeHtml(titleText)}</h1>
 
-      <!-- Status + New badge -->
+      <!-- Status + catalogue badge -->
       <div class="kitten-detail-status">
-        <span class="kit-status st-${effectiveStatus}"${statusI18nKey(effectiveStatus) ? ` data-i18n="${statusI18nKey(effectiveStatus)}"` : ''}>${escapeHtml(stL)}</span>${newBadge}
+        <span class="kit-status st-${effectiveStatus}"${statusI18nKey(effectiveStatus) ? ` data-i18n="${statusI18nKey(effectiveStatus)}"` : ''}>${escapeHtml(stL)}</span>${newBadge}${promotionChip}
       </div>
 
       <!-- Price -->
@@ -2514,6 +2563,8 @@ ${headerHtml}
         <tr><th data-i18n="kitten.status">状態</th><td${statusI18nKey(effectiveStatus) ? ` data-i18n="${statusI18nKey(effectiveStatus)}"` : ''}>${escapeHtml(stL)}</td></tr>
         ${noteRow}
       </table>
+
+      ${featuredDetailHtml(kitten, lang)}
 
       ${descriptionHtml(kitten, lang)}
 

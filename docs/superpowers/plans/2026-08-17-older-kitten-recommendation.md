@@ -53,6 +53,8 @@ test('featured kitten details show localized recommendation context and suppress
     isNew: false,
     promotionTag: 'featured',
     promotionPriority: 0,
+    papa: 'Papa',
+    mama: 'Mama',
   };
   const expected = {
     ja: ['おすすめ', '月齢を重ねた子の魅力', 'ご家庭との相性をゆっくり確かめていただけます'],
