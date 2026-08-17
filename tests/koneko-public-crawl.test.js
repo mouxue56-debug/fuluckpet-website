@@ -118,8 +118,8 @@ function listPage(cards, { total, start, end, next = '', links } = {}) {
   return `<html><body><div class="pagenation"><div>全<span class="totalNum">${total}</span>件中 ${start}～${end}件を表示</div>${paginationLinks}</div><ul>${cards.join('')}</ul></body></html>`;
 }
 
-function konekoDetail(id, accountId = 'c995680') {
-  return `<html><head><link rel="canonical" href="${KONEKO_ORIGIN}/cat${id}.html"><script type="application/ld+json">${JSON.stringify({ '@type': 'Product', sku: id, image: [`${KONEKO_ORIGIN}/breeder/data/${accountId}/child.jpg`], offers: { price: '230000' } })}</script></head><body>
+function konekoDetail(id, accountId = 'c995680', availability = 'https://schema.org/InStock') {
+  return `<html><head><link rel="canonical" href="${KONEKO_ORIGIN}/cat${id}.html"><script type="application/ld+json">${JSON.stringify({ '@type': 'Product', sku: id, image: [`${KONEKO_ORIGIN}/breeder/data/${accountId}/child.jpg`], offers: { price: '230000', availability } })}</script></head><body>
     <div class="petDtlData"><table class="gnrTbl"><tr><th>猫種</th><td>サイベリアン</td></tr><tr><th>毛色(毛質)</th><td>シルバー</td></tr><tr><th>性別</th><td>♂</td></tr><tr><th>誕生日</th><td>2026/5/9</td></tr><tr><th>アピール<br>ポイント</th><td>紹介</td></tr></table></div>
     <div id="parentInfo"><ul class="parentInfo_list"><li><h3 class="parentInfo_head father">Father</h3><ul><li class="parentName"><strong>父猫</strong></li></ul></li><li><h3 class="parentInfo_head mother">Mother</h3><ul><li class="parentName"><strong>母猫</strong></li></ul></li></ul></div>
     <div class="movieGalleryCnt youtube"><iframe src="https://www.youtube.com/embed/AbCdEfGhI12"></iframe></div>
@@ -149,7 +149,7 @@ test('crawlKonekoAccount traverses contiguous stable pages and fetches only acti
     [first, listPage([listCard('2608-00001'), listCard('2608-00002', '商談中')], { total: 3, start: 1, end: 2, next: 'breederDetail.php?pageNum=2&breeder_id=c995680' })],
     [second, listPage([listCard('2608-00003', '販売終了')], { total: 3, start: 3, end: 3 })],
     [`${KONEKO_ORIGIN}/cat2608-00001.html`, konekoDetail('2608-00001')],
-    [`${KONEKO_ORIGIN}/cat2608-00002.html`, konekoDetail('2608-00002')],
+    [`${KONEKO_ORIGIN}/cat2608-00002.html`, konekoDetail('2608-00002', 'c995680', 'https://schema.org/SoldOut')],
   ]);
 
   const result = await crawlKonekoAccount({ accountId: 'c995680', fetchImpl: crawlerFetch(pages), delayMs: 0 });
@@ -158,6 +158,35 @@ test('crawlKonekoAccount traverses contiguous stable pages and fetches only acti
   assert.equal(result.declaredTotal, 3);
   assert.deepEqual(result.kittens.map(kitten => kitten.breederId), ['2608-00001', '2608-00002', '2608-00003']);
   assert.deepEqual(result.activeDetails.map(kitten => kitten.breederId), ['2608-00001', '2608-00002']);
+  assert.deepEqual(result.activeDetails.map(kitten => kitten.observedAvailability), ['in_stock', 'sold_out']);
+});
+
+test('crawlKonekoAccount blocks when Product availability changes after active list pagination', async () => {
+  const listUrl = `${KONEKO_ORIGIN}/breederDetail.php?breeder_id=c995680`;
+  const cases = [
+    ['販売中', 'https://schema.org/SoldOut'],
+    ['商談中', 'https://schema.org/InStock'],
+  ];
+  for (const [listStatus, availability] of cases) {
+    const detailUrl = `${KONEKO_ORIGIN}/cat2608-00001.html`;
+    await assert.rejects(
+      crawlKonekoAccount({
+        accountId: 'c995680',
+        fetchImpl: crawlerFetch(new Map([
+          [listUrl, listPage([listCard('2608-00001', listStatus)], { total: 1, start: 1, end: 1 })],
+          [detailUrl, konekoDetail('2608-00001', 'c995680', availability)],
+        ])),
+        delayMs: 0,
+      }),
+      error => assertSafeFailure(error, {
+        stage: 'koneko_detail',
+        reason: 'status_contract',
+        accountId: 'c995680',
+        breederId: '2608-00001',
+        url: detailUrl,
+      }),
+    );
+  }
 });
 
 test('crawlKonekoAccount fails closed for repeated links, gaps, changing totals, duplicate IDs, wrong accounts, and mismatched details', async () => {

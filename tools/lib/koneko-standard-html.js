@@ -20,6 +20,7 @@ const STATUS_TEXT = new Map([
   ['販売中', 'available'],
   ['商談中', 'reserved'],
   ['事前成約申請', 'reserved'],
+  ['準備中', 'preparing'],
   ['成約済み', 'sold'],
   ['販売終了', 'sold'],
 ]);
@@ -363,6 +364,20 @@ function productPrice(product) {
   const price = Number(String(raw).replace(/[,，\s円¥]/g, ''));
   if (!Number.isFinite(price) || price <= 0) throw new Error('Product price evidence is invalid');
   return price;
+}
+
+function productAvailability(product) {
+  const offers = Array.isArray(product?.offers) ? product.offers : [product?.offers];
+  if (!offers.length) throw new Error('Product availability evidence is missing');
+  const values = offers.map((offer) => {
+    const availability = typeof offer?.availability === 'string' ? offer.availability.trim() : '';
+    if (availability === 'https://schema.org/InStock') return 'in_stock';
+    if (availability === 'https://schema.org/SoldOut') return 'sold_out';
+    throw new Error('Product availability evidence is missing or unknown');
+  });
+  const unique = [...new Set(values)];
+  if (unique.length !== 1) throw new Error('Product availability evidence is conflicting');
+  return unique[0];
 }
 
 function normalizeDate(value) {
@@ -734,6 +749,7 @@ export function parseKonekoDetailPage(html, {
     ...facts,
     price: productPrice(product),
     photos,
+    observedAvailability: productAvailability(product),
     videoId: konekoVideoId(context, pageUrl),
     ...konekoParents(context),
     description: konekoDescription(context),

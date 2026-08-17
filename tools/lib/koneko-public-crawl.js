@@ -37,6 +37,7 @@ const FAILURE_REASONS = new Set([
   'redirect_policy',
   'pagination_contract',
   'identity_contract',
+  'status_contract',
   'render_contract',
   'parse_contract',
   'public_request_failed',
@@ -485,15 +486,21 @@ export async function crawlKonekoAccount({ accountId, fetchImpl = globalThis.fet
     } catch (cause) {
       throw typedFailure('koneko_detail', detailContext, cause, 'public_request_failed');
     }
+    let detail;
     try {
-      activeDetails.push(parseKonekoDetailPage(fetched.text, {
+      detail = parseKonekoDetailPage(fetched.text, {
         expectedAccountId: accountId,
         expectedBreederId: kitten.breederId,
         pageUrl: fetched.url,
-      }));
+      });
     } catch (cause) {
       throw typedFailure('koneko_detail', detailContext, cause, 'parse_contract');
     }
+    const expectedAvailability = kitten.status === 'available' ? 'in_stock' : 'sold_out';
+    if (detail.observedAvailability !== expectedAvailability) {
+      throw contractFailure('koneko_detail', detailContext, 'status_contract', 'Koneko list/detail status evidence changed');
+    }
+    activeDetails.push(detail);
   }
   return { accountId, declaredTotal, receipts, kittens, activeDetails };
 }

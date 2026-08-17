@@ -88,6 +88,7 @@ export function renderAuditMarkdown(result) {
   const lines = [
     '# Koneko catalogue audit',
     '',
+    `- Schema version: ${result.schemaVersion || '1.0'}`,
     `- Timestamp: ${jstTimestamp(result.timestamp)}`,
     `- Result: ${result.result}`,
     `- Exit code: ${result.exitCode}`,
@@ -97,11 +98,18 @@ export function renderAuditMarkdown(result) {
     '',
   ];
   for (const account of result.accounts || []) {
-    const statusCounts = account.statusCounts || { available: 0, reserved: 0, sold: 0 };
-    lines.push(`- ${account.accountId}: declared ${account.declaredTotal}, receipts ${account.receiptCount}; unique IDs ${account.uniqueIdCount ?? 0}; available ${statusCounts.available ?? 0}, reserved ${statusCounts.reserved ?? 0}, sold ${statusCounts.sold ?? 0}; ambiguous ${account.ambiguousStatusCount ?? 0}; active ${account.activeCount ?? 0}`);
+    const statusCounts = account.statusCounts || {
+      available: 0, reserved: 0, preparing: 0, sold: 0,
+    };
+    lines.push(`- ${account.accountId}: declared ${account.declaredTotal}, receipts ${account.receiptCount}; unique IDs ${account.uniqueIdCount ?? 0}; available ${statusCounts.available ?? 0}, reserved ${statusCounts.reserved ?? 0}, preparing ${statusCounts.preparing ?? 0}, sold ${statusCounts.sold ?? 0}; ambiguous ${account.ambiguousStatusCount ?? 0}; active ${account.activeCount ?? 0}`);
     for (const receipt of account.receipts || []) {
       lines.push(`  - ${receipt.rangeStart}-${receipt.rangeEnd}/${receipt.declaredTotal}: ${safeUrl(receipt.url)} (HTTP ${markdownValue(receipt.status)}, ${markdownValue(receipt.contentType)}, sha256:${markdownValue(receipt.sha256)})`);
     }
+  }
+  lines.push('', '## Active status receipts', '');
+  if (!(result.activeStatusReceipts || []).length) lines.push('- None.');
+  for (const receipt of result.activeStatusReceipts || []) {
+    lines.push(`- Status receipt: ${markdownValue(receipt.accountId)} ${markdownValue(receipt.breederId)}; source=${markdownValue(receipt.sourceStatus)}; target=${markdownValue(receipt.targetStatus)}`);
   }
   const counts = result.fuluck?.renderedPageCounts || { ja: 0, en: 0, zh: 0 };
   lines.push(
@@ -181,6 +189,7 @@ function atomicWrite(pathname, content) {
 
 export function blockedReceipt(message = 'Public catalogue evidence could not be completed.') {
   return {
+    schemaVersion: '1.0',
     timestamp: new Date().toISOString(),
     result: 'BLOCKED',
     exitCode: 3,
@@ -190,6 +199,7 @@ export function blockedReceipt(message = 'Public catalogue evidence could not be
       renderedPageCounts: { ja: 0, en: 0, zh: 0 },
       checkedUrls: [],
     },
+    activeStatusReceipts: [],
     diffs: [],
     blocks: [message],
     noWritePerformed: true,

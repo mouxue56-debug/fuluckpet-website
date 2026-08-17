@@ -3,8 +3,9 @@ import { createHash } from 'node:crypto';
 export { renderAuditMarkdown } from './koneko-audit-output.js';
 
 const ACCOUNT_ORDER = ['c995680', 'd696506'];
+const SCHEMA_VERSION = '1.0';
 const ACTIVE_STATUSES = new Set(['available', 'reserved']);
-const KNOWN_STATUSES = new Set(['available', 'reserved', 'sold']);
+const KNOWN_STATUSES = new Set(['available', 'reserved', 'preparing', 'sold']);
 const REQUIRED_FACT_FIELDS = ['breed', 'color', 'gender', 'price', 'birthday'];
 const OPTIONAL_FACT_FIELDS = ['papa', 'mama'];
 const COMPARISON_FACT_FIELDS = [...REQUIRED_FACT_FIELDS, ...OPTIONAL_FACT_FIELDS];
@@ -16,6 +17,19 @@ const KONEKO_ORIGIN = 'https://www.koneko-breeder.com';
 const FULUCK_ORIGIN = 'https://fuluckpet.com';
 const FULUCK_API_URL = 'https://fuluck-api.mouxue56.workers.dev/api/kittens';
 const CREDENTIAL_MARKER = /\b(?:authorization|bearer|api[-_ ]?key|token|password|secret|cookie)\b(?:\s*[:=]\s*|\s+)/i;
+const YOUTUBE_ID = /^[A-Za-z0-9_-]{11}$/;
+const YOUTUBE_HOSTS = new Set([
+  'youtube.com',
+  'www.youtube.com',
+  'm.youtube.com',
+  'youtube-nocookie.com',
+  'www.youtube-nocookie.com',
+  'youtu.be',
+]);
+const API_REQUIRED_TEXT_FIELDS = ['breed', 'color', 'gender', 'birthday', 'note'];
+const API_OPTIONAL_TEXT_FIELDS = [
+  'papa', 'mama', 'description', 'noteEn', 'noteZh', 'descriptionEn', 'descriptionZh',
+];
 
 function isObject(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -27,6 +41,10 @@ function nonBlank(value) {
 
 function isString(value) {
   return typeof value === 'string';
+}
+
+function hasOwn(value, field) {
+  return Object.prototype.hasOwnProperty.call(value, field);
 }
 
 function sha256(value) {
@@ -41,6 +59,29 @@ function preview(value) {
 
 function safeTextReceipt(value) {
   return { sha256: sha256(value), preview: preview(value) };
+}
+
+function safeListReceipt(value) {
+  const list = Array.isArray(value) ? value : [];
+  return { sha256: sha256(JSON.stringify(list)), preview: `count:${list.length}` };
+}
+
+function canonicalYoutubeId(value) {
+  if (!nonBlank(value)) return '';
+  let url;
+  try { url = new URL(value.trim()); } catch { return ''; }
+  const hostname = url.hostname.toLowerCase();
+  if (url.protocol !== 'https:' || url.username || url.password || url.port || !YOUTUBE_HOSTS.has(hostname)) return '';
+  if (hostname === 'youtu.be') {
+    const match = /^\/([A-Za-z0-9_-]{11})$/.exec(url.pathname);
+    return match && url.searchParams.getAll('v').length === 0 ? match[1] : '';
+  }
+  if (url.pathname === '/watch') {
+    const values = url.searchParams.getAll('v');
+    return values.length === 1 && YOUTUBE_ID.test(values[0]) ? values[0] : '';
+  }
+  const match = /^\/(?:embed|shorts)\/([A-Za-z0-9_-]{11})$/.exec(url.pathname);
+  return match && url.searchParams.getAll('v').length === 0 ? match[1] : '';
 }
 
 function canonicalEvidenceUrl(value) {
@@ -135,7 +176,7 @@ function diffSort(a, b) {
 }
 
 function safeKittensSummary(kittens) {
-  const statusCounts = { available: 0, reserved: 0, sold: 0 };
+  const statusCounts = { available: 0, reserved: 0, preparing: 0, sold: 0 };
   const statusByBreederId = new Map();
   if (!Array.isArray(kittens)) return { uniqueIdCount: 0, statusCounts, ambiguousStatusCount: 0, activeCount: 0 };
   for (const kitten of kittens) {
@@ -188,6 +229,7 @@ function safeAccountReceipts(accounts) {
 function blockedResult(input, blocks) {
   const accounts = safeAccountReceipts(input?.accounts);
   return {
+    schemaVersion: SCHEMA_VERSION,
     timestamp: typeof input?.timestamp === 'string' ? input.timestamp : '',
     result: 'BLOCKED', exitCode: 3, accounts,
     fuluck: {
@@ -196,6 +238,7 @@ function blockedResult(input, blocks) {
       renderedPages: renderedPageReceipts(input?.fuluck?.renderedPages),
       checkedUrls: [],
     },
+    activeStatusReceipts: [],
     diffs: [], blocks: [...new Set(blocks)].sort(compareStrings), noWritePerformed: true,
   };
 }
@@ -216,6 +259,26 @@ function receiptIsComplete(receipt) {
   return isObject(receipt)
     && nonBlank(receipt.url) && Number.isInteger(receipt.status) && allowedReceiptContentType(receipt.contentType) && validReceiptHash(receipt.sha256)
     && Number.isInteger(receipt.rangeStart) && Number.isInteger(receipt.rangeEnd) && Number.isInteger(receipt.declaredTotal);
+}
+
+function validateActiveApiRecord(blocks, target) {
+  for (const field of API_REQUIRED_TEXT_FIELDS) {
+    const valid = field === 'note' ? isString(target[field]) : nonBlank(target[field]);
+    evidenceError(blocks, valid, `Fuluck API ${field} evidence is missing for ${target.breederId}`);
+  }
+  evidenceError(blocks, Number.isFinite(target.price) && target.price > 0, `Fuluck API price evidence is missing for ${target.breederId}`);
+  evidenceError(
+    blocks,
+    Array.isArray(target.photos) && target.photos.length > 0 && target.photos.every(nonBlank),
+    `Fuluck API photo evidence is missing for ${target.breederId}`,
+  );
+  evidenceError(blocks, isString(target.video), `Fuluck API video evidence is not a string for ${target.breederId}`);
+  if (isString(target.video) && nonBlank(target.video)) {
+    evidenceError(blocks, nonBlank(canonicalYoutubeId(target.video)), `Fuluck API video evidence is invalid for ${target.breederId}`);
+  }
+  for (const field of API_OPTIONAL_TEXT_FIELDS) {
+    if (hasOwn(target, field)) evidenceError(blocks, isString(target[field]), `Fuluck API ${field} evidence is not a string for ${target.breederId}`);
+  }
 }
 
 function validateInput(input) {
@@ -290,6 +353,7 @@ function validateInput(input) {
       if (!valid) continue;
       evidenceError(blocks, !targetById.has(target.breederId), `duplicate Fuluck breeder ID: ${target.breederId}`);
       targetById.set(target.breederId, target);
+      if (ACTIVE_STATUSES.has(target.status)) validateActiveApiRecord(blocks, target);
     }
   }
   const pagesByKey = new Map();
@@ -329,11 +393,76 @@ function validateInput(input) {
   return { blocks, sourceById, sourceDetails, targetById, pagesByKey };
 }
 
+function compareApiProjection(add, { accountId, breederId, sourceDetail, target, pagesByKey }) {
+  for (const field of [...REQUIRED_FACT_FIELDS, ...OPTIONAL_FACT_FIELDS]) {
+    const targetValue = hasOwn(target, field) ? target[field] : '';
+    if (sourceDetail[field] !== targetValue) {
+      const bounded = field === 'price' ? value => value : safeTextReceipt;
+      add({
+        type: 'api_fact_mismatch',
+        accountId,
+        breederId,
+        field,
+        source: bounded(sourceDetail[field]),
+        target: bounded(targetValue),
+      });
+    }
+  }
+  if (JSON.stringify(sourceDetail.photos) !== JSON.stringify(target.photos)) {
+    add({
+      type: 'api_photos_mismatch',
+      accountId,
+      breederId,
+      field: 'photos',
+      source: safeListReceipt(sourceDetail.photos),
+      target: safeListReceipt(target.photos),
+    });
+  }
+  const targetVideoId = canonicalYoutubeId(target.video);
+  if (sourceDetail.videoId !== targetVideoId) {
+    add({ type: 'api_video_id_mismatch', accountId, breederId, field: 'videoId', source: sourceDetail.videoId, target: targetVideoId });
+  }
+  for (const field of TEXT_FIELDS) {
+    const targetValue = hasOwn(target, field) ? target[field] : '';
+    if (sourceDetail[field] !== targetValue) {
+      add({
+        type: 'api_japanese_text_mismatch',
+        accountId,
+        breederId,
+        field,
+        source: safeTextReceipt(sourceDetail[field]),
+        target: safeTextReceipt(targetValue),
+      });
+    }
+  }
+  for (const locale of ['en', 'zh']) {
+    const rendered = pagesByKey.get(`${breederId}:${locale}`);
+    if (!rendered || rendered.state === 'rendered_page_missing') continue;
+    const suffix = locale === 'en' ? 'En' : 'Zh';
+    for (const field of TEXT_FIELDS) {
+      const apiField = `${field}${suffix}`;
+      const targetValue = hasOwn(target, apiField) ? target[apiField] : '';
+      if (rendered[field] !== targetValue) {
+        add({
+          type: 'api_translation_text_mismatch',
+          accountId,
+          breederId,
+          field,
+          locale,
+          source: safeTextReceipt(rendered[field]),
+          target: safeTextReceipt(targetValue),
+        });
+      }
+    }
+  }
+}
+
 export function compareKonekoToFuluck(input) {
   const evidence = validateInput(input);
   if (evidence.blocks.length) return blockedResult(input, evidence.blocks);
   const diffs = [];
   const add = value => diffs.push(value);
+  const activeStatusReceipts = [];
   for (const [breederId, source] of evidence.sourceById) {
     const target = evidence.targetById.get(breederId);
     if (ACTIVE_STATUSES.has(source.status) && !target) {
@@ -349,8 +478,21 @@ export function compareKonekoToFuluck(input) {
       add({ type: 'source_active_target_inactive', accountId: source.accountId, breederId, field: 'status', source: source.status, target: target.status });
       continue;
     }
+    activeStatusReceipts.push({
+      accountId: source.accountId,
+      breederId,
+      sourceStatus: source.status,
+      targetStatus: target.status,
+    });
     if (source.status !== target.status) add({ type: 'status_mismatch', accountId: source.accountId, breederId, field: 'status', source: source.status, target: target.status });
     const sourceDetail = evidence.sourceDetails.get(breederId);
+    compareApiProjection(add, {
+      accountId: source.accountId,
+      breederId,
+      sourceDetail,
+      target,
+      pagesByKey: evidence.pagesByKey,
+    });
     const ja = evidence.pagesByKey.get(`${breederId}:ja`);
     if (ja.state === 'rendered_page_missing') {
       add({ type: 'rendered_page_missing', accountId: source.accountId, breederId, field: 'ja', locale: 'ja', url: safeUrl(ja.url) });
@@ -375,8 +517,13 @@ export function compareKonekoToFuluck(input) {
       for (const field of TEXT_FIELDS) if (nonBlank(sourceDetail[field]) && !nonBlank(translated[field])) add({ type: 'translation_missing', accountId: source.accountId, breederId, field, locale, source: 'required', target: 'missing' });
     }
   }
+  for (const [breederId, target] of evidence.targetById) {
+    if (evidence.sourceById.has(breederId) || !ACTIVE_STATUSES.has(target.status)) continue;
+    add({ type: 'target_active_missing_source', accountId: '', breederId, field: 'status', source: null, target: target.status });
+  }
   const accounts = safeAccountReceipts(input.accounts);
   return {
+    schemaVersion: SCHEMA_VERSION,
     timestamp: input.timestamp, result: diffs.length ? 'DRIFT' : 'EXACT', exitCode: diffs.length ? 2 : 0,
     accounts,
     fuluck: {
@@ -384,6 +531,8 @@ export function compareKonekoToFuluck(input) {
       renderedPages: renderedPageReceipts(input.fuluck.renderedPages),
       checkedUrls: [...new Set(input.fuluck.checkedUrls.map(safeUrl))].sort(compareStrings),
     },
+    activeStatusReceipts: activeStatusReceipts.sort((a, b) => accountRank(a.accountId) - accountRank(b.accountId)
+      || compareStrings(a.breederId, b.breederId)),
     diffs: diffs.sort(diffSort), blocks: [], noWritePerformed: true,
   };
 }

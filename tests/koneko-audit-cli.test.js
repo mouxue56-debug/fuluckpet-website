@@ -21,6 +21,7 @@ import test from 'node:test';
 const PROJECT = resolve(dirname(new URL(import.meta.url).pathname), '..');
 const CLI = join(PROJECT, 'tools/audit-koneko-catalog.js');
 const DEPENDENCY_BLOCK = join(PROJECT, 'tools/write-koneko-dependency-block.js');
+const AUDIT_TIMEOUT_BLOCK = join(PROJECT, 'tools/write-koneko-timeout-block.js');
 
 const fixtureSource = String.raw`
 import { writeFileSync } from 'node:fs';
@@ -69,7 +70,12 @@ export default async function fixtureFetch(url, options) {
   }
   if (url === 'https://fuluck-api.mouxue56.workers.dev/api/kittens') {
     const records = process.env.AUDIT_FIXTURE_MODE === 'drift'
-      ? [{ breederId: '2608-00001', status: 'available' }]
+      ? [{
+          breederId: '2608-00001', status: 'available', breed: 'サイベリアン',
+          color: 'シルバータビー', gender: '男の子', price: 220000,
+          birthday: '2026-08-01', photos: ['https://fuluckpet.com/images/fixture.webp'],
+          video: '', note: '公開中',
+        }]
       : [];
     return response(
       url,
@@ -134,6 +140,18 @@ function runBootstrapBlocked(paths, reason = 'focused_tests_failed', { cli = CLI
 }
 
 function runDependencyBlock(paths, { cli = DEPENDENCY_BLOCK, env = {} } = {}) {
+  return spawnSync(process.execPath, [
+    cli,
+    '--json', paths.json,
+    '--markdown', paths.markdown,
+  ], {
+    cwd: dirname(cli),
+    encoding: 'utf8',
+    env: { ...process.env, ...env },
+  });
+}
+
+function runAuditTimeoutBlock(paths, { cli = AUDIT_TIMEOUT_BLOCK, env = {} } = {}) {
   return spawnSync(process.execPath, [
     cli,
     '--json', paths.json,
@@ -217,6 +235,29 @@ test('CLI writes a fixed dependency-install BLOCKED receipt without echoing envi
     'npm ERR', 'registry.npmjs.org', 'authorization', 'bearer', 'password',
     'stack', paths.root,
   ]) assert.equal(emitted.toLowerCase().includes(forbidden.toLowerCase()), false, forbidden);
+  assert.equal(lstatSync(paths.json).mode & 0o777, 0o600);
+  assert.equal(lstatSync(paths.markdown).mode & 0o777, 0o600);
+});
+
+test('independent audit-timeout writer emits a fixed private BLOCKED receipt', (t) => {
+  const paths = workspace(t);
+  const secret = 'must-not-enter-timeout-reports';
+  const result = runAuditTimeoutBlock(paths, {
+    env: { PRIVATE_TIMEOUT_VALUE: secret },
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  const reports = readReports(paths);
+  const emitted = `${result.stdout}\n${result.stderr}\n${JSON.stringify(reports.json)}\n${reports.markdown}`;
+  assert.deepEqual(reports.json.blocks, [
+    'Public catalogue audit blocked: stage=audit; reason=audit_timeout',
+  ]);
+  assert.equal(reports.json.result, 'BLOCKED');
+  assert.equal(reports.json.exitCode, 3);
+  assert.equal(reports.json.noWritePerformed, true);
+  assert.match(reports.markdown, /Result: BLOCKED/);
+  assert.match(reports.markdown, /audit_timeout/);
+  assert.doesNotMatch(emitted, new RegExp(secret));
   assert.equal(lstatSync(paths.json).mode & 0o777, 0o600);
   assert.equal(lstatSync(paths.markdown).mode & 0o777, 0o600);
 });

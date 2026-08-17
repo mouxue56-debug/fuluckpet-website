@@ -221,6 +221,7 @@ test('maps exact unwrapped Japanese list status containers', () => {
     ['販売中', 'available'],
     ['商談中', 'reserved'],
     ['事前成約申請', 'reserved'],
+    ['準備中', 'preparing'],
     ['成約済み', 'sold'],
     ['販売終了', 'sold'],
   ];
@@ -238,6 +239,7 @@ test('maps known live span.cls statuses only inside the unique status container'
     ['販売中', 'available'],
     ['商談中', 'reserved'],
     ['事前成約申請', 'reserved'],
+    ['準備中', 'preparing'],
     ['成約済み', 'sold'],
     ['販売終了', 'sold'],
   ];
@@ -433,6 +435,8 @@ function konekoDetail({
   sku = '2608-00001',
   account = 'c995680',
   price = '230000',
+  availability = 'https://schema.org/InStock',
+  offers,
   factsTag = 'div',
   factRows = konekoFactRows(),
   parentInfo = konekoParentInfo(),
@@ -448,7 +452,12 @@ function konekoDetail({
       `https://www.koneko-breeder.com/breeder/data/${account}/child_img_1_hash.jpg.webp`,
       `https://www.koneko-breeder.com/breeder/data/${account}/child_img_2_hash.jpg.webp`,
     ] : [],
-    offers: { '@type': 'Offer', ...(price !== undefined ? { price } : {}), priceCurrency: 'JPY' },
+    offers: offers ?? {
+      '@type': 'Offer',
+      ...(price !== undefined ? { price } : {}),
+      ...(availability !== undefined ? { availability } : {}),
+      priceCurrency: 'JPY',
+    },
   };
   return `<html><head><link rel="canonical" href="${KONEKO_DETAIL_OPTIONS.pageUrl}">
     ${json ? `<script type="application/ld+json">${JSON.stringify(product)}</script>` : '<script type="application/ld+json">{bad json</script>'}
@@ -475,6 +484,7 @@ test('normalizes live-shaped Koneko Product facts, parents, note, introduction, 
       'https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_hash.jpg.webp',
       'https://www.koneko-breeder.com/breeder/data/c995680/child_img_2_hash.jpg.webp',
     ],
+    observedAvailability: 'in_stock',
     videoId: 'AbCdEfGhI12',
     papa: '父猫',
     mama: '母猫',
@@ -482,6 +492,35 @@ test('normalizes live-shaped Koneko Product facts, parents, note, introduction, 
     description: '一段落\n続き\n\n二段落\n続き',
     detailUrl: KONEKO_DETAIL_OPTIONS.pageUrl,
   });
+});
+
+test('maps exact Product offer availability and blocks missing, unknown, or conflicting detail evidence', () => {
+  assert.equal(
+    parseKonekoDetailPage(konekoDetail(), KONEKO_DETAIL_OPTIONS).observedAvailability,
+    'in_stock',
+  );
+  assert.equal(
+    parseKonekoDetailPage(
+      konekoDetail({ availability: 'https://schema.org/SoldOut' }),
+      KONEKO_DETAIL_OPTIONS,
+    ).observedAvailability,
+    'sold_out',
+  );
+  assert.throws(
+    () => parseKonekoDetailPage(konekoDetail({ offers: { '@type': 'Offer', price: '230000' } }), KONEKO_DETAIL_OPTIONS),
+    /availability|status/i,
+  );
+  assert.throws(
+    () => parseKonekoDetailPage(konekoDetail({ availability: 'https://schema.org/PreOrder' }), KONEKO_DETAIL_OPTIONS),
+    /availability|status/i,
+  );
+  assert.throws(
+    () => parseKonekoDetailPage(konekoDetail({ offers: [
+      { '@type': 'Offer', price: '230000', availability: 'https://schema.org/InStock' },
+      { '@type': 'Offer', price: '230000', availability: 'https://schema.org/SoldOut' },
+    ] }), KONEKO_DETAIL_OPTIONS),
+    /availability|conflict|status/i,
+  );
 });
 
 test('does not treat an outside suffix detail-note class as a Koneko note region', () => {

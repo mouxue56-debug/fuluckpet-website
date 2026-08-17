@@ -45,9 +45,9 @@ The accepted Koneko status map is:
 - `販売中` to `available`;
 - `商談中` and `事前成約申請` to `reserved`;
 - `成約済み` and `販売終了` to `sold`;
-- `準備中` is recorded but is not considered public active inventory.
+- `準備中` to the distinct `preparing` state; it is recorded and counted, but is neither public active inventory nor `sold`.
 
-After complete list pagination, the crawler reads every active kitten detail page and extracts the exact breeder ID, account ID, status, price, birthday, breed, colour, gender, parents, ordered full-size photo URLs, canonical YouTube video ID, short Japanese appeal, and long Japanese introduction. Detail identity must match the list identity. Missing required facts, zero photos, invalid media URLs, or conflicting list/detail values make the entire run `BLOCKED`.
+After complete list pagination, the crawler reads every `available` or `reserved` kitten detail page and extracts the exact breeder ID, account ID, price, birthday, breed, colour, gender, parents, ordered full-size photo URLs, canonical YouTube video ID, short Japanese appeal, and long Japanese introduction. It also reads availability only from the same strictly unique Product JSON-LD object's `offers.availability`: exact `https://schema.org/InStock` proves the list's `available` state and exact `https://schema.org/SoldOut` is the observable contract for `reserved`. Missing, unknown, conflicting, or list-inconsistent Product availability makes the run `BLOCKED`; scattered page JavaScript is not evidence. Because Product `SoldOut` cannot distinguish a reservation from a completed sale, this check does not claim to detect a `reserved`-to-`sold` transition. Detail identity must match the list identity. Missing required facts, zero photos, invalid media URLs, or conflicting list/detail values make the entire run `BLOCKED`.
 
 Koneko field evidence is scoped to source-backed, actual HTML-namespace detail containers rather than the whole document. Facts come only from one visible, non-footer `.petDtlData` containing one `table.gnrTbl`; the observed labels are `猫種`, `毛色(毛質)`, `性別`, `誕生日`, and `アピール<br>ポイント` (with only explicit historical aliases accepted). Breed, colour, gender, and birthday must each have one non-empty row; the appeal row is an observed optional string, so a missing row or empty cell is `''`, while a duplicate or malformed matching row is `BLOCKED`. The target selectors are exact decoded DOM ID/class selectors, not hard-coded `div` selectors; the compound video selector requires both HTML-whitespace-delimited class tokens. Template contents are inert, and SVG/MathML nodes never satisfy an HTML target selector.
 
@@ -57,7 +57,7 @@ Parents come only from one visible, non-footer `#parentInfo`: an absent region r
 
 ### Fuluck API, controlled rendered-site reader, and deterministic comparator
 
-The Fuluck reader first fetches the public catalogue with the same domain, timeout, response-size, and content-type protections. It requires an array of unique, non-empty breeder IDs and valid public record shapes. The production public API does not currently expose long introductions or translated text, so every source-active breeder ID must also be checked against its Japanese, English, and Chinese public detail URL.
+The Fuluck reader first fetches the public catalogue with the same domain, timeout, response-size, and content-type protections. It requires an array of unique, non-empty breeder IDs and valid public record shapes. Every active API record must contain valid public core fields for breed, colour, gender, price, birthday, ordered photos, video, and Japanese short text; any present parent, description, or translated text field must be a string. Because the API and generated locale pages are separate customer-visible surfaces, every source-active breeder ID is also checked against its Japanese, English, and Chinese public detail URL.
 
 For a rendered-page HTTP `200`, the reader performs a deliberately narrow render contract instead of trying to authenticate arbitrary remote HTML. It first removes only one already-proven final Cloudflare tail injection. It then reads the checked-out generated file selected by a fixed module-relative mapping: `kittens/{id}.html` for Japanese, `en/kittens/{id}.html` for English, and `zh/kittens/{id}.html` for Chinese. The `id` and locale are already strict audit values; the local reader accepts only a regular, non-symbolic-link file under that checkout, caps it at 2 MiB, and exposes no local path or operating-system error in a diagnostic.
 
@@ -67,18 +67,20 @@ The receipt records the one SHA-256 digest shared by the cleaned remote page and
 
 The comparator joins Koneko, the Fuluck API, and rendered pages only by exact breeder ID. It emits these machine-readable drift classes:
 
-- `source_active_missing_target`;
+- `source_active_missing`;
 - `source_active_target_inactive`;
 - `source_inactive_target_active`;
+- `target_active_missing_source` for an active Fuluck record absent from both complete Koneko catalogues; Fuluck-only inactive history is not reported;
 - `status_mismatch`;
 - `fact_mismatch` for price, birthday, breed, colour, gender, or parents;
 - `photos_mismatch` for ordered URL count or sequence;
 - `video_id_mismatch` using canonical YouTube IDs;
 - `japanese_text_mismatch` for short appeal or long introduction;
+- `api_fact_mismatch`, `api_photos_mismatch`, `api_video_id_mismatch`, `api_japanese_text_mismatch`, or `api_translation_text_mismatch` when the API's corresponding public projection differs from Koneko or a controlled rendered locale page;
 - `rendered_page_missing` when a required language detail page is absent;
 - `translation_missing` when a non-empty Japanese source short/long text lacks the corresponding Chinese or English text.
 
-The required source/target facts are breed, colour, gender, price, birthday, and ordered photos. `papa`, `mama`, `note`, `description`, and `videoId` must always be strings but may be `''` as an observed fact. They are still compared: an empty/non-empty difference produces the same fact, text, or video drift class and cannot become `EXACT`. Koneko has no authoritative Chinese or English copy, so the audit must not invent translations or claim that translated wording is source-equal. Every Japanese source/target text difference emits `japanese_text_mismatch`; `translation_review_required` and `translation_missing` are emitted only when the authoritative Koneko Japanese source field is non-empty, so target-only text cannot fabricate a translation requirement.
+The required source/target facts are breed, colour, gender, price, birthday, and ordered photos. `papa`, `mama`, `note`, `description`, and `videoId` must always be strings in normalized source/rendered evidence but may be `''` as an observed fact. A missing optional API property is compared as `''`: it is equivalent only when its Koneko or controlled-render reference is also empty, and otherwise produces drift. API video URLs are compared by the same canonical YouTube ID rather than URL spelling. API Japanese text is checked against Koneko, and API English/Chinese short and long text is checked against the corresponding controlled rendered page. Ordered photo differences, every string-valued API fact difference, and all free-form text differences use bounded hash/count/preview receipts rather than storing raw long values; numeric price differences remain numeric. Website-only fields such as internal ID, promotion, or new-item presentation are outside this mirror comparison. Koneko has no authoritative Chinese or English copy, so the audit must not invent translations or claim that translated wording is source-equal. Every Japanese rendered-page source/target text difference emits `japanese_text_mismatch`; `translation_review_required` and `translation_missing` are emitted only when the authoritative Koneko Japanese source field is non-empty, so target-only text cannot fabricate a translation requirement.
 
 The result is `EXACT` only when both accounts are completely proven and no drift exists. Any catalogue difference is `DRIFT`. Any incomplete pagination, parser uncertainty, network failure, invalid response, duplicate identity, or schema failure is `BLOCKED`. The tool never guesses around a blocked condition.
 
@@ -88,14 +90,14 @@ Every run writes a compact Markdown summary to the GitHub Actions job summary an
 
 - observed time in JST;
 - result: `EXACT`, `DRIFT`, or `BLOCKED`;
-- per-account page, declared-total, safely verified unique-ID count, `available`/`reserved`/`sold` status counts, explicit ambiguous-status count, and active count; these safe aggregates remain present for each fixed account even when the terminal result is `BLOCKED`. Status aggregation groups by breeder ID and counts a status only when every record for that ID has the same known status, making the output order-independent;
+- per-account page, declared-total, safely verified unique-ID count, `available`/`reserved`/`preparing`/`sold` status counts, explicit ambiguous-status count, and active count; these safe aggregates remain present for each fixed account even when the terminal result is `BLOCKED`. Status aggregation groups by breeder ID and counts a status only when every record for that ID has the same known status, making the output order-independent;
 - Fuluck total and status counts;
 - each verified Fuluck rendered-page URL, locale, and shared controlled-render SHA-256;
 - every exact breeder ID and field-level difference;
 - checked source and target URLs;
 - a prominent `NO WRITE PERFORMED` statement.
 
-The artifact contains receipts, normalized field values needed to reproduce the diff, and hashes for long text. It excludes credentials, cookies, response headers containing identifiers, and full HTML. The public job summary must not print full kitten introductions.
+The artifact has fixed `schemaVersion: "1.0"`, contains receipts, normalized field values needed to reproduce the diff, and hashes for long text. For every breeder ID active on both sides it also keeps the compact `accountId`, `breederId`, `sourceStatus`, and `targetStatus` receipt, including equal statuses, so equality can be audited offline without retaining HTML. It excludes credentials, cookies, response headers containing identifiers, and full HTML. The public job summary must not print full kitten introductions.
 
 The scheduled workflow succeeds for `EXACT` and fails visibly for `DRIFT` or `BLOCKED`, while an `always()` artifact step preserves the evidence. A network, parser, or locked-dependency installation failure must never be reported as catalogue equality; installation failure still produces both bounded `BLOCKED` artifacts before the final failing status is re-emitted.
 
@@ -107,7 +109,7 @@ If a later approved Fuluck update needs new Chinese or English text, a separate 
 
 ## Error handling and operational limits
 
-- One run has a single-instance concurrency lock and a bounded wall-clock timeout.
+- One run has a single-instance concurrency lock and a 15-minute job timeout. The audit command itself has an 8-minute GNU `timeout` boundary, leaving seven minutes for an independent dependency-free writer to replace the receipts with fixed `stage=audit; reason=audit_timeout` `BLOCKED` evidence and for the always-run summary, upload, and terminal-status steps to finish. Both GNU timeout's ordinary deadline code `124` and its forced-kill code `137` invoke that writer before the always-run tail.
 - Fetches use limited retries only for transient GET failures; parsing or validation failures are not retried as if they were network failures.
 - The crawler stops before comparing when either account lacks complete pagination receipts.
 - There is no carry-forward of an older successful snapshot and no fallback to historical counts.

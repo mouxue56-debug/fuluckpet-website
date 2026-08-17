@@ -318,7 +318,8 @@ function assertKonekoWorkflowPolicy(source) {
   const continuation = String.fromCharCode(92);
   assert.deepEqual(getLiteralRunScript(auditStep).split('\n'), [
     'set +e',
-    `node tools/audit-koneko-catalog.js ${continuation}`,
+    `timeout --signal=TERM --kill-after=15s 8m ${continuation}`,
+    `  node tools/audit-koneko-catalog.js ${continuation}`,
     `  --json "$RUNNER_TEMP/koneko-nightly-audit/audit.json" ${continuation}`,
     '  --markdown "$RUNNER_TEMP/koneko-nightly-audit/audit.md"',
     'status=$?',
@@ -343,6 +344,17 @@ function assertKonekoWorkflowPolicy(source) {
     ["always() && steps.dependencies.outcome == 'success' && steps.focused_tests.outcome != 'success'"],
   );
   assert.match(getLiteralRunScript(testBlockStep), /--blocked focused_tests_failed/);
+
+  const timeoutBlockStep = getNamedStepBlock(source, 'Write audit-timeout BLOCKED audit');
+  assert.deepEqual(
+    getStepMappingValues(timeoutBlockStep, 'if'),
+    ["always() && (steps.audit.outputs.status == '124' || steps.audit.outputs.status == '137')"],
+  );
+  assert.deepEqual(getLiteralRunScript(timeoutBlockStep).split('\n'), [
+    `node tools/write-koneko-timeout-block.js ${continuation}`,
+    `  --json "$RUNNER_TEMP/koneko-nightly-audit/audit.json" ${continuation}`,
+    '  --markdown "$RUNNER_TEMP/koneko-nightly-audit/audit.md"',
+  ]);
 
   const summaryStep = getNamedStepBlock(source, 'Append Koneko audit summary');
   assert.deepEqual(getStepMappingValues(summaryStep, 'if'), ['always()']);
@@ -370,6 +382,7 @@ function assertKonekoWorkflowPolicy(source) {
     '- name: Run Koneko catalogue audit',
     '- name: Write dependency-install BLOCKED audit',
     '- name: Write focused-test BLOCKED audit',
+    '- name: Write audit-timeout BLOCKED audit',
     '- name: Append Koneko audit summary',
     '- name: Upload Koneko audit',
     '- name: Re-emit Koneko audit status',
@@ -461,6 +474,18 @@ test('Koneko workflow validator rejects audit status masking and broken capture 
     ],
     ['dependency fallback removed', 'node tools/write-koneko-dependency-block.js', 'node tools/audit-koneko-catalog.js'],
     ['test fallback masked', '--blocked focused_tests_failed', '--blocked dependency_install_failed'],
+    ['audit deadline removed', 'timeout --signal=TERM --kill-after=15s 8m', 'true'],
+    [
+      'audit-timeout fallback loses always',
+      "      - name: Write audit-timeout BLOCKED audit\n        if: always() && (steps.audit.outputs.status == '124' || steps.audit.outputs.status == '137')",
+      "      - name: Write audit-timeout BLOCKED audit\n        if: steps.audit.outputs.status == '124' || steps.audit.outputs.status == '137'",
+    ],
+    [
+      'audit-timeout SIGKILL fallback removed',
+      "always() && (steps.audit.outputs.status == '124' || steps.audit.outputs.status == '137')",
+      "always() && steps.audit.outputs.status == '124'",
+    ],
+    ['audit-timeout fallback removed', 'node tools/write-koneko-timeout-block.js', 'node tools/audit-koneko-catalog.js'],
     ['unknown status passes', '          *) exit 3 ;;', '          *) exit 0 ;;'],
   ];
 

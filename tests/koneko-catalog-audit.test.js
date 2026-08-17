@@ -31,6 +31,31 @@ function page(breederId, locale, overrides = {}) {
   };
 }
 
+function apiRecord(breederId, status = 'available', overrides = {}) {
+  const accountId = breederId === '2608-00001' ? 'c995680' : 'd696506';
+  const source = detail(breederId, accountId);
+  return {
+    breederId,
+    status,
+    breed: source.breed,
+    color: source.color,
+    gender: source.gender,
+    price: source.price,
+    birthday: source.birthday,
+    photos: [...source.photos],
+    video: `https://www.youtube.com/embed/${source.videoId}`,
+    papa: source.papa,
+    mama: source.mama,
+    note: source.note,
+    noteEn: 'Short introduction',
+    noteZh: '简短介绍',
+    description: source.description,
+    descriptionEn: 'First paragraph\n\nSecond paragraph',
+    descriptionZh: '第一段\n\n第二段',
+    ...overrides,
+  };
+}
+
 function receipt(accountId) {
   return {
     url: `https://www.koneko-breeder.com/breederDetail.php?breeder_id=${accountId}`,
@@ -53,7 +78,7 @@ function exactInput() {
     timestamp: '2026-08-17T03:04:05.000Z',
     accounts,
     fuluck: {
-      apiRecords: ids.map(breederId => ({ breederId, status: 'available' })),
+      apiRecords: ids.map(breederId => apiRecord(breederId)),
       renderedPages: ids.flatMap(breederId => ['ja', 'en', 'zh'].map(locale => page(breederId, locale))),
       checkedUrls: [
         ...accounts.flatMap(account => [
@@ -80,10 +105,17 @@ function diff(result, type, breederId, field) {
 test('returns EXACT with ordered fixed-account receipts when public catalogue evidence agrees', () => {
   const result = compareKonekoToFuluck(exactInput());
 
+  assert.equal(result.schemaVersion, '1.0');
   assert.equal(result.result, 'EXACT');
   assert.equal(result.exitCode, 0);
   assert.deepEqual(result.diffs, []);
   assert.deepEqual(result.accounts.map((a) => a.accountId), ['c995680', 'd696506']);
+  assert.deepEqual(result.activeStatusReceipts, [
+    { accountId: 'c995680', breederId: '2608-00001', sourceStatus: 'available', targetStatus: 'available' },
+    { accountId: 'd696506', breederId: '2608-00002', sourceStatus: 'available', targetStatus: 'available' },
+  ]);
+  const markdown = renderAuditMarkdown(result);
+  assert.match(markdown, /Status receipt: c995680 2608-00001; source=available; target=available/);
 });
 
 test('requires and reports the verified controlled rendered-page SHA-256 without retaining HTML', () => {
@@ -122,12 +154,56 @@ test('reports each source/target presence and status drift class by exact breede
     const account = input.accounts[0];
     account.declaredTotal = 2; account.receipts[0].rangeEnd = 2; account.receipts[0].declaredTotal = 2;
     account.kittens.push({ breederId: '2608-00003', status: 'sold', detailUrl: 'https://www.koneko-breeder.com/cat2608-00003.html' });
-    input.fuluck.apiRecords.push({ breederId: '2608-00003', status: 'available' });
+    input.fuluck.apiRecords.push(apiRecord('2608-00003'));
   });
   assert.ok(diff(inactiveSource, 'source_inactive_target_active', '2608-00003'));
 
   const status = audit(input => { input.fuluck.apiRecords[0].status = 'reserved'; });
   assert.ok(diff(status, 'status_mismatch', '2608-00001', 'status'));
+});
+
+test('reports a Fuluck-only active breeder ID instead of returning false EXACT', () => {
+  const result = audit(input => {
+    input.fuluck.apiRecords.push(apiRecord('2608-00999'));
+  });
+
+  assert.equal(result.result, 'DRIFT');
+  assert.deepEqual(diff(result, 'target_active_missing_source', '2608-00999'), {
+    type: 'target_active_missing_source',
+    accountId: '',
+    breederId: '2608-00999',
+    field: 'status',
+    source: null,
+    target: 'available',
+  });
+});
+
+test('does not report a Fuluck-only sold historical breeder ID', () => {
+  const result = audit(input => {
+    input.fuluck.apiRecords.push({ breederId: '2608-00999', status: 'sold' });
+  });
+
+  assert.equal(result.result, 'EXACT');
+  assert.equal(result.diffs.some(item => item.breederId === '2608-00999'), false);
+});
+
+test('treats 準備中 as a distinct non-active source status', () => {
+  const input = exactInput();
+  const account = input.accounts[0];
+  const [sourceDetail] = account.activeDetails;
+  account.kittens[0].status = 'preparing';
+  account.activeDetails = [];
+  input.fuluck.renderedPages = input.fuluck.renderedPages.filter(item => item.breederId !== sourceDetail.breederId);
+  input.fuluck.checkedUrls = input.fuluck.checkedUrls.filter(url => url !== sourceDetail.detailUrl
+    && !url.includes(`/kittens/${sourceDetail.breederId}.html`));
+
+  const result = compareKonekoToFuluck(input);
+
+  assert.equal(result.result, 'DRIFT');
+  assert.ok(diff(result, 'source_inactive_target_active', sourceDetail.breederId));
+  const receipt = result.accounts.find(item => item.accountId === account.accountId);
+  assert.deepEqual(receipt.statusCounts, { available: 0, reserved: 0, preparing: 1, sold: 0 });
+  assert.equal(receipt.activeCount, 0);
 });
 
 test('reports factual, ordered media, video, and Japanese text drift without exposing long text', () => {
@@ -151,6 +227,60 @@ test('reports factual, ordered media, video, and Japanese text drift without exp
   assert.equal(JSON.stringify(longText).includes('supplied-secret'), false);
   assert.ok(diff(result, 'translation_review_required', '2608-00001', 'note'));
   assert.deepEqual(result.diffs.filter(item => item.type === 'translation_review_required' && item.breederId === '2608-00001').map(item => item.locale), ['en', 'zh', 'en', 'zh']);
+});
+
+test('reports Fuluck API public-field drift against Koneko and controlled locale pages', () => {
+  const result = audit(input => {
+    const first = input.fuluck.apiRecords.find(item => item.breederId === '2608-00001');
+    const second = input.fuluck.apiRecords.find(item => item.breederId === '2608-00002');
+    first.breed = `Authorization fact-secret ${'x'.repeat(5000)}`;
+    first.note = 'Authorization note-secret';
+    first.noteEn = 'Changed English note';
+    second.photos.reverse();
+    second.video = 'https://www.youtube.com/embed/ZyXwVuTsRq0';
+  });
+
+  const fact = diff(result, 'api_fact_mismatch', '2608-00001', 'breed');
+  assert.deepEqual(Object.keys(fact.source).sort(), ['preview', 'sha256']);
+  assert.deepEqual(Object.keys(fact.target).sort(), ['preview', 'sha256']);
+  assert.ok(diff(result, 'api_photos_mismatch', '2608-00002', 'photos'));
+  assert.ok(diff(result, 'api_video_id_mismatch', '2608-00002', 'videoId'));
+  assert.ok(diff(result, 'api_japanese_text_mismatch', '2608-00001', 'note'));
+  assert.ok(diff(result, 'api_translation_text_mismatch', '2608-00001', 'note'));
+  const serialized = JSON.stringify(result);
+  assert.equal(serialized.includes('fact-secret'), false);
+  assert.equal(serialized.includes('note-secret'), false);
+  assert.equal(serialized.includes('x'.repeat(121)), false);
+});
+
+test('blocks malformed required or present optional Fuluck API public fields', () => {
+  const cases = [
+    input => { delete input.fuluck.apiRecords[0].breed; },
+    input => { input.fuluck.apiRecords[0].photos = []; },
+    input => { input.fuluck.apiRecords[0].video = 'https://evil.example/watch?v=AbCdEfGhI12'; },
+    input => { delete input.fuluck.apiRecords[0].note; },
+    input => { input.fuluck.apiRecords[0].description = null; },
+  ];
+  for (const change of cases) {
+    const result = audit(change);
+    assert.equal(result.result, 'BLOCKED');
+  }
+});
+
+test('reports absent optional Fuluck API fields when their public references are nonempty without blocking', () => {
+  const result = audit(input => {
+    for (const target of input.fuluck.apiRecords) {
+      for (const field of ['description', 'noteEn', 'noteZh', 'descriptionEn', 'descriptionZh']) delete target[field];
+    }
+    delete input.fuluck.apiRecords[0].papa;
+  });
+
+  assert.equal(result.result, 'DRIFT');
+  assert.deepEqual(result.blocks, []);
+  assert.ok(diff(result, 'api_fact_mismatch', '2608-00001', 'papa'));
+  assert.ok(diff(result, 'api_japanese_text_mismatch', '2608-00001', 'description'));
+  assert.ok(diff(result, 'api_translation_text_mismatch', '2608-00001', 'note'));
+  assert.ok(diff(result, 'api_translation_text_mismatch', '2608-00001', 'description'));
 });
 
 test('reports missing rendered pages and missing EN/ZH short and long text without claiming translation equivalence', () => {
@@ -179,10 +309,15 @@ test('accepts observed-empty Koneko optional fields while still comparing empty 
     source[field] = '';
     ja[field] = '';
   }
+  const api = input.fuluck.apiRecords.find(item => item.breederId === source.breederId);
+  for (const field of ['papa', 'mama', 'note', 'description', 'video']) api[field] = '';
   for (const locale of ['en', 'zh']) {
     const translated = input.fuluck.renderedPages.find(item => item.breederId === source.breederId && item.locale === locale);
     translated.note = '';
     translated.description = '';
+    const suffix = locale === 'en' ? 'En' : 'Zh';
+    api[`note${suffix}`] = '';
+    api[`description${suffix}`] = '';
   }
 
   const exact = compareKonekoToFuluck(input);
@@ -233,12 +368,14 @@ test('blocks optional Koneko evidence with a non-string value and retains only s
 
   const blocked = compareKonekoToFuluck(input);
   assert.equal(blocked.result, 'BLOCKED');
-  assert.deepEqual(blocked.accounts.find(item => item.accountId === 'c995680').statusCounts, { available: 1, reserved: 1, sold: 1 });
+  assert.deepEqual(blocked.accounts.find(item => item.accountId === 'c995680').statusCounts, {
+    available: 1, reserved: 1, preparing: 0, sold: 1,
+  });
   assert.equal(blocked.accounts.find(item => item.accountId === 'c995680').uniqueIdCount, 3);
   assert.equal(blocked.accounts.find(item => item.accountId === 'c995680').activeCount, 2);
   assert.match(blocked.blocks.join('\n'), /papa.*missing|papa.*string/i);
   const markdown = renderAuditMarkdown(blocked);
-  assert.match(markdown, /unique IDs 3; available 1, reserved 1, sold 1; ambiguous 0; active 2/);
+  assert.match(markdown, /unique IDs 3; available 1, reserved 1, preparing 0, sold 1; ambiguous 0; active 2/);
   assert.doesNotMatch(markdown.split('## Findings')[0], /not-a-breeder-id/);
 });
 
@@ -269,7 +406,7 @@ test('keeps BLOCKED status aggregates order-independent and marks conflicting or
   };
   assert.deepEqual(summary, {
     uniqueIdCount: 4,
-    statusCounts: { available: 1, reserved: 0, sold: 1 },
+    statusCounts: { available: 1, reserved: 0, preparing: 0, sold: 1 },
     ambiguousStatusCount: 2,
     activeCount: 1,
   });
@@ -280,7 +417,7 @@ test('keeps BLOCKED status aggregates order-independent and marks conflicting or
     activeCount: reversedReceipt.activeCount,
   }, summary);
   assert.deepEqual(reversedReceipt, firstReceipt);
-  assert.match(renderAuditMarkdown(compareKonekoToFuluck(first)), /available 1, reserved 0, sold 1; ambiguous 2; active 1/);
+  assert.match(renderAuditMarkdown(compareKonekoToFuluck(first)), /available 1, reserved 0, preparing 0, sold 1; ambiguous 2; active 1/);
 });
 
 test('blocks on incomplete evidence instead of inferring a non-exact catalogue result', () => {
