@@ -1,5 +1,7 @@
 import { createHash } from 'node:crypto';
 
+export { renderAuditMarkdown } from './koneko-audit-output.js';
+
 const ACCOUNT_ORDER = ['c995680', 'd696506'];
 const ACTIVE_STATUSES = new Set(['available', 'reserved']);
 const KNOWN_STATUSES = new Set(['available', 'reserved', 'sold']);
@@ -384,37 +386,4 @@ export function compareKonekoToFuluck(input) {
     },
     diffs: diffs.sort(diffSort), blocks: [], noWritePerformed: true,
   };
-}
-
-function jstTimestamp(timestamp) {
-  const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }).formatToParts(new Date(timestamp));
-  const value = Object.fromEntries(parts.filter(part => part.type !== 'literal').map(part => [part.type, part.value]));
-  return `${value.year}-${value.month}-${value.day} ${value.hour}:${value.minute}:${value.second} JST`;
-}
-
-function markdownValue(value) {
-  if (isObject(value) && nonBlank(value.sha256)) return `sha256:${value.sha256} preview:${redactCredentialLike(value.preview)}`;
-  if (Array.isArray(value)) return `sha256:${sha256(JSON.stringify(value))} count:${value.length}`;
-  return redactCredentialLike(String(value ?? '').replace(/[\r\n|]/g, ' '));
-}
-
-export function renderAuditMarkdown(result) {
-  const lines = ['# Koneko catalogue audit', '', `- Timestamp: ${jstTimestamp(result.timestamp)}`, `- Result: ${result.result}`, `- Exit code: ${result.exitCode}`, '- NO WRITE PERFORMED', '', '## Koneko account receipts', ''];
-  for (const account of result.accounts || []) {
-    const statusCounts = account.statusCounts || { available: 0, reserved: 0, sold: 0 };
-    lines.push(`- ${account.accountId}: declared ${account.declaredTotal}, receipts ${account.receiptCount}; unique IDs ${account.uniqueIdCount ?? 0}; available ${statusCounts.available ?? 0}, reserved ${statusCounts.reserved ?? 0}, sold ${statusCounts.sold ?? 0}; ambiguous ${account.ambiguousStatusCount ?? 0}; active ${account.activeCount ?? 0}`);
-    for (const receipt of account.receipts || []) lines.push(`  - ${receipt.rangeStart}-${receipt.rangeEnd}/${receipt.declaredTotal}: ${safeUrl(receipt.url)} (HTTP ${markdownValue(receipt.status)}, ${markdownValue(receipt.contentType)}, sha256:${markdownValue(receipt.sha256)})`);
-  }
-  const counts = result.fuluck?.renderedPageCounts || renderedPageCounts();
-  lines.push('', '## Fuluck receipts', '', `- Fuluck API records: ${result.fuluck?.apiRecordCount ?? 0}`, `- Fuluck rendered pages: ${counts.ja + counts.en + counts.zh} (ja: ${counts.ja}, en: ${counts.en}, zh: ${counts.zh})`);
-  for (const page of result.fuluck?.renderedPages || []) {
-    const receipt = page.state === 'rendered_page_missing' ? 'state:rendered_page_missing' : `sha256:${markdownValue(page.sha256)}`;
-    lines.push(`- Verified rendered page: ${markdownValue(page.breederId)} (${markdownValue(page.locale)}): ${safeUrl(page.url)} (${receipt})`);
-  }
-  for (const url of result.fuluck?.checkedUrls || []) lines.push(`- Checked URL: ${url}`);
-  lines.push('', '## Findings', '');
-  if (result.result === 'EXACT') lines.push('- None.');
-  for (const block of result.blocks || []) lines.push(`- BLOCKED: ${markdownValue(block)}`);
-  for (const item of result.diffs || []) lines.push(`- ${item.type}: ${item.accountId || '-'} ${item.breederId || '-'} ${item.field || '-'}${item.locale ? ` (${item.locale})` : ''}; source=${markdownValue(item.source)}; target=${markdownValue(item.target)}${item.url ? `; url=${item.url}` : ''}`);
-  return `${lines.join('\n')}\n`;
 }

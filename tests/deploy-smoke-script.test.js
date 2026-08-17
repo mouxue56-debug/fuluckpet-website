@@ -11,6 +11,7 @@ const ROOT = path.resolve(__dirname, '..');
 const SCRIPT_PATH = path.join(ROOT, 'scripts/deploy-and-smoke-worker.sh');
 const SCRIPT = fs.readFileSync(SCRIPT_PATH, 'utf8');
 const LEGACY_DEPLOY = fs.readFileSync(path.join(ROOT, 'api/deploy.sh'), 'utf8');
+const NPM_CI = 'npm ci --ignore-scripts --no-audit --no-fund';
 
 test('worker deploy smoke script is valid Bash', () => {
   const result = spawnSync('bash', ['-n', SCRIPT_PATH], { encoding: 'utf8' });
@@ -83,6 +84,7 @@ test('deploy mode runs every local and git gate before Wrangler deploy', () => {
   const deployIndex = SCRIPT.lastIndexOf('"${WRANGLER[@]}" deploy --strict');
   assert.notEqual(deployIndex, -1, 'script must have one guarded real deploy');
   const beforeDeploy = SCRIPT.slice(0, deployIndex);
+  assert.match(beforeDeploy, new RegExp(NPM_CI.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   assert.match(beforeDeploy, /node --test tests\/\*\.test\.js/);
   assert.match(beforeDeploy, /node tools\/verify-generated\.js/);
   assert.match(beforeDeploy, /git (?:-C [^\n]+ )?diff --quiet/);
@@ -90,6 +92,21 @@ test('deploy mode runs every local and git gate before Wrangler deploy', () => {
   assert.match(beforeDeploy, /git (?:-C [^\n]+ )?fetch --quiet origin main/);
   assert.match(beforeDeploy, /origin\/main/);
   assert.match(beforeDeploy, /"\$\{WRANGLER\[@\]\}" deploy --strict --dry-run/);
+
+  const exactReleaseIndex = beforeDeploy.indexOf('[ "$RELEASE_SHA" = "$origin_sha" ]');
+  const installIndex = beforeDeploy.indexOf(NPM_CI);
+  const testIndex = beforeDeploy.indexOf('node --test tests/*.test.js');
+  const verifyIndex = beforeDeploy.indexOf('node tools/verify-generated.js');
+  const dryRunIndex = beforeDeploy.indexOf('deploy --strict --dry-run');
+  assert.ok(exactReleaseIndex >= 0 && installIndex > exactReleaseIndex);
+  assert.ok(testIndex > installIndex && verifyIndex > testIndex && dryRunIndex > verifyIndex);
+});
+
+test('deploy preflight requires Node 24 and npm before installing the reviewed lockfile', () => {
+  assert.match(SCRIPT, /command -v npm/);
+  assert.match(SCRIPT, /\.node-version/);
+  assert.match(SCRIPT, /process\.versions\.node/);
+  assert.match(SCRIPT, /Node\.js 24|Node 24/i);
 });
 
 test('deploy records exact Git provenance and rolls back a failed smoke', () => {
@@ -125,7 +142,7 @@ test('rollback re-reads the unique active version before any production mutation
   assert.match(rollbackBody, /MANUAL INTERVENTION/i);
 });
 
-function runGuardedDeployScenario({ activeAtRollback, provenanceOk = true }) {
+function runGuardedDeployScenario({ activeAtRollback, provenanceOk = true, npmOk = true }) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fuluck-deploy-race-'));
   const bin = path.join(dir, 'bin');
   const operations = path.join(dir, 'operations.log');
@@ -146,9 +163,18 @@ esac
 `);
   fs.writeFileSync(path.join(bin, 'node'), `#!/usr/bin/env bash
 case "\${1:-}" in
+  -p) echo 24; exit 0 ;;
   --test|tools/verify-generated.js) exit 0 ;;
   *) exec "$REAL_NODE" "$@" ;;
 esac
+`);
+  fs.writeFileSync(path.join(bin, 'npm'), `#!/usr/bin/env bash
+if [ " $* " != " ci --ignore-scripts --no-audit --no-fund " ]; then
+  echo "unexpected fake npm: $*" >&2
+  exit 70
+fi
+printf '%s\n' npm-ci >> "$FAKE_OPERATIONS"
+[ "$FAKE_NPM_OK" = "1" ]
 `);
   fs.writeFileSync(path.join(bin, 'npx'), `#!/usr/bin/env bash
 set -euo pipefail
@@ -180,7 +206,7 @@ esac
 printf 'HTTP/2 403\r\nX-Fuluck-Release: not-ready\r\nCODE 403'
 `);
   fs.writeFileSync(path.join(bin, 'sleep'), '#!/usr/bin/env bash\nexit 0\n');
-  for (const name of ['git', 'node', 'npx', 'curl', 'sleep']) fs.chmodSync(path.join(bin, name), 0o700);
+  for (const name of ['git', 'node', 'npm', 'npx', 'curl', 'sleep']) fs.chmodSync(path.join(bin, name), 0o700);
 
   const result = spawnSync('bash', [SCRIPT_PATH, '--deploy'], {
     cwd: ROOT,
@@ -191,6 +217,7 @@ printf 'HTTP/2 403\r\nX-Fuluck-Release: not-ready\r\nCODE 403'
       REAL_NODE: process.execPath,
       FAKE_ACTIVE_AT_ROLLBACK: activeAtRollback,
       FAKE_OPERATIONS: operations,
+      FAKE_NPM_OK: npmOk ? '1' : '0',
       FAKE_PROVENANCE_OK: provenanceOk ? '1' : '0',
       FAKE_STATUS_COUNT: statusCount,
     },
@@ -199,6 +226,16 @@ printf 'HTTP/2 403\r\nX-Fuluck-Release: not-ready\r\nCODE 403'
   fs.rmSync(dir, { recursive: true, force: true });
   return { result, operations: operationLog };
 }
+
+test('a dependency installation failure stops before Wrangler or any remote mutation', () => {
+  const { result, operations } = runGuardedDeployScenario({
+    activeAtRollback: 'version-deployed',
+    npmOk: false,
+  });
+  assert.notEqual(result.status, 0);
+  assert.deepEqual(operations.trim().split('\n').filter(Boolean), ['npm-ci']);
+  assert.match(result.stderr, /dependency installation failed/i);
+});
 
 test('failed smoke never rolls back over a concurrent deployment', () => {
   const { result, operations } = runGuardedDeployScenario({ activeAtRollback: 'version-concurrent' });

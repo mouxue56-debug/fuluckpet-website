@@ -1,24 +1,19 @@
 import { randomUUID } from 'node:crypto';
-import {
-  closeSync,
-  constants,
-  fchmodSync,
-  fsyncSync,
-  lstatSync,
-  openSync,
-  renameSync,
-  unlinkSync,
-  writeFileSync,
-} from 'node:fs';
-import { basename, dirname, join, parse, resolve, sep } from 'node:path';
+import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-import { compareKonekoToFuluck, renderAuditMarkdown } from './lib/koneko-catalog-audit.js';
+import { compareKonekoToFuluck } from './lib/koneko-catalog-audit.js';
 import {
-  crawlKonekoAccount,
-  formatPublicAuditFailure,
-  readFuluckPublicTarget,
-} from './lib/koneko-public-crawl.js';
+  blockedReceipt,
+  writeAuditReports,
+} from './lib/koneko-audit-output.js';
+
+const BOOTSTRAP_BLOCKS = new Map([
+  [
+    'focused_tests_failed',
+    'Public catalogue audit blocked: stage=bootstrap; reason=focused_tests_failed',
+  ],
+]);
 
 const ACCOUNT_IDS = ['c995680', 'd696506'];
 const ACTIVE_STATUSES = new Set(['available', 'reserved']);
@@ -30,6 +25,7 @@ function parseArguments(argv) {
     ['--json', 'json'],
     ['--markdown', 'markdown'],
     ['--fixture', 'fixture'],
+    ['--blocked', 'blocked'],
   ]);
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -54,84 +50,9 @@ function parseArguments(argv) {
     errors.push('invalid invocation');
   }
   if (options.fixture && process.env.NODE_ENV !== 'test') errors.push('invalid invocation');
+  if (options.fixture && options.blocked) errors.push('invalid invocation');
+  if (options.blocked && !BOOTSTRAP_BLOCKS.has(options.blocked)) errors.push('invalid invocation');
   return { options, errors };
-}
-
-function existingEntry(pathname) {
-  try {
-    return lstatSync(pathname);
-  } catch (error) {
-    if (error?.code === 'ENOENT') return null;
-    throw error;
-  }
-}
-
-function validateDestination(pathname) {
-  const destination = resolve(pathname);
-  const parentPath = dirname(destination);
-  const root = parse(parentPath).root;
-  let current = root;
-  for (const component of parentPath.slice(root.length).split(sep).filter(Boolean)) {
-    current = join(current, component);
-    const ancestor = existingEntry(current);
-    if (!ancestor || ancestor.isSymbolicLink()) throw new Error('report destination is unsafe');
-  }
-  const parent = existingEntry(parentPath);
-  if (!parent?.isDirectory()) throw new Error('report destination is unsafe');
-  const entry = existingEntry(destination);
-  if (entry && (!entry.isFile() || entry.isSymbolicLink())) throw new Error('report destination is unsafe');
-  return destination;
-}
-
-function atomicWrite(pathname, content) {
-  const temporary = `${dirname(pathname)}/.${basename(pathname)}.${process.pid}.${randomUUID()}.tmp`;
-  let descriptor;
-  try {
-    descriptor = openSync(
-      temporary,
-      constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW,
-      0o600,
-    );
-    writeFileSync(descriptor, content, 'utf8');
-    fchmodSync(descriptor, 0o600);
-    fsyncSync(descriptor);
-    closeSync(descriptor);
-    descriptor = undefined;
-    renameSync(temporary, pathname);
-  } catch (error) {
-    if (descriptor !== undefined) {
-      try { closeSync(descriptor); } catch {}
-    }
-    try { unlinkSync(temporary); } catch {}
-    throw error;
-  }
-}
-
-function writeReports(options, result) {
-  const jsonPath = validateDestination(options.json);
-  const markdownPath = validateDestination(options.markdown);
-  if (jsonPath === markdownPath) throw new Error('report destinations must differ');
-  const json = `${JSON.stringify(result, null, 2)}\n`;
-  const markdown = renderAuditMarkdown(result);
-  atomicWrite(jsonPath, json);
-  atomicWrite(markdownPath, markdown);
-}
-
-function blockedReceipt(message = 'Public catalogue evidence could not be completed.') {
-  return {
-    timestamp: new Date().toISOString(),
-    result: 'BLOCKED',
-    exitCode: 3,
-    accounts: [],
-    fuluck: {
-      apiRecordCount: 0,
-      renderedPageCounts: { ja: 0, en: 0, zh: 0 },
-      checkedUrls: [],
-    },
-    diffs: [],
-    blocks: [message],
-    noWritePerformed: true,
-  };
 }
 
 async function loadFixture(pathname) {
@@ -140,7 +61,8 @@ async function loadFixture(pathname) {
   return fixture.default;
 }
 
-async function runAudit(options) {
+async function runAudit(options, publicCrawl) {
+  const { crawlKonekoAccount, readFuluckPublicTarget } = publicCrawl;
   const fetchImpl = options.fixture ? await loadFixture(options.fixture) : globalThis.fetch;
   const delayMs = options.fixture ? 0 : 500;
   const accounts = [];
@@ -170,11 +92,18 @@ async function main() {
   let result;
   if (errors.length) {
     result = blockedReceipt('The audit invocation was invalid.');
+  } else if (options.blocked) {
+    result = blockedReceipt(BOOTSTRAP_BLOCKS.get(options.blocked));
   } else {
+    let publicCrawl;
     try {
-      result = await runAudit(options);
+      publicCrawl = await import('./lib/koneko-public-crawl.js');
+      result = await runAudit(options, publicCrawl);
     } catch (error) {
-      result = blockedReceipt(formatPublicAuditFailure(error));
+      result = blockedReceipt(
+        publicCrawl?.formatPublicAuditFailure(error)
+          ?? 'Public catalogue evidence could not be completed.',
+      );
     }
   }
 
@@ -184,7 +113,7 @@ async function main() {
     return;
   }
   try {
-    writeReports(options, result);
+    writeAuditReports({ jsonPath: options.json, markdownPath: options.markdown }, result);
     process.exitCode = result.exitCode;
   } catch {
     process.stderr.write('Koneko audit BLOCKED: reports could not be written safely.\n');

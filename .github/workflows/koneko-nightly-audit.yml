@@ -19,18 +19,34 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
+      - name: Prepare private Koneko audit directory
+        shell: bash
+        run: |
+          umask 077
+          install -d -m 0700 "$RUNNER_TEMP/koneko-nightly-audit"
+
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: '.node-version'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install locked dependencies
+        id: dependencies
+        continue-on-error: true
+        run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Run focused Koneko audit tests
+        id: focused_tests
+        if: steps.dependencies.outcome == 'success'
+        continue-on-error: true
         run: node --test tests/koneko-public-html.test.js tests/koneko-public-crawl.test.js tests/koneko-catalog-audit.test.js tests/koneko-audit-cli.test.js tests/workflow-integrity.test.js
 
       - name: Run Koneko catalogue audit
         id: audit
+        if: steps.dependencies.outcome == 'success' && steps.focused_tests.outcome == 'success'
         shell: bash
         run: |
-          mkdir -p "$RUNNER_TEMP/koneko-nightly-audit"
           set +e
           node tools/audit-koneko-catalog.js \
             --json "$RUNNER_TEMP/koneko-nightly-audit/audit.json" \
@@ -38,6 +54,26 @@ jobs:
           status=$?
           set -e
           echo "status=$status" >> "$GITHUB_OUTPUT"
+
+      - name: Write dependency-install BLOCKED audit
+        if: always() && steps.dependencies.outcome != 'success'
+        run: |
+          node tools/write-koneko-dependency-block.js \
+            --json "$RUNNER_TEMP/koneko-nightly-audit/audit.json" \
+            --markdown "$RUNNER_TEMP/koneko-nightly-audit/audit.md"
+
+      - name: Write focused-test BLOCKED audit
+        if: always() && steps.dependencies.outcome == 'success' && steps.focused_tests.outcome != 'success'
+        shell: bash
+        run: |
+          set +e
+          node tools/audit-koneko-catalog.js \
+            --json "$RUNNER_TEMP/koneko-nightly-audit/audit.json" \
+            --markdown "$RUNNER_TEMP/koneko-nightly-audit/audit.md" \
+            --blocked focused_tests_failed
+          status=$?
+          set -e
+          [ "$status" = "3" ]
 
       - name: Append Koneko audit summary
         if: always()
@@ -57,4 +93,15 @@ jobs:
 
       - name: Re-emit Koneko audit status
         if: always()
-        run: exit "${{ steps.audit.outputs.status }}"
+        env:
+          DEPENDENCY_OUTCOME: ${{ steps.dependencies.outcome }}
+          TEST_OUTCOME: ${{ steps.focused_tests.outcome }}
+          AUDIT_STATUS: ${{ steps.audit.outputs.status }}
+        run: |
+          if [ "$DEPENDENCY_OUTCOME" != "success" ] || [ "$TEST_OUTCOME" != "success" ]; then
+            exit 3
+          fi
+          case "$AUDIT_STATUS" in
+            0|2|3) exit "$AUDIT_STATUS" ;;
+            *) exit 3 ;;
+          esac

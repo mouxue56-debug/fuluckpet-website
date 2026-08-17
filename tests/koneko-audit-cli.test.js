@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import {
   chmodSync,
+  copyFileSync,
+  existsSync,
   lstatSync,
   mkdirSync,
   mkdtempSync,
@@ -18,6 +20,7 @@ import test from 'node:test';
 
 const PROJECT = resolve(dirname(new URL(import.meta.url).pathname), '..');
 const CLI = join(PROJECT, 'tools/audit-koneko-catalog.js');
+const DEPENDENCY_BLOCK = join(PROJECT, 'tools/write-koneko-dependency-block.js');
 
 const fixtureSource = String.raw`
 import { writeFileSync } from 'node:fs';
@@ -117,6 +120,31 @@ function readReports(paths) {
   };
 }
 
+function runBootstrapBlocked(paths, reason = 'focused_tests_failed', { cli = CLI } = {}) {
+  return spawnSync(process.execPath, [
+    cli,
+    '--json', paths.json,
+    '--markdown', paths.markdown,
+    '--blocked', reason,
+  ], {
+    cwd: dirname(cli),
+    encoding: 'utf8',
+    env: { ...process.env, NODE_ENV: 'production' },
+  });
+}
+
+function runDependencyBlock(paths, { cli = DEPENDENCY_BLOCK, env = {} } = {}) {
+  return spawnSync(process.execPath, [
+    cli,
+    '--json', paths.json,
+    '--markdown', paths.markdown,
+  ], {
+    cwd: dirname(cli),
+    encoding: 'utf8',
+    env: { ...process.env, ...env },
+  });
+}
+
 test('CLI exits zero and writes private JSON and Markdown receipts for an exact audit', (t) => {
   const paths = workspace(t);
   const result = run(paths);
@@ -157,6 +185,123 @@ test('CLI exits three and writes redacted BLOCKED receipts after an audit except
   assert.match(reports.markdown, /BLOCKED/);
   assert.doesNotMatch(emitted, new RegExp(secret));
   assert.doesNotMatch(emitted, /authorization|bearer/i);
+});
+
+test('CLI writes a fixed dependency-install BLOCKED receipt without echoing environment data', (t) => {
+  const paths = workspace(t);
+  const secret = 'must-not-enter-bootstrap-reports';
+  const result = runDependencyBlock(paths, {
+    env: { PRIVATE_BOOTSTRAP_VALUE: secret },
+  });
+  const reports = readReports(paths);
+  const emitted = `${result.stdout}\n${result.stderr}\n${JSON.stringify(reports.json)}\n${reports.markdown}`;
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(reports.json.blocks, [
+    'Public catalogue audit blocked: stage=bootstrap; reason=dependency_install_failed',
+  ]);
+  assert.equal(reports.json.result, 'BLOCKED');
+  assert.equal(reports.json.exitCode, 3);
+  assert.equal(reports.json.noWritePerformed, true);
+  assert.deepEqual(reports.json.accounts, []);
+  assert.deepEqual(reports.json.fuluck, {
+    apiRecordCount: 0,
+    renderedPageCounts: { ja: 0, en: 0, zh: 0 },
+    checkedUrls: [],
+  });
+  assert.deepEqual(reports.json.diffs, []);
+  assert.match(reports.markdown, /Result: BLOCKED/);
+  assert.match(reports.markdown, /NO WRITE PERFORMED/);
+  assert.doesNotMatch(emitted, new RegExp(secret));
+  for (const forbidden of [
+    'npm ERR', 'registry.npmjs.org', 'authorization', 'bearer', 'password',
+    'stack', paths.root,
+  ]) assert.equal(emitted.toLowerCase().includes(forbidden.toLowerCase()), false, forbidden);
+  assert.equal(lstatSync(paths.json).mode & 0o777, 0o600);
+  assert.equal(lstatSync(paths.markdown).mode & 0o777, 0o600);
+});
+
+test('CLI writes the fixed focused-test BLOCKED receipt used by the nightly workflow', (t) => {
+  const paths = workspace(t);
+  const result = runBootstrapBlocked(paths, 'focused_tests_failed');
+  const reports = readReports(paths);
+
+  assert.equal(result.status, 3, result.stderr);
+  assert.deepEqual(reports.json.blocks, [
+    'Public catalogue audit blocked: stage=bootstrap; reason=focused_tests_failed',
+  ]);
+  assert.equal(reports.json.result, 'BLOCKED');
+  assert.equal(reports.json.exitCode, 3);
+  assert.match(reports.markdown, /focused_tests_failed/);
+});
+
+test('dependency-install BLOCKED reporting runs from an isolated copy with only its output boundary', (t) => {
+  const paths = workspace(t);
+  const isolated = join(paths.root, 'isolated');
+  const isolatedTools = join(isolated, 'tools');
+  const isolatedLib = join(isolatedTools, 'lib');
+  mkdirSync(isolatedLib, { recursive: true });
+  const isolatedCli = join(isolatedTools, 'write-koneko-dependency-block.js');
+  copyFileSync(DEPENDENCY_BLOCK, isolatedCli);
+  copyFileSync(
+    join(PROJECT, 'tools/lib/koneko-audit-output.js'),
+    join(isolatedLib, 'koneko-audit-output.js'),
+  );
+  paths.json = join(paths.root, 'isolated-audit.json');
+  paths.markdown = join(paths.root, 'isolated-audit.md');
+
+  const result = runDependencyBlock(paths, { cli: isolatedCli });
+  const reports = readReports(paths);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(reports.json.blocks, [
+    'Public catalogue audit blocked: stage=bootstrap; reason=dependency_install_failed',
+  ]);
+  assert.match(reports.markdown, /BLOCKED/);
+  assert.deepEqual(readdirSync(isolatedLib), ['koneko-audit-output.js']);
+});
+
+test('dependency-install BLOCKED reporting refuses symbolic-link destinations', (t) => {
+  const paths = workspace(t);
+  const target = join(paths.root, 'dependency-protected.txt');
+  writeFileSync(target, 'keep-me', 'utf8');
+  symlinkSync(target, paths.json);
+
+  const result = runDependencyBlock(paths);
+
+  assert.equal(result.status, 3);
+  assert.equal(readFileSync(target, 'utf8'), 'keep-me');
+  assert.equal(existsSync(paths.markdown), false);
+  assert.doesNotMatch(`${result.stdout}\n${result.stderr}`, new RegExp(paths.root));
+});
+
+test('dependency-install BLOCKED reporting atomically replaces both receipts as mode 0600', (t) => {
+  const paths = workspace(t);
+  writeFileSync(paths.json, 'old-json', 'utf8');
+  writeFileSync(paths.markdown, 'old-markdown', 'utf8');
+  chmodSync(paths.json, 0o644);
+  chmodSync(paths.markdown, 0o644);
+  const before = [lstatSync(paths.json).ino, lstatSync(paths.markdown).ino];
+
+  const result = runDependencyBlock(paths);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.notEqual(lstatSync(paths.json).ino, before[0]);
+  assert.notEqual(lstatSync(paths.markdown).ino, before[1]);
+  assert.equal(lstatSync(paths.json).mode & 0o777, 0o600);
+  assert.equal(lstatSync(paths.markdown).mode & 0o777, 0o600);
+});
+
+test('CLI rejects unknown bootstrap reasons without reflecting them into reports', (t) => {
+  const paths = workspace(t);
+  const unsafeReason = 'dependency_install_failed password=hunter2';
+  const result = runBootstrapBlocked(paths, unsafeReason);
+  const reports = readReports(paths);
+  const emitted = `${result.stdout}\n${result.stderr}\n${JSON.stringify(reports.json)}\n${reports.markdown}`;
+
+  assert.equal(result.status, 3);
+  assert.deepEqual(reports.json.blocks, ['The audit invocation was invalid.']);
+  assert.doesNotMatch(emitted, /hunter2/);
 });
 
 test('CLI BLOCKED receipts preserve a closed Fuluck API diagnostic', (t) => {
