@@ -43,29 +43,66 @@ const CLOUDFLARE_TAIL_SIGNATURES = Object.freeze([
   value => value.includes('__CF$cv$params'),
   value => /\bcreateElement\s*\(\s*(['"])iframe\1\s*\)/i.test(value),
 ]);
+const PROVEN_CLOUDFLARE_TAIL = /<script[\t\n\f\r ]*>((?:(?!<\/?script(?=[\t\n\f\r \/>]))[\s\S])*)<\/script[\t\n\f\r ]*>([\t\n\f\r ]*<\/body[\t\n\f\r ]*>[\t\n\f\r ]*<\/html[\t\n\f\r ]*>[\t\n\f\r ]*)(?![\s\S])/i;
+const RAW_OR_INERT_OPENING = /<(script|style|template)(?=[\t\n\f\r \/>])/ig;
 
 function hasAnyCloudflareTailSignature(value) {
   return CLOUDFLARE_TAIL_SIGNATURES.some(matches => matches(value));
 }
 
+function htmlTagEnd(text, start) {
+  let quote = '';
+  for (let index = start; index < text.length; index += 1) {
+    const character = text[index];
+    if (quote) {
+      if (character === quote) quote = '';
+    } else if (character === '"' || character === "'") {
+      quote = character;
+    } else if (character === '>') {
+      return index + 1;
+    }
+  }
+  return -1;
+}
+
+function candidateStartsInHtmlData(prefix) {
+  let cursor = 0;
+  while (cursor < prefix.length) {
+    const commentStart = prefix.indexOf('<!--', cursor);
+    RAW_OR_INERT_OPENING.lastIndex = cursor;
+    const rawOpening = RAW_OR_INERT_OPENING.exec(prefix);
+    if (commentStart !== -1 && (!rawOpening || commentStart < rawOpening.index)) {
+      const commentEnd = prefix.indexOf('-->', commentStart + 4);
+      if (commentEnd === -1) return false;
+      cursor = commentEnd + 3;
+      continue;
+    }
+    if (!rawOpening) return true;
+
+    const openingEnd = htmlTagEnd(prefix, RAW_OR_INERT_OPENING.lastIndex);
+    if (openingEnd === -1) return false;
+    const closing = new RegExp(`<\\/${rawOpening[1]}[\\t\\n\\f\\r ]*>`, 'ig');
+    closing.lastIndex = openingEnd;
+    if (!closing.exec(prefix)) return false;
+    cursor = closing.lastIndex;
+  }
+  return true;
+}
+
 function stripProvenFuluckTailInjection(text) {
   if (!hasAnyCloudflareTailSignature(text)) return text;
-  const scripts = [...text.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)]
-    .filter(match => hasAnyCloudflareTailSignature(match[0]));
-  if (scripts.length !== 1) throw new Error('challenge or interstitial response');
+  const candidate = PROVEN_CLOUDFLARE_TAIL.exec(text);
+  if (!candidate) throw new Error('challenge or interstitial response');
 
-  const candidate = scripts[0];
-  const attributes = candidate[1];
-  const body = candidate[2];
+  const body = candidate[1];
+  const suffix = candidate[2];
   const start = candidate.index;
-  const end = start + candidate[0].length;
-  const suffix = text.slice(end);
+  const end = start + candidate[0].length - suffix.length;
   const outside = `${text.slice(0, start)}${suffix}`;
-  if (/(?:^|[\t\n\f\r ])src(?:[\t\n\f\r ]|=|$)/i.test(attributes)
-    || Buffer.byteLength(candidate[0], 'utf8') > MAX_CLOUDFLARE_TAIL_SCRIPT_BYTES
+  if (Buffer.byteLength(text.slice(start, end), 'utf8') > MAX_CLOUDFLARE_TAIL_SCRIPT_BYTES
     || !CLOUDFLARE_TAIL_SIGNATURES.every(matches => matches(body))
     || hasAnyCloudflareTailSignature(outside)
-    || !/^[\t\n\f\r ]*<\/body\s*>[\t\n\f\r ]*<\/html\s*>[\t\n\f\r ]*$/i.test(suffix)) {
+    || !candidateStartsInHtmlData(text.slice(0, start))) {
     throw new Error('challenge or interstitial response');
   }
   return outside;
