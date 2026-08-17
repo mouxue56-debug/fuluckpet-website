@@ -409,7 +409,7 @@ git commit -m "ci: schedule nightly Koneko read-only audit"
 - Preserve: `parseKonekoDetailPage(html, { expectedAccountId, expectedBreederId, pageUrl }) -> SourceActiveKitten`
 - Preserve: `parseVerifiedFuluckDetailPage(controlledHtml, options) -> RenderedKittenPage`, callable only after the existing controlled-byte equality gate.
 - Add: `writeAuditReports({ jsonPath, markdownPath }, result) -> void`, a Node-built-in-only, atomic mode-0600 writer shared by the main CLI and dependency-failure bootstrap.
-- Add CLI: `node tools/write-koneko-dependency-block.js --json <path> --markdown <path>`; it writes the one closed `bootstrap/dependency_install` `BLOCKED` result and performs no import from the Koneko parser/crawler graph.
+- Add CLI: `node tools/write-koneko-dependency-block.js --json <path> --markdown <path>`; it writes the one closed `bootstrap/dependency_install_failed` `BLOCKED` result and performs no import from the Koneko parser/crawler graph.
 
 **Decision:** Stop extending the hand-written Koneko scanner. Use exactly `parse5` `8.0.1` for HTML tokenization, complete character-reference decoding, namespace assignment, template/raw-text handling, and tree construction. Keep the strict Koneko evidence policy above the parsed tree, and keep the Fuluck controlled-render byte gate exactly as it is. Parser absence or failure has no runtime fallback.
 
@@ -496,7 +496,7 @@ Extend CLI and workflow tests to require:
 
 - an isolated copy of `tools/write-koneko-dependency-block.js` plus its output module runs from a temporary directory with no `package.json`, `node_modules`, parser, crawler, or network access;
 - it atomically writes different JSON/Markdown destinations with mode 0600 and refuses symlink destinations/ancestors;
-- JSON contains `result: "BLOCKED"`, `exitCode: 3`, empty account/Fuluck evidence, `noWritePerformed: true`, and only `stage=bootstrap; reason=dependency_install`;
+- JSON contains `result: "BLOCKED"`, `exitCode: 3`, empty account/Fuluck evidence, `noWritePerformed: true`, and only `stage=bootstrap; reason=dependency_install_failed`;
 - Markdown contains `BLOCKED` and `NO WRITE PERFORMED`, but no npm stderr, registry URL, environment value, credential marker, stack, or filesystem path;
 - nightly dependency installation is `continue-on-error`, successful parser tests/audit are conditional on install success, the failure writer is conditional on install failure, summary/upload remain `always()`, and the final step exits 3 for dependency failure.
 
