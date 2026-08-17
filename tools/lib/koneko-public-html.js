@@ -78,11 +78,74 @@ function extractElementByClass(html, className) {
   return balancedElementContent(html, match) ?? html.slice(match.index + match[0].length);
 }
 
+function hasClassToken(attributes, className) {
+  const value = attributes.match(/\bclass\s*=\s*(["'])([\s\S]*?)\1/i)?.[2];
+  return value?.split(/[\t\n\f\r ]+/).some(token => token.toLowerCase() === className.toLowerCase()) ?? false;
+}
+
+function walkHtml(html, { onOpen, onClose, onText } = {}) {
+  const token = /<!--[\s\S]*?-->|<(\/)?([a-z][a-z0-9]*)([^>]*)>/gi;
+  let cursor = 0;
+  let match;
+  while ((match = token.exec(html))) {
+    onText?.(html.slice(cursor, match.index));
+    cursor = token.lastIndex;
+    if (match[0].startsWith('<!--')) continue;
+    const closing = match[1] === '/';
+    const tag = match[2].toLowerCase();
+    const attributes = match[3] || '';
+    const selfClosing = /\/\s*$/.test(attributes) || VOID_HTML_TAGS.has(tag);
+    if (closing) {
+      onClose?.({ tag, start: match.index, end: token.lastIndex });
+      continue;
+    }
+    onOpen?.({ tag, attributes, start: match.index, end: token.lastIndex, selfClosing });
+    if (!selfClosing && NON_VISIBLE_TEXT_TAGS.has(tag)) {
+      const rawClose = new RegExp(`</${escRegExp(tag)}\\s*>`, 'ig');
+      rawClose.lastIndex = token.lastIndex;
+      const close = rawClose.exec(html);
+      if (!close) return;
+      onClose?.({ tag, start: close.index, end: rawClose.lastIndex });
+      token.lastIndex = rawClose.lastIndex;
+      cursor = rawClose.lastIndex;
+    }
+  }
+  onText?.(html.slice(cursor));
+}
+
 function balancedElementsByClass(html, className) {
-  return [...html.matchAll(classOpening(html, className))].flatMap(opening => {
-    const content = balancedElementContent(html, opening);
-    return content === null ? [] : [{ content, attributes: opening[0].replace(/^<[^\s>]+\b|>$/g, '') }];
+  const elements = [];
+  const stack = [];
+  let hiddenDepth = 0;
+  walkHtml(html, {
+    onOpen({ tag, attributes, start, end, selfClosing }) {
+      if (selfClosing) return;
+      const hidden = hasHiddenAttributes(attributes) || NON_VISIBLE_TEXT_TAGS.has(tag);
+      stack.push({
+        tag,
+        start,
+        attributes,
+        contentStart: end,
+        hidden,
+        ancestorHidden: hiddenDepth > 0 || hidden,
+        wanted: hasClassToken(attributes, className),
+      });
+      if (hidden) hiddenDepth += 1;
+    },
+    onClose({ tag, start }) {
+      const current = stack.at(-1);
+      if (!current || current.tag !== tag) return;
+      stack.pop();
+      if (current.hidden) hiddenDepth -= 1;
+      if (current.wanted) elements.push({
+        start: current.start,
+        content: html.slice(current.contentStart, start),
+        attributes: current.attributes,
+        ancestorHidden: current.ancestorHidden,
+      });
+    },
   });
+  return elements.sort((left, right) => left.start - right.start);
 }
 
 function hasHiddenAttributes(attributes) {
@@ -97,36 +160,28 @@ function visibleAnchors(html, { ancestorHidden = false } = {}) {
   const stack = [];
   let hiddenDepth = ancestorHidden ? 1 : 0;
   let currentAnchor = null;
-  const token = /<(\/)?([a-z][a-z0-9]*)([^>]*)>/gi;
-  let cursor = 0;
-  let match;
-  const appendText = end => {
-    if (currentAnchor && hiddenDepth === 0) currentAnchor.label += html.slice(cursor, end);
-  };
-  while ((match = token.exec(html))) {
-    appendText(match.index);
-    const closing = match[1] === '/';
-    const tag = match[2].toLowerCase();
-    const attributes = match[3] || '';
-    if (closing) {
+  walkHtml(html, {
+    onOpen({ tag, attributes, selfClosing }) {
+      if (selfClosing) return;
+      const hidden = hasHiddenAttributes(attributes) || NON_VISIBLE_TEXT_TAGS.has(tag);
+      const anchor = tag === 'a' ? { attributes, label: '' } : null;
+      stack.push({ tag, hidden, anchor, previousAnchor: currentAnchor });
+      if (anchor) currentAnchor = anchor;
+      if (hidden) hiddenDepth += 1;
+    },
+    onClose({ tag }) {
       const current = stack.at(-1);
       if (current?.tag === tag) {
-        if (tag === 'a' && currentAnchor && hiddenDepth === 0) anchors.push(currentAnchor);
+        if (tag === 'a' && current.anchor && hiddenDepth === 0) anchors.push(current.anchor);
         stack.pop();
         if (current.hidden) hiddenDepth -= 1;
-        if (tag === 'a') currentAnchor = null;
+        if (tag === 'a') currentAnchor = current.previousAnchor;
       }
-    } else {
-      const hidden = hasHiddenAttributes(attributes) || NON_VISIBLE_TEXT_TAGS.has(tag);
-      if (tag === 'a') currentAnchor = { attributes, label: '' };
-      if (!VOID_HTML_TAGS.has(tag) && !/\/\s*$/.test(attributes)) {
-        stack.push({ tag, hidden });
-        if (hidden) hiddenDepth += 1;
-      }
-    }
-    cursor = token.lastIndex;
-  }
-  appendText(html.length);
+    },
+    onText(text) {
+      if (currentAnchor && hiddenDepth === 0) currentAnchor.label += text;
+    },
+  });
   return anchors;
 }
 
@@ -344,7 +399,7 @@ export function parseKonekoListPage(html, { accountId, pageUrl } = {}) {
   const rangeEnd = Number(rangeMatch[2]);
   if (cards.length !== rangeEnd - rangeStart + 1) throw new Error('range/card count mismatch');
   let nextPageUrl = '';
-  for (const { attributes, label } of visibleAnchors(pagination, { ancestorHidden: hasHiddenAttributes(paginationElement?.attributes || '') })) {
+  for (const { attributes, label } of visibleAnchors(pagination, { ancestorHidden: paginationElement?.ancestorHidden })) {
     const rawHref = attributes.match(/\bhref\s*=\s*["']([^"']+)["']/i)?.[1];
     if (!rawHref) continue;
     const href = absoluteUrl(rawHref, pageUrl);
