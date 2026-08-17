@@ -621,6 +621,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const price = card.querySelector('.kit-price')?.textContent || '';
     const status = ['available', 'reserved', 'sold'].includes(card.dataset.status) ? card.dataset.status : 'sold';
     const isNew = card.dataset.new === 'true';
+    const catalog = window.FuluckKittenCatalog;
+    const promotionTag = catalog ? catalog.normalizePromotionTag(card.dataset.promotionTag) : '';
+    const documentLang = String(document.documentElement?.lang || 'ja').toLowerCase();
+    const catalogLang = documentLang.startsWith('en') ? 'en' : documentLang.startsWith('zh') ? 'zh' : 'ja';
     const papa = card.dataset.papa || '';
     const mama = card.dataset.mama || '';
     const breederId = card.dataset.breederId || '';
@@ -633,7 +637,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const content = [];
     const statusRow = createModalNode('div', 'modal-status-row');
     statusRow.appendChild(createModalNode('span', 'kit-status ' + statusClasses[status], copy.status[status]));
-    if (isNew) statusRow.appendChild(createModalNode('span', 'kit-badge-new', 'NEW'));
+    if (promotionTag) {
+      const promotion = createModalNode(
+        'span',
+        'kitten-promotion-chip usp-chip usp-chip--card',
+        catalog.promotionLabel(promotionTag, catalogLang),
+      );
+      promotion.setAttribute('data-promotion-tag', promotionTag);
+      statusRow.appendChild(promotion);
+    } else if (isNew) {
+      statusRow.appendChild(createModalNode('span', 'kit-badge-new', 'NEW'));
+    }
     content.push(statusRow, createModalNode('h2', 'modal-name', displayName));
 
     if (!isSold) {
