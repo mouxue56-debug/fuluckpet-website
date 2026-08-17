@@ -71,6 +71,14 @@ test('maps 事前成約申請 to reserved and rejects unknown status, duplicate 
   assert.throws(() => parseKonekoListPage(listPage([listCard('2608-00001')], { total: 1, end: 2 }), LIST_OPTIONS), /range|card/i);
 });
 
+test('fails closed for out-of-contract, repeated, or unmarked list states', () => {
+  assert.throws(() => parseKonekoListPage(listPage([listCard('2608-00001', '成約済み（引き渡し前）')], { total: 1, end: 1 }), LIST_OPTIONS), /unknown status/i);
+  const repeated = listCard('2608-00001', '販売中').replace('</li>', '<span class="business">掲載停止</span></li>');
+  assert.throws(() => parseKonekoListPage(listPage([repeated], { total: 1, end: 1 }), LIST_OPTIONS), /unknown status/i);
+  const unmarked = listCard('2608-00001').replace(/<div class="listLmtInfStt">[\s\S]*?<\/div>/, '<div class="listLmtInfStt"></div>');
+  assert.throws(() => parseKonekoListPage(listPage([unmarked], { total: 1, end: 1 }), LIST_OPTIONS), /live|marker|status/i);
+});
+
 test('ignores unrelated totalNum markup, rejects challenge pages, and rejects off-host next links', () => {
   const html = `<span class="totalNum">999</span>${listPage([listCard('2608-00001')], { total: 1, end: 1, next: false })}`
     .replace('</ul>\n    </div>', '<li><a href="https://evil.example/next">次へ</a></li></ul>\n    </div>');
@@ -86,7 +94,7 @@ const KONEKO_DETAIL_OPTIONS = {
   pageUrl: 'https://www.koneko-breeder.com/cat2608-00001.html',
 };
 
-function konekoDetail({ json = true, images = true, sku = '2608-00001', account = 'c995680' } = {}) {
+function konekoDetail({ json = true, images = true, sku = '2608-00001', account = 'c995680', price = '230000' } = {}) {
   const product = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -95,13 +103,13 @@ function konekoDetail({ json = true, images = true, sku = '2608-00001', account 
       `https://www.koneko-breeder.com/breeder/data/${account}/child_img_1_hash.jpg.webp`,
       `https://www.koneko-breeder.com/breeder/data/${account}/child_img_2_hash.jpg.webp`,
     ] : [],
-    offers: { '@type': 'Offer', price: '230000', priceCurrency: 'JPY' },
+    offers: { '@type': 'Offer', ...(price !== undefined ? { price } : {}), priceCurrency: 'JPY' },
   };
   return `<html><head><link rel="canonical" href="${KONEKO_DETAIL_OPTIONS.pageUrl}">
     ${json ? `<script type="application/ld+json">${JSON.stringify(product)}</script>` : '<script type="application/ld+json">{bad json</script>'}
   </head><body>
     <table class="petDtlTable"><tr><th>品種</th><td>サイベリアン</td></tr><tr><th>毛色</th><td>シルバータビー&amp;ホワイト（トリプルコート）</td></tr><tr><th>性別</th><td>♂</td></tr><tr><th>誕生日</th><td>2026/5/9</td></tr></table>
-    <div class="petDtlInt"><div class="gnrCnt"><p>一段落</p><p>二段落</p></div></div>
+    <div class="gnrCnt"><p>汎用欄の文章</p></div><div class="petDtlInt"><div class="gnrCnt"><p>一段落<br>続き</p><p>二段落<br>続き</p></div></div>
     <div class="parents"><p>父猫：父猫</p><p>母猫：母猫</p></div>
     <p class="pic_detail_appeal">短い紹介</p><iframe src="https://www.youtube.com/watch?v=AbCdEfGhI12"></iframe>
   </body></html>`;
@@ -124,7 +132,7 @@ test('normalizes a Koneko detail Product, facts, parents, note, introduction, an
     papa: '父猫',
     mama: '母猫',
     note: '短い紹介',
-    description: '一段落\n\n二段落',
+    description: '一段落\n続き\n\n二段落\n続き',
     detailUrl: KONEKO_DETAIL_OPTIONS.pageUrl,
   });
 });
@@ -136,9 +144,14 @@ test('fails closed for malformed JSON-LD, zero source photos, and mismatched Kon
   assert.throws(() => parseKonekoDetailPage(konekoDetail({ account: 'd696506' }), KONEKO_DETAIL_OPTIONS), /account/i);
 });
 
-function fuluckDetail(locale = 'ja') {
+test('fails closed when Product price evidence is missing or non-numeric', () => {
+  assert.throws(() => parseKonekoDetailPage(konekoDetail({ price: null }), KONEKO_DETAIL_OPTIONS), /price/i);
+  assert.throws(() => parseKonekoDetailPage(konekoDetail({ price: 'not-a-number' }), KONEKO_DETAIL_OPTIONS), /price/i);
+});
+
+function fuluckDetail(locale = 'ja', { sku = '2608-00001' } = {}) {
   const product = {
-    '@context': 'https://schema.org', '@type': 'Product', sku: '2608-00001',
+    '@context': 'https://schema.org', '@type': 'Product', ...(sku !== undefined ? { sku } : {}),
     image: ['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_hash.jpg.webp', 'https://www.koneko-breeder.com/breeder/data/c995680/child_img_2_hash.jpg.webp'],
     offers: { '@type': 'Offer', price: '230000' },
   };
@@ -158,10 +171,20 @@ test('parses Fuluck JA, EN, and ZH pages with ordered images, identity, locale, 
     breederId: '2608-00001', locale: 'ja', breed: 'サイベリアン', color: 'シルバータビー&ホワイト（トリプルコート）', gender: '♂', price: 230000, birthday: '2026-05-09',
     photos: ['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_hash.jpg.webp', 'https://www.koneko-breeder.com/breeder/data/c995680/child_img_2_hash.jpg.webp'], videoId: 'AbCdEfGhI12', papa: '父猫', mama: '母猫', note: '短い紹介', description: '一段落\n\n二段落', detailUrl: 'https://fuluckpet.com/kittens/2608-00001.html',
   });
-  assert.equal(parseFuluckDetailPage(fuluckDetail('en'), { expectedBreederId: '2608-00001', locale: 'en', pageUrl: 'https://fuluckpet.com/kittens/2608-00001.html' }).locale, 'en');
+  assert.deepEqual(parseFuluckDetailPage(fuluckDetail('en'), { expectedBreederId: '2608-00001', locale: 'en', pageUrl: 'https://fuluckpet.com/kittens/2608-00001.html' }), {
+    breederId: '2608-00001', locale: 'en', breed: 'Siberian', color: 'Silver tabby & white', gender: '♂', price: 230000, birthday: '2026-05-09',
+    photos: ['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_hash.jpg.webp', 'https://www.koneko-breeder.com/breeder/data/c995680/child_img_2_hash.jpg.webp'], videoId: 'AbCdEfGhI12', papa: '父猫', mama: '母猫', note: 'Short note', description: 'First paragraph\n\nSecond paragraph', detailUrl: 'https://fuluckpet.com/kittens/2608-00001.html',
+  });
   const zh = parseFuluckDetailPage(fuluckDetail('zh'), { expectedBreederId: '2608-00001', locale: 'zh', pageUrl: 'https://fuluckpet.com/kittens/2608-00001.html' });
-  assert.equal(zh.note, '');
-  assert.equal(zh.description, '');
+  assert.deepEqual(zh, {
+    breederId: '2608-00001', locale: 'zh', breed: 'Siberian', color: '银色虎斑白色', gender: '♂', price: 230000, birthday: '2026-05-09',
+    photos: ['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_hash.jpg.webp', 'https://www.koneko-breeder.com/breeder/data/c995680/child_img_2_hash.jpg.webp'], videoId: 'AbCdEfGhI12', papa: '父猫', mama: '母猫', note: '', description: '', detailUrl: 'https://fuluckpet.com/kittens/2608-00001.html',
+  });
+});
+
+test('requires an exact Fuluck Product SKU even when the canonical URL matches', () => {
+  assert.throws(() => parseFuluckDetailPage(fuluckDetail('ja', { sku: '' }), { expectedBreederId: '2608-00001', locale: 'ja', pageUrl: 'https://fuluckpet.com/kittens/2608-00001.html' }), /SKU|breeder/i);
+  assert.throws(() => parseFuluckDetailPage(fuluckDetail('ja', { sku: '2608-00002' }), { expectedBreederId: '2608-00001', locale: 'ja', pageUrl: 'https://fuluckpet.com/kittens/2608-00001.html' }), /SKU|breeder/i);
 });
 
 test('normalizes HTML entities and line breaks without executing markup', () => {

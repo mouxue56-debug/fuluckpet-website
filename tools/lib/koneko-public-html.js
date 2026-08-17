@@ -6,7 +6,6 @@ const STATUS_TEXT = new Map([
   ['商談中', 'reserved'],
   ['事前成約申請', 'reserved'],
   ['成約済み', 'sold'],
-  ['成約済み（引き渡し前）', 'sold'],
   ['販売終了', 'sold'],
 ]);
 
@@ -106,8 +105,10 @@ function productImages(product, pageUrl) {
 function productPrice(product) {
   const offer = Array.isArray(product.offers) ? product.offers[0] : product.offers;
   const raw = offer?.price ?? product.price;
+  if (raw === undefined || raw === null || String(raw).trim() === '') throw new Error('Product price evidence is missing');
   const value = Number(String(raw ?? '').replace(/[,，\s円¥]/g, ''));
-  return Number.isFinite(value) ? value : 0;
+  if (!Number.isFinite(value) || value <= 0) throw new Error('Product price evidence is invalid');
+  return value;
 }
 
 function normalizeDate(value) {
@@ -181,8 +182,10 @@ function note(html) {
   return fact(html, ['備考', '注記', 'Note', 'Short note']);
 }
 
-function longDescription(html) {
-  const content = extractElementByClass(html, 'gnrCnt') || extractElementByClass(html, 'kitten-detail-introduction');
+function longDescription(html, { koneko = false } = {}) {
+  const konekoSection = koneko ? extractElementByClass(html, 'petDtlInt') : '';
+  const content = (konekoSection ? extractElementByClass(konekoSection, 'gnrCnt') : '')
+    || (!koneko ? extractElementByClass(html, 'kitten-detail-introduction') : '');
   if (!content) return '';
   return decodeHtmlText(content.replace(/<h[1-6]\b[^>]*>[\s\S]*?<\/h[1-6]\s*>/gi, ''), { preserveBreaks: true });
 }
@@ -206,7 +209,7 @@ function outerListItemEnd(html, contentStart) {
   return html.length;
 }
 
-function detailFields(html, product, pageUrl) {
+function detailFields(html, product, pageUrl, { koneko = false } = {}) {
   const imageUrls = productImages(product, pageUrl);
   const parentsValue = parents(html);
   return {
@@ -220,7 +223,7 @@ function detailFields(html, product, pageUrl) {
     papa: parentsValue.papa,
     mama: parentsValue.mama,
     note: note(html),
-    description: longDescription(html),
+    description: longDescription(html, { koneko }),
   };
 }
 
@@ -245,13 +248,18 @@ export function parseKonekoListPage(html, { accountId, pageUrl } = {}) {
     const statusNodes = [...cardHtml.matchAll(/<(?:span|p|div)\b[^>]*\bclass\s*=\s*["'][^"']*\b(?:business|closed|sold|status)\b[^"']*["'][^>]*>([\s\S]*?)<\/(?:span|p|div)\s*>/gi)];
     let status = 'available';
     if (statusNodes.length) {
-      const label = decodeHtmlText(statusNodes[0][1]);
-      status = STATUS_TEXT.get(label);
-      if (!status) throw new Error(`unknown status markup: ${label}`);
+      const labels = statusNodes.map(node => decodeHtmlText(node[1]));
+      const statuses = labels.map(label => STATUS_TEXT.get(label));
+      const unknown = labels.find((_, index) => !statuses[index]);
+      if (unknown) throw new Error(`unknown status markup: ${unknown}`);
+      const distinct = [...new Set(statuses)];
+      if (distinct.length !== 1) throw new Error(`conflicting status markup: ${labels.join(', ')}`);
+      status = distinct[0];
     } else {
       const stateText = decodeHtmlText(extractElementByClass(cardHtml, 'listLmtInfStt'));
-      if (stateText && !STATUS_TEXT.has(stateText)) throw new Error(`unknown status markup: ${stateText}`);
-      if (stateText) status = STATUS_TEXT.get(stateText);
+      if (!stateText) throw new Error('live-list marker or status is missing');
+      if (!STATUS_TEXT.has(stateText)) throw new Error(`unknown status markup: ${stateText}`);
+      status = STATUS_TEXT.get(stateText);
     }
     const href = cardHtml.match(/href\s*=\s*["']([^"']*cat\d{4}-\d{5}\.html[^"']*)["']/i)?.[1] || '';
     cards.push({ breederId, status, detailUrl: absoluteUrl(href, pageUrl) });
@@ -293,7 +301,7 @@ export function parseKonekoDetailPage(html, { expectedAccountId, expectedBreeder
   const product = productJsonLd(html);
   const breederId = String(scriptValue(product, 'sku') || '');
   if (breederId !== expectedBreederId) throw new Error(`Koneko SKU/breeder mismatch: ${breederId}`);
-  const fields = detailFields(html, product, pageUrl);
+  const fields = detailFields(html, product, pageUrl, { koneko: true });
   if (!fields.photos.length) throw new Error('Koneko source photos are missing');
   const accountIds = [...new Set(fields.photos.map(url => url.match(/\/breeder\/data\/([^/]+)\//i)?.[1]).filter(Boolean))];
   if (accountIds.length !== 1 || accountIds[0] !== expectedAccountId) throw new Error('Koneko account mismatch');
@@ -305,7 +313,7 @@ export function parseFuluckDetailPage(html, { expectedBreederId, locale, pageUrl
   const product = productJsonLd(html);
   const sku = String(scriptValue(product, 'sku') || '');
   const url = detailUrl(html, pageUrl);
-  if ((sku && sku !== expectedBreederId) || !new RegExp(`(?:kittens|cat)\\/?${escRegExp(expectedBreederId)}(?:\\.html)?(?:$|[?#])`, 'i').test(url)) {
+  if (!sku || sku !== expectedBreederId || !new RegExp(`(?:kittens|cat)\\/?${escRegExp(expectedBreederId)}(?:\\.html)?(?:$|[?#])`, 'i').test(url)) {
     throw new Error(`Fuluck SKU/breeder mismatch: ${sku || '(missing)'}`);
   }
   const fields = detailFields(html, product, pageUrl);
