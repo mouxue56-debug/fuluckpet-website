@@ -95,6 +95,19 @@ function renderedPageUrl(page) {
   return canonicalEvidenceUrl(page?.state === 'rendered_page_missing' ? page.url : page?.detailUrl);
 }
 
+function renderedPageReceipts(pages) {
+  if (!Array.isArray(pages)) return [];
+  return pages.filter(isObject).map((page) => {
+    const missing = page.state === 'rendered_page_missing';
+    return {
+      breederId: BREEDER_ID.test(page.breederId) ? page.breederId : '',
+      locale: LOCALES.includes(page.locale) ? page.locale : '',
+      url: safeUrl(renderedPageUrl(page)),
+      ...(missing ? { state: 'rendered_page_missing' } : { sha256: validReceiptHash(page.sha256) ? page.sha256 : '' }),
+    };
+  }).sort((a, b) => compareStrings(a.breederId, b.breederId) || compareStrings(a.locale, b.locale));
+}
+
 function compareStrings(a, b) {
   return String(a).localeCompare(String(b), 'en');
 }
@@ -130,7 +143,9 @@ function blockedResult(input, blocks) {
     result: 'BLOCKED', exitCode: 3, accounts,
     fuluck: {
       apiRecordCount: Array.isArray(input?.fuluck?.apiRecords) ? input.fuluck.apiRecords.length : 0,
-      renderedPageCounts: renderedPageCounts(input?.fuluck?.renderedPages), checkedUrls: [],
+      renderedPageCounts: renderedPageCounts(input?.fuluck?.renderedPages),
+      renderedPages: renderedPageReceipts(input?.fuluck?.renderedPages),
+      checkedUrls: [],
     },
     diffs: [], blocks: [...new Set(blocks)].sort(compareStrings), noWritePerformed: true,
   };
@@ -244,6 +259,7 @@ function validateInput(input) {
       }
       evidenceError(blocks, renderedPageUrl(page) === exactFuluckPageUrl(page.breederId, page.locale), `Fuluck rendered-page URL is invalid for ${key}`);
       if (renderedPageUrl(page) === exactFuluckPageUrl(page.breederId, page.locale)) requiredCheckedUrls.add(renderedPageUrl(page));
+      evidenceError(blocks, validReceiptHash(page.sha256), `Fuluck rendered-page hash is missing for ${key}`);
       for (const field of [...FACT_FIELDS, ...(page.locale === 'ja' ? TEXT_FIELDS : [])]) evidenceError(blocks, field === 'price' ? Number.isFinite(page[field]) : nonBlank(page[field]), `Fuluck ${field} evidence is missing for ${key}`);
       evidenceError(blocks, Array.isArray(page.photos) && page.photos.length > 0 && page.photos.every(nonBlank), `Fuluck photo evidence is missing for ${key}`);
       evidenceError(blocks, nonBlank(page.videoId), `Fuluck video evidence is missing for ${key}`);
@@ -317,6 +333,7 @@ export function compareKonekoToFuluck(input) {
     accounts,
     fuluck: {
       apiRecordCount: input.fuluck.apiRecords.length, renderedPageCounts: renderedPageCounts(input.fuluck.renderedPages),
+      renderedPages: renderedPageReceipts(input.fuluck.renderedPages),
       checkedUrls: [...new Set(input.fuluck.checkedUrls.map(safeUrl))].sort(compareStrings),
     },
     diffs: diffs.sort(diffSort), blocks: [], noWritePerformed: true,
@@ -343,6 +360,10 @@ export function renderAuditMarkdown(result) {
   }
   const counts = result.fuluck?.renderedPageCounts || renderedPageCounts();
   lines.push('', '## Fuluck receipts', '', `- Fuluck API records: ${result.fuluck?.apiRecordCount ?? 0}`, `- Fuluck rendered pages: ${counts.ja + counts.en + counts.zh} (ja: ${counts.ja}, en: ${counts.en}, zh: ${counts.zh})`);
+  for (const page of result.fuluck?.renderedPages || []) {
+    const receipt = page.state === 'rendered_page_missing' ? 'state:rendered_page_missing' : `sha256:${markdownValue(page.sha256)}`;
+    lines.push(`- Verified rendered page: ${markdownValue(page.breederId)} (${markdownValue(page.locale)}): ${safeUrl(page.url)} (${receipt})`);
+  }
   for (const url of result.fuluck?.checkedUrls || []) lines.push(`- Checked URL: ${url}`);
   lines.push('', '## Findings', '');
   if (result.result === 'EXACT') lines.push('- None.');

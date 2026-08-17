@@ -16,8 +16,6 @@ const HTML_TEXT_ELEMENTS = new Set(['script', 'style', 'title', 'textarea', 'xmp
 const FOREIGN_CONTENT_ELEMENTS = new Set(['svg', 'math']);
 const HTML_WHITESPACE = /[\t\n\f\r ]/;
 const HTML_WHITESPACE_SPLIT = /[\t\n\f\r ]+/;
-const FULUCK_ORIGIN = 'https://fuluckpet.com';
-const FULUCK_LOCALES = new Set(['ja', 'en', 'zh']);
 
 function nonBlank(value) {
   return typeof value === 'string' && value.trim() !== '';
@@ -443,66 +441,6 @@ function productJsonLd(html) {
   return products[0];
 }
 
-function hasSchemaType(value, type) {
-  if (!value || typeof value !== 'object') return false;
-  const schemaType = value['@type'];
-  return schemaType === type || (Array.isArray(schemaType) && schemaType.includes(type));
-}
-
-function schemaNodes(value, type, nodes = []) {
-  if (!value || typeof value !== 'object') return nodes;
-  if (hasSchemaType(value, type)) nodes.push(value);
-  for (const child of Object.values(value)) schemaNodes(child, type, nodes);
-  return nodes;
-}
-
-function fuluckProductJsonLd(html) {
-  const scripts = [];
-  let malformedScript = false;
-  let activeScript = null;
-  const complete = walkHtml(html, {
-    onOpen({ tag, attributes, end, selfClosing }) {
-      if (tag !== 'script') return;
-      const values = htmlAttributes(attributes);
-      if (!values) {
-        malformedScript = true;
-        return;
-      }
-      const type = values.get('type');
-      if (!type?.hasValue || type.value !== 'application/ld+json') return;
-      if (selfClosing) {
-        malformedScript = true;
-        return;
-      }
-      activeScript = { contentStart: end };
-    },
-    onClose({ tag, start }) {
-      if (tag !== 'script' || !activeScript) return;
-      scripts.push(html.slice(activeScript.contentStart, start));
-      activeScript = null;
-    },
-  });
-  if (!complete || malformedScript) throw new Error('Fuluck Product JSON-LD identity is invalid');
-
-  const entities = [];
-  for (const script of scripts) {
-    try {
-      entities.push(JSON.parse(script.trim()));
-    } catch {
-      throw new Error('Fuluck Product JSON-LD identity is malformed');
-    }
-  }
-  const products = schemaNodes(entities, 'Product');
-  const offers = schemaNodes(entities, 'Offer');
-  if (products.length !== 1 || offers.length !== 1) {
-    throw new Error('Fuluck Product JSON-LD identity is ambiguous');
-  }
-  if (products[0].offers !== offers[0]) {
-    throw new Error('Fuluck Product JSON-LD Offer identity is invalid');
-  }
-  return products[0];
-}
-
 function scriptValue(product, key) {
   return product && product[key];
 }
@@ -633,26 +571,6 @@ function detailUrl(html, pageUrl) {
   return absoluteUrl(canonicalHref(html) || pageUrl, pageUrl);
 }
 
-function expectedFuluckPageUrl(expectedBreederId, locale) {
-  if (!FULUCK_LOCALES.has(locale)) return '';
-  const prefix = locale === 'ja' ? '' : `/${locale}`;
-  return `${FULUCK_ORIGIN}${prefix}/kittens/${expectedBreederId}.html`;
-}
-
-function hasExactFuluckIdentity(html, product, { expectedBreederId, locale, pageUrl }) {
-  const expectedPageUrl = expectedFuluckPageUrl(expectedBreederId, locale);
-  if (!expectedPageUrl || pageUrl !== expectedPageUrl || canonicalHref(html) !== expectedPageUrl) return false;
-
-  if (Object.prototype.hasOwnProperty.call(product, 'sku')) {
-    return typeof product.sku === 'string' && product.sku === expectedBreederId;
-  }
-
-  const offers = product.offers;
-  return product['@id'] === `${FULUCK_ORIGIN}/kittens/${expectedBreederId}.html#product`
-    && offers && typeof offers === 'object' && !Array.isArray(offers)
-    && offers.url === expectedPageUrl;
-}
-
 function outerListItemEnd(html, contentStart) {
   const token = /<\/?li\b[^>]*>/gi;
   token.lastIndex = contentStart;
@@ -774,15 +692,15 @@ export function parseKonekoDetailPage(html, { expectedAccountId, expectedBreeder
   return { breederId, accountId: expectedAccountId, ...fields, detailUrl: detailUrl(html, pageUrl) };
 }
 
-export function parseFuluckDetailPage(html, { expectedBreederId, locale, pageUrl } = {}) {
+/**
+ * Parses a Fuluck generated detail page only after the crawler has proven it
+ * byte-identical to the checked-out controlled file. It does not authenticate
+ * arbitrary remote HTML.
+ */
+export function parseVerifiedFuluckDetailPage(html, { expectedBreederId, locale, pageUrl } = {}) {
   if (!nonBlank(expectedBreederId) || !nonBlank(locale) || !nonBlank(pageUrl)) throw new Error('detail options are required');
-  const product = fuluckProductJsonLd(html);
-  const sku = typeof scriptValue(product, 'sku') === 'string' ? scriptValue(product, 'sku') : '';
-  const url = detailUrl(html, pageUrl);
-  if (!hasExactFuluckIdentity(html, product, { expectedBreederId, locale, pageUrl })) {
-    throw new Error(`Fuluck SKU/breeder mismatch: ${sku || '(missing)'}`);
-  }
+  const product = productJsonLd(html);
   const fields = detailFields(html, product, pageUrl);
   if (!fields.photos.length) throw new Error('Fuluck Product photos are missing');
-  return { breederId: expectedBreederId, locale, ...fields, detailUrl: url };
+  return { breederId: expectedBreederId, locale, ...fields, detailUrl: detailUrl(html, pageUrl) };
 }

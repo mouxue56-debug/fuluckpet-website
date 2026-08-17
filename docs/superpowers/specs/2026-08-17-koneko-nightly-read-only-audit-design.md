@@ -39,9 +39,15 @@ The accepted Koneko status map is:
 
 After complete list pagination, the crawler reads every active kitten detail page and extracts the exact breeder ID, account ID, status, price, birthday, breed, colour, gender, parents, ordered full-size photo URLs, canonical YouTube video ID, short Japanese appeal, and long Japanese introduction. Detail identity must match the list identity. Missing required facts, zero photos, invalid media URLs, or conflicting list/detail values make the entire run `BLOCKED`.
 
-### Fuluck API, rendered-site reader, and deterministic comparator
+### Fuluck API, controlled rendered-site reader, and deterministic comparator
 
-The Fuluck reader first fetches the public catalogue with the same domain, timeout, response-size, and content-type protections. It requires an array of unique, non-empty breeder IDs and valid public record shapes. The production public API does not currently expose long introductions or translated text, so every source-active breeder ID must also be checked against its Japanese, English, and Chinese public detail URL. Those rendered pages are the customer-visible target for ordered photos, canonical video ID, Japanese short/long text, and the presence of English and Chinese short/long text. An authoritative 404 is catalogue drift; a timeout, challenge, malformed page, cross-linked identity, or other ambiguous response makes the run `BLOCKED`.
+The Fuluck reader first fetches the public catalogue with the same domain, timeout, response-size, and content-type protections. It requires an array of unique, non-empty breeder IDs and valid public record shapes. The production public API does not currently expose long introductions or translated text, so every source-active breeder ID must also be checked against its Japanese, English, and Chinese public detail URL.
+
+For a rendered-page HTTP `200`, the reader performs a deliberately narrow render contract instead of trying to authenticate arbitrary remote HTML. It first removes only one already-proven final Cloudflare tail injection. It then reads the checked-out generated file selected by a fixed module-relative mapping: `kittens/{id}.html` for Japanese, `en/kittens/{id}.html` for English, and `zh/kittens/{id}.html` for Chinese. The `id` and locale are already strict audit values; the local reader accepts only a regular, non-symbolic-link file under that checkout, caps it at 2 MiB, and exposes no local path or operating-system error in a diagnostic.
+
+The cleaned remote string and that single in-memory controlled string must be byte-for-byte equal. Any mismatch, unavailable controlled file, unsafe file type, oversized file, or read failure is `BLOCKED`. Only after equality does the reader parse the controlled string; it never parses the remote copy after that comparison. An authoritative exact `404` remains `rendered_page_missing` drift and does not need a local file. This keeps the field extractor in a verified/tracked-file trust boundary rather than presenting a partial HTML tokenizer as a remote identity proof.
+
+The receipt records the one SHA-256 digest shared by the cleaned remote page and controlled generated file, but never stores the HTML. This has two useful properties: ordinary generated inline SVG remains accepted as bytes, and any text, media, canonical, Product, Offer, whitespace, entity, or markup rewrite is visible as a contract mismatch. It adds no dependency. Reconsider a fixed `parse5` dependency only if a stable CDN response rewrite becomes a separately measured production requirement.
 
 The comparator joins Koneko, the Fuluck API, and rendered pages only by exact breeder ID. It emits these machine-readable drift classes:
 
@@ -68,6 +74,7 @@ Every run writes a compact Markdown summary to the GitHub Actions job summary an
 - result: `EXACT`, `DRIFT`, or `BLOCKED`;
 - per-account page, declared-total, unique-ID, active, reserved, and inactive counts;
 - Fuluck total and status counts;
+- each verified Fuluck rendered-page URL, locale, and shared controlled-render SHA-256;
 - every exact breeder ID and field-level difference;
 - checked source and target URLs;
 - a prominent `NO WRITE PERFORMED` statement.

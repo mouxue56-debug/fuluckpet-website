@@ -1,6 +1,18 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
+import {
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  rm,
+  symlink,
+  writeFile,
+} from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { dirname, join, resolve } from 'node:path';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 import {
   crawlKonekoAccount,
@@ -12,6 +24,7 @@ import * as publicCrawl from '../tools/lib/koneko-public-crawl.js';
 const KONEKO_ORIGIN = 'https://www.koneko-breeder.com';
 const API_ORIGIN = 'https://fuluck-api.mouxue56.workers.dev';
 const FULUCK_ORIGIN = 'https://fuluckpet.com';
+const PROJECT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 function response({
   body = '<html><body>ok</body></html>',
@@ -255,7 +268,32 @@ test('crawlKonekoAccount types Koneko detail identity failures with breeder cont
 function fuluckDetail(id, locale) {
   const prefix = locale === 'ja' ? '' : `/${locale}`;
   const pageUrl = `${FULUCK_ORIGIN}${prefix}/kittens/${id}.html`;
-  return `<html><head><link rel="canonical" href="${pageUrl}"><script type="application/ld+json">${JSON.stringify({ '@type': 'Product', '@id': `${FULUCK_ORIGIN}/kittens/${id}.html#product`, image: [`${KONEKO_ORIGIN}/breeder/data/c995680/child.jpg`], offers: { '@type': 'Offer', price: '230000', url: pageUrl } })}</script></head><body><table><tr><th>品種</th><td>${locale}</td></tr></table><section class="kitten-detail-introduction"><p>ok</p></section></body></html>`;
+  return `<html><head><link rel="canonical" href="${pageUrl}"><script type="application/ld+json">${JSON.stringify({ '@type': 'Product', '@id': `${FULUCK_ORIGIN}/kittens/${id}.html#product`, image: [`${KONEKO_ORIGIN}/breeder/data/c995680/child.jpg`], offers: { '@type': 'Offer', price: '230000', url: pageUrl } })}</script></head><body><table><tr><th>品種</th><td>${locale}</td></tr></table><section class="kitten-detail-introduction"><p>ok</p></section><iframe src="https://www.youtube.com/embed/AbCdEfGhI12"></iframe></body></html>`;
+}
+
+function localeFromFuluckUrl(url) {
+  return url.includes('/en/') ? 'en' : url.includes('/zh/') ? 'zh' : 'ja';
+}
+
+function fixtureControlledPageLoader(overrides = {}) {
+  return async ({ breederId, locale }) => overrides[`${breederId}:${locale}`] ?? fuluckDetail(breederId, locale);
+}
+
+function expectedControlledPath(root, breederId, locale) {
+  return join(root, ...(locale === 'ja' ? ['kittens'] : [locale, 'kittens']), `${breederId}.html`);
+}
+
+async function temporaryControlledRoot(t) {
+  const root = await mkdtemp(join(tmpdir(), 'fuluck-koneko-controlled-'));
+  t.after(async () => rm(root, { recursive: true, force: true }));
+  return root;
+}
+
+async function writeControlledPage(root, breederId, locale, text) {
+  const pathname = expectedControlledPath(root, breederId, locale);
+  await mkdir(dirname(pathname), { recursive: true });
+  await writeFile(pathname, text, 'utf8');
+  return pathname;
 }
 
 const CLOUDFLARE_TAIL_PARTS = Object.freeze({
@@ -289,6 +327,228 @@ async function expectFuluckRenderedBlocked(body) {
   );
 }
 
+test('readFuluckPublicTarget blocks a 200 page when its cleaned bytes differ from the injected controlled page', async () => {
+  const api = `${API_ORIGIN}/api/kittens`;
+
+  await assert.rejects(
+    readFuluckPublicTarget({
+      activeIds: ['2608-00001'],
+      fetchImpl: async url => url === api
+        ? publicResponse({ body: JSON.stringify([{ breederId: '2608-00001' }]), contentType: 'application/json', url })
+        : publicResponse({
+          body: fuluckDetail('2608-00001', url.includes('/en/') ? 'en' : url.includes('/zh/') ? 'zh' : 'ja'),
+          url,
+        }),
+      controlledPageLoader: async ({ locale }) => {
+        const remote = fuluckDetail('2608-00001', locale);
+        return locale === 'ja' ? remote.replace('<td>ja</td>', '<td>controlled-ja</td>') : remote;
+      },
+    }),
+    error => assertSafeFailure(error, {
+      stage: 'fuluck_rendered',
+      reason: 'render_contract',
+      breederId: '2608-00001',
+      locale: 'ja',
+      url: `${FULUCK_ORIGIN}/kittens/2608-00001.html`,
+    }),
+  );
+});
+
+test('readFuluckPublicTarget uses one injected controlled string for cleaned equality, parsing, and its SHA-256 receipt', async () => {
+  const api = `${API_ORIGIN}/api/kittens`;
+  const controlledByLocale = new Map(['ja', 'en', 'zh'].map(locale => [locale, fuluckDetail('2608-00001', locale)]));
+  let loaderCalls = 0;
+  const result = await readFuluckPublicTarget({
+    activeIds: ['2608-00001'],
+    fetchImpl: async url => {
+      if (url === api) return publicResponse({ body: JSON.stringify([{ breederId: '2608-00001' }]), contentType: 'application/json', url });
+      const locale = localeFromFuluckUrl(url);
+      const controlled = controlledByLocale.get(locale);
+      return publicResponse({
+        body: locale === 'ja' ? controlled : appendBeforeDocumentClose(controlled, cloudflareTailScript()),
+        url,
+      });
+    },
+    controlledPageLoader: async ({ breederId, locale }) => {
+      loaderCalls += 1;
+      assert.equal(breederId, '2608-00001');
+      return controlledByLocale.get(locale);
+    },
+  });
+
+  assert.equal(loaderCalls, 3);
+  assert.deepEqual(result.renderedPages.map(({ locale, breed, sha256 }) => ({ locale, breed, sha256 })), [
+    { locale: 'ja', breed: 'ja', sha256: createHash('sha256').update(controlledByLocale.get('ja'), 'utf8').digest('hex') },
+    { locale: 'en', breed: 'en', sha256: createHash('sha256').update(controlledByLocale.get('en'), 'utf8').digest('hex') },
+    { locale: 'zh', breed: 'zh', sha256: createHash('sha256').update(controlledByLocale.get('zh'), 'utf8').digest('hex') },
+  ]);
+});
+
+test('readFuluckPublicTarget blocks any byte mutation of a controlled rendered page', async (t) => {
+  const api = `${API_ORIGIN}/api/kittens`;
+  const controlled = fuluckDetail('2608-00001', 'ja');
+  const pageUrl = `${FULUCK_ORIGIN}/kittens/2608-00001.html`;
+  const variants = [
+    ['visible text', html => html.replace('<td>ja</td>', '<td>changed-text</td>')],
+    ['photo URL', html => html.replace('/child.jpg', '/changed-photo.jpg')],
+    ['video URL', html => html.replace('AbCdEfGhI12', 'ZyXwVuTsRq0')],
+    ['canonical URL', html => html.replace(`<link rel="canonical" href="${pageUrl}">`, `<link rel="canonical" href="${pageUrl}?changed=1">`)],
+    ['Product type', html => html.replace('"@type":"Product"', '"@type":"WebPage"')],
+    ['Offer type', html => html.replace('"@type":"Offer"', '"@type":"PriceSpecification"')],
+  ];
+
+  for (const [name, mutate] of variants) {
+    await t.test(name, async () => {
+      const remote = mutate(controlled);
+      assert.notEqual(remote, controlled);
+      await assert.rejects(
+        readFuluckPublicTarget({
+          activeIds: ['2608-00001'],
+          fetchImpl: async url => url === api
+            ? publicResponse({ body: JSON.stringify([{ breederId: '2608-00001' }]), contentType: 'application/json', url })
+            : publicResponse({ body: remote, url }),
+          controlledPageLoader: async () => controlled,
+        }),
+        error => assertSafeFailure(error, {
+          stage: 'fuluck_rendered',
+          reason: 'render_contract',
+          breederId: '2608-00001',
+          locale: 'ja',
+          url: pageUrl,
+        }),
+      );
+    });
+  }
+});
+
+test('readFuluckPublicTarget does not normalize a byte-distinct UTF-8 BOM before the render contract', async () => {
+  const api = `${API_ORIGIN}/api/kittens`;
+  const controlled = fuluckDetail('2608-00001', 'ja');
+  const remoteWithBom = Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf]), Buffer.from(controlled, 'utf8')]);
+
+  await assert.rejects(
+    readFuluckPublicTarget({
+      activeIds: ['2608-00001'],
+      fetchImpl: async url => url === api
+        ? publicResponse({ body: JSON.stringify([{ breederId: '2608-00001' }]), contentType: 'application/json', url })
+        : publicResponse({ body: remoteWithBom, url }),
+      controlledPageLoader: async () => controlled,
+    }),
+    error => assertSafeFailure(error, {
+      stage: 'fuluck_rendered',
+      reason: 'render_contract',
+      breederId: '2608-00001',
+      locale: 'ja',
+      url: `${FULUCK_ORIGIN}/kittens/2608-00001.html`,
+    }),
+  );
+});
+
+test('readFuluckPublicTarget blocks an injected controlled page for the wrong locale or breeder ID', async (t) => {
+  const api = `${API_ORIGIN}/api/kittens`;
+  const pageUrl = `${FULUCK_ORIGIN}/kittens/2608-00001.html`;
+  const remote = fuluckDetail('2608-00001', 'ja');
+  for (const [name, controlled] of [
+    ['wrong locale', fuluckDetail('2608-00001', 'en')],
+    ['wrong breeder ID', fuluckDetail('2608-00002', 'ja')],
+  ]) {
+    await t.test(name, async () => {
+      await assert.rejects(
+        readFuluckPublicTarget({
+          activeIds: ['2608-00001'],
+          fetchImpl: async url => url === api
+            ? publicResponse({ body: JSON.stringify([{ breederId: '2608-00001' }]), contentType: 'application/json', url })
+            : publicResponse({ body: remote, url }),
+          controlledPageLoader: async () => controlled,
+        }),
+        error => assertSafeFailure(error, {
+          stage: 'fuluck_rendered',
+          reason: 'render_contract',
+          breederId: '2608-00001',
+          locale: 'ja',
+          url: pageUrl,
+        }),
+      );
+    });
+  }
+});
+
+test('controlled-page loader blocks missing, nonregular, symlinked, and oversized files without leaking local details', async (t) => {
+  assert.equal(typeof publicCrawl.createControlledFuluckPageLoader, 'function');
+  const api = `${API_ORIGIN}/api/kittens`;
+  const pageUrl = `${FULUCK_ORIGIN}/kittens/2608-00001.html`;
+  const controlled = fuluckDetail('2608-00001', 'ja');
+  const cases = [
+    ['missing', async () => {}],
+    ['nonregular directory', async ({ root, pathname }) => { await mkdir(pathname, { recursive: true }); }],
+    ['symbolic link', async ({ root, pathname }) => {
+      const target = join(root, 'other-page.html');
+      await writeFile(target, controlled, 'utf8');
+      await mkdir(dirname(pathname), { recursive: true });
+      await symlink(target, pathname);
+    }],
+    ['over 2 MiB', async ({ root }) => {
+      await writeControlledPage(root, '2608-00001', 'ja', `${controlled}${'x'.repeat((2 * 1024 * 1024) + 1)}`);
+    }],
+  ];
+
+  for (const [name, prepare] of cases) {
+    await t.test(name, async (child) => {
+      const root = await temporaryControlledRoot(child);
+      const pathname = expectedControlledPath(root, '2608-00001', 'ja');
+      await prepare({ root, pathname });
+      const loader = publicCrawl.createControlledFuluckPageLoader({ root });
+      await assert.rejects(
+        readFuluckPublicTarget({
+          activeIds: ['2608-00001'],
+          fetchImpl: async url => url === api
+            ? publicResponse({ body: JSON.stringify([{ breederId: '2608-00001' }]), contentType: 'application/json', url })
+            : publicResponse({ body: controlled, url }),
+          controlledPageLoader: loader,
+        }),
+        error => {
+          assertSafeFailure(error, {
+            stage: 'fuluck_rendered', reason: 'render_contract', breederId: '2608-00001', locale: 'ja', url: pageUrl,
+          });
+          const formatted = publicCrawl.formatPublicAuditFailure(error);
+          assert.equal(formatted.includes(root), false);
+          assert.equal(formatted.includes('controlled rendered page is unavailable'), false);
+          return true;
+        },
+      );
+    });
+  }
+});
+
+test('offline controlled render contract accepts all 66 checked-out Fuluck detail pages with normal SVG', async () => {
+  const ids = (await readdir(join(PROJECT, 'kittens')))
+    .filter(name => /^\d{4}-\d{5}\.html$/.test(name))
+    .map(name => name.slice(0, -'.html'.length))
+    .sort();
+  assert.equal(ids.length, 22);
+  const pages = new Map();
+  for (const breederId of ids) {
+    for (const locale of ['ja', 'en', 'zh']) {
+      const relative = locale === 'ja' ? join('kittens', `${breederId}.html`) : join(locale, 'kittens', `${breederId}.html`);
+      const html = await readFile(join(PROJECT, relative), 'utf8');
+      assert.match(html, /<svg\b/i, `${relative} should retain ordinary SVG`);
+      pages.set(`${FULUCK_ORIGIN}${locale === 'ja' ? '' : `/${locale}`}/kittens/${breederId}.html`, html);
+    }
+  }
+  const api = `${API_ORIGIN}/api/kittens`;
+  const result = await readFuluckPublicTarget({
+    activeIds: ids,
+    fetchImpl: async url => url === api
+      ? publicResponse({ body: JSON.stringify(ids.map(breederId => ({ breederId }))), contentType: 'application/json', url })
+      : publicResponse({ body: pages.get(url), url }),
+  });
+
+  assert.equal(pages.size, 66);
+  assert.equal(result.renderedPages.length, 66);
+  assert.equal(result.renderedPages.every(page => /^[a-f0-9]{64}$/.test(page.sha256)), true);
+  assert.deepEqual(result.renderedPages.reduce((counts, page) => ({ ...counts, [page.locale]: counts[page.locale] + 1 }), { ja: 0, en: 0, zh: 0 }), { ja: 22, en: 22, zh: 22 });
+});
+
 test('Fuluck rendered transport strips only one proven final inline Cloudflare script before hashing', async () => {
   const url = `${FULUCK_ORIGIN}/kittens/2608-00001.html`;
   const clean = fuluckDetail('2608-00001', 'ja');
@@ -321,6 +581,7 @@ test('readFuluckPublicTarget parses all generated no-SKU locales after removing 
         url,
       });
     },
+    controlledPageLoader: fixtureControlledPageLoader(),
   });
 
   assert.deepEqual(result.renderedPages.map(({ breederId, locale, breed, description }) => ({ breederId, locale, breed, description })), [
@@ -408,6 +669,7 @@ test('readFuluckPublicTarget accepts a proven tail after balanced HTML special c
           const clean = fuluckDetail('2608-00001', locale).replace('</body></html>', `${context}</body></html>`);
           return publicResponse({ body: appendBeforeDocumentClose(clean, cloudflareTailScript()), url });
         },
+        controlledPageLoader: async ({ locale }) => fuluckDetail('2608-00001', locale).replace('</body></html>', `${context}</body></html>`),
       });
 
       assert.deepEqual(result.renderedPages.map(({ locale, breed }) => ({ locale, breed })), [
@@ -467,7 +729,7 @@ test('readFuluckPublicTarget reads the public API and exactly three locale pages
     return publicResponse({ body: bodies.get(url), contentType: url === api ? 'application/json' : 'text/html', url });
   };
 
-  const result = await readFuluckPublicTarget({ activeIds: ['2608-00001'], fetchImpl });
+  const result = await readFuluckPublicTarget({ activeIds: ['2608-00001'], fetchImpl, controlledPageLoader: fixtureControlledPageLoader() });
 
   assert.deepEqual(result.apiRecords, [{ breederId: '2608-00001' }, { breederId: '2608-00002' }]);
   assert.deepEqual(result.renderedPages.map(page => page.locale), ['ja', 'en', 'zh']);
@@ -493,7 +755,7 @@ test('readFuluckPublicTarget records authoritative target 404s but blocks on mal
   await assert.rejects(readFuluckPublicTarget({ activeIds: ['2608-00001'], fetchImpl: async url => publicResponse({ body: url === api ? '{}' : fuluckDetail('2608-00001', 'ja'), contentType: url === api ? 'application/json' : 'text/html', url }) }), error => assertSafeFailure(error, { stage: 'fuluck_api', reason: 'parse_contract' }));
   await assert.rejects(readFuluckPublicTarget({ activeIds: ['2608-00001'], fetchImpl: async () => { throw new DOMException('timed out', 'TimeoutError'); } }), error => assertSafeFailure(error, { stage: 'fuluck_api', reason: 'timeout' }));
   await assert.rejects(readFuluckPublicTarget({ activeIds: ['2608-00001'], fetchImpl: async url => publicResponse({ body: url === api ? JSON.stringify([{ breederId: '2608-00001' }]) : '<title>Just a moment...</title>', contentType: url === api ? 'application/json' : 'text/html', url }) }), error => assertSafeFailure(error, { stage: 'fuluck_rendered', reason: 'challenge' }));
-  await assert.rejects(readFuluckPublicTarget({ activeIds: ['2608-00001'], fetchImpl: async url => publicResponse({ body: url === api ? JSON.stringify([{ breederId: '2608-00001' }]) : fuluckDetail('2608-00002', 'ja'), contentType: url === api ? 'application/json' : 'text/html', url }) }), error => assertSafeFailure(error, { stage: 'fuluck_rendered', reason: 'identity_contract' }));
+  await assert.rejects(readFuluckPublicTarget({ activeIds: ['2608-00001'], fetchImpl: async url => publicResponse({ body: url === api ? JSON.stringify([{ breederId: '2608-00001' }]) : fuluckDetail('2608-00002', 'ja'), contentType: url === api ? 'application/json' : 'text/html', url }), controlledPageLoader: fixtureControlledPageLoader() }), error => assertSafeFailure(error, { stage: 'fuluck_rendered', reason: 'render_contract' }));
 });
 
 test('readFuluckPublicTarget blocks same-host redirected 404s instead of treating them as target-page absence', async () => {

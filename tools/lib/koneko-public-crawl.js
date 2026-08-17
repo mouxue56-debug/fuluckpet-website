@@ -1,7 +1,11 @@
 import { createHash } from 'node:crypto';
+import { constants } from 'node:fs';
+import { lstat, open } from 'node:fs/promises';
+import { dirname, join, relative, resolve, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import {
-  parseFuluckDetailPage,
+  parseVerifiedFuluckDetailPage,
   parseKonekoDetailPage,
   parseKonekoListPage,
 } from './koneko-public-html.js';
@@ -14,6 +18,7 @@ const USER_AGENT = 'FuluckKonekoReadOnlyAudit/1.0';
 const KONEKO_ORIGIN = 'https://www.koneko-breeder.com';
 const FULUCK_API_ORIGIN = 'https://fuluck-api.mouxue56.workers.dev';
 const FULUCK_ORIGIN = 'https://fuluckpet.com';
+const CONTROLLED_FULUCK_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const ALLOWED_HOSTS = new Set([
   'www.koneko-breeder.com',
   'fuluck-api.mouxue56.workers.dev',
@@ -33,11 +38,13 @@ const FAILURE_REASONS = new Set([
   'redirect_policy',
   'pagination_contract',
   'identity_contract',
+  'render_contract',
   'parse_contract',
   'public_request_failed',
 ]);
 const GENERIC_BLOCKER = 'Public catalogue evidence could not be completed.';
 const FULUCK_RENDERED_PATH = /^\/(?:en\/|zh\/)?kittens\/\d{4}-\d{5}\.html$/;
+const FULUCK_LOCALES = new Set(['ja', 'en', 'zh']);
 const CLOUDFLARE_TAIL_SIGNATURES = Object.freeze([
   value => /challenge-platform/i.test(value),
   value => value.includes('__CF$cv$params'),
@@ -246,6 +253,7 @@ function reasonFromCause(cause, fallback) {
   if (/exceeds 2 MiB/i.test(message)) return 'response_too_large';
   if (/redirect|final URL|public URL (?:is invalid|must use HTTPS|host)|rendered target URL/i.test(message)) return 'redirect_policy';
   if (/pagination|range|declared total|final count|next URL/i.test(message)) return 'pagination_contract';
+  if (/controlled rendered page|render contract/i.test(message)) return 'render_contract';
   if (/duplicate|mismatch|disagree|breeder ID|exactly one breeder link/i.test(message)) return 'identity_contract';
   if (/malformed|missing|invalid|must return an array|unknown status|conflicting status|no Koneko cards|marker/i.test(message)) return 'parse_contract';
   return fallback;
@@ -284,18 +292,23 @@ async function sleep(delayMs) {
   if (delayMs > 0) await new Promise(resolve => setTimeout(resolve, delayMs));
 }
 
-async function readBoundedText(response) {
+async function readBoundedText(response, { requireRawBytes = false } = {}) {
   const declaredLength = Number(response.headers?.get?.('content-length'));
   if (Number.isFinite(declaredLength) && declaredLength > MAX_BODY_BYTES) throw new Error('public response body exceeds 2 MiB');
 
   if (!response.body?.getReader) {
-    const text = await response.text();
-    if (Buffer.byteLength(text, 'utf8') > MAX_BODY_BYTES) throw new Error('public response body exceeds 2 MiB');
-    return text;
+    if (typeof response.arrayBuffer !== 'function') {
+      if (requireRawBytes) throw new Error('public response body is unreadable');
+      const text = await response.text();
+      if (Buffer.byteLength(text, 'utf8') > MAX_BODY_BYTES) throw new Error('public response body exceeds 2 MiB');
+      return { text, bytes: Buffer.from(text, 'utf8') };
+    }
+    const bytes = Buffer.from(await response.arrayBuffer());
+    if (bytes.length > MAX_BODY_BYTES) throw new Error('public response body exceeds 2 MiB');
+    return { text: new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes), bytes };
   }
 
   const reader = response.body.getReader();
-  const decoder = new TextDecoder();
   const chunks = [];
   let bytes = 0;
   try {
@@ -307,13 +320,13 @@ async function readBoundedText(response) {
         await reader.cancel();
         throw new Error('public response body exceeds 2 MiB');
       }
-      chunks.push(decoder.decode(value, { stream: true }));
+      chunks.push(Buffer.from(value));
     }
   } finally {
     reader.releaseLock?.();
   }
-  chunks.push(decoder.decode());
-  return chunks.join('');
+  const body = Buffer.concat(chunks, bytes);
+  return { text: new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(body), bytes: body };
 }
 
 async function fetchApprovedText(url, {
@@ -368,18 +381,21 @@ async function fetchApprovedText(url, {
   }
   const contentType = response.headers?.get?.('content-type') || '';
   if (!contentTypeAllowed(contentType, acceptedContentTypes)) throw new Error(`public response content type is not allowed: ${contentType || '(missing)'}`);
-  let text = await readBoundedText(response);
+  let { text, bytes } = await readBoundedText(response, { requireRawBytes: stripFuluckTail });
   if (stripFuluckTail && response.status >= 200 && response.status < 300) {
     text = stripProvenFuluckTailInjection(text);
+    bytes = Buffer.from(text, 'utf8');
   }
   if (CHALLENGE_MARKERS.test(text)) throw new Error('challenge or interstitial response');
-  return {
+  const receipt = {
     url: finalUrl.href,
     text,
     status: response.status,
     contentType,
-    sha256: createHash('sha256').update(text).digest('hex'),
+    sha256: createHash('sha256').update(bytes).digest('hex'),
   };
+  Object.defineProperty(receipt, 'bodyBytes', { value: bytes });
+  return receipt;
 }
 
 /** Fetches an approved public page with an anonymous, bounded GET request. */
@@ -500,6 +516,63 @@ function localeUrl(breederId, locale) {
   return `${FULUCK_ORIGIN}${prefix}/kittens/${encodeURIComponent(breederId)}.html`;
 }
 
+function unavailableControlledPage() {
+  return new Error('controlled rendered page is unavailable');
+}
+
+function controlledPageComponents(breederId, locale) {
+  if (typeof breederId !== 'string' || !BREEDER_ID.test(breederId) || !FULUCK_LOCALES.has(locale)) return null;
+  return locale === 'ja' ? ['kittens', `${breederId}.html`] : [locale, 'kittens', `${breederId}.html`];
+}
+
+/**
+ * Creates the checked-out generated-page reader. The optional root exists only
+ * for deterministic local tests; production calls use the module-relative root.
+ */
+export function createControlledFuluckPageLoader({ root = CONTROLLED_FULUCK_ROOT } = {}) {
+  const checkoutRoot = typeof root === 'string' && root ? resolve(root) : '';
+  return async ({ breederId, locale } = {}) => {
+    const components = controlledPageComponents(breederId, locale);
+    if (!checkoutRoot || !components) throw unavailableControlledPage();
+    const pathname = resolve(checkoutRoot, ...components);
+    const contained = relative(checkoutRoot, pathname);
+    if (!contained || contained === '..' || contained.startsWith(`..${sep}`) || contained.split(sep).includes('..')) {
+      throw unavailableControlledPage();
+    }
+
+    let handle;
+    try {
+      let current = checkoutRoot;
+      const rootEntry = await lstat(current);
+      if (!rootEntry.isDirectory() || rootEntry.isSymbolicLink()) throw unavailableControlledPage();
+      for (let index = 0; index < components.length; index += 1) {
+        current = join(current, components[index]);
+        const entry = await lstat(current);
+        if (entry.isSymbolicLink()) throw unavailableControlledPage();
+        const final = index === components.length - 1;
+        if (final ? !entry.isFile() || entry.size > MAX_BODY_BYTES : !entry.isDirectory()) throw unavailableControlledPage();
+      }
+
+      handle = await open(pathname, constants.O_RDONLY | constants.O_NOFOLLOW);
+      const before = await handle.stat();
+      if (!before.isFile() || before.size > MAX_BODY_BYTES) throw unavailableControlledPage();
+      const bytes = Buffer.alloc(Math.min(before.size + 1, MAX_BODY_BYTES + 1));
+      const { bytesRead } = await handle.read(bytes, 0, bytes.length, 0);
+      const after = await handle.stat();
+      if (bytesRead !== before.size || after.size !== before.size || after.mtimeMs !== before.mtimeMs) throw unavailableControlledPage();
+      return new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes.subarray(0, bytesRead));
+    } catch {
+      throw unavailableControlledPage();
+    } finally {
+      if (handle) {
+        try { await handle.close(); } catch {}
+      }
+    }
+  };
+}
+
+const loadControlledFuluckPage = createControlledFuluckPageLoader();
+
 export async function fetchFuluckRenderedTarget(url, fetchImpl) {
   const target = checkedUrl(url);
   if (target.origin !== FULUCK_ORIGIN || target.username || target.password || target.search || target.hash
@@ -512,8 +585,13 @@ export async function fetchFuluckRenderedTarget(url, fetchImpl) {
   });
 }
 
-export async function readFuluckPublicTarget({ activeIds, fetchImpl = globalThis.fetch } = {}) {
+export async function readFuluckPublicTarget({
+  activeIds,
+  fetchImpl = globalThis.fetch,
+  controlledPageLoader = loadControlledFuluckPage,
+} = {}) {
   if (!Array.isArray(activeIds)) throw new Error('source active breeder IDs must be an array');
+  if (typeof controlledPageLoader !== 'function') throw new Error('controlled rendered page loader is invalid');
   const sourceIds = new Set();
   for (const breederId of activeIds) {
     if (typeof breederId !== 'string' || !BREEDER_ID.test(breederId)) throw new Error('source active breeder ID is invalid');
@@ -562,12 +640,27 @@ export async function readFuluckPublicTarget({ activeIds, fetchImpl = globalThis
         renderedPages.push({ breederId, locale, state: 'rendered_page_missing', url: fetched.url });
         continue;
       }
+      let controlledHtml;
       try {
-        renderedPages.push(parseFuluckDetailPage(fetched.text, {
+        controlledHtml = await controlledPageLoader({ breederId, locale });
+      } catch {
+        throw contractFailure('fuluck_rendered', renderContext, 'render_contract', 'controlled rendered page is unavailable');
+      }
+      if (typeof controlledHtml !== 'string') {
+        throw contractFailure('fuluck_rendered', renderContext, 'render_contract', 'controlled rendered page is unavailable');
+      }
+      const remoteBytes = fetched.bodyBytes;
+      const controlledBytes = Buffer.from(controlledHtml, 'utf8');
+      if (!remoteBytes.equals(controlledBytes)) {
+        throw contractFailure('fuluck_rendered', renderContext, 'render_contract', 'controlled rendered page does not match remote output');
+      }
+      const sha256 = createHash('sha256').update(controlledBytes).digest('hex');
+      try {
+        renderedPages.push({ ...parseVerifiedFuluckDetailPage(controlledHtml, {
           expectedBreederId: breederId,
           locale,
           pageUrl: fetched.url,
-        }));
+        }), sha256 });
       } catch (cause) {
         throw typedFailure('fuluck_rendered', renderContext, cause, 'parse_contract');
       }

@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
+import * as publicHtml from '../tools/lib/koneko-public-html.js';
+
+const {
   decodeHtmlText,
-  parseFuluckDetailPage,
   parseKonekoDetailPage,
   parseKonekoListPage,
-} from '../tools/lib/koneko-public-html.js';
+} = publicHtml;
 
 const LIST_OPTIONS = {
   accountId: 'c995680',
@@ -345,261 +346,48 @@ function fuluckPageUrl(locale, breederId = FULUCK_BREEDER_ID) {
   return `https://fuluckpet.com${prefix}/kittens/${breederId}.html`;
 }
 
-function fuluckProductId(breederId = FULUCK_BREEDER_ID) {
-  return `https://fuluckpet.com/kittens/${breederId}.html#product`;
-}
-
-function fuluckProduct(locale = 'ja', options = {}) {
-  const breederId = options.breederId ?? FULUCK_BREEDER_ID;
-  const sku = Object.hasOwn(options, 'sku') ? options.sku : breederId;
-  const productId = Object.hasOwn(options, 'productId') ? options.productId : fuluckProductId(breederId);
-  const offerUrl = Object.hasOwn(options, 'offerUrl') ? options.offerUrl : fuluckPageUrl(locale, breederId);
-  const offers = Object.hasOwn(options, 'offers') ? options.offers : {
+function fuluckProduct(locale = 'ja') {
+  return {
+    '@context': 'https://schema.org', '@type': 'Product',
+    image: ['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_hash.jpg.webp', 'https://www.koneko-breeder.com/breeder/data/c995680/child_img_2_hash.jpg.webp'],
+    offers: {
     '@type': 'Offer',
     price: '230000',
-    ...(offerUrl !== undefined ? { url: offerUrl } : {}),
+      url: fuluckPageUrl(locale),
+    },
   };
-  const product = {
-    '@context': 'https://schema.org', '@type': 'Product',
-    ...(productId !== undefined ? { '@id': productId } : {}),
-    ...(sku !== undefined ? { sku } : {}),
-    image: ['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_hash.jpg.webp', 'https://www.koneko-breeder.com/breeder/data/c995680/child_img_2_hash.jpg.webp'],
-    offers,
-  };
-  return product;
 }
 
-function jsonLdScript(value, attributes = 'type="application/ld+json"') {
-  return `<script ${attributes}>${JSON.stringify(value)}</script>`;
-}
-
-function foreignIdentityMarkup(tag, content) {
-  const wrapper = tag === 'svg' ? 'g' : 'mrow';
-  return `<${tag}><${wrapper}><${tag}>${content}</${tag}></${wrapper}></${tag}>`;
-}
-
-function fuluckDetail(locale = 'ja', options = {}) {
-  const breederId = options.breederId ?? FULUCK_BREEDER_ID;
-  const canonical = Object.hasOwn(options, 'canonical') ? options.canonical : fuluckPageUrl(locale, breederId);
-  const product = fuluckProduct(locale, options);
+function fuluckDetail(locale = 'ja') {
+  const canonical = fuluckPageUrl(locale);
+  const product = fuluckProduct(locale);
   const text = locale === 'ja' ? ['サイベリアン', 'シルバータビー&ホワイト（トリプルコート）', '♂', '短い紹介', '一段落', '二段落']
     : locale === 'en' ? ['Siberian', 'Silver tabby & white', 'Male', 'Short note', 'First paragraph', 'Second paragraph']
       : ['Siberian', '银色虎斑白色', 'Male', '', '', ''];
-  const canonicalMarkup = Object.hasOwn(options, 'canonicalMarkup')
-    ? options.canonicalMarkup
-    : canonical === undefined || canonical === null ? '' : `<link rel="canonical" href="${canonical}">`;
-  const schemaMarkup = Object.hasOwn(options, 'schemaMarkup') ? options.schemaMarkup : jsonLdScript(product);
-  return `<html lang="${locale}"><head>${canonicalMarkup}${schemaMarkup}</head><body>
+  return `<html lang="${locale}"><head><link rel="canonical" href="${canonical}"><script type="application/ld+json">${JSON.stringify(product)}</script></head><body>
     <table class="kitten-detail-table"><tr><th>品種</th><td>${text[0]}</td></tr><tr><th>毛色</th><td>${text[1]}</td></tr><tr><th>性別</th><td>${text[2]}</td></tr><tr><th>誕生日</th><td data-i18n-birthday="2026-05-09">Born 2026/5</td></tr><tr><th>備考</th><td>${text[3]}</td></tr></table>
     <section class="kitten-detail-introduction"><h2>Introduction</h2><p>${text[4]}</p><p>${text[5]}</p></section>
     <div class="kitten-detail-parents"><p><span>パパ猫</span>: <a>父猫</a></p><p><span>ママ猫</span>: <a>母猫</a></p></div><iframe src="https://www.youtube.com/embed/AbCdEfGhI12"></iframe>
   </body></html>`;
 }
 
-test('parses Fuluck JA, EN, and ZH pages with ordered images, identity, locale, and blank translations preserved', () => {
-  const ja = parseFuluckDetailPage(fuluckDetail('ja'), { expectedBreederId: '2608-00001', locale: 'ja', pageUrl: fuluckPageUrl('ja') });
+test('parses verified Fuluck JA, EN, and ZH pages with ordered images and blank translations preserved', () => {
+  const parseVerifiedFuluckDetailPage = publicHtml.parseVerifiedFuluckDetailPage;
+  assert.equal(typeof parseVerifiedFuluckDetailPage, 'function');
+  const ja = parseVerifiedFuluckDetailPage(fuluckDetail('ja'), { expectedBreederId: '2608-00001', locale: 'ja', pageUrl: fuluckPageUrl('ja') });
   assert.deepEqual(ja, {
     breederId: '2608-00001', locale: 'ja', breed: 'サイベリアン', color: 'シルバータビー&ホワイト（トリプルコート）', gender: '♂', price: 230000, birthday: '2026-05-09',
     photos: ['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_hash.jpg.webp', 'https://www.koneko-breeder.com/breeder/data/c995680/child_img_2_hash.jpg.webp'], videoId: 'AbCdEfGhI12', papa: '父猫', mama: '母猫', note: '短い紹介', description: '一段落\n\n二段落', detailUrl: 'https://fuluckpet.com/kittens/2608-00001.html',
   });
-  assert.deepEqual(parseFuluckDetailPage(fuluckDetail('en'), { expectedBreederId: '2608-00001', locale: 'en', pageUrl: fuluckPageUrl('en') }), {
+  assert.deepEqual(parseVerifiedFuluckDetailPage(fuluckDetail('en'), { expectedBreederId: '2608-00001', locale: 'en', pageUrl: fuluckPageUrl('en') }), {
     breederId: '2608-00001', locale: 'en', breed: 'Siberian', color: 'Silver tabby & white', gender: '♂', price: 230000, birthday: '2026-05-09',
     photos: ['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_hash.jpg.webp', 'https://www.koneko-breeder.com/breeder/data/c995680/child_img_2_hash.jpg.webp'], videoId: 'AbCdEfGhI12', papa: '父猫', mama: '母猫', note: 'Short note', description: 'First paragraph\n\nSecond paragraph', detailUrl: 'https://fuluckpet.com/en/kittens/2608-00001.html',
   });
-  const zh = parseFuluckDetailPage(fuluckDetail('zh'), { expectedBreederId: '2608-00001', locale: 'zh', pageUrl: fuluckPageUrl('zh') });
+  const zh = parseVerifiedFuluckDetailPage(fuluckDetail('zh'), { expectedBreederId: '2608-00001', locale: 'zh', pageUrl: fuluckPageUrl('zh') });
   assert.deepEqual(zh, {
     breederId: '2608-00001', locale: 'zh', breed: 'Siberian', color: '银色虎斑白色', gender: '♂', price: 230000, birthday: '2026-05-09',
     photos: ['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_hash.jpg.webp', 'https://www.koneko-breeder.com/breeder/data/c995680/child_img_2_hash.jpg.webp'], videoId: 'AbCdEfGhI12', papa: '父猫', mama: '母猫', note: '', description: '', detailUrl: 'https://fuluckpet.com/zh/kittens/2608-00001.html',
   });
-});
-
-test('accepts no-SKU Fuluck Products only with the exact generated JA/EN/ZH bindings', () => {
-  for (const [locale, pageUrl] of [
-    ['ja', 'https://fuluckpet.com/kittens/2608-00001.html'],
-    ['en', 'https://fuluckpet.com/en/kittens/2608-00001.html'],
-    ['zh', 'https://fuluckpet.com/zh/kittens/2608-00001.html'],
-  ]) {
-    const page = parseFuluckDetailPage(fuluckDetail(locale, { sku: undefined }), {
-      expectedBreederId: '2608-00001', locale, pageUrl,
-    });
-    assert.deepEqual(
-      { breederId: page.breederId, locale: page.locale, detailUrl: page.detailUrl },
-      { breederId: '2608-00001', locale, detailUrl: pageUrl },
-      locale,
-    );
-  }
-});
-
-test('rejects no-SKU Fuluck identity evidence after plaintext despite an apparent closing tag', () => {
-  const pageUrl = 'https://fuluckpet.com/en/kittens/2608-00001.html';
-  const options = { expectedBreederId: '2608-00001', locale: 'en', pageUrl };
-  const product = fuluckProduct('en', { sku: undefined });
-  const expectedLink = `<link rel="canonical" href="${pageUrl}">`;
-  const plaintext = '<plaintext></plaintext>';
-  const cases = [
-    ['canonical link only', { canonicalMarkup: `${jsonLdScript(product)}${plaintext}${expectedLink}`, schemaMarkup: '' }],
-    ['Product JSON-LD only', { canonicalMarkup: expectedLink, schemaMarkup: `${plaintext}${jsonLdScript(product)}` }],
-    ['canonical link and Product JSON-LD', { canonicalMarkup: `${plaintext}${expectedLink}${jsonLdScript(product)}`, schemaMarkup: '' }],
-  ];
-
-  for (const [name, fixture] of cases) {
-    assert.throws(
-      () => parseFuluckDetailPage(fuluckDetail('en', { sku: undefined, ...fixture }), options),
-      /SKU|breeder|identity|Product/i,
-      name,
-    );
-  }
-});
-
-test('ignores SVG and MathML pseudo-elements while retaining outer no-SKU Fuluck identity evidence', () => {
-  const pageUrl = 'https://fuluckpet.com/en/kittens/2608-00001.html';
-  const options = { expectedBreederId: '2608-00001', locale: 'en', pageUrl };
-  const product = fuluckProduct('en', { sku: undefined });
-  const conflictingProduct = { ...product, '@id': fuluckProductId('2608-00002') };
-  const expectedLink = `<link rel="canonical" href="${pageUrl}">`;
-
-  for (const tag of ['svg', 'math']) {
-    const cases = [
-      ['canonical link only', { canonicalMarkup: foreignIdentityMarkup(tag, expectedLink), schemaMarkup: jsonLdScript(product) }],
-      ['Product JSON-LD only', { canonicalMarkup: expectedLink, schemaMarkup: foreignIdentityMarkup(tag, jsonLdScript(product)) }],
-      ['canonical link and Product JSON-LD', { canonicalMarkup: foreignIdentityMarkup(tag, `${expectedLink}${jsonLdScript(product)}`), schemaMarkup: '' }],
-    ];
-
-    for (const [name, fixture] of cases) {
-      assert.throws(
-        () => parseFuluckDetailPage(fuluckDetail('en', { sku: undefined, ...fixture }), options),
-        /SKU|breeder|identity|Product/i,
-        `${tag} ${name}`,
-      );
-    }
-
-    const parsed = parseFuluckDetailPage(fuluckDetail('en', {
-      sku: undefined,
-      canonicalMarkup: `${expectedLink}${foreignIdentityMarkup(tag, '<link rel="canonical" href="https://fuluckpet.com/en/kittens/2608-00002.html">')}`,
-      schemaMarkup: `${foreignIdentityMarkup(tag, jsonLdScript(conflictingProduct))}${jsonLdScript(product)}`,
-    }), options);
-    assert.equal(parsed.detailUrl, pageUrl, `${tag} outer evidence`);
-  }
-});
-
-test('requires exactly one genuine canonical link for no-SKU Fuluck identity', () => {
-  const pageUrl = 'https://fuluckpet.com/en/kittens/2608-00001.html';
-  const options = { expectedBreederId: '2608-00001', locale: 'en', pageUrl };
-  const product = fuluckProduct('en', { sku: undefined });
-  const expectedLink = `<link rel="canonical" href="${pageUrl}">`;
-  const cases = [
-    ['data-rel and data-href lookalike', `<link data-rel="canonical" data-href="${pageUrl}">`],
-    ['data-rel lookalike', `<link data-rel="canonical" href="${pageUrl}">`],
-    ['data-href lookalike', `<link rel="canonical" data-href="${pageUrl}">`],
-    ['link custom-element lookalike', `<link-x rel="canonical" href="${pageUrl}">`],
-    ['comment lookalike', `<!-- ${expectedLink} -->`],
-    ['template lookalike', `<template>${expectedLink}</template>`],
-    ['script lookalike', `<script>const evidence = ${JSON.stringify(expectedLink)};</script>`],
-    ['title lookalike', `<title>${expectedLink}</title>`],
-    ['duplicate matching canonical links', `${expectedLink}${expectedLink}`],
-    ['conflicting second canonical link', `${expectedLink}<link rel="canonical" href="https://fuluckpet.com/en/kittens/2608-00002.html">`],
-    ['mixed-order conflicting canonical link', `<link href="https://fuluckpet.com/en/kittens/2608-00002.html" rel="canonical">${expectedLink}`],
-    ['valid plus alternate canonical link', `${expectedLink}<link rel="alternate canonical" href="https://fuluckpet.com/en/kittens/2608-00002.html">`],
-    ['valid plus repeated canonical token link', `${expectedLink}<link rel="canonical canonical" href="https://fuluckpet.com/en/kittens/2608-00002.html">`],
-  ];
-
-  for (const [name, canonicalMarkup] of cases) {
-    assert.throws(
-      () => parseFuluckDetailPage(fuluckDetail('en', { sku: undefined, canonicalMarkup, schemaMarkup: jsonLdScript(product) }), options),
-      /SKU|breeder|identity/i,
-      name,
-    );
-  }
-
-  const parsed = parseFuluckDetailPage(
-    fuluckDetail('en', { sku: undefined, canonicalMarkup: `<link href="${pageUrl}" rel="canonical">`, schemaMarkup: jsonLdScript(product) }),
-    options,
-  );
-  assert.equal(parsed.detailUrl, pageUrl);
-});
-
-test('requires one actual Fuluck Product and one owned typed Offer across the JSON-LD entity graph', () => {
-  const pageUrl = 'https://fuluckpet.com/en/kittens/2608-00001.html';
-  const options = { expectedBreederId: '2608-00001', locale: 'en', pageUrl };
-  const product = fuluckProduct('en', { sku: undefined });
-  const conflictingProduct = { ...product, '@id': fuluckProductId('2608-00002') };
-  const conflictingOffer = { '@type': 'Offer', price: '230000', url: 'https://fuluckpet.com/en/kittens/2608-00002.html' };
-  const untypedOfferProduct = { ...product, offers: { price: '230000', url: pageUrl } };
-  const duplicateOfferProduct = { ...product, additionalOffer: conflictingOffer };
-  const cases = [
-    ['data-type pseudo-script', jsonLdScript(product, 'data-type="application/ld+json"')],
-    ['script custom-element pseudo-script', `<script-x type="application/ld+json">${JSON.stringify(product)}</script-x>`],
-    ['comment pseudo-script', `<!-- ${jsonLdScript(product)} -->`],
-    ['template pseudo-script', `<template>${jsonLdScript(product)}</template>`],
-    ['title pseudo-script', `<title>${jsonLdScript(product)}</title>`],
-    ['conflicting Product in JSON-LD array', jsonLdScript([product, conflictingProduct])],
-    ['conflicting Product in @graph', jsonLdScript({ '@graph': [product, conflictingProduct] })],
-    ['conflicting Product in a second script', `${jsonLdScript(product)}${jsonLdScript(conflictingProduct)}`],
-    ['standalone conflicting Offer in a second script', `${jsonLdScript(product)}${jsonLdScript(conflictingOffer)}`],
-    ['duplicate nested typed Offer', jsonLdScript(duplicateOfferProduct)],
-    ['untyped owned Offer', jsonLdScript(untypedOfferProduct)],
-  ];
-
-  for (const [name, schemaMarkup] of cases) {
-    assert.throws(
-      () => parseFuluckDetailPage(fuluckDetail('en', { sku: undefined, schemaMarkup }), options),
-      /SKU|breeder|identity|Product|Offer/i,
-      name,
-    );
-  }
-
-  for (const [name, schemaMarkup] of [
-    ['single Product in an array', jsonLdScript([product])],
-    ['single Product in @graph', jsonLdScript({ '@graph': [product] })],
-    ['unrelated second JSON-LD script', `${jsonLdScript({ '@type': 'WebPage', name: 'Fuluck' })}${jsonLdScript(product)}`],
-  ]) {
-    const parsed = parseFuluckDetailPage(fuluckDetail('en', { sku: undefined, schemaMarkup }), options);
-    assert.equal(parsed.breederId, '2608-00001', name);
-  }
-});
-
-test('fails closed for no-SKU Fuluck identity URL confusion', () => {
-  const pageUrl = 'https://fuluckpet.com/en/kittens/2608-00001.html';
-  const options = { expectedBreederId: '2608-00001', locale: 'en', pageUrl };
-  const cases = [
-    ['missing canonical', { canonical: undefined }],
-    ['wrong locale canonical', { canonical: 'https://fuluckpet.com/kittens/2608-00001.html' }],
-    ['wrong breeder canonical', { canonical: 'https://fuluckpet.com/en/kittens/2608-00002.html' }],
-    ['credential canonical', { canonical: 'https://user@fuluckpet.com/en/kittens/2608-00001.html' }],
-    ['query canonical', { canonical: 'https://fuluckpet.com/en/kittens/2608-00001.html?source=test' }],
-    ['fragment canonical', { canonical: 'https://fuluckpet.com/en/kittens/2608-00001.html#product' }],
-    ['encoded canonical path', { canonical: 'https://fuluckpet.com/en/kittens/%32%36%30%38-00001.html' }],
-    ['missing Product id', { productId: undefined }],
-    ['wrong breeder Product id', { productId: 'https://fuluckpet.com/kittens/2608-00002.html#product' }],
-    ['credential Product id', { productId: 'https://user@fuluckpet.com/kittens/2608-00001.html#product' }],
-    ['query Product id', { productId: 'https://fuluckpet.com/kittens/2608-00001.html?source=test#product' }],
-    ['unexpected Product fragment', { productId: 'https://fuluckpet.com/kittens/2608-00001.html#other' }],
-    ['encoded Product id path', { productId: 'https://fuluckpet.com/kittens/%32%36%30%38-00001.html#product' }],
-    ['missing Offer', { offers: undefined }],
-    ['missing Offer URL', { offerUrl: undefined }],
-    ['array Offer', { offers: [{ '@type': 'Offer', price: '230000', url: pageUrl }] }],
-    ['wrong locale Offer URL', { offerUrl: 'https://fuluckpet.com/kittens/2608-00001.html' }],
-    ['wrong breeder Offer URL', { offerUrl: 'https://fuluckpet.com/en/kittens/2608-00002.html' }],
-    ['credential Offer URL', { offerUrl: 'https://user@fuluckpet.com/en/kittens/2608-00001.html' }],
-    ['query Offer URL', { offerUrl: 'https://fuluckpet.com/en/kittens/2608-00001.html?source=test' }],
-    ['fragment Offer URL', { offerUrl: 'https://fuluckpet.com/en/kittens/2608-00001.html#product' }],
-    ['encoded Offer URL path', { offerUrl: 'https://fuluckpet.com/en/kittens/%32%36%30%38-00001.html' }],
-    ['wrong page URL', {}, { pageUrl: 'https://fuluckpet.com/en/kittens/2608-00002.html' }],
-    ['query page URL', {}, { pageUrl: 'https://fuluckpet.com/en/kittens/2608-00001.html?source=test' }],
-  ];
-  for (const [name, fixture, optionOverrides = {}] of cases) {
-    assert.throws(
-      () => parseFuluckDetailPage(fuluckDetail('en', { sku: undefined, ...fixture }), { ...options, ...optionOverrides }),
-      /SKU|breeder|identity/i,
-      name,
-    );
-  }
-});
-
-test('requires an exact present Fuluck Product SKU even when every URL binding matches', () => {
-  const options = { expectedBreederId: '2608-00001', locale: 'ja', pageUrl: 'https://fuluckpet.com/kittens/2608-00001.html' };
-  assert.throws(() => parseFuluckDetailPage(fuluckDetail('ja', { sku: '' }), options), /SKU|breeder/i);
-  assert.throws(() => parseFuluckDetailPage(fuluckDetail('ja', { sku: '2608-00002' }), options), /SKU|breeder/i);
 });
 
 test('normalizes HTML entities and line breaks without executing markup', () => {

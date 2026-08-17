@@ -26,6 +26,7 @@ function page(breederId, locale, overrides = {}) {
     ...detail(breederId, breederId === '2608-00001' ? 'c995680' : 'd696506'),
     locale, ...translated,
     detailUrl: `https://fuluckpet.com${locale === 'ja' ? '' : `/${locale}`}/kittens/${breederId}.html`,
+    sha256: 'c'.repeat(64),
     ...overrides,
   };
 }
@@ -83,6 +84,27 @@ test('returns EXACT with ordered fixed-account receipts when public catalogue ev
   assert.equal(result.exitCode, 0);
   assert.deepEqual(result.diffs, []);
   assert.deepEqual(result.accounts.map((a) => a.accountId), ['c995680', 'd696506']);
+});
+
+test('requires and reports the verified controlled rendered-page SHA-256 without retaining HTML', () => {
+  const missingHash = exactInput();
+  delete missingHash.fuluck.renderedPages[0].sha256;
+  const blocked = compareKonekoToFuluck(missingHash);
+  assert.equal(blocked.result, 'BLOCKED');
+  assert.match(blocked.blocks.join('\n'), /rendered-page hash/i);
+
+  const result = compareKonekoToFuluck(exactInput());
+  assert.deepEqual(result.fuluck.renderedPages.map(({ breederId, locale, url, sha256 }) => ({ breederId, locale, url, sha256 })), [
+    { breederId: '2608-00001', locale: 'en', url: 'https://fuluckpet.com/en/kittens/2608-00001.html', sha256: 'c'.repeat(64) },
+    { breederId: '2608-00001', locale: 'ja', url: 'https://fuluckpet.com/kittens/2608-00001.html', sha256: 'c'.repeat(64) },
+    { breederId: '2608-00001', locale: 'zh', url: 'https://fuluckpet.com/zh/kittens/2608-00001.html', sha256: 'c'.repeat(64) },
+    { breederId: '2608-00002', locale: 'en', url: 'https://fuluckpet.com/en/kittens/2608-00002.html', sha256: 'c'.repeat(64) },
+    { breederId: '2608-00002', locale: 'ja', url: 'https://fuluckpet.com/kittens/2608-00002.html', sha256: 'c'.repeat(64) },
+    { breederId: '2608-00002', locale: 'zh', url: 'https://fuluckpet.com/zh/kittens/2608-00002.html', sha256: 'c'.repeat(64) },
+  ]);
+  const markdown = renderAuditMarkdown(result);
+  assert.match(markdown, /Verified rendered page: 2608-00001 \(ja\).*sha256:c{64}/);
+  assert.doesNotMatch(markdown, /<html|kitten-detail-table/i);
 });
 
 test('reports each source/target presence and status drift class by exact breeder ID', () => {

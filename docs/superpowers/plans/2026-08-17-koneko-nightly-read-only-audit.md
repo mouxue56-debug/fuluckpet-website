@@ -4,7 +4,7 @@
 
 **Goal:** Run a deterministic, public, GET-only comparison of both Koneko breeder catalogues against Fuluck every day at 20:00 JST and preserve an exact approval report without any production write or language-model call.
 
-**Architecture:** Pure HTML parsers normalize Koneko list/detail pages and Fuluck rendered detail pages. A guarded crawl layer proves full pagination for both fixed accounts; a pure comparator emits `EXACT`, `DRIFT`, or `BLOCKED`; and a CLI writes JSON and Markdown receipts. A read-only GitHub Actions workflow runs at `0 11 * * *` UTC, preserves evidence, then re-emits the audit exit code.
+**Architecture:** Pure HTML parsers normalize Koneko list/detail pages. A guarded crawl layer proves full pagination for both fixed accounts. For Fuluck HTTP `200` details, it removes only the proven Cloudflare tail, requires byte equality with the same-id/locale controlled generated checkout file, then parses only that in-memory controlled string. A pure comparator emits `EXACT`, `DRIFT`, or `BLOCKED`; and a CLI writes JSON and Markdown receipts. A read-only GitHub Actions workflow runs at `0 11 * * *` UTC, preserves evidence, then re-emits the audit exit code.
 
 **Tech Stack:** Node.js 24 ESM, built-in `fetch`, `node:test`, GitHub Actions, public Koneko HTML, Fuluck public API and static detail pages.
 
@@ -16,6 +16,8 @@
 - Both accounts require complete pagination receipts. Missing or ambiguous evidence is `BLOCKED`, never equality.
 - Exact breeder ID is the only join key.
 - Phase one reports drift but never updates Fuluck.
+- A Fuluck `200` is evidence only when its cleaned bytes exactly equal the fixed mapped generated file; no arbitrary remote HTML semantic proof is accepted.
+- Controlled-page files are module-relative, regular non-symlinks below 2 MiB. Missing, unsafe, unreadable, or unequal content is `BLOCKED`; only an exact rendered `404` is drift.
 - Workflow permissions are exactly `contents: read`, with 14-day artifacts and no workflow commit.
 - Record actual observation time in JST; do not hide GitHub scheduling delay.
 
@@ -30,7 +32,7 @@
 **Interfaces:**
 - `parseKonekoListPage(html, { accountId, pageUrl }) -> ListPageReceipt`
 - `parseKonekoDetailPage(html, { expectedAccountId, expectedBreederId, pageUrl }) -> SourceActiveKitten`
-- `parseFuluckDetailPage(html, { expectedBreederId, locale, pageUrl }) -> RenderedKittenPage`
+- `parseVerifiedFuluckDetailPage(controlledHtml, { expectedBreederId, locale, pageUrl }) -> RenderedKittenPage` — callable only after the crawl layer has proven controlled-render byte equality.
 - `decodeHtmlText(html, { preserveBreaks }) -> string`
 
 - [ ] **Step 1: Read the test-quality rules**
@@ -143,7 +145,8 @@ git commit -m "feat: parse public Koneko and Fuluck catalog pages"
 **Interfaces:**
 - `fetchPublicText(url, options) -> { url, text, status, contentType, sha256 }`
 - `crawlKonekoAccount({ accountId, fetchImpl, delayMs }) -> AccountSnapshot`
-- `readFuluckPublicTarget({ activeIds, fetchImpl }) -> { apiRecords, renderedPages, checkedUrls }`
+- `createControlledFuluckPageLoader({ root? }) -> ({ breederId, locale }) => Promise<string>` — production default has a fixed module-relative checkout root; the optional root is test injection only.
+- `readFuluckPublicTarget({ activeIds, fetchImpl, controlledPageLoader? }) -> { apiRecords, renderedPages, checkedUrls }` — each non-404 rendered page carries the common verified `sha256`.
 
 - [ ] **Step 1: Write failing guarded-fetch tests**
 
@@ -182,7 +185,7 @@ assert.deepEqual(result.activeDetails.map((k) => k.breederId), [
 ]);
 ```
 
-Add repeated next URL, range gap, changing totals, duplicate IDs, wrong account, and detail mismatch failures. Prove Fuluck reading fetches the API and exactly three public locale pages per source-active target ID, with no admin or mutation interface. An authoritative target-page 404 becomes a `rendered_page_missing` input; timeouts, challenges, malformed pages, and identity conflicts throw and make the run `BLOCKED`.
+Add repeated next URL, range gap, changing totals, duplicate IDs, wrong account, and detail mismatch failures. Prove Fuluck reading fetches the API and exactly three public locale pages per source-active target ID, with no admin or mutation interface. For each non-404 Fuluck page, prove the cleaned remote bytes equal the mapped checked-out generated file before any parser runs; save the shared SHA-256 only. An authoritative target-page 404 becomes a `rendered_page_missing` input; timeouts, challenges, missing/unsafe controlled files, byte mismatches, and malformed controlled pages throw and make the run `BLOCKED`.
 
 - [ ] **Step 5: Verify crawl RED**
 
@@ -344,6 +347,36 @@ Expected: all focused/full tests, SEO/GEO audit, generated verification, and whi
 git add tools/audit-koneko-catalog.js tests/koneko-audit-cli.test.js .github/workflows/koneko-nightly-audit.yml tests/workflow-integrity.test.js
 git commit -m "ci: schedule nightly Koneko read-only audit"
 ```
+
+---
+
+### Task 4a: Fuluck controlled-render contract correction
+
+**Files:**
+- Modify: `tools/lib/koneko-public-crawl.js`, `tools/lib/koneko-public-html.js`, and `tools/lib/koneko-catalog-audit.js`
+- Modify: their focused public-crawl, public-HTML, and catalogue-audit tests
+
+**Decision:** Do not authenticate arbitrary Fuluck `200` HTML with a partial tokenizer. After the already restricted Cloudflare-tail cleanup, compare the resulting bytes with the matching checked-out generated page, then parse that one controlled in-memory string only. This is a deterministic trust boundary, not a browser/HTML-parser replacement.
+
+- [ ] **Step 1: Write RED contract tests**
+
+  Inject a controlled-page loader and prove a clean exact page and exactly one permitted tail both pass, while any changed text, photo, video, canonical, Product, Offer, whitespace, entity, or markup byte yields typed `render_contract` `BLOCKED`. Cover exact `404` as `rendered_page_missing`; wrong locale/ID, missing, directory, symlink, unreadable, and over-2-MiB controlled files as fail-closed; and prove the one loaded string supplies comparison, parser input, and SHA-256.
+
+- [ ] **Step 2: Implement the bounded controlled loader**
+
+  Map only audited `ja`, `en`, and `zh` locales to `kittens/{id}.html`, `en/kittens/{id}.html`, and `zh/kittens/{id}.html` below the module-relative checkout root. Use strict breeder-ID/locale validation, containment checks, `lstat` rejection of symlinks/non-regular files, an `O_NOFOLLOW` read, a 2 MiB bound, and generic external diagnostics. Keep `root` injection test-only; production code receives no configurable path.
+
+- [ ] **Step 3: Narrow the Fuluck parser boundary**
+
+  Rename the Fuluck parser to make the verified/tracked-file precondition explicit. Remove the arbitrary-remote canonical/Product/Offer no-SKU identity scanner. Preserve Koneko SKU/account extraction and list pagination behavior unchanged. Do not extend the shared walker to solve CDATA, entity, SVG, or other general HTML semantics for remote identity.
+
+- [ ] **Step 4: Add receipt evidence and verify GREEN**
+
+  Require a 64-character SHA-256 for each non-404 rendered page and publish only its locale, safe URL, and shared controlled-render hash. Never retain HTML. Run all 66 checked-out detail pages offline (including normal inline SVG) and the Koneko focused regression suite.
+
+- [ ] **Step 5: Update the design and run verification**
+
+  Document that a fixed `parse5` dependency is considered only if a stable CDN response rewrite becomes a separately measured requirement. Run parser/crawl/catalogue/CLI/workflow focused tests, generator-contract tests, the full Node suite, SEO/GEO audit, generated-file verification, and both unstaged/staged whitespace checks. No live fetch, workflow dispatch, regeneration, production write, credential read, push, merge, or deploy is part of this task.
 
 ---
 
