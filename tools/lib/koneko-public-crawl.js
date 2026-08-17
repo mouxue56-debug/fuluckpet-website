@@ -6,9 +6,8 @@ import { fileURLToPath } from 'node:url';
 
 import {
   parseVerifiedFuluckDetailPage,
-  parseKonekoDetailPage,
-  parseKonekoListPage,
 } from './koneko-public-html.js';
+import { parseKonekoDetailPage, parseKonekoListPage } from './koneko-standard-html.js';
 
 const MAX_BODY_BYTES = 2 * 1024 * 1024;
 const MAX_CLOUDFLARE_TAIL_SCRIPT_BYTES = 4 * 1024;

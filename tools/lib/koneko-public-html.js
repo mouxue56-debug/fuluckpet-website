@@ -1,18 +1,8 @@
-import { createHash } from 'node:crypto';
-
-const STATUS_TEXT = new Map([
-  ['NEW', 'available'],
-  ['販売中', 'available'],
-  ['商談中', 'reserved'],
-  ['事前成約申請', 'reserved'],
-  ['成約済み', 'sold'],
-  ['販売終了', 'sold'],
-]);
+export { parseKonekoDetailPage, parseKonekoListPage } from './koneko-standard-html.js';
 
 const YOUTUBE_ID = /^[A-Za-z0-9_-]{11}$/;
 const YOUTUBE_HOSTS = new Set(['youtube.com', 'www.youtube.com', 'm.youtube.com', 'youtube-nocookie.com', 'www.youtube-nocookie.com', 'youtu.be']);
 const VOID_HTML_TAGS = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
-const NON_VISIBLE_TEXT_TAGS = new Set(['script', 'style', 'template']);
 const HTML_TEXT_ELEMENTS = new Set(['script', 'style', 'title', 'textarea', 'xmp', 'iframe', 'noembed', 'noframes', 'noscript']);
 const FOREIGN_CONTENT_ELEMENTS = new Set(['svg', 'math']);
 const HTML_WHITESPACE = /[\t\n\f\r ]/;
@@ -201,11 +191,6 @@ function htmlAttributes(source) {
   return parsed.malformed ? null : parsed.values;
 }
 
-function attributeOccurrences(attributes, name) {
-  const parsed = typeof attributes === 'string' ? parseHtmlAttributes(attributes) : attributes;
-  return parsed?.occurrences?.get(name.toLowerCase()) || [];
-}
-
 function textElementClose(html, tag, start) {
   const closing = new RegExp(`</${escRegExp(tag)}(?=[\\t\\n\\f\\r \/>])`, 'ig');
   closing.lastIndex = start;
@@ -319,11 +304,6 @@ function foreignElementClose(html, tag, start) {
   return null;
 }
 
-function hasClassToken(attributes, className) {
-  return attributeOccurrences(attributes, 'class').some(({ value, hasValue }) => hasValue
-    && value.split(HTML_WHITESPACE_SPLIT).some(token => token.toLowerCase() === className.toLowerCase()));
-}
-
 function walkHtml(html, { onOpen, onClose, onText } = {}) {
   const source = String(html ?? '');
   let cursor = 0;
@@ -378,148 +358,6 @@ function walkHtml(html, { onOpen, onClose, onText } = {}) {
     }
   }
   return true;
-}
-
-function balancedElements(html, matches) {
-  const elements = [];
-  const candidates = [];
-  const stack = [];
-  let hiddenDepth = 0;
-  let footerDepth = 0;
-  let structurallyValid = true;
-  const complete = walkHtml(html, {
-    onOpen({ tag, attributes, start, end, selfClosing }) {
-      const parsedAttributes = parseHtmlAttributes(attributes);
-      const hidden = hasHiddenAttributes(parsedAttributes) || NON_VISIBLE_TEXT_TAGS.has(tag);
-      const inFooter = footerDepth > 0 || tag === 'footer';
-      const result = matches({ tag, attributes, parsedAttributes });
-      const match = typeof result === 'boolean' ? { matches: result, malformed: false } : result;
-      const candidate = match?.matches ? {
-        start,
-        tag,
-        attributes,
-        ancestorHidden: hiddenDepth > 0 || hidden,
-        inFooter,
-        invalid: selfClosing || match.malformed === true,
-        element: null,
-      } : null;
-      if (candidate) candidates.push(candidate);
-      if (selfClosing) return;
-      stack.push({
-        tag,
-        start,
-        attributes,
-        contentStart: end,
-        hidden,
-        footer: tag === 'footer',
-        ancestorHidden: hiddenDepth > 0 || hidden,
-        candidate,
-      });
-      if (hidden) hiddenDepth += 1;
-      if (tag === 'footer') footerDepth += 1;
-    },
-    onClose({ tag, start }) {
-      const current = stack.at(-1);
-      if (!current || current.tag !== tag) {
-        structurallyValid = false;
-        for (const element of stack) {
-          if (element.candidate) element.candidate.invalid = true;
-        }
-        return;
-      }
-      stack.pop();
-      if (current.hidden) hiddenDepth -= 1;
-      if (current.footer) footerDepth -= 1;
-      if (current.candidate && !current.candidate.invalid) {
-        const element = {
-          start: current.start,
-          tag: current.tag,
-          content: html.slice(current.contentStart, start),
-          attributes: current.attributes,
-          ancestorHidden: current.ancestorHidden,
-        };
-        current.candidate.element = element;
-        elements.push(element);
-      }
-    },
-  });
-  if (stack.length || hiddenDepth !== 0 || footerDepth !== 0) {
-    structurallyValid = false;
-    for (const element of stack) if (element.candidate) element.candidate.invalid = true;
-  }
-  return {
-    complete: complete && structurallyValid,
-    elements: elements.sort((left, right) => left.start - right.start),
-    candidates: candidates.sort((left, right) => left.start - right.start),
-  };
-}
-
-function balancedElementsByClass(html, className) {
-  return balancedElements(html, ({ parsedAttributes }) => ({
-    matches: hasClassToken(parsedAttributes, className),
-    malformed: parsedAttributes.malformed,
-  })).elements;
-}
-
-function hasExactId(attributes, id) {
-  return attributeOccurrences(attributes, 'id').some(({ value, hasValue }) => hasValue && decodeEntities(value) === id);
-}
-
-function attributeSelectorMatch(parsedAttributes, matches) {
-  return { matches: matches(parsedAttributes), malformed: parsedAttributes.malformed };
-}
-
-function konekoCandidateMatcher(matches) {
-  return ({ tag, parsedAttributes }) => attributeSelectorMatch(
-    parsedAttributes,
-    attributes => matches({ tag, attributes }),
-  );
-}
-
-function hasHiddenAttributes(attributes) {
-  const parsed = typeof attributes === 'string' ? parseHtmlAttributes(attributes) : attributes;
-  if (attributeOccurrences(parsed, 'hidden').length > 0) return true;
-  if (attributeOccurrences(parsed, 'aria-hidden').some(({ value, hasValue }) => hasValue && decodeEntities(value).trim() === 'true')) return true;
-  return attributeOccurrences(parsed, 'style').some(({ value, hasValue }) => {
-    if (!hasValue) return false;
-    return decodeEntities(value).split(';').some((declaration) => {
-      const separator = declaration.indexOf(':');
-      if (separator === -1) return false;
-      const property = declaration.slice(0, separator).trim().toLowerCase();
-      const rawValue = declaration.slice(separator + 1).trim().replace(/\s*!important\s*$/i, '').trim().toLowerCase();
-      return (property === 'display' && rawValue === 'none') || (property === 'visibility' && rawValue === 'hidden');
-    });
-  });
-}
-
-function visibleAnchors(html, { ancestorHidden = false } = {}) {
-  const anchors = [];
-  const stack = [];
-  let hiddenDepth = ancestorHidden ? 1 : 0;
-  let currentAnchor = null;
-  walkHtml(html, {
-    onOpen({ tag, attributes, selfClosing }) {
-      if (selfClosing) return;
-      const hidden = hasHiddenAttributes(parseHtmlAttributes(attributes)) || NON_VISIBLE_TEXT_TAGS.has(tag);
-      const anchor = tag === 'a' ? { attributes, label: '' } : null;
-      stack.push({ tag, hidden, anchor, previousAnchor: currentAnchor });
-      if (anchor) currentAnchor = anchor;
-      if (hidden) hiddenDepth += 1;
-    },
-    onClose({ tag }) {
-      const current = stack.at(-1);
-      if (current?.tag === tag) {
-        if (tag === 'a' && current.anchor && hiddenDepth === 0) anchors.push(current.anchor);
-        stack.pop();
-        if (current.hidden) hiddenDepth -= 1;
-        if (tag === 'a') currentAnchor = current.previousAnchor;
-      }
-    },
-    onText(text) {
-      if (currentAnchor && hiddenDepth === 0) currentAnchor.label += text;
-    },
-  });
-  return anchors;
 }
 
 function absoluteUrl(value, pageUrl) {
@@ -584,10 +422,6 @@ function productJsonLd(html) {
   }
   if (!products.length) throw new Error('Product JSON-LD is missing');
   return products[0];
-}
-
-function scriptValue(product, key) {
-  return product && product[key];
 }
 
 function productImages(product, pageUrl) {
@@ -671,10 +505,8 @@ function note(html) {
   return fact(html, ['備考', '注記', 'Note', 'Short note']);
 }
 
-function longDescription(html, { koneko = false } = {}) {
-  const konekoSection = koneko ? extractElementByClass(html, 'petDtlInt') : '';
-  const content = (konekoSection ? extractElementByClass(konekoSection, 'gnrCnt') : '')
-    || (!koneko ? extractElementByClass(html, 'kitten-detail-introduction') : '');
+function longDescription(html) {
+  const content = extractElementByClass(html, 'kitten-detail-introduction');
   if (!content) return '';
   return decodeHtmlText(content.replace(/<h[1-6]\b[^>]*>[\s\S]*?<\/h[1-6]\s*>/gi, ''), { preserveBreaks: true });
 }
@@ -712,20 +544,7 @@ function detailUrl(html, pageUrl) {
   return absoluteUrl(canonicalHref(html) || pageUrl, pageUrl);
 }
 
-function outerListItemEnd(html, contentStart) {
-  const token = /<\/?li\b[^>]*>/gi;
-  token.lastIndex = contentStart;
-  let depth = 1;
-  let match;
-  while ((match = token.exec(html))) {
-    if (/^<\//.test(match[0])) depth -= 1;
-    else if (!/\/\s*>$/.test(match[0])) depth += 1;
-    if (depth === 0) return match.index;
-  }
-  return html.length;
-}
-
-function detailFields(html, product, pageUrl, { koneko = false } = {}) {
+function detailFields(html, product, pageUrl) {
   const imageUrls = productImages(product, pageUrl);
   const parentsValue = parents(html);
   return {
@@ -739,283 +558,8 @@ function detailFields(html, product, pageUrl, { koneko = false } = {}) {
     papa: parentsValue.papa,
     mama: parentsValue.mama,
     note: note(html),
-    description: longDescription(html, { koneko }),
+    description: longDescription(html),
   };
-}
-
-function uniqueKonekoElement(result, name, { optional = false, requireComplete = true } = {}) {
-  const allCandidates = Array.isArray(result.candidates) ? result.candidates : null;
-  if (allCandidates?.some(candidate => candidate.invalid || !candidate.element)) {
-    throw new Error(`Koneko ${name} candidate is malformed`);
-  }
-  const candidates = allCandidates
-    ? allCandidates.filter(candidate => !candidate.ancestorHidden && !candidate.inFooter)
-    : null;
-  if (requireComplete && !result.complete) throw new Error(`Koneko ${name} structure is malformed`);
-  const elements = candidates ? candidates.map(candidate => candidate.element) : result.elements;
-  if (elements.length === 0 && optional) return null;
-  if (elements.length !== 1) throw new Error(`Koneko ${name} must be unique`);
-  return elements[0];
-}
-
-function directElementsByTag(html, desiredTag) {
-  const elements = [];
-  const stack = [];
-  let structurallyValid = true;
-  const complete = walkHtml(html, {
-    onOpen({ tag, attributes, start, end, selfClosing }) {
-      if (selfClosing) return;
-      stack.push({ tag, attributes, start, contentStart: end, direct: stack.length === 0 && tag === desiredTag });
-    },
-    onClose({ tag, start }) {
-      const current = stack.at(-1);
-      if (!current || current.tag !== tag) {
-        structurallyValid = false;
-        return;
-      }
-      stack.pop();
-      if (current.direct) elements.push({
-        tag: current.tag,
-        attributes: current.attributes,
-        start: current.start,
-        content: html.slice(current.contentStart, start),
-      });
-    },
-  });
-  if (stack.length) structurallyValid = false;
-  return { complete: complete && structurallyValid, elements };
-}
-
-function textFromKonekoElement(element) {
-  return decodeHtmlText(element.content, { preserveBreaks: false });
-}
-
-function readKonekoTableRows(html) {
-  const rows = [];
-  const stack = [];
-  let activeRow = null;
-  let activeCell = null;
-  let structurallyValid = true;
-  const complete = walkHtml(html, {
-    onOpen({ tag, start, end, selfClosing }) {
-      if (selfClosing) {
-        if (tag === 'br' && activeCell) activeCell.text += ' ';
-        return;
-      }
-      const frame = { tag, start, end };
-      if (tag === 'tr') {
-        if (activeRow) structurallyValid = false;
-        frame.row = { cells: [] };
-        activeRow = frame.row;
-      } else if (tag === 'th' || tag === 'td') {
-        if (!activeRow || activeCell) structurallyValid = false;
-        frame.cell = { tag, text: '' };
-        activeCell = frame.cell;
-        activeRow?.cells.push(frame.cell);
-      }
-      stack.push(frame);
-    },
-    onClose({ tag }) {
-      const current = stack.at(-1);
-      if (!current || current.tag !== tag) {
-        structurallyValid = false;
-        return;
-      }
-      stack.pop();
-      if (current.cell) {
-        if (activeCell !== current.cell) structurallyValid = false;
-        activeCell = null;
-      }
-      if (current.row) {
-        if (activeRow !== current.row || activeCell) structurallyValid = false;
-        rows.push(current.row);
-        activeRow = null;
-      }
-    },
-    onText(text) {
-      if (activeCell) activeCell.text += text;
-    },
-  });
-  if (stack.length || activeRow || activeCell) structurallyValid = false;
-  return complete && structurallyValid ? rows : null;
-}
-
-function oneKonekoTableValue(rows, field, labels, { optional = false } = {}) {
-  const wanted = new Set(labels.map(normalizedLabel));
-  const matches = rows.filter((row) => wanted.has(normalizedLabel(row.cells[0]?.text || '')));
-  if (matches.length === 0) {
-    if (optional) return '';
-    throw new Error(`Koneko ${field} evidence is missing`);
-  }
-  if (matches.length !== 1) throw new Error(`Koneko ${field} evidence is duplicate or conflicting`);
-  const [row] = matches;
-  if (row.cells.length !== 2 || row.cells[0].tag !== 'th' || row.cells[1].tag !== 'td') {
-    throw new Error(`Koneko ${field} row structure is malformed`);
-  }
-  const value = decodeHtmlText(row.cells[1].text, { preserveBreaks: false });
-  if (!optional && !nonBlank(value)) throw new Error(`Koneko ${field} evidence is missing`);
-  return value;
-}
-
-function konekoTableFacts(html) {
-  const dataRegion = uniqueKonekoElement(balancedElements(html, konekoCandidateMatcher(({ attributes }) => hasClassToken(attributes, 'petDtlData'))), 'facts region', { requireComplete: false });
-  const table = uniqueKonekoElement(balancedElements(dataRegion.content, konekoCandidateMatcher(({ tag, attributes }) => tag === 'table' && hasClassToken(attributes, 'gnrTbl'))), 'facts table');
-  const tableRows = readKonekoTableRows(table.content);
-  if (!tableRows) throw new Error('Koneko facts table structure is malformed');
-  const breed = oneKonekoTableValue(tableRows, 'breed', ['猫種', '品種', 'Breed']);
-  const color = oneKonekoTableValue(tableRows, 'color', ['毛色(毛質)', '毛色', 'Color']);
-  const genderValue = gender(oneKonekoTableValue(tableRows, 'gender', ['性別', 'Sex', 'Gender']));
-  const birthday = normalizeDate(oneKonekoTableValue(tableRows, 'birthday', ['誕生日', '生年月日', 'Birthday']));
-  if (!nonBlank(genderValue)) throw new Error('Koneko gender evidence is missing');
-  if (!nonBlank(birthday)) throw new Error('Koneko birthday evidence is missing');
-  return {
-    breed,
-    color,
-    gender: genderValue,
-    birthday,
-    note: oneKonekoTableValue(tableRows, 'note', ['アピールポイント', '備考', '注記', 'Note', 'Short note'], { optional: true }),
-  };
-}
-
-function konekoParents(html) {
-  const region = uniqueKonekoElement(balancedElements(html, konekoCandidateMatcher(({ attributes }) => hasExactId(attributes, 'parentInfo'))), 'parent region', { optional: true, requireComplete: false });
-  if (!region) return { papa: '', mama: '' };
-  const list = uniqueKonekoElement(balancedElements(region.content, konekoCandidateMatcher(({ tag, attributes }) => tag === 'ul' && hasClassToken(attributes, 'parentInfo_list'))), 'parent list');
-  const items = directElementsByTag(list.content, 'li');
-  if (!items.complete || items.elements.length !== 2) throw new Error('Koneko parent items are malformed');
-  const values = new Map();
-  for (const item of items.elements) {
-    const header = uniqueKonekoElement(balancedElements(item.content, konekoCandidateMatcher(({ tag, attributes }) => tag === 'h3' && hasClassToken(attributes, 'parentInfo_head'))), 'parent heading');
-    const sides = ['father', 'mother'].filter(side => hasClassToken(header.attributes, side));
-    if (sides.length !== 1 || values.has(sides[0])) throw new Error('Koneko parent heading is conflicting');
-    const name = uniqueKonekoElement(balancedElements(item.content, konekoCandidateMatcher(({ tag, attributes }) => tag === 'li' && hasClassToken(attributes, 'parentName'))), 'parent name');
-    const strong = uniqueKonekoElement(directElementsByTag(name.content, 'strong'), 'parent name');
-    const value = textFromKonekoElement(strong);
-    if (!nonBlank(value)) throw new Error('Koneko parent name is missing');
-    values.set(sides[0], value);
-  }
-  if (!values.has('father') || !values.has('mother')) throw new Error('Koneko parent evidence is incomplete');
-  return { papa: values.get('father'), mama: values.get('mother') };
-}
-
-function konekoVideoId(html, pageUrl) {
-  const region = uniqueKonekoElement(balancedElements(html, konekoCandidateMatcher(({ attributes }) => hasClassToken(attributes, 'movieGalleryCnt') && hasClassToken(attributes, 'youtube'))), 'video region', { optional: true, requireComplete: false });
-  if (!region) return '';
-  const evidence = youtubeMediaIds(region.content, pageUrl, { rejectInvalid: true });
-  if (!evidence.complete || evidence.malformed) throw new Error('Koneko video structure is malformed');
-  const uniqueIds = [...new Set(evidence.ids)];
-  if (uniqueIds.length !== 1) throw new Error('Koneko video evidence is missing or conflicting');
-  return uniqueIds[0];
-}
-
-function konekoDescription(html) {
-  const region = uniqueKonekoElement(balancedElements(html, konekoCandidateMatcher(({ attributes }) => hasClassToken(attributes, 'petDtlInt'))), 'introduction region', { optional: true, requireComplete: false });
-  if (!region) return '';
-  const content = uniqueKonekoElement(balancedElements(region.content, konekoCandidateMatcher(({ tag, attributes }) => tag === 'div' && hasClassToken(attributes, 'gnrCnt'))), 'introduction content');
-  return decodeHtmlText(content.content.replace(/<h[1-6]\b[^>]*>[\s\S]*?<\/h[1-6]\s*>/gi, ''), { preserveBreaks: true });
-}
-
-function konekoDetailFields(html, product, pageUrl) {
-  const facts = konekoTableFacts(html);
-  const parentValues = konekoParents(html);
-  return {
-    ...facts,
-    price: productPrice(product),
-    photos: productImages(product, pageUrl),
-    videoId: konekoVideoId(html, pageUrl),
-    ...parentValues,
-    description: konekoDescription(html),
-  };
-}
-
-export function parseKonekoListPage(html, { accountId, pageUrl } = {}) {
-  if (!nonBlank(html) || /challenge-platform|cf-chl-|Just a moment|interstitial/i.test(html)) throw new Error('challenge or interstitial HTML');
-  if (!nonBlank(accountId) || !nonBlank(pageUrl)) throw new Error('accountId and pageUrl are required');
-  const cardStarts = [...html.matchAll(/<li\b[^>]*\bclass\s*=\s*["'][^"']*\bMin_d-flex\b[^"']*\bbox02Inner\b[^"']*["'][^>]*>/gi)];
-  const cards = [];
-  const ids = new Set();
-  for (let index = 0; index < cardStarts.length; index += 1) {
-    const start = cardStarts[index].index + cardStarts[index][0].length;
-    const end = outerListItemEnd(html, start);
-    const cardHtml = html.slice(start, end);
-    const links = [...cardHtml.matchAll(/(?:href\s*=\s*["']|\b)(?:[^"'<>]*?)(?:cat)(\d{4}-\d{5})\.html/gi)].map(m => m[1]);
-    const linkIds = [...new Set(links)];
-    if (linkIds.length !== 1) throw new Error('card must contain exactly one breeder link');
-    const imageIds = [...cardHtml.matchAll(/\bid\s*=\s*["']src_(\d{4}-\d{5})["']/gi)].map(m => m[1]);
-    if (imageIds.length !== 1 || imageIds[0] !== linkIds[0]) throw new Error('card link/image IDs disagree');
-    const breederId = linkIds[0];
-    if (ids.has(breederId)) throw new Error(`duplicate card ID: ${breederId}`);
-    ids.add(breederId);
-    const stateHtml = extractElementByClass(cardHtml, 'listLmtInfStt');
-    const stateText = decodeHtmlText(stateHtml);
-    const directStateStatus = stateText === 'NEW' ? '' : STATUS_TEXT.get(stateText);
-    if (stateText && !directStateStatus && stateText !== 'NEW') throw new Error(`unknown status markup: ${stateText}`);
-    const statusNodes = [...cardHtml.matchAll(/<(?:span|p|div)\b[^>]*\bclass\s*=\s*["'](?:[^"']*\s)?(?:business|closed|sold|status)(?=\s|["'])[^"']*["'][^>]*>([\s\S]*?)<\/(?:span|p|div)\s*>/gi)];
-    let status = 'available';
-    if (statusNodes.length) {
-      const labels = statusNodes.map(node => decodeHtmlText(node[1]));
-      const statuses = labels.map(label => label === 'NEW' ? '' : STATUS_TEXT.get(label));
-      const unknown = labels.find((_, index) => !statuses[index]);
-      if (unknown) throw new Error(`unknown status markup: ${unknown}`);
-      if (directStateStatus) statuses.push(directStateStatus);
-      const distinct = [...new Set(statuses)];
-      if (distinct.length !== 1) throw new Error(`conflicting status markup: ${labels.join(', ')}`);
-      status = distinct[0];
-    } else if (directStateStatus) {
-      status = directStateStatus;
-    } else {
-      const liveMarker = stateHtml.match(/<span\b[^>]*\bclass\s*=\s*["'](?:[^"']*\s)?new(?=\s|["'])[^"']*["'][^>]*>([\s\S]*?)<\/span\s*>/i);
-      if (!liveMarker) throw new Error('live-list marker or status is missing');
-      const stateText = decodeHtmlText(liveMarker[1]);
-      if (stateText !== 'NEW') throw new Error(`unknown status markup: ${stateText}`);
-      status = 'available';
-    }
-    const href = cardHtml.match(/href\s*=\s*["']([^"']*cat\d{4}-\d{5}\.html[^"']*)["']/i)?.[1] || '';
-    cards.push({ breederId, status, detailUrl: absoluteUrl(href, pageUrl) });
-  }
-  if (!cards.length) throw new Error('no Koneko cards found');
-  const paginationElement = balancedElementsByClass(html, 'pagenation').find(element => {
-    const range = element.content.match(/(\d+)\s*[～〜~-]\s*(\d+)\s*件を表示/i);
-    return range && cards.length === Number(range[2]) - Number(range[1]) + 1;
-  });
-  const pagination = paginationElement?.content || '';
-  const declaredMatch = pagination.match(/<span\b[^>]*\bclass\s*=\s*["'][^"']*\btotalNum\b[^"']*["'][^>]*>\s*(\d+)/i);
-  const rangeMatch = pagination.match(/(\d+)\s*[～〜~-]\s*(\d+)\s*件を表示/i);
-  if (!declaredMatch || !rangeMatch) throw new Error('pagination range receipt is missing');
-  const rangeStart = Number(rangeMatch[1]);
-  const rangeEnd = Number(rangeMatch[2]);
-  if (cards.length !== rangeEnd - rangeStart + 1) throw new Error('range/card count mismatch');
-  let nextPageUrl = '';
-  for (const { attributes, label } of visibleAnchors(pagination, { ancestorHidden: paginationElement?.ancestorHidden })) {
-    const rawHref = attributes.match(/\bhref\s*=\s*["']([^"']+)["']/i)?.[1];
-    if (!rawHref) continue;
-    const href = absoluteUrl(rawHref, pageUrl);
-    if (!href) continue;
-    try { if (new URL(href).origin !== new URL(pageUrl).origin) continue; } catch { continue; }
-    if (/pageNum=\d+/i.test(href) && /^(?:次へ|next)$/i.test(decodeHtmlText(label))) { nextPageUrl = href; break; }
-  }
-  return {
-    accountId,
-    pageUrl,
-    cards,
-    declaredTotal: Number(declaredMatch[1]),
-    rangeStart,
-    rangeEnd,
-    nextPageUrl,
-    sha256: createHash('sha256').update(String(html)).digest('hex'),
-  };
-}
-
-export function parseKonekoDetailPage(html, { expectedAccountId, expectedBreederId, pageUrl } = {}) {
-  if (!nonBlank(expectedAccountId) || !nonBlank(expectedBreederId) || !nonBlank(pageUrl)) throw new Error('detail options are required');
-  const product = productJsonLd(html);
-  const breederId = String(scriptValue(product, 'sku') || '');
-  if (breederId !== expectedBreederId) throw new Error(`Koneko SKU/breeder mismatch: ${breederId}`);
-  const fields = konekoDetailFields(html, product, pageUrl);
-  if (!fields.photos.length) throw new Error('Koneko source photos are missing');
-  const accountIds = [...new Set(fields.photos.map(url => url.match(/\/breeder\/data\/([^/]+)\//i)?.[1]).filter(Boolean))];
-  if (accountIds.length !== 1 || accountIds[0] !== expectedAccountId) throw new Error('Koneko account mismatch');
-  return { breederId, accountId: expectedAccountId, ...fields, detailUrl: detailUrl(html, pageUrl) };
 }
 
 /**

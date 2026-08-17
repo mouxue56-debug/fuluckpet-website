@@ -184,23 +184,20 @@ test('uses only visible explicit same-host pagination next links', () => {
   }
 });
 
-test('rejects pagination candidates that cross a mismatched close before an external Next link', () => {
+test('uses the repaired DOM boundary when phrasing markup is implicitly closed inside pagination', () => {
   for (const tag of ['span', 'em']) {
-    assert.throws(
-      () => parseKonekoListPage(
-        listPage([listCard('2608-00001')], {
-          total: 1,
-          end: 1,
-          next: false,
-          paginationSuffix: `<${tag}>`,
-          afterPagination: `<nav><a href="breederDetail.php?pageNum=2&amp;breeder_id=c995680">Next</a></nav></${tag}>`,
-          paginationWrapper: 'div',
-        }),
-        LIST_OPTIONS,
-      ),
-      /pagination range receipt is missing/i,
-      tag,
+    const page = parseKonekoListPage(
+      listPage([listCard('2608-00001')], {
+        total: 1,
+        end: 1,
+        next: false,
+        paginationSuffix: `<${tag}>`,
+        afterPagination: `<nav><a href="breederDetail.php?pageNum=2&amp;breeder_id=c995680">Next</a></nav></${tag}>`,
+        paginationWrapper: 'div',
+      }),
+      LIST_OPTIONS,
     );
+    assert.equal(page.nextPageUrl, '', tag);
   }
 });
 
@@ -275,6 +272,68 @@ test('ignores unrelated totalNum markup, rejects challenge pages, and rejects of
   assert.equal(page.declaredTotal, 1);
   assert.equal(page.nextPageUrl, '');
   assert.throws(() => parseKonekoListPage('<html><title>Just a moment...</title><div id="challenge-platform"></div></html>', LIST_OPTIONS), /challenge|interstitial/i);
+});
+
+test('list evidence follows the HTML tree and ignores inert or foreign card lookalikes', () => {
+  const fakeCard = listCard('2608-99999');
+  const actualCard = listCard('2608-00001');
+  const contexts = [
+    `<!-- ${fakeCard} -->`,
+    `<template>${fakeCard}</template>`,
+    `<script>${JSON.stringify(fakeCard)}</script>`,
+    `<style>${fakeCard}</style>`,
+    `<textarea>${fakeCard}</textarea>`,
+    `<xmp>${fakeCard}</xmp>`,
+    `<iframe>${fakeCard}</iframe>`,
+    `<noembed>${fakeCard}</noembed>`,
+    `<noframes>${fakeCard}</noframes>`,
+    `<noscript>${fakeCard}</noscript>`,
+  ];
+
+  for (const inert of contexts) {
+    const page = parseKonekoListPage(
+      listPage([actualCard], { total: 1, end: 1, next: false, afterPagination: inert }),
+      LIST_OPTIONS,
+    );
+    assert.deepEqual(page.cards.map(({ breederId }) => breederId), ['2608-00001'], inert.slice(0, 24));
+  }
+
+  for (const integrationContext of [`<svg>${fakeCard}</svg>`, `<math>${fakeCard}</math>`]) {
+    assert.throws(
+      () => parseKonekoListPage(
+        listPage([actualCard], { total: 1, end: 1, next: false, afterPagination: integrationContext }),
+        LIST_OPTIONS,
+      ),
+      /range|card|duplicate/i,
+    );
+  }
+
+  const plaintextAfterEvidence = listPage([actualCard], { total: 1, end: 1, next: false })
+    .replace('</body>', `<plaintext>${fakeCard}</plaintext></body>`);
+  assert.deepEqual(
+    parseKonekoListPage(plaintextAfterEvidence, LIST_OPTIONS).cards.map(({ breederId }) => breederId),
+    ['2608-00001'],
+  );
+});
+
+test('list attributes and hidden pagination use decoded browser semantics exactly once', () => {
+  const encodedCard = listCard('2608-00001')
+    .replace('Min_d-flex box02Inner', 'Min_d-flex&Tab;box02Inner')
+    .replace('id="src_2608-00001"', 'id="src_2608-00001"');
+  const page = parseKonekoListPage(listPage([encodedCard], {
+    total: 1,
+    end: 1,
+    next: false,
+    links: '<li style="display&colon;none"><a href="breederDetail.php?pageNum=2&amp;breeder_id=c995680">次へ</a></li>',
+  }), LIST_OPTIONS);
+  assert.equal(page.cards[0].breederId, '2608-00001');
+  assert.equal(page.nextPageUrl, '');
+
+  const doubleEncoded = listCard('2608-00001').replace('Min_d-flex box02Inner', 'Min_d-flex&amp;Tab;box02Inner');
+  assert.throws(
+    () => parseKonekoListPage(listPage([doubleEncoded], { total: 1, end: 1, next: false }), LIST_OPTIONS),
+    /card|Koneko/i,
+  );
 });
 
 const KONEKO_DETAIL_OPTIONS = {
@@ -426,6 +485,61 @@ test('blocks a valid Koneko facts candidate when a second exact candidate is unc
   assert.throws(() => parseKonekoDetailPage(html, KONEKO_DETAIL_OPTIONS), /facts.*(malformed|unique)|facts region/i);
 });
 
+test('blocks every recognizable EOF-in-opening-tag target, including after valid evidence', () => {
+  const cases = [
+    ['parent', konekoDetail({ parentInfo: `${konekoParentInfo()}<section id="parentInfo" data-x="` })],
+    ['facts', konekoDetail({ outside: '<section class="petDtlData" data-x="' })],
+    ['video', konekoDetail({ video: `${konekoVideo()}<section class="movieGalleryCnt youtube" data-x="` })],
+    ['introduction', konekoDetail({ introduction: '<section class="petDtlInt"><div class="gnrCnt">紹介</div></section><section class="petDtlInt" data-x="' })],
+    ['facts table', konekoDetail({ factRows: `${konekoFactRows()}</table><table class="gnrTbl" data-x="` })],
+    ['parent list', konekoDetail({ parentInfo: konekoParentInfo().replace('<ul class="parentInfo_list">', '<ul class="parentInfo_list" data-x="') })],
+    ['parent name', konekoDetail({ parentInfo: konekoParentInfo().replace('<li class="parentName">', '<li class="parentName" data-x="') })],
+    ['introduction content', konekoDetail({ introduction: '<section class="petDtlInt"><div class="gnrCnt" data-x="' })],
+  ];
+
+  for (const [name, html] of cases) {
+    assert.throws(() => parseKonekoDetailPage(html, KONEKO_DETAIL_OPTIONS), /malformed|structure|candidate|eof|parse/i, name);
+  }
+});
+
+test('illegal attribute-name lookalikes never invent Koneko selectors', () => {
+  const lookalikes = [
+    '<aside =class=petDtlData></aside>',
+    '<aside <class=petDtlData></aside>',
+    '<aside `class=petDtlData></aside>',
+    '<aside =id=parentInfo></aside>',
+    '<aside <id=parentInfo></aside>',
+    '<aside `id=parentInfo></aside>',
+  ];
+  for (const outside of lookalikes) {
+    const parsed = parseKonekoDetailPage(konekoDetail({ outside }), KONEKO_DETAIL_OPTIONS);
+    assert.equal(parsed.breed, 'サイベリアン', outside);
+    assert.equal(parsed.papa, '父猫', outside);
+  }
+
+  const actualMalformedTarget = konekoDetail({
+    parentInfo: konekoParentInfo({ tag: 'section' }).replace(' id="parentInfo"', ' =bad id="parentInfo"'),
+  });
+  assert.throws(() => parseKonekoDetailPage(actualMalformedTarget, KONEKO_DETAIL_OPTIONS), /parent|malformed|parse/i);
+});
+
+test('Koneko selector attributes use complete character references and decode once', () => {
+  const parsed = parseKonekoDetailPage(konekoDetail({
+    factsTag: 'section',
+    parentInfo: konekoParentInfo({ tag: 'section' }).replace('parentInfo"', 'parent&#73nfo"'),
+    video: konekoVideo('AbCdEfGhI12', { tag: 'section' }).replace('youtube"', 'you&#116ube"'),
+    introduction: '<section class="petDtl&#73nt"><div class="gnrTbl-no gnr&#67nt"><p>参照紹介</p></div></section>',
+  }), KONEKO_DETAIL_OPTIONS);
+  assert.equal(parsed.papa, '父猫');
+  assert.equal(parsed.videoId, 'AbCdEfGhI12');
+  assert.equal(parsed.description, '参照紹介');
+
+  const doubleEncoded = konekoDetail({
+    outside: `${konekoParentInfo({ tag: 'section' }).replace('parentInfo"', 'parent&amp;#73;nfo"')}`,
+  });
+  assert.equal(parseKonekoDetailPage(doubleEncoded, KONEKO_DETAIL_OPTIONS).papa, '父猫');
+});
+
 test('blocks malformed Koneko optional candidates whose real selectors remain recoverable', () => {
   const cases = [
     ['parent', konekoDetail({
@@ -444,18 +558,18 @@ test('blocks malformed Koneko optional candidates whose real selectors remain re
   }
 });
 
-test('blocks a valid Koneko candidate when a later recoverable selector has malformed attributes', () => {
+test('uses the browser-kept first duplicate attribute when a later duplicate resembles a selector', () => {
   const html = konekoDetail({
     parentInfo: `${konekoParentInfo()}<section id="other" id="parentInfo"><ul class="parentInfo_list"></ul></section>`,
   });
-  assert.throws(() => parseKonekoDetailPage(html, KONEKO_DETAIL_OPTIONS), /parent.*(malformed|unique)|parent region/i);
+  assert.equal(parseKonekoDetailPage(html, KONEKO_DETAIL_OPTIONS).papa, '父猫');
 });
 
-test('blocks a Koneko video candidate whose matching compound class is a later duplicate occurrence', () => {
+test('does not invent a Koneko video candidate from a discarded duplicate class', () => {
   const html = konekoDetail({
     video: '<section class="not-video" class="movieGalleryCnt youtube"><iframe src="https://www.youtube.com/embed/AbCdEfGhI12"></iframe></section>',
   });
-  assert.throws(() => parseKonekoDetailPage(html, KONEKO_DETAIL_OPTIONS), /video.*malformed|video region/i);
+  assert.equal(parseKonekoDetailPage(html, KONEKO_DETAIL_OPTIONS).videoId, '');
 });
 
 test('blocks a Koneko selector recovered after malformed opening-tag syntax', () => {
@@ -536,11 +650,11 @@ test('rejects unquoted decoded hidden styles as the only Koneko required evidenc
   assert.throws(() => parseKonekoDetailPage(html, KONEKO_DETAIL_OPTIONS), /facts region|facts.*unique/i);
 });
 
-test('uses a visible Koneko facts candidate when a malformed ancestor has another hidden style', () => {
-  const parsed = parseKonekoDetailPage(konekoDetail({
+test('uses the browser-kept first style value rather than a discarded duplicate hidden style', () => {
+  const html = konekoDetail({
     outside: `<aside style="color:red" style=display:none><section class="petDtlData"><table class="gnrTbl">${konekoFactRows({ breed: '隠し猫種' })}</table></section></aside>`,
-  }), KONEKO_DETAIL_OPTIONS);
-  assert.equal(parsed.breed, 'サイベリアン');
+  });
+  assert.throws(() => parseKonekoDetailPage(html, KONEKO_DETAIL_OPTIONS), /facts|unique|duplicate/i);
 });
 
 test('does not treat words in a title attribute as hidden Koneko evidence', () => {
@@ -568,6 +682,76 @@ test('recognizes trimmed decoded aria-hidden true as Koneko hidden evidence', ()
     outside: `<aside aria-hidden=" &#116;rue "><section class="petDtlData"><table class="gnrTbl">${konekoFactRows({ breed: '隠し猫種' })}</table></section></aside>`,
   }).replace('class="petDtlData"', 'class="notPetDtlData"');
   assert.throws(() => parseKonekoDetailPage(html, KONEKO_DETAIL_OPTIONS), /facts region|facts.*unique/i);
+});
+
+test('recognizes named and semicolonless encoded hidden-state values', () => {
+  const attributes = [
+    'aria-hidden="&Tab;true&Tab;"',
+    'style="display&colon;none"',
+    'style="display&#58none"',
+    'style="display&#x3anone"',
+    'style="color:red; visibility&colon; hidden !important"',
+  ];
+  for (const attributesSource of attributes) {
+    const html = konekoDetail({
+      parentInfo: '',
+      video: '',
+      introduction: '',
+      outside: `<aside ${attributesSource}><section class="petDtlData"><table class="gnrTbl">${konekoFactRows({ breed: '隠し猫種' })}</table></section></aside>`,
+    }).replace('class="petDtlData"', 'class="notPetDtlData"');
+    assert.throws(() => parseKonekoDetailPage(html, KONEKO_DETAIL_OPTIONS), /facts region|facts.*unique/i, attributesSource);
+  }
+});
+
+test('Koneko targets follow HTML namespaces, template inertness, integration points, and foster parenting', () => {
+  const inertLookalikes = [
+    `<template><section class="petDtlData"><table class="gnrTbl">${konekoFactRows({ breed: 'テンプレート猫種' })}</table></section></template>`,
+    `<svg><section class="petDtlData"><table class="gnrTbl">${konekoFactRows({ breed: 'SVG猫種' })}</table></section></svg>`,
+    `<math><section class="petDtlData"><table class="gnrTbl">${konekoFactRows({ breed: 'MathML猫種' })}</table></section></math>`,
+    `<![CDATA[<section class="petDtlData"><table class="gnrTbl">${konekoFactRows({ breed: 'CDATA猫種' })}</table></section>]]>`,
+  ];
+  for (const outside of inertLookalikes) {
+    assert.equal(parseKonekoDetailPage(konekoDetail({ outside }), KONEKO_DETAIL_OPTIONS).breed, 'サイベリアン', outside.slice(0, 20));
+  }
+
+  const integrationPoint = konekoDetail({
+    outside: `<svg><foreignObject><section class="petDtlData"><table class="gnrTbl">${konekoFactRows({ breed: '統合点猫種' })}</table></section></foreignObject></svg>`,
+  });
+  assert.throws(() => parseKonekoDetailPage(integrationPoint, KONEKO_DETAIL_OPTIONS), /facts|unique|duplicate/i);
+
+  const fosterParented = konekoDetail().replace(
+    `<div class="petDtlData"><table class="gnrTbl">${konekoFactRows()}</table></div>`,
+    `<table><section class="petDtlData"><table class="gnrTbl">${konekoFactRows()}</table></section></table>`,
+  );
+  assert.throws(() => parseKonekoDetailPage(fosterParented, KONEKO_DETAIL_OPTIONS), /facts|table|structure/i);
+});
+
+test('target-local parse errors block target evidence but unrelated parse errors stay local', () => {
+  const unrelated = konekoDetail({ outside: '<aside =class=unrelated>unrelated</aside>' });
+  assert.equal(parseKonekoDetailPage(unrelated, KONEKO_DETAIL_OPTIONS).breed, 'サイベリアン');
+
+  const target = konekoDetail().replace('class="petDtlData"', 'class="petDtlData" =bad');
+  assert.throws(() => parseKonekoDetailPage(target, KONEKO_DETAIL_OPTIONS), /facts|malformed|parse/i);
+});
+
+test('only actual HTML Product JSON-LD nodes participate in Koneko identity', () => {
+  const product = JSON.stringify({
+    '@type': 'Product',
+    sku: '2608-99999',
+    image: ['https://www.koneko-breeder.com/breeder/data/c995680/fake.jpg'],
+    offers: { price: 1 },
+  });
+  const inert = [
+    `<!-- <script type="application/ld+json">${product}</script> -->`,
+    `<template><script type="application/ld+json">${product}</script></template>`,
+    `<svg><script type="application/ld+json">${product}</script></svg>`,
+  ];
+  for (const outside of inert) {
+    assert.equal(parseKonekoDetailPage(konekoDetail({ outside }), KONEKO_DETAIL_OPTIONS).breederId, '2608-00001', outside.slice(0, 20));
+  }
+
+  const duplicate = konekoDetail({ outside: `<script type="application/ld+json">${product}</script>` });
+  assert.throws(() => parseKonekoDetailPage(duplicate, KONEKO_DETAIL_OPTIONS), /JSON-LD|Product|duplicate|unique/i);
 });
 
 test('treats absent Koneko optional parent, video, note, and introduction regions as observed empty strings', () => {
