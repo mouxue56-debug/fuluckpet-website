@@ -358,6 +358,65 @@ test('Fuluck rendered sanitization blocks every unproven Cloudflare-tail variant
   }
 });
 
+test('Fuluck rendered sanitization blocks candidates in every unclosed HTML special context', async (t) => {
+  const clean = fuluckDetail('2608-00001', 'ja');
+  const candidate = cloudflareTailScript();
+  const fixtures = [
+    ['comment', '<!--'],
+    ['template', '<template>'],
+    ['outer template after a nested template closes', '<template><template>inner</template>'],
+    ['title RCDATA', '<title>'],
+    ['textarea RCDATA', '<textarea>'],
+    ['script data', '<script>'],
+    ['style raw text', '<style>'],
+    ['xmp raw text', '<xmp>'],
+    ['iframe raw text', '<iframe>'],
+    ['noembed raw text', '<noembed>'],
+    ['noframes raw text', '<noframes>'],
+    ['noscript conservative raw text', '<noscript>'],
+    ['plaintext despite an apparent close', '<plaintext>text</plaintext>'],
+  ];
+
+  for (const [name, opening] of fixtures) {
+    await t.test(name, async () => expectFuluckRenderedBlocked(
+      clean.replace('</body></html>', `${opening}${candidate}</body></html>`),
+    ));
+  }
+});
+
+test('readFuluckPublicTarget accepts a proven tail after balanced HTML special contexts', async (t) => {
+  const api = `${API_ORIGIN}/api/kittens`;
+  const fixtures = [
+    ['nested templates', '<template><template>inner</template></template>'],
+    ['closed textarea', '<textarea>safe RCDATA</textarea>'],
+    ['closed title', '<title>safe RCDATA</title>'],
+  ];
+
+  for (const [name, context] of fixtures) {
+    await t.test(name, async () => {
+      const result = await readFuluckPublicTarget({
+        activeIds: ['2608-00001'],
+        fetchImpl: async url => {
+          if (url === api) return publicResponse({
+            body: JSON.stringify([{ breederId: '2608-00001' }]),
+            contentType: 'application/json',
+            url,
+          });
+          const locale = url.includes('/en/') ? 'en' : url.includes('/zh/') ? 'zh' : 'ja';
+          const clean = fuluckDetail('2608-00001', locale).replace('</body></html>', `${context}</body></html>`);
+          return publicResponse({ body: appendBeforeDocumentClose(clean, cloudflareTailScript()), url });
+        },
+      });
+
+      assert.deepEqual(result.renderedPages.map(({ locale, breed }) => ({ locale, breed })), [
+        { locale: 'ja', breed: 'ja' },
+        { locale: 'en', breed: 'en' },
+        { locale: 'zh', breed: 'zh' },
+      ]);
+    });
+  }
+});
+
 test('generic Fuluck, Koneko, and API transports never strip the Cloudflare tail injection', async () => {
   const injectedHtml = appendBeforeDocumentClose(fuluckDetail('2608-00001', 'ja'), cloudflareTailScript());
   for (const [url, body, acceptedContentTypes, contentType] of [

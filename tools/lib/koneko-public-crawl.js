@@ -44,7 +44,18 @@ const CLOUDFLARE_TAIL_SIGNATURES = Object.freeze([
   value => /\bcreateElement\s*\(\s*(['"])iframe\1\s*\)/i.test(value),
 ]);
 const PROVEN_CLOUDFLARE_TAIL = /<script[\t\n\f\r ]*>((?:(?!<\/?script(?=[\t\n\f\r \/>]))[\s\S])*)<\/script[\t\n\f\r ]*>([\t\n\f\r ]*<\/body[\t\n\f\r ]*>[\t\n\f\r ]*<\/html[\t\n\f\r ]*>[\t\n\f\r ]*)(?![\s\S])/i;
-const RAW_OR_INERT_OPENING = /<(script|style|template)(?=[\t\n\f\r \/>])/ig;
+const HTML_RCDATA_ELEMENTS = Object.freeze(['title', 'textarea']);
+const HTML_RAW_TEXT_ELEMENTS = Object.freeze([
+  'script',
+  'style',
+  'xmp',
+  'iframe',
+  'noembed',
+  'noframes',
+  'noscript',
+]);
+const HTML_TEXT_ELEMENTS = Object.freeze([...HTML_RCDATA_ELEMENTS, ...HTML_RAW_TEXT_ELEMENTS]);
+const HTML_TAG_START = /<(\/?)([A-Za-z][^\t\n\f\r \/>]*)(?=[\t\n\f\r \/>]|$)/y;
 
 function hasAnyCloudflareTailSignature(value) {
   return CLOUDFLARE_TAIL_SIGNATURES.some(matches => matches(value));
@@ -65,28 +76,70 @@ function htmlTagEnd(text, start) {
   return -1;
 }
 
+function htmlTagAt(text, start) {
+  HTML_TAG_START.lastIndex = start;
+  const match = HTML_TAG_START.exec(text);
+  if (!match) return null;
+  const end = htmlTagEnd(text, start + match[0].length);
+  if (end === -1) return { incomplete: true };
+  return {
+    closing: match[1] === '/',
+    end,
+    name: match[2].toLowerCase(),
+  };
+}
+
+function htmlTextElementEnd(text, name, start) {
+  const closing = new RegExp(`<\\/${name}(?=[\\t\\n\\f\\r \/>])`, 'ig');
+  closing.lastIndex = start;
+  const match = closing.exec(text);
+  if (!match) return -1;
+  return htmlTagEnd(text, closing.lastIndex);
+}
+
 function candidateStartsInHtmlData(prefix) {
   let cursor = 0;
+  let templateDepth = 0;
   while (cursor < prefix.length) {
-    const commentStart = prefix.indexOf('<!--', cursor);
-    RAW_OR_INERT_OPENING.lastIndex = cursor;
-    const rawOpening = RAW_OR_INERT_OPENING.exec(prefix);
-    if (commentStart !== -1 && (!rawOpening || commentStart < rawOpening.index)) {
-      const commentEnd = prefix.indexOf('-->', commentStart + 4);
+    const tokenStart = prefix.indexOf('<', cursor);
+    if (tokenStart === -1) break;
+    if (prefix.startsWith('<!--', tokenStart)) {
+      const commentEnd = prefix.indexOf('-->', tokenStart + 4);
       if (commentEnd === -1) return false;
       cursor = commentEnd + 3;
       continue;
     }
-    if (!rawOpening) return true;
+    if (prefix.startsWith('<!', tokenStart) || prefix.startsWith('<?', tokenStart)) {
+      const declarationEnd = htmlTagEnd(prefix, tokenStart + 2);
+      if (declarationEnd === -1) return false;
+      cursor = declarationEnd;
+      continue;
+    }
 
-    const openingEnd = htmlTagEnd(prefix, RAW_OR_INERT_OPENING.lastIndex);
-    if (openingEnd === -1) return false;
-    const closing = new RegExp(`<\\/${rawOpening[1]}[\\t\\n\\f\\r ]*>`, 'ig');
-    closing.lastIndex = openingEnd;
-    if (!closing.exec(prefix)) return false;
-    cursor = closing.lastIndex;
+    const tag = htmlTagAt(prefix, tokenStart);
+    if (!tag) {
+      cursor = tokenStart + 1;
+      continue;
+    }
+    if (tag.incomplete) return false;
+    cursor = tag.end;
+
+    if (tag.closing) {
+      if (tag.name === 'template' && templateDepth > 0) templateDepth -= 1;
+      continue;
+    }
+    if (tag.name === 'plaintext') return false;
+    if (tag.name === 'template') {
+      templateDepth += 1;
+      continue;
+    }
+    if (HTML_TEXT_ELEMENTS.includes(tag.name)) {
+      const textElementEnd = htmlTextElementEnd(prefix, tag.name, cursor);
+      if (textElementEnd === -1) return false;
+      cursor = textElementEnd;
+    }
   }
-  return true;
+  return templateDepth === 0;
 }
 
 function stripProvenFuluckTailInjection(text) {
