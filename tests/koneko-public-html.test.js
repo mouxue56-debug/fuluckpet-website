@@ -49,6 +49,7 @@ function listPage(cards, {
   next = true,
   links,
   afterPagination = '',
+  paginationSuffix = '',
   paginationWrapper = '',
   paginationWrapperAttributes = '',
 } = {}) {
@@ -59,6 +60,7 @@ function listPage(cards, {
     ${wrapperOpen}
     <div class="pagenation"><div class="disp_pagePosition">全<span class="totalNum">${total}</span>件中&nbsp;&nbsp;${start}～${end}件を表示</div>
       <ul class="list_pagenation">${paginationLinks}</ul>
+      ${paginationSuffix}
     </div>
     ${afterPagination}
     ${wrapperClose}
@@ -174,6 +176,26 @@ test('uses only visible explicit same-host pagination next links', () => {
   ]) {
     const page = parseKonekoListPage(listPage([listCard('2608-00001')], { total: 1, end: 1, next: false, links }), LIST_OPTIONS);
     assert.equal(page.nextPageUrl, '', links);
+  }
+});
+
+test('rejects pagination candidates that cross a mismatched close before an external Next link', () => {
+  for (const tag of ['span', 'em']) {
+    assert.throws(
+      () => parseKonekoListPage(
+        listPage([listCard('2608-00001')], {
+          total: 1,
+          end: 1,
+          next: false,
+          paginationSuffix: `<${tag}>`,
+          afterPagination: `<nav><a href="breederDetail.php?pageNum=2&amp;breeder_id=c995680">Next</a></nav></${tag}>`,
+          paginationWrapper: 'div',
+        }),
+        LIST_OPTIONS,
+      ),
+      /pagination range receipt is missing/i,
+      tag,
+    );
   }
 });
 

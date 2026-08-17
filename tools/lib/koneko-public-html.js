@@ -134,10 +134,15 @@ function balancedElementsByClass(html, className) {
     },
     onClose({ tag, start }) {
       const current = stack.at(-1);
-      if (!current || current.tag !== tag) return;
+      if (!current || current.tag !== tag) {
+        for (const element of stack) {
+          if (element.wanted) element.invalid = true;
+        }
+        return;
+      }
       stack.pop();
       if (current.hidden) hiddenDepth -= 1;
-      if (current.wanted) elements.push({
+      if (current.wanted && !current.invalid) elements.push({
         start: current.start,
         content: html.slice(current.contentStart, start),
         attributes: current.attributes,
