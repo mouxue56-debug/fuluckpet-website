@@ -12,6 +12,9 @@ const STATUS_TEXT = new Map([
 const YOUTUBE_ID = /(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:[^\s#]*?&)?v=|embed\/|shorts\/))([A-Za-z0-9_-]{11})(?:[?&#/]|$)/i;
 const VOID_HTML_TAGS = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
 const NON_VISIBLE_TEXT_TAGS = new Set(['script', 'style', 'template']);
+const HTML_TEXT_ELEMENTS = new Set(['script', 'style', 'title', 'textarea', 'xmp', 'iframe', 'noembed', 'noframes', 'noscript']);
+const HTML_WHITESPACE = /[\t\n\f\r ]/;
+const HTML_WHITESPACE_SPLIT = /[\t\n\f\r ]+/;
 const FULUCK_ORIGIN = 'https://fuluckpet.com';
 const FULUCK_LOCALES = new Set(['ja', 'en', 'zh']);
 
@@ -80,39 +83,204 @@ function extractElementByClass(html, className) {
   return balancedElementContent(html, match) ?? html.slice(match.index + match[0].length);
 }
 
+function isHtmlWhitespace(value) {
+  return typeof value === 'string' && value.length === 1 && HTML_WHITESPACE.test(value);
+}
+
+function htmlTagEnd(html, start) {
+  let quote = '';
+  for (let index = start; index < html.length; index += 1) {
+    const character = html[index];
+    if (quote) {
+      if (character === quote) quote = '';
+    } else if (character === '"' || character === "'") {
+      quote = character;
+    } else if (character === '>') {
+      return index + 1;
+    }
+  }
+  return -1;
+}
+
+function htmlTagAt(html, start) {
+  if (html[start] !== '<') return null;
+  let cursor = start + 1;
+  const closing = html[cursor] === '/';
+  if (closing) cursor += 1;
+  if (!/[A-Za-z]/.test(html[cursor] || '')) return null;
+  const nameStart = cursor;
+  while (/[A-Za-z0-9:-]/.test(html[cursor] || '')) cursor += 1;
+  if (!(isHtmlWhitespace(html[cursor]) || html[cursor] === '/' || html[cursor] === '>')) return null;
+  const end = htmlTagEnd(html, start);
+  if (end === -1) return { incomplete: true };
+  const attributes = html.slice(cursor, end - 1);
+  const tag = html.slice(nameStart, cursor).toLowerCase();
+  return {
+    closing,
+    tag,
+    attributes,
+    start,
+    end,
+    selfClosing: !closing && (VOID_HTML_TAGS.has(tag) || /\/\s*$/.test(attributes)),
+  };
+}
+
+function htmlAttributes(source) {
+  const attributes = new Map();
+  let cursor = 0;
+  while (cursor < source.length) {
+    while (isHtmlWhitespace(source[cursor])) cursor += 1;
+    if (cursor === source.length) return attributes;
+    if (source[cursor] === '/') {
+      return source.slice(cursor + 1).split('').every(isHtmlWhitespace) ? attributes : null;
+    }
+    if (/["'=<>`]/.test(source[cursor])) return null;
+    const nameStart = cursor;
+    while (cursor < source.length && !isHtmlWhitespace(source[cursor]) && !/["'=<>`]/.test(source[cursor])) cursor += 1;
+    const name = source.slice(nameStart, cursor).toLowerCase();
+    if (!name || attributes.has(name)) return null;
+    while (isHtmlWhitespace(source[cursor])) cursor += 1;
+    let value = '';
+    let hasValue = false;
+    if (source[cursor] === '=') {
+      hasValue = true;
+      cursor += 1;
+      while (isHtmlWhitespace(source[cursor])) cursor += 1;
+      const quote = source[cursor];
+      if (quote === '"' || quote === "'") {
+        cursor += 1;
+        const valueStart = cursor;
+        while (cursor < source.length && source[cursor] !== quote) cursor += 1;
+        if (cursor === source.length) return null;
+        value = source.slice(valueStart, cursor);
+        cursor += 1;
+      } else {
+        const valueStart = cursor;
+        while (cursor < source.length && !isHtmlWhitespace(source[cursor])) {
+          if (/["'<>=`]/.test(source[cursor])) return null;
+          cursor += 1;
+        }
+        if (valueStart === cursor) return null;
+        value = source.slice(valueStart, cursor);
+      }
+    }
+    attributes.set(name, { value, hasValue });
+  }
+  return attributes;
+}
+
+function textElementClose(html, tag, start) {
+  const closing = new RegExp(`</${escRegExp(tag)}(?=[\\t\\n\\f\\r \/>])`, 'ig');
+  closing.lastIndex = start;
+  let match;
+  while ((match = closing.exec(html))) {
+    const token = htmlTagAt(html, match.index);
+    if (token?.incomplete) return null;
+    if (token?.closing && token.tag === tag) return token;
+  }
+  return null;
+}
+
+function templateClose(html, start) {
+  let cursor = start;
+  let depth = 1;
+  while (cursor < html.length) {
+    const tokenStart = html.indexOf('<', cursor);
+    if (tokenStart === -1) return null;
+    if (html.startsWith('<!--', tokenStart)) {
+      const commentEnd = html.indexOf('-->', tokenStart + 4);
+      if (commentEnd === -1) return null;
+      cursor = commentEnd + 3;
+      continue;
+    }
+    if (html.startsWith('<!', tokenStart) || html.startsWith('<?', tokenStart)) {
+      const end = htmlTagEnd(html, tokenStart);
+      if (end === -1) return null;
+      cursor = end;
+      continue;
+    }
+    const token = htmlTagAt(html, tokenStart);
+    if (token?.incomplete) return null;
+    if (!token) {
+      cursor = tokenStart + 1;
+      continue;
+    }
+    if (token.closing) {
+      if (token.tag === 'template') {
+        depth -= 1;
+        if (depth === 0) return token;
+      }
+      cursor = token.end;
+      continue;
+    }
+    if (token.tag === 'plaintext') return null;
+    if (token.tag === 'template') {
+      depth += 1;
+      cursor = token.end;
+      continue;
+    }
+    if (!token.selfClosing && HTML_TEXT_ELEMENTS.has(token.tag)) {
+      const close = textElementClose(html, token.tag, token.end);
+      if (!close) return null;
+      cursor = close.end;
+      continue;
+    }
+    cursor = token.end;
+  }
+  return null;
+}
+
 function hasClassToken(attributes, className) {
-  const value = attributes.match(/\bclass\s*=\s*(["'])([\s\S]*?)\1/i)?.[2];
-  return value?.split(/[\t\n\f\r ]+/).some(token => token.toLowerCase() === className.toLowerCase()) ?? false;
+  const value = htmlAttributes(attributes)?.get('class');
+  return value?.hasValue && value.value.split(HTML_WHITESPACE_SPLIT).some(token => token.toLowerCase() === className.toLowerCase());
 }
 
 function walkHtml(html, { onOpen, onClose, onText } = {}) {
-  const token = /<!--[\s\S]*?-->|<(\/)?([a-z][a-z0-9]*)([^>]*)>/gi;
+  const source = String(html ?? '');
   let cursor = 0;
-  let match;
-  while ((match = token.exec(html))) {
-    onText?.(html.slice(cursor, match.index));
-    cursor = token.lastIndex;
-    if (match[0].startsWith('<!--')) continue;
-    const closing = match[1] === '/';
-    const tag = match[2].toLowerCase();
-    const attributes = match[3] || '';
-    const selfClosing = /\/\s*$/.test(attributes) || VOID_HTML_TAGS.has(tag);
-    if (closing) {
-      onClose?.({ tag, start: match.index, end: token.lastIndex });
+  while (cursor < source.length) {
+    const tokenStart = source.indexOf('<', cursor);
+    if (tokenStart === -1) {
+      onText?.(source.slice(cursor));
+      return true;
+    }
+    onText?.(source.slice(cursor, tokenStart));
+    if (source.startsWith('<!--', tokenStart)) {
+      const commentEnd = source.indexOf('-->', tokenStart + 4);
+      if (commentEnd === -1) return false;
+      cursor = commentEnd + 3;
       continue;
     }
-    onOpen?.({ tag, attributes, start: match.index, end: token.lastIndex, selfClosing });
-    if (!selfClosing && NON_VISIBLE_TEXT_TAGS.has(tag)) {
-      const rawClose = new RegExp(`</${escRegExp(tag)}\\s*>`, 'ig');
-      rawClose.lastIndex = token.lastIndex;
-      const close = rawClose.exec(html);
-      if (!close) return;
-      onClose?.({ tag, start: close.index, end: rawClose.lastIndex });
-      token.lastIndex = rawClose.lastIndex;
-      cursor = rawClose.lastIndex;
+    if (source.startsWith('<!', tokenStart) || source.startsWith('<?', tokenStart)) {
+      const end = htmlTagEnd(source, tokenStart);
+      if (end === -1) return false;
+      cursor = end;
+      continue;
+    }
+    const token = htmlTagAt(source, tokenStart);
+    if (token?.incomplete) return false;
+    if (!token) {
+      onText?.('<');
+      cursor = tokenStart + 1;
+      continue;
+    }
+    cursor = token.end;
+    if (token.closing) {
+      onClose?.(token);
+      continue;
+    }
+    onOpen?.(token);
+    if (token.selfClosing) continue;
+    const close = token.tag === 'template'
+      ? templateClose(source, token.end)
+      : HTML_TEXT_ELEMENTS.has(token.tag) ? textElementClose(source, token.tag, token.end) : null;
+    if ((token.tag === 'template' || HTML_TEXT_ELEMENTS.has(token.tag)) && !close) return false;
+    if (close) {
+      onClose?.(close);
+      cursor = close.end;
     }
   }
-  onText?.(html.slice(cursor));
+  return true;
 }
 
 function balancedElementsByClass(html, className) {
@@ -214,6 +382,66 @@ function productJsonLd(html) {
   return products[0];
 }
 
+function hasSchemaType(value, type) {
+  if (!value || typeof value !== 'object') return false;
+  const schemaType = value['@type'];
+  return schemaType === type || (Array.isArray(schemaType) && schemaType.includes(type));
+}
+
+function schemaNodes(value, type, nodes = []) {
+  if (!value || typeof value !== 'object') return nodes;
+  if (hasSchemaType(value, type)) nodes.push(value);
+  for (const child of Object.values(value)) schemaNodes(child, type, nodes);
+  return nodes;
+}
+
+function fuluckProductJsonLd(html) {
+  const scripts = [];
+  let malformedScript = false;
+  let activeScript = null;
+  const complete = walkHtml(html, {
+    onOpen({ tag, attributes, end, selfClosing }) {
+      if (tag !== 'script') return;
+      const values = htmlAttributes(attributes);
+      if (!values) {
+        malformedScript = true;
+        return;
+      }
+      const type = values.get('type');
+      if (!type?.hasValue || type.value !== 'application/ld+json') return;
+      if (selfClosing) {
+        malformedScript = true;
+        return;
+      }
+      activeScript = { contentStart: end };
+    },
+    onClose({ tag, start }) {
+      if (tag !== 'script' || !activeScript) return;
+      scripts.push(html.slice(activeScript.contentStart, start));
+      activeScript = null;
+    },
+  });
+  if (!complete || malformedScript) throw new Error('Fuluck Product JSON-LD identity is invalid');
+
+  const entities = [];
+  for (const script of scripts) {
+    try {
+      entities.push(JSON.parse(script.trim()));
+    } catch {
+      throw new Error('Fuluck Product JSON-LD identity is malformed');
+    }
+  }
+  const products = schemaNodes(entities, 'Product');
+  const offers = schemaNodes(entities, 'Offer');
+  if (products.length !== 1 || offers.length !== 1) {
+    throw new Error('Fuluck Product JSON-LD identity is ambiguous');
+  }
+  if (products[0].offers !== offers[0]) {
+    throw new Error('Fuluck Product JSON-LD Offer identity is invalid');
+  }
+  return products[0];
+}
+
 function scriptValue(product, key) {
   return product && product[key];
 }
@@ -311,10 +539,26 @@ function longDescription(html, { koneko = false } = {}) {
   return decodeHtmlText(content.replace(/<h[1-6]\b[^>]*>[\s\S]*?<\/h[1-6]\s*>/gi, ''), { preserveBreaks: true });
 }
 
+function isExactCanonicalRel(attribute) {
+  const tokens = attribute?.hasValue ? attribute.value.split(HTML_WHITESPACE_SPLIT).filter(Boolean) : [];
+  return tokens.length === 1 && tokens[0].toLowerCase() === 'canonical';
+}
+
 function canonicalHref(html) {
-  const canonical = html.match(/<link\b[^>]*\brel\s*=\s*["']canonical["'][^>]*\bhref\s*=\s*["']([^"']+)["']/i)
-    || html.match(/<link\b[^>]*\bhref\s*=\s*["']([^"']+)["'][^>]*\brel\s*=\s*["']canonical["']/i);
-  return canonical?.[1] || '';
+  const canonicals = [];
+  let malformedLink = false;
+  const complete = walkHtml(html, {
+    onOpen({ tag, attributes }) {
+      if (tag !== 'link') return;
+      const values = htmlAttributes(attributes);
+      if (!values) {
+        malformedLink = true;
+        return;
+      }
+      if (isExactCanonicalRel(values.get('rel'))) canonicals.push(values.get('href')?.hasValue ? values.get('href').value : '');
+    },
+  });
+  return complete && !malformedLink && canonicals.length === 1 ? canonicals[0] : '';
 }
 
 function detailUrl(html, pageUrl) {
@@ -464,7 +708,7 @@ export function parseKonekoDetailPage(html, { expectedAccountId, expectedBreeder
 
 export function parseFuluckDetailPage(html, { expectedBreederId, locale, pageUrl } = {}) {
   if (!nonBlank(expectedBreederId) || !nonBlank(locale) || !nonBlank(pageUrl)) throw new Error('detail options are required');
-  const product = productJsonLd(html);
+  const product = fuluckProductJsonLd(html);
   const sku = typeof scriptValue(product, 'sku') === 'string' ? scriptValue(product, 'sku') : '';
   const url = detailUrl(html, pageUrl);
   if (!hasExactFuluckIdentity(html, product, { expectedBreederId, locale, pageUrl })) {

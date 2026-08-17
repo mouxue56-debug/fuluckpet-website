@@ -255,7 +255,7 @@ test('crawlKonekoAccount types Koneko detail identity failures with breeder cont
 function fuluckDetail(id, locale) {
   const prefix = locale === 'ja' ? '' : `/${locale}`;
   const pageUrl = `${FULUCK_ORIGIN}${prefix}/kittens/${id}.html`;
-  return `<html><head><link rel="canonical" href="${pageUrl}"><script type="application/ld+json">${JSON.stringify({ '@type': 'Product', '@id': `${FULUCK_ORIGIN}/kittens/${id}.html#product`, sku: id, image: [`${KONEKO_ORIGIN}/breeder/data/c995680/child.jpg`], offers: { price: '230000', url: pageUrl } })}</script></head><body><table><tr><th>品種</th><td>${locale}</td></tr></table><section class="kitten-detail-introduction"><p>ok</p></section></body></html>`;
+  return `<html><head><link rel="canonical" href="${pageUrl}"><script type="application/ld+json">${JSON.stringify({ '@type': 'Product', '@id': `${FULUCK_ORIGIN}/kittens/${id}.html#product`, image: [`${KONEKO_ORIGIN}/breeder/data/c995680/child.jpg`], offers: { '@type': 'Offer', price: '230000', url: pageUrl } })}</script></head><body><table><tr><th>品種</th><td>${locale}</td></tr></table><section class="kitten-detail-introduction"><p>ok</p></section></body></html>`;
 }
 
 const CLOUDFLARE_TAIL_PARTS = Object.freeze({
@@ -305,7 +305,7 @@ test('Fuluck rendered transport strips only one proven final inline Cloudflare s
   assert.equal(fetched.text.includes('__CF$cv$params'), false);
 });
 
-test('readFuluckPublicTarget parses all locales after removing only the proven tail injection', async () => {
+test('readFuluckPublicTarget parses all generated no-SKU locales after removing only the proven tail injection', async () => {
   const api = `${API_ORIGIN}/api/kittens`;
   const result = await readFuluckPublicTarget({
     activeIds: ['2608-00001'],
