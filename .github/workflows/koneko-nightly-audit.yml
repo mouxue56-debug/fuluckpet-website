@@ -1,0 +1,60 @@
+name: Koneko Nightly Read-Only Audit
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 11 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: koneko-nightly-read-only-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: '.node-version'
+
+      - name: Run focused Koneko audit tests
+        run: node --test tests/koneko-public-html.test.js tests/koneko-public-crawl.test.js tests/koneko-catalog-audit.test.js tests/koneko-audit-cli.test.js tests/workflow-integrity.test.js
+
+      - name: Run Koneko catalogue audit
+        id: audit
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/koneko-nightly-audit"
+          set +e
+          node tools/audit-koneko-catalog.js \
+            --json "$RUNNER_TEMP/koneko-nightly-audit/audit.json" \
+            --markdown "$RUNNER_TEMP/koneko-nightly-audit/audit.md"
+          status=$?
+          set -e
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+
+      - name: Append Koneko audit summary
+        if: always()
+        run: |
+          cat "$RUNNER_TEMP/koneko-nightly-audit/audit.md" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Koneko audit
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: koneko-nightly-audit-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/koneko-nightly-audit/audit.json
+            ${{ runner.temp }}/koneko-nightly-audit/audit.md
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Re-emit Koneko audit status
+        if: always()
+        run: exit "${{ steps.audit.outputs.status }}"

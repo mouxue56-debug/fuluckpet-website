@@ -20,6 +20,13 @@ const seoGeoWorkflowPath = path.resolve(
 const seoGeoWorkflow = fs.existsSync(seoGeoWorkflowPath)
   ? fs.readFileSync(seoGeoWorkflowPath, 'utf8')
   : '';
+const konekoWorkflowPath = path.resolve(
+  __dirname,
+  '../.github/workflows/koneko-nightly-audit.yml',
+);
+const konekoWorkflow = fs.existsSync(konekoWorkflowPath)
+  ? fs.readFileSync(konekoWorkflowPath, 'utf8')
+  : '';
 const nodeVersion = fs.readFileSync(
   path.resolve(__dirname, '../.node-version'),
   'utf8',
@@ -264,6 +271,56 @@ function assertSeoGeoWorkflowPolicy(source) {
   ]);
 }
 
+function assertKonekoWorkflowPolicy(source) {
+  assert.match(source, /cron:\s*['"]0 11 \* \* \*['"]/);
+  assert.match(source, /workflow_dispatch:/);
+  assert.match(source, /permissions:\s*\n\s*contents:\s*read/);
+  assertReadOnlyPermissions(source);
+  assert.match(source, /timeout-minutes:\s*15/);
+  assert.match(source, /concurrency:\s*\n\s*group:\s*koneko-nightly-read-only-audit\s*\n\s*cancel-in-progress:\s*false/);
+  assert.match(source, /node-version-file:\s*['"]?\.node-version['"]?/);
+  assert.match(source, new RegExp(`${CHECKOUT.replace('/', '\\/')}\\s+#\\s+v4`));
+  assert.match(source, new RegExp(`${SETUP_NODE.replace('/', '\\/')}\\s+#\\s+v4`));
+  assert.match(source, new RegExp(`${UPLOAD.replace('/', '\\/')}\\s+#\\s+v4\\.6\\.2`));
+  assert.match(
+    source,
+    /node --test tests\/koneko-public-html\.test\.js tests\/koneko-public-crawl\.test\.js tests\/koneko-catalog-audit\.test\.js tests\/koneko-audit-cli\.test\.js tests\/workflow-integrity\.test\.js/,
+  );
+  assert.match(
+    source,
+    /node tools\/audit-koneko-catalog\.js\s*\\\s*\n\s*--json "\$RUNNER_TEMP\/koneko-nightly-audit\/audit\.json"\s*\\\s*\n\s*--markdown "\$RUNNER_TEMP\/koneko-nightly-audit\/audit\.md"/,
+  );
+  assert.match(source, /retention-days:\s*14/);
+
+  const summaryStep = getNamedStepBlock(source, 'Append Koneko audit summary');
+  assert.deepEqual(getStepMappingValues(summaryStep, 'if'), ['always()']);
+  assert.match(getLiteralRunScript(summaryStep), /audit\.md.*GITHUB_STEP_SUMMARY/);
+  const uploadStep = getNamedStepBlock(source, 'Upload Koneko audit');
+  assert.deepEqual(getStepMappingValues(uploadStep, 'if'), ['always()']);
+  assert.deepEqual(getStepMappingValues(uploadStep, 'uses'), [UPLOAD]);
+  const reemitStep = getNamedStepBlock(source, 'Re-emit Koneko audit status');
+  assert.deepEqual(getStepMappingValues(reemitStep, 'if'), ['always()']);
+  assert.deepEqual(
+    getStepMappingValues(reemitStep, 'run'),
+    ['exit "${{ steps.audit.outputs.status }}"'],
+  );
+
+  assertAppearsInOrder(source, [
+    'node --test tests/koneko-public-html.test.js tests/koneko-public-crawl.test.js tests/koneko-catalog-audit.test.js tests/koneko-audit-cli.test.js tests/workflow-integrity.test.js',
+    'node tools/audit-koneko-catalog.js',
+    '- name: Append Koneko audit summary',
+    '- name: Upload Koneko audit',
+    '- name: Re-emit Koneko audit status',
+  ]);
+  for (const forbidden of [
+    'secrets.', 'FULUCK_ADMIN', 'cursor-agent', 'grok',
+    'codex exec', 'wrangler', 'repository_dispatch', 'openai', 'anthropic',
+  ]) {
+    assert.equal(source.includes(forbidden), false, `forbidden workflow capability: ${forbidden}`);
+  }
+  assert.doesNotMatch(source, /contents:\s*write|git\s+(?:push|commit)|\b(?:POST|PUT|PATCH|DELETE)\b/);
+}
+
 function replaceExactlyOnce(source, before, after) {
   assert.equal(
     source.split(before).length - 1,
@@ -310,7 +367,7 @@ test('GitHub-maintained actions use the exact reviewed immutable SHAs', () => {
     ['actions/upload-artifact', UPLOAD],
   ]);
 
-  for (const source of [workflow, qualityWorkflow, seoGeoWorkflow]) {
+  for (const source of [workflow, qualityWorkflow, seoGeoWorkflow, konekoWorkflow]) {
     for (const match of source.matchAll(/actions\/(?:checkout|setup-node|upload-artifact)@[^\s]+/g)) {
       const action = match[0].slice(0, match[0].indexOf('@'));
       assert.equal(match[0], approvedActions.get(action));
@@ -319,6 +376,10 @@ test('GitHub-maintained actions use the exact reviewed immutable SHAs', () => {
     assert.match(source, new RegExp(`${CHECKOUT.replace('/', '\\/')}\\s+#\\s+v4`));
     assert.match(source, new RegExp(`${SETUP_NODE.replace('/', '\\/')}\\s+#\\s+v4`));
   }
+});
+
+test('Koneko nightly audit is anonymous, read-only, scheduled at 20:00 JST, and preserves receipts before failing', () => {
+  assertKonekoWorkflowPolicy(konekoWorkflow);
 });
 
 test('regeneration workflow keeps both generators and integrity verification before commit', () => {
