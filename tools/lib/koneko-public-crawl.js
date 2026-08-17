@@ -7,6 +7,7 @@ import {
 } from './koneko-public-html.js';
 
 const MAX_BODY_BYTES = 2 * 1024 * 1024;
+const MAX_CLOUDFLARE_TAIL_SCRIPT_BYTES = 4 * 1024;
 const REQUEST_TIMEOUT_MS = 15_000;
 const MAX_RETRIES = 2;
 const USER_AGENT = 'FuluckKonekoReadOnlyAudit/1.0';
@@ -36,6 +37,39 @@ const FAILURE_REASONS = new Set([
   'public_request_failed',
 ]);
 const GENERIC_BLOCKER = 'Public catalogue evidence could not be completed.';
+const FULUCK_RENDERED_PATH = /^\/(?:en\/|zh\/)?kittens\/\d{4}-\d{5}\.html$/;
+const CLOUDFLARE_TAIL_SIGNATURES = Object.freeze([
+  value => /challenge-platform/i.test(value),
+  value => value.includes('__CF$cv$params'),
+  value => /\bcreateElement\s*\(\s*(['"])iframe\1\s*\)/i.test(value),
+]);
+
+function hasAnyCloudflareTailSignature(value) {
+  return CLOUDFLARE_TAIL_SIGNATURES.some(matches => matches(value));
+}
+
+function stripProvenFuluckTailInjection(text) {
+  if (!hasAnyCloudflareTailSignature(text)) return text;
+  const scripts = [...text.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)]
+    .filter(match => hasAnyCloudflareTailSignature(match[0]));
+  if (scripts.length !== 1) throw new Error('challenge or interstitial response');
+
+  const candidate = scripts[0];
+  const attributes = candidate[1];
+  const body = candidate[2];
+  const start = candidate.index;
+  const end = start + candidate[0].length;
+  const suffix = text.slice(end);
+  const outside = `${text.slice(0, start)}${suffix}`;
+  if (/(?:^|[\t\n\f\r ])src(?:[\t\n\f\r ]|=|$)/i.test(attributes)
+    || Buffer.byteLength(candidate[0], 'utf8') > MAX_CLOUDFLARE_TAIL_SCRIPT_BYTES
+    || !CLOUDFLARE_TAIL_SIGNATURES.every(matches => matches(body))
+    || hasAnyCloudflareTailSignature(outside)
+    || !/^[\t\n\f\r ]*<\/body\s*>[\t\n\f\r ]*<\/html\s*>[\t\n\f\r ]*$/i.test(suffix)) {
+    throw new Error('challenge or interstitial response');
+  }
+  return outside;
+}
 
 function exactDiagnosticUrl(stage, value, context) {
   let url;
@@ -197,6 +231,7 @@ async function fetchApprovedText(url, {
   acceptedContentTypes = ['text/html'],
   expectedFinalUrl,
   allowExactTarget404 = false,
+  stripFuluckTail = false,
 } = {}) {
   const requested = checkedUrl(url);
   if (typeof fetchImpl !== 'function') throw new Error('fetch implementation is required');
@@ -243,7 +278,10 @@ async function fetchApprovedText(url, {
   }
   const contentType = response.headers?.get?.('content-type') || '';
   if (!contentTypeAllowed(contentType, acceptedContentTypes)) throw new Error(`public response content type is not allowed: ${contentType || '(missing)'}`);
-  const text = await readBoundedText(response);
+  let text = await readBoundedText(response);
+  if (stripFuluckTail && response.status >= 200 && response.status < 300) {
+    text = stripProvenFuluckTailInjection(text);
+  }
   if (CHALLENGE_MARKERS.test(text)) throw new Error('challenge or interstitial response');
   return {
     url: finalUrl.href,
@@ -372,13 +410,15 @@ function localeUrl(breederId, locale) {
   return `${FULUCK_ORIGIN}${prefix}/kittens/${encodeURIComponent(breederId)}.html`;
 }
 
-async function fetchFuluckRenderedTarget(url, fetchImpl) {
+export async function fetchFuluckRenderedTarget(url, fetchImpl) {
   const target = checkedUrl(url);
-  if (target.origin !== FULUCK_ORIGIN) throw new Error('Fuluck rendered target URL is invalid');
+  if (target.origin !== FULUCK_ORIGIN || target.username || target.password || target.search || target.hash
+    || !FULUCK_RENDERED_PATH.test(target.pathname)) throw new Error('Fuluck rendered target URL is invalid');
   return fetchApprovedText(target.href, {
     fetchImpl,
     expectedFinalUrl: target.href,
     allowExactTarget404: true,
+    stripFuluckTail: true,
   });
 }
 

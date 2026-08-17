@@ -256,6 +256,134 @@ function fuluckDetail(id, locale) {
   return `<html><head><link rel="canonical" href="${FULUCK_ORIGIN}/kittens/${id}.html"><script type="application/ld+json">${JSON.stringify({ '@type': 'Product', sku: id, image: [`${KONEKO_ORIGIN}/breeder/data/c995680/child.jpg`], offers: { price: '230000' } })}</script></head><body><table><tr><th>品種</th><td>${locale}</td></tr></table><section class="kitten-detail-introduction"><p>ok</p></section></body></html>`;
 }
 
+const CLOUDFLARE_TAIL_PARTS = Object.freeze({
+  challenge: "var path='/cdn-cgi/challenge-platform/scripts/jsd/main.js';",
+  params: "window.__CF$cv$params={r:'fixture'};",
+  iframe: "document.createElement('iframe');",
+});
+
+function cloudflareTailScript({ omit = '', attributes = '', padding = 0 } = {}) {
+  const body = Object.entries(CLOUDFLARE_TAIL_PARTS)
+    .filter(([name]) => name !== omit)
+    .map(([, value]) => value)
+    .join('');
+  return `<script${attributes}>${body}${'x'.repeat(padding)}</script>`;
+}
+
+function appendBeforeDocumentClose(html, ...scripts) {
+  return html.replace('</body></html>', `${scripts.join('')}</body></html>`);
+}
+
+async function expectFuluckRenderedBlocked(body) {
+  const api = `${API_ORIGIN}/api/kittens`;
+  await assert.rejects(
+    readFuluckPublicTarget({
+      activeIds: ['2608-00001'],
+      fetchImpl: async url => url === api
+        ? publicResponse({ body: JSON.stringify([{ breederId: '2608-00001' }]), contentType: 'application/json', url })
+        : publicResponse({ body, url }),
+    }),
+    error => assertSafeFailure(error, { stage: 'fuluck_rendered' }),
+  );
+}
+
+test('Fuluck rendered transport strips only one proven final inline Cloudflare script before hashing', async () => {
+  const url = `${FULUCK_ORIGIN}/kittens/2608-00001.html`;
+  const clean = fuluckDetail('2608-00001', 'ja');
+  const injected = appendBeforeDocumentClose(clean, cloudflareTailScript());
+
+  const fetched = await publicCrawl.fetchFuluckRenderedTarget(
+    url,
+    async requested => publicResponse({ body: injected, url: requested }),
+  );
+
+  assert.equal(fetched.text, clean);
+  assert.equal(fetched.sha256, createHash('sha256').update(clean).digest('hex'));
+  assert.equal(fetched.text.includes('challenge-platform'), false);
+  assert.equal(fetched.text.includes('__CF$cv$params'), false);
+});
+
+test('readFuluckPublicTarget parses all locales after removing only the proven tail injection', async () => {
+  const api = `${API_ORIGIN}/api/kittens`;
+  const result = await readFuluckPublicTarget({
+    activeIds: ['2608-00001'],
+    fetchImpl: async url => {
+      if (url === api) return publicResponse({
+        body: JSON.stringify([{ breederId: '2608-00001' }]),
+        contentType: 'application/json',
+        url,
+      });
+      const locale = url.includes('/en/') ? 'en' : url.includes('/zh/') ? 'zh' : 'ja';
+      return publicResponse({
+        body: appendBeforeDocumentClose(fuluckDetail('2608-00001', locale), cloudflareTailScript()),
+        url,
+      });
+    },
+  });
+
+  assert.deepEqual(result.renderedPages.map(({ breederId, locale, breed, description }) => ({ breederId, locale, breed, description })), [
+    { breederId: '2608-00001', locale: 'ja', breed: 'ja', description: 'ok' },
+    { breederId: '2608-00001', locale: 'en', breed: 'en', description: 'ok' },
+    { breederId: '2608-00001', locale: 'zh', breed: 'zh', description: 'ok' },
+  ]);
+});
+
+test('Fuluck rendered sanitization blocks every unproven Cloudflare-tail variant', async (t) => {
+  const clean = fuluckDetail('2608-00001', 'ja');
+  const candidate = cloudflareTailScript();
+  const fixtures = [
+    ['challenge-only page', `<html><body>${candidate}</body></html>`],
+    ['script before authoritative content', clean.replace('<table>', `${candidate}<table>`)],
+    ['missing challenge-platform signature', appendBeforeDocumentClose(clean, cloudflareTailScript({ omit: 'challenge' }))],
+    ['missing params signature', appendBeforeDocumentClose(clean, cloudflareTailScript({ omit: 'params' }))],
+    ['missing iframe signature', appendBeforeDocumentClose(clean, cloudflareTailScript({ omit: 'iframe' }))],
+    ['external script', appendBeforeDocumentClose(clean, cloudflareTailScript({ attributes: ' src="/cdn-cgi/challenge-platform/external.js"' }))],
+    ['boolean src script', appendBeforeDocumentClose(clean, cloudflareTailScript({ attributes: ' src' }))],
+    ['multiple candidates', appendBeforeDocumentClose(clean, candidate, candidate)],
+    ['oversized candidate', appendBeforeDocumentClose(clean, cloudflareTailScript({ padding: 16 * 1024 }))],
+    ['residual challenge marker', appendBeforeDocumentClose(clean.replace('<body>', '<body><div id="challenge-platform"></div>'), candidate)],
+  ];
+
+  for (const [name, body] of fixtures) {
+    await t.test(name, async () => expectFuluckRenderedBlocked(body));
+  }
+});
+
+test('generic Fuluck, Koneko, and API transports never strip the Cloudflare tail injection', async () => {
+  const injectedHtml = appendBeforeDocumentClose(fuluckDetail('2608-00001', 'ja'), cloudflareTailScript());
+  for (const [url, body, acceptedContentTypes, contentType] of [
+    [`${FULUCK_ORIGIN}/kittens/2608-00001.html`, injectedHtml, ['text/html'], 'text/html'],
+    [`${KONEKO_ORIGIN}/cat2608-00001.html`, injectedHtml, ['text/html'], 'text/html'],
+    [`${API_ORIGIN}/api/kittens`, `${JSON.stringify([])}${cloudflareTailScript()}`, ['application/json'], 'application/json'],
+  ]) {
+    await assert.rejects(
+      fetchPublicText(url, {
+        acceptedContentTypes,
+        fetchImpl: async requested => publicResponse({ body, contentType, url: requested }),
+      }),
+      /challenge|interstitial/i,
+    );
+  }
+});
+
+test('Fuluck rendered transport refuses non-detail paths before requesting them', async () => {
+  for (const url of [
+    `${FULUCK_ORIGIN}/`,
+    `${FULUCK_ORIGIN}/kittens/2608-00001.html?preview=1`,
+    `${FULUCK_ORIGIN}/fr/kittens/2608-00001.html`,
+  ]) {
+    let requested = false;
+    await assert.rejects(
+      publicCrawl.fetchFuluckRenderedTarget(url, async () => {
+        requested = true;
+        return publicResponse({ url });
+      }),
+      /rendered target URL/i,
+    );
+    assert.equal(requested, false);
+  }
+});
+
 test('readFuluckPublicTarget reads the public API and exactly three locale pages for every source-active target ID', async () => {
   const api = `${API_ORIGIN}/api/kittens`;
   const ja = `${FULUCK_ORIGIN}/kittens/2608-00001.html`;
