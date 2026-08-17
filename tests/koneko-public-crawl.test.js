@@ -253,7 +253,9 @@ test('crawlKonekoAccount types Koneko detail identity failures with breeder cont
 });
 
 function fuluckDetail(id, locale) {
-  return `<html><head><link rel="canonical" href="${FULUCK_ORIGIN}/kittens/${id}.html"><script type="application/ld+json">${JSON.stringify({ '@type': 'Product', sku: id, image: [`${KONEKO_ORIGIN}/breeder/data/c995680/child.jpg`], offers: { price: '230000' } })}</script></head><body><table><tr><th>品種</th><td>${locale}</td></tr></table><section class="kitten-detail-introduction"><p>ok</p></section></body></html>`;
+  const prefix = locale === 'ja' ? '' : `/${locale}`;
+  const pageUrl = `${FULUCK_ORIGIN}${prefix}/kittens/${id}.html`;
+  return `<html><head><link rel="canonical" href="${pageUrl}"><script type="application/ld+json">${JSON.stringify({ '@type': 'Product', '@id': `${FULUCK_ORIGIN}/kittens/${id}.html#product`, sku: id, image: [`${KONEKO_ORIGIN}/breeder/data/c995680/child.jpg`], offers: { price: '230000', url: pageUrl } })}</script></head><body><table><tr><th>品種</th><td>${locale}</td></tr></table><section class="kitten-detail-introduction"><p>ok</p></section></body></html>`;
 }
 
 const CLOUDFLARE_TAIL_PARTS = Object.freeze({

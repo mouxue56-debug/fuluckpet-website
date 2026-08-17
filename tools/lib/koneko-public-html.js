@@ -12,6 +12,8 @@ const STATUS_TEXT = new Map([
 const YOUTUBE_ID = /(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:[^\s#]*?&)?v=|embed\/|shorts\/))([A-Za-z0-9_-]{11})(?:[?&#/]|$)/i;
 const VOID_HTML_TAGS = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
 const NON_VISIBLE_TEXT_TAGS = new Set(['script', 'style', 'template']);
+const FULUCK_ORIGIN = 'https://fuluckpet.com';
+const FULUCK_LOCALES = new Set(['ja', 'en', 'zh']);
 
 function nonBlank(value) {
   return typeof value === 'string' && value.trim() !== '';
@@ -309,10 +311,34 @@ function longDescription(html, { koneko = false } = {}) {
   return decodeHtmlText(content.replace(/<h[1-6]\b[^>]*>[\s\S]*?<\/h[1-6]\s*>/gi, ''), { preserveBreaks: true });
 }
 
-function detailUrl(html, pageUrl) {
+function canonicalHref(html) {
   const canonical = html.match(/<link\b[^>]*\brel\s*=\s*["']canonical["'][^>]*\bhref\s*=\s*["']([^"']+)["']/i)
     || html.match(/<link\b[^>]*\bhref\s*=\s*["']([^"']+)["'][^>]*\brel\s*=\s*["']canonical["']/i);
-  return absoluteUrl(canonical?.[1] || pageUrl, pageUrl);
+  return canonical?.[1] || '';
+}
+
+function detailUrl(html, pageUrl) {
+  return absoluteUrl(canonicalHref(html) || pageUrl, pageUrl);
+}
+
+function expectedFuluckPageUrl(expectedBreederId, locale) {
+  if (!FULUCK_LOCALES.has(locale)) return '';
+  const prefix = locale === 'ja' ? '' : `/${locale}`;
+  return `${FULUCK_ORIGIN}${prefix}/kittens/${expectedBreederId}.html`;
+}
+
+function hasExactFuluckIdentity(html, product, { expectedBreederId, locale, pageUrl }) {
+  const expectedPageUrl = expectedFuluckPageUrl(expectedBreederId, locale);
+  if (!expectedPageUrl || pageUrl !== expectedPageUrl || canonicalHref(html) !== expectedPageUrl) return false;
+
+  if (Object.prototype.hasOwnProperty.call(product, 'sku')) {
+    return typeof product.sku === 'string' && product.sku === expectedBreederId;
+  }
+
+  const offers = product.offers;
+  return product['@id'] === `${FULUCK_ORIGIN}/kittens/${expectedBreederId}.html#product`
+    && offers && typeof offers === 'object' && !Array.isArray(offers)
+    && offers.url === expectedPageUrl;
 }
 
 function outerListItemEnd(html, contentStart) {
@@ -439,9 +465,9 @@ export function parseKonekoDetailPage(html, { expectedAccountId, expectedBreeder
 export function parseFuluckDetailPage(html, { expectedBreederId, locale, pageUrl } = {}) {
   if (!nonBlank(expectedBreederId) || !nonBlank(locale) || !nonBlank(pageUrl)) throw new Error('detail options are required');
   const product = productJsonLd(html);
-  const sku = String(scriptValue(product, 'sku') || '');
+  const sku = typeof scriptValue(product, 'sku') === 'string' ? scriptValue(product, 'sku') : '';
   const url = detailUrl(html, pageUrl);
-  if (!sku || sku !== expectedBreederId || !new RegExp(`(?:kittens|cat)\\/?${escRegExp(expectedBreederId)}(?:\\.html)?(?:$|[?#])`, 'i').test(url)) {
+  if (!hasExactFuluckIdentity(html, product, { expectedBreederId, locale, pageUrl })) {
     throw new Error(`Fuluck SKU/breeder mismatch: ${sku || '(missing)'}`);
   }
   const fields = detailFields(html, product, pageUrl);

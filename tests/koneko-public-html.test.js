@@ -338,16 +338,40 @@ test('fails closed when Product price evidence is missing or non-numeric', () =>
   assert.throws(() => parseKonekoDetailPage(konekoDetail({ price: 'not-a-number' }), KONEKO_DETAIL_OPTIONS), /price/i);
 });
 
-function fuluckDetail(locale = 'ja', { sku = '2608-00001' } = {}) {
+const FULUCK_BREEDER_ID = '2608-00001';
+
+function fuluckPageUrl(locale, breederId = FULUCK_BREEDER_ID) {
+  const prefix = locale === 'ja' ? '' : `/${locale}`;
+  return `https://fuluckpet.com${prefix}/kittens/${breederId}.html`;
+}
+
+function fuluckProductId(breederId = FULUCK_BREEDER_ID) {
+  return `https://fuluckpet.com/kittens/${breederId}.html#product`;
+}
+
+function fuluckDetail(locale = 'ja', options = {}) {
+  const breederId = options.breederId ?? FULUCK_BREEDER_ID;
+  const sku = Object.hasOwn(options, 'sku') ? options.sku : breederId;
+  const canonical = Object.hasOwn(options, 'canonical') ? options.canonical : fuluckPageUrl(locale, breederId);
+  const productId = Object.hasOwn(options, 'productId') ? options.productId : fuluckProductId(breederId);
+  const offerUrl = Object.hasOwn(options, 'offerUrl') ? options.offerUrl : fuluckPageUrl(locale, breederId);
+  const offers = Object.hasOwn(options, 'offers') ? options.offers : {
+    '@type': 'Offer',
+    price: '230000',
+    ...(offerUrl !== undefined ? { url: offerUrl } : {}),
+  };
   const product = {
-    '@context': 'https://schema.org', '@type': 'Product', ...(sku !== undefined ? { sku } : {}),
+    '@context': 'https://schema.org', '@type': 'Product',
+    ...(productId !== undefined ? { '@id': productId } : {}),
+    ...(sku !== undefined ? { sku } : {}),
     image: ['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_hash.jpg.webp', 'https://www.koneko-breeder.com/breeder/data/c995680/child_img_2_hash.jpg.webp'],
-    offers: { '@type': 'Offer', price: '230000' },
+    offers,
   };
   const text = locale === 'ja' ? ['サイベリアン', 'シルバータビー&ホワイト（トリプルコート）', '♂', '短い紹介', '一段落', '二段落']
     : locale === 'en' ? ['Siberian', 'Silver tabby & white', 'Male', 'Short note', 'First paragraph', 'Second paragraph']
       : ['Siberian', '银色虎斑白色', 'Male', '', '', ''];
-  return `<html lang="${locale}"><head><link rel="canonical" href="https://fuluckpet.com/kittens/2608-00001.html"><script type="application/ld+json">${JSON.stringify(product)}</script></head><body>
+  const canonicalLink = canonical === undefined || canonical === null ? '' : `<link rel="canonical" href="${canonical}">`;
+  return `<html lang="${locale}"><head>${canonicalLink}<script type="application/ld+json">${JSON.stringify(product)}</script></head><body>
     <table class="kitten-detail-table"><tr><th>品種</th><td>${text[0]}</td></tr><tr><th>毛色</th><td>${text[1]}</td></tr><tr><th>性別</th><td>${text[2]}</td></tr><tr><th>誕生日</th><td data-i18n-birthday="2026-05-09">Born 2026/5</td></tr><tr><th>備考</th><td>${text[3]}</td></tr></table>
     <section class="kitten-detail-introduction"><h2>Introduction</h2><p>${text[4]}</p><p>${text[5]}</p></section>
     <div class="kitten-detail-parents"><p><span>パパ猫</span>: <a>父猫</a></p><p><span>ママ猫</span>: <a>母猫</a></p></div><iframe src="https://www.youtube.com/embed/AbCdEfGhI12"></iframe>
@@ -355,25 +379,81 @@ function fuluckDetail(locale = 'ja', { sku = '2608-00001' } = {}) {
 }
 
 test('parses Fuluck JA, EN, and ZH pages with ordered images, identity, locale, and blank translations preserved', () => {
-  const ja = parseFuluckDetailPage(fuluckDetail('ja'), { expectedBreederId: '2608-00001', locale: 'ja', pageUrl: 'https://fuluckpet.com/kittens/2608-00001.html' });
+  const ja = parseFuluckDetailPage(fuluckDetail('ja'), { expectedBreederId: '2608-00001', locale: 'ja', pageUrl: fuluckPageUrl('ja') });
   assert.deepEqual(ja, {
     breederId: '2608-00001', locale: 'ja', breed: 'サイベリアン', color: 'シルバータビー&ホワイト（トリプルコート）', gender: '♂', price: 230000, birthday: '2026-05-09',
     photos: ['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_hash.jpg.webp', 'https://www.koneko-breeder.com/breeder/data/c995680/child_img_2_hash.jpg.webp'], videoId: 'AbCdEfGhI12', papa: '父猫', mama: '母猫', note: '短い紹介', description: '一段落\n\n二段落', detailUrl: 'https://fuluckpet.com/kittens/2608-00001.html',
   });
-  assert.deepEqual(parseFuluckDetailPage(fuluckDetail('en'), { expectedBreederId: '2608-00001', locale: 'en', pageUrl: 'https://fuluckpet.com/kittens/2608-00001.html' }), {
+  assert.deepEqual(parseFuluckDetailPage(fuluckDetail('en'), { expectedBreederId: '2608-00001', locale: 'en', pageUrl: fuluckPageUrl('en') }), {
     breederId: '2608-00001', locale: 'en', breed: 'Siberian', color: 'Silver tabby & white', gender: '♂', price: 230000, birthday: '2026-05-09',
-    photos: ['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_hash.jpg.webp', 'https://www.koneko-breeder.com/breeder/data/c995680/child_img_2_hash.jpg.webp'], videoId: 'AbCdEfGhI12', papa: '父猫', mama: '母猫', note: 'Short note', description: 'First paragraph\n\nSecond paragraph', detailUrl: 'https://fuluckpet.com/kittens/2608-00001.html',
+    photos: ['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_hash.jpg.webp', 'https://www.koneko-breeder.com/breeder/data/c995680/child_img_2_hash.jpg.webp'], videoId: 'AbCdEfGhI12', papa: '父猫', mama: '母猫', note: 'Short note', description: 'First paragraph\n\nSecond paragraph', detailUrl: 'https://fuluckpet.com/en/kittens/2608-00001.html',
   });
-  const zh = parseFuluckDetailPage(fuluckDetail('zh'), { expectedBreederId: '2608-00001', locale: 'zh', pageUrl: 'https://fuluckpet.com/kittens/2608-00001.html' });
+  const zh = parseFuluckDetailPage(fuluckDetail('zh'), { expectedBreederId: '2608-00001', locale: 'zh', pageUrl: fuluckPageUrl('zh') });
   assert.deepEqual(zh, {
     breederId: '2608-00001', locale: 'zh', breed: 'Siberian', color: '银色虎斑白色', gender: '♂', price: 230000, birthday: '2026-05-09',
-    photos: ['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_hash.jpg.webp', 'https://www.koneko-breeder.com/breeder/data/c995680/child_img_2_hash.jpg.webp'], videoId: 'AbCdEfGhI12', papa: '父猫', mama: '母猫', note: '', description: '', detailUrl: 'https://fuluckpet.com/kittens/2608-00001.html',
+    photos: ['https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_hash.jpg.webp', 'https://www.koneko-breeder.com/breeder/data/c995680/child_img_2_hash.jpg.webp'], videoId: 'AbCdEfGhI12', papa: '父猫', mama: '母猫', note: '', description: '', detailUrl: 'https://fuluckpet.com/zh/kittens/2608-00001.html',
   });
 });
 
-test('requires an exact Fuluck Product SKU even when the canonical URL matches', () => {
-  assert.throws(() => parseFuluckDetailPage(fuluckDetail('ja', { sku: '' }), { expectedBreederId: '2608-00001', locale: 'ja', pageUrl: 'https://fuluckpet.com/kittens/2608-00001.html' }), /SKU|breeder/i);
-  assert.throws(() => parseFuluckDetailPage(fuluckDetail('ja', { sku: '2608-00002' }), { expectedBreederId: '2608-00001', locale: 'ja', pageUrl: 'https://fuluckpet.com/kittens/2608-00001.html' }), /SKU|breeder/i);
+test('accepts no-SKU Fuluck Products only with the exact generated JA/EN/ZH bindings', () => {
+  for (const [locale, pageUrl] of [
+    ['ja', 'https://fuluckpet.com/kittens/2608-00001.html'],
+    ['en', 'https://fuluckpet.com/en/kittens/2608-00001.html'],
+    ['zh', 'https://fuluckpet.com/zh/kittens/2608-00001.html'],
+  ]) {
+    const page = parseFuluckDetailPage(fuluckDetail(locale, { sku: undefined }), {
+      expectedBreederId: '2608-00001', locale, pageUrl,
+    });
+    assert.deepEqual(
+      { breederId: page.breederId, locale: page.locale, detailUrl: page.detailUrl },
+      { breederId: '2608-00001', locale, detailUrl: pageUrl },
+      locale,
+    );
+  }
+});
+
+test('fails closed for no-SKU Fuluck identity URL confusion', () => {
+  const pageUrl = 'https://fuluckpet.com/en/kittens/2608-00001.html';
+  const options = { expectedBreederId: '2608-00001', locale: 'en', pageUrl };
+  const cases = [
+    ['missing canonical', { canonical: undefined }],
+    ['wrong locale canonical', { canonical: 'https://fuluckpet.com/kittens/2608-00001.html' }],
+    ['wrong breeder canonical', { canonical: 'https://fuluckpet.com/en/kittens/2608-00002.html' }],
+    ['credential canonical', { canonical: 'https://user@fuluckpet.com/en/kittens/2608-00001.html' }],
+    ['query canonical', { canonical: 'https://fuluckpet.com/en/kittens/2608-00001.html?source=test' }],
+    ['fragment canonical', { canonical: 'https://fuluckpet.com/en/kittens/2608-00001.html#product' }],
+    ['encoded canonical path', { canonical: 'https://fuluckpet.com/en/kittens/%32%36%30%38-00001.html' }],
+    ['missing Product id', { productId: undefined }],
+    ['wrong breeder Product id', { productId: 'https://fuluckpet.com/kittens/2608-00002.html#product' }],
+    ['credential Product id', { productId: 'https://user@fuluckpet.com/kittens/2608-00001.html#product' }],
+    ['query Product id', { productId: 'https://fuluckpet.com/kittens/2608-00001.html?source=test#product' }],
+    ['unexpected Product fragment', { productId: 'https://fuluckpet.com/kittens/2608-00001.html#other' }],
+    ['encoded Product id path', { productId: 'https://fuluckpet.com/kittens/%32%36%30%38-00001.html#product' }],
+    ['missing Offer', { offers: undefined }],
+    ['missing Offer URL', { offerUrl: undefined }],
+    ['array Offer', { offers: [{ '@type': 'Offer', price: '230000', url: pageUrl }] }],
+    ['wrong locale Offer URL', { offerUrl: 'https://fuluckpet.com/kittens/2608-00001.html' }],
+    ['wrong breeder Offer URL', { offerUrl: 'https://fuluckpet.com/en/kittens/2608-00002.html' }],
+    ['credential Offer URL', { offerUrl: 'https://user@fuluckpet.com/en/kittens/2608-00001.html' }],
+    ['query Offer URL', { offerUrl: 'https://fuluckpet.com/en/kittens/2608-00001.html?source=test' }],
+    ['fragment Offer URL', { offerUrl: 'https://fuluckpet.com/en/kittens/2608-00001.html#product' }],
+    ['encoded Offer URL path', { offerUrl: 'https://fuluckpet.com/en/kittens/%32%36%30%38-00001.html' }],
+    ['wrong page URL', {}, { pageUrl: 'https://fuluckpet.com/en/kittens/2608-00002.html' }],
+    ['query page URL', {}, { pageUrl: 'https://fuluckpet.com/en/kittens/2608-00001.html?source=test' }],
+  ];
+  for (const [name, fixture, optionOverrides = {}] of cases) {
+    assert.throws(
+      () => parseFuluckDetailPage(fuluckDetail('en', { sku: undefined, ...fixture }), { ...options, ...optionOverrides }),
+      /SKU|breeder|identity/i,
+      name,
+    );
+  }
+});
+
+test('requires an exact present Fuluck Product SKU even when every URL binding matches', () => {
+  const options = { expectedBreederId: '2608-00001', locale: 'ja', pageUrl: 'https://fuluckpet.com/kittens/2608-00001.html' };
+  assert.throws(() => parseFuluckDetailPage(fuluckDetail('ja', { sku: '' }), options), /SKU|breeder/i);
+  assert.throws(() => parseFuluckDetailPage(fuluckDetail('ja', { sku: '2608-00002' }), options), /SKU|breeder/i);
 });
 
 test('normalizes HTML entities and line breaks without executing markup', () => {
