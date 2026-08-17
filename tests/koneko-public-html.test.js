@@ -153,18 +153,21 @@ test('uses only visible explicit same-host pagination next links', () => {
     'style=display:none',
     'style=visibility:hidden',
   ]) {
-    const page = parseKonekoListPage(
-      listPage([listCard('2608-00001')], {
-        total: 2,
-        end: 1,
-        next: false,
-        links: '<li><a href="breederDetail.php?pageNum=2&amp;breeder_id=c995680">次へ</a></li>',
-        paginationWrapper: 'section',
-        paginationWrapperAttributes,
-      }),
-      LIST_OPTIONS,
+    assert.throws(
+      () => parseKonekoListPage(
+        listPage([listCard('2608-00001')], {
+          total: 2,
+          end: 1,
+          next: false,
+          links: '<li><a href="breederDetail.php?pageNum=2&amp;breeder_id=c995680">次へ</a></li>',
+          paginationWrapper: 'section',
+          paginationWrapperAttributes,
+        }),
+        LIST_OPTIONS,
+      ),
+      /pagination|range|receipt/i,
+      paginationWrapperAttributes,
     );
-    assert.equal(page.nextPageUrl, '', paginationWrapperAttributes);
   }
 
   for (const links of [
@@ -247,22 +250,41 @@ test('requires an exact whitespace-delimited list status container class', () =>
 
 test('fails closed for out-of-contract, repeated, or unmarked list states', () => {
   assert.throws(() => parseKonekoListPage(listPage([listCard('2608-00001', '成約済み（引き渡し前）')], { total: 1, end: 1 }), LIST_OPTIONS), /unknown status/i);
-  const repeated = listCard('2608-00001', '販売中').replace('</li>', '<span class="business">掲載停止</span></li>');
-  assert.throws(() => parseKonekoListPage(listPage([repeated], { total: 1, end: 1 }), LIST_OPTIONS), /unknown status/i);
   const unmarked = listCard('2608-00001').replace(/<div class="listLmtInfStt">[\s\S]*?<\/div>/, '<div class="listLmtInfStt"></div>');
   assert.throws(() => parseKonekoListPage(listPage([unmarked], { total: 1, end: 1 }), LIST_OPTIONS), /live|marker|status/i);
   const bareNew = listCard('2608-00001').replace(/<div class="listLmtInfStt">[\s\S]*?<\/div>/, '<div class="listLmtInfStt">NEW</div>');
   assert.throws(() => parseKonekoListPage(listPage([bareNew], { total: 1, end: 1 }), LIST_OPTIONS), /live|marker|status/i);
   const unknownDirect = directStateCard('2608-00001', '掲載停止');
   assert.throws(() => parseKonekoListPage(listPage([unknownDirect], { total: 1, end: 1 }), LIST_OPTIONS), /unknown status/i);
-  const conflicting = directStateCard('2608-00001', '成約済み').replace('</li>', '<span class="business">販売中</span></li>');
-  assert.throws(() => parseKonekoListPage(listPage([conflicting], { total: 1, end: 1 }), LIST_OPTIONS), /conflicting status/i);
   const misleadingNew = directStateCard('2608-00001', '<span class="new status">NEW</span>');
   assert.throws(() => parseKonekoListPage(listPage([misleadingNew], { total: 1, end: 1 }), LIST_OPTIONS), /unknown status/i);
   const hyphenatedNew = listCard('2608-00001').replace('class="new"', 'class="new-status"');
   assert.throws(() => parseKonekoListPage(listPage([hyphenatedNew], { total: 1, end: 1 }), LIST_OPTIONS), /live|marker|status/i);
   const spacedNew = listCard('2608-00001').replace('class="new"', 'class="foo new bar"');
   assert.equal(parseKonekoListPage(listPage([spacedNew], { total: 1, end: 1 }), LIST_OPTIONS).cards[0].status, 'available');
+});
+
+test('list status evidence is scoped only to the unique listLmtInfStt container', () => {
+  const outsideUnknown = listCard('2608-00001', '販売中')
+    .replace('</li>', '<span class="business">掲載停止</span></li>');
+  const outsideConflict = directStateCard('2608-00001', '成約済み')
+    .replace('</li>', '<span class="business">販売中</span></li>');
+  const outsideNew = listCard('2608-00001')
+    .replace(/<div class="listLmtInfStt">[\s\S]*?<\/div>/, '<div class="listLmtInfStt"></div>')
+    .replace('</li>', '<span class="new">NEW</span></li>');
+
+  assert.equal(
+    parseKonekoListPage(listPage([outsideUnknown], { total: 1, end: 1 }), LIST_OPTIONS).cards[0].status,
+    'available',
+  );
+  assert.equal(
+    parseKonekoListPage(listPage([outsideConflict], { total: 1, end: 1 }), LIST_OPTIONS).cards[0].status,
+    'sold',
+  );
+  assert.throws(
+    () => parseKonekoListPage(listPage([outsideNew], { total: 1, end: 1 }), LIST_OPTIONS),
+    /live|marker|status/i,
+  );
 });
 
 test('ignores unrelated totalNum markup, rejects challenge pages, and rejects off-host next links', () => {
@@ -334,6 +356,14 @@ test('list attributes and hidden pagination use decoded browser semantics exactl
     () => parseKonekoListPage(listPage([doubleEncoded], { total: 1, end: 1, next: false }), LIST_OPTIONS),
     /card|Koneko/i,
   );
+});
+
+test('hidden pagination totals and range text never become catalogue receipts', () => {
+  const base = listPage([listCard('2608-00001')], { total: 1, end: 1, next: false });
+  const hiddenTotal = base.replace('class="totalNum"', 'class="totalNum" hidden');
+  const hiddenRange = base.replace('1～1件を表示', '<span hidden>1～1件を表示</span>');
+  assert.throws(() => parseKonekoListPage(hiddenTotal, LIST_OPTIONS), /pagination|total|receipt/i);
+  assert.throws(() => parseKonekoListPage(hiddenRange, LIST_OPTIONS), /pagination|range|receipt/i);
 });
 
 const KONEKO_DETAIL_OPTIONS = {
@@ -640,6 +670,50 @@ test('uses visible Koneko evidence when hidden and footer lookalikes coexist', (
   });
 });
 
+test('hidden or footer fact cells and video media never become Koneko evidence', () => {
+  const hiddenRow = konekoDetail({
+    factRows: konekoFactRows().replace('<tr><th>猫種</th>', '<tr hidden><th>猫種</th>'),
+  });
+  const hiddenLabel = konekoDetail({
+    factRows: konekoFactRows().replace('<th>猫種</th>', '<th hidden>猫種</th>'),
+  });
+  const hiddenValue = konekoDetail({
+    factRows: konekoFactRows().replace('<th>猫種</th><td>', '<th>猫種</th><td hidden>'),
+  });
+  for (const html of [hiddenRow, hiddenLabel, hiddenValue]) {
+    assert.throws(() => parseKonekoDetailPage(html, KONEKO_DETAIL_OPTIONS), /breed|facts|missing/i);
+  }
+
+  const mediaCases = [
+    '<section class="movieGalleryCnt youtube"><iframe hidden src="https://www.youtube.com/embed/AbCdEfGhI12"></iframe></section>',
+    '<section class="movieGalleryCnt youtube"><footer><iframe src="https://www.youtube.com/embed/AbCdEfGhI12"></iframe></footer></section>',
+  ];
+  for (const video of mediaCases) {
+    assert.throws(() => parseKonekoDetailPage(konekoDetail({ video }), KONEKO_DETAIL_OPTIONS), /video|missing|conflicting/i);
+  }
+});
+
+test('a visible matching fact row cannot hide an extra structural cell', () => {
+  const html = konekoDetail({
+    factRows: konekoFactRows().replace(
+      '<tr><th>アピール<br>ポイント</th><td>短い紹介</td></tr>',
+      '<tr><th>アピール<br>ポイント</th><td>短い紹介</td><td hidden>余分な証拠</td></tr>',
+    ),
+  });
+  assert.throws(() => parseKonekoDetailPage(html, KONEKO_DETAIL_OPTIONS), /note|row|structure|malformed/i);
+});
+
+test('malformed hidden inner evidence blocks before visibility exclusion', () => {
+  const hiddenRow = konekoDetail({
+    factRows: konekoFactRows().replace('<tr><th>猫種</th>', '<tr hidden data-x="one" data-x="two"><th>猫種</th>'),
+  });
+  const hiddenMedia = konekoDetail({
+    video: '<section class="movieGalleryCnt youtube"><iframe hidden data-x="one" data-x="two" src="https://www.youtube.com/embed/AbCdEfGhI12"></iframe></section>',
+  });
+  assert.throws(() => parseKonekoDetailPage(hiddenRow, KONEKO_DETAIL_OPTIONS), /malformed|facts|breed/i);
+  assert.throws(() => parseKonekoDetailPage(hiddenMedia, KONEKO_DETAIL_OPTIONS), /malformed|video/i);
+});
+
 test('rejects unquoted decoded hidden styles as the only Koneko required evidence', () => {
   const html = konekoDetail({
     parentInfo: '',
@@ -734,6 +808,86 @@ test('target-local parse errors block target evidence but unrelated parse errors
   assert.throws(() => parseKonekoDetailPage(target, KONEKO_DETAIL_OPTIONS), /facts|malformed|parse/i);
 });
 
+test('validates every source-backed ancestor on each Koneko detail evidence path', async (t) => {
+  const baseFacts = `<div class="petDtlData"><table class="gnrTbl">${konekoFactRows()}</table></div>`;
+  const malformedFactsWrapper = konekoDetail().replace(
+    baseFacts,
+    `<div class="petDtlData"><section data-x="one" data-x="two"><table class="gnrTbl">${konekoFactRows()}</table></section></div>`,
+  );
+  const malformedFactsBody = konekoDetail().replace(
+    baseFacts,
+    `<div class="petDtlData"><table class="gnrTbl"><tbody data-x="one" data-x="two">${konekoFactRows()}</tbody></table></div>`,
+  );
+  const malformedParentListPath = konekoDetail({
+    parentInfo: konekoParentInfo()
+      .replace('<ul class="parentInfo_list">', '<section data-x="one" data-x="two"><ul class="parentInfo_list">')
+      .replace('</ul></div>', '</ul></section></div>'),
+  });
+  const malformedParentNamePath = konekoDetail({
+    parentInfo: konekoParentInfo().replace(
+      '<ul class="parentInfo_detail_list">',
+      '<ul class="parentInfo_detail_list" data-x="one" data-x="two">',
+    ),
+  });
+  const malformedVideoPath = konekoDetail({
+    video: '<section class="movieGalleryCnt youtube"><div data-x="one" data-x="two"><iframe src="https://www.youtube.com/embed/AbCdEfGhI12"></iframe></div></section>',
+  });
+  const malformedIntroductionPath = konekoDetail({
+    introduction: '<section class="petDtlInt"><div data-x="one" data-x="two"><div class="gnrCnt">紹介</div></div></section>',
+  });
+
+  for (const [name, html] of [
+    ['facts wrapper', malformedFactsWrapper],
+    ['facts body', malformedFactsBody],
+    ['parent list path', malformedParentListPath],
+    ['parent name path', malformedParentNamePath],
+    ['video path', malformedVideoPath],
+    ['introduction path', malformedIntroductionPath],
+  ]) {
+    await t.test(name, () => {
+      assert.throws(
+        () => parseKonekoDetailPage(html, KONEKO_DETAIL_OPTIONS),
+        /malformed|source|structure|path|parse/i,
+      );
+    });
+  }
+});
+
+test('validates every source-backed ancestor on Koneko card, status, and pagination paths', async (t) => {
+  const malformedCardLinkPath = listCard('2608-00001').replace(
+    '<div class="pic_image"><a href="cat2608-00001.html"',
+    '<div class="pic_image"><section data-x="one" data-x="two"><a href="cat2608-00001.html"',
+  ).replace('</a></div>\n      <p class="pic_kind_name">', '</a></section></div>\n      <p class="pic_kind_name">');
+  const malformedStatusPath = listCard('2608-00001').replace(
+    '<div class="listLmtInf"><div class="listLmtInfStt"><span class="new">NEW</span></div></div>',
+    '<div class="listLmtInf"><section data-x="one" data-x="two"><div class="listLmtInfStt"><span class="new">NEW</span></div></section></div>',
+  );
+  const malformedRangePath = listPage([listCard('2608-00001')], { total: 1, end: 1, next: false }).replace(
+    '<div class="pagenation"><div class="disp_pagePosition">',
+    '<div class="pagenation"><section data-x="one" data-x="two"><div class="disp_pagePosition">',
+  ).replace('</div>\n      <ul class="list_pagenation">', '</div></section>\n      <ul class="list_pagenation">');
+  const malformedNextPath = listPage([listCard('2608-00001')], { total: 2, end: 1 }).replace(
+    '<ul class="list_pagenation">',
+    '<ul class="list_pagenation"><section data-x="one" data-x="two">',
+  ).replace('</ul>\n      ', '</section></ul>\n      ');
+
+  for (const [name, html] of [
+    ['card link path', listPage([malformedCardLinkPath], { total: 1, end: 1, next: false })],
+    ['status path', listPage([malformedStatusPath], { total: 1, end: 1, next: false })],
+    ['pagination range path', malformedRangePath],
+    ['pagination next path', malformedNextPath],
+  ]) {
+    await t.test(name, () => {
+      assert.throws(() => parseKonekoListPage(html, LIST_OPTIONS), /malformed|source|structure|path|parse/i);
+    });
+  }
+});
+
+test('an unrelated EOF-in-tag remains the sole global Koneko parse-error block', () => {
+  const html = konekoDetail({ outside: '<aside class="unrelated" data-note="' });
+  assert.throws(() => parseKonekoDetailPage(html, KONEKO_DETAIL_OPTIONS), /eof|malformed|opening tag/i);
+});
+
 test('only actual HTML Product JSON-LD nodes participate in Koneko identity', () => {
   const product = JSON.stringify({
     '@type': 'Product',
@@ -785,6 +939,23 @@ test('fails closed when present Koneko parent, video, or description structures 
   assert.throws(() => parseKonekoDetailPage(malformedDescription, KONEKO_DETAIL_OPTIONS), /description|introduction/i);
 });
 
+test('accepts exactly one direct strong child as each Koneko parent name', () => {
+  const nestedStrong = konekoDetail({
+    parentInfo: konekoParentInfo().replace(
+      '<li class="parentName"><strong>父猫</strong></li>',
+      '<li class="parentName"><span><strong>父猫</strong></span></li>',
+    ),
+  });
+  const duplicateDirectStrong = konekoDetail({
+    parentInfo: konekoParentInfo().replace(
+      '<li class="parentName"><strong>父猫</strong></li>',
+      '<li class="parentName"><strong>父猫</strong><strong>別の父猫</strong></li>',
+    ),
+  });
+  assert.throws(() => parseKonekoDetailPage(nestedStrong, KONEKO_DETAIL_OPTIONS), /parent name|strong|direct|unique/i);
+  assert.throws(() => parseKonekoDetailPage(duplicateDirectStrong, KONEKO_DETAIL_OPTIONS), /parent name|strong|direct|unique/i);
+});
+
 test('accepts canonical HTTPS YouTube watch, embed, short, and short-link Koneko video URLs', () => {
   const cases = [
     ['https://www.youtube.com/watch?v=AbCdEfGhI12', 'AbCdEfGhI12'],
@@ -818,6 +989,32 @@ test('fails closed for malformed JSON-LD, zero source photos, and mismatched Kon
   assert.throws(() => parseKonekoDetailPage(konekoDetail({ images: false }), KONEKO_DETAIL_OPTIONS), /photo/i);
   assert.throws(() => parseKonekoDetailPage(konekoDetail({ sku: '2608-00002' }), KONEKO_DETAIL_OPTIONS), /SKU|breeder/i);
   assert.throws(() => parseKonekoDetailPage(konekoDetail({ account: 'd696506' }), KONEKO_DETAIL_OPTIONS), /account/i);
+});
+
+test('accepts only account-scoped HTTPS Koneko Product photo URLs', async (t) => {
+  const valid = 'https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_hash.jpg.webp';
+  const invalid = [
+    ['HTTP', 'http://www.koneko-breeder.com/breeder/data/c995680/child.jpg'],
+    ['foreign host', 'https://evil.example/breeder/data/c995680/child.jpg'],
+    ['credentials', 'https://user:pass@www.koneko-breeder.com/breeder/data/c995680/child.jpg'],
+    ['port', 'https://www.koneko-breeder.com:444/breeder/data/c995680/child.jpg'],
+    ['JavaScript', 'javascript:alert(1)'],
+    ['relative', '/breeder/data/c995680/child.jpg'],
+    ['empty filename', 'https://www.koneko-breeder.com/breeder/data/c995680/'],
+  ];
+  for (const [name, url] of invalid) {
+    await t.test(name, () => {
+      const html = konekoDetail().replace(valid, url);
+      assert.throws(() => parseKonekoDetailPage(html, KONEKO_DETAIL_OPTIONS), /photo|media|account|invalid/i);
+    });
+  }
+});
+
+test('blocks delimiter-heavy Koneko markup below the byte limit before DOM parsing', () => {
+  const deepMarkup = `${'<div>'.repeat(25_001)}${'</div>'.repeat(25_001)}`;
+  const html = konekoDetail({ outside: deepMarkup });
+  assert.ok(Buffer.byteLength(html, 'utf8') < 2 * 1024 * 1024);
+  assert.throws(() => parseKonekoDetailPage(html, KONEKO_DETAIL_OPTIONS), /markup|delimiter|complexity|limit/i);
 });
 
 test('fails closed when Product price evidence is missing or non-numeric', () => {

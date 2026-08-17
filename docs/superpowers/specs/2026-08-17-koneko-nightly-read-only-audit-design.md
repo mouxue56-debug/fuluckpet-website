@@ -112,6 +112,7 @@ If a later approved Fuluck update needs new Chinese or English text, a separate 
 - The crawler stops before comparing when either account lacks complete pagination receipts.
 - There is no carry-forward of an older successful snapshot and no fallback to historical counts.
 - There is no runtime fallback from `parse5` to the retired hand-written Koneko scanner, a browser DOM, regex-only extraction, an older snapshot, or model inference.
+- Before `parse5`, each response is bounded by the 2 MiB byte ceiling and a linear 25,000-markup-delimiter ceiling. Parse errors otherwise stay scoped to the selected evidence and its actual DOM ancestor path; `eof-in-tag` is the sole global parse-error exception because it proves response truncation and can make the tokenizer discard a target anywhere in the document.
 - Selectors may follow current public Koneko structure, but every parser and evidence assumption must be represented by fixtures and explicit invariant checks.
 - GitHub cron can start later than 20:00 JST; the receipt records the actual observation time and must not claim an exact start time.
 - No diff class can trigger an automatic update, regeneration, deployment, deletion, or customer communication in phase one.

@@ -4,6 +4,7 @@ import { parse } from 'parse5';
 
 const HTML_NAMESPACE = 'http://www.w3.org/1999/xhtml';
 const MAX_HTML_BYTES = 2 * 1024 * 1024;
+const MAX_MARKUP_DELIMITERS = 25_000;
 const BREEDER_ID = /^\d{4}-\d{5}$/;
 const HTML_WHITESPACE = /[\t\n\f\r ]+/;
 const YOUTUBE_ID = /^[A-Za-z0-9_-]{11}$/;
@@ -47,6 +48,13 @@ function nonBlank(value) {
 function parseKonekoDocument(html) {
   if (!nonBlank(html)) throw new Error('Koneko HTML is missing');
   if (Buffer.byteLength(html, 'utf8') > MAX_HTML_BYTES) throw new Error('Koneko HTML exceeds the size limit');
+  let markupDelimiters = 0;
+  for (let index = html.indexOf('<'); index !== -1; index = html.indexOf('<', index + 1)) {
+    markupDelimiters += 1;
+    if (markupDelimiters > MAX_MARKUP_DELIMITERS) {
+      throw new Error('Koneko HTML exceeds the markup delimiter limit');
+    }
+  }
   if (/challenge-platform|cf-chl-|Just a moment|interstitial/i.test(html)) {
     throw new Error('challenge or interstitial HTML');
   }
@@ -163,6 +171,26 @@ function assertSourceBacked(context, node, name, { within } = {}) {
   return node;
 }
 
+function assertEvidencePath(context, node, within, name) {
+  let current = node;
+  while (current && current !== within) {
+    if (isHtmlElement(current)) {
+      if (!current.sourceCodeLocation) {
+        // parse5 inserts tbody when source rows occur directly under a table.
+        // This is the only source-less element allowed on an evidence path.
+        if (!isHtmlElement(current, 'tbody') || !isHtmlElement(current.parentNode, 'table')) {
+          throw new Error(`Koneko ${name} path is not source-backed`);
+        }
+      } else {
+        assertSourceBacked(context, current, `${name} path`, { within });
+      }
+    }
+    current = current.parentNode;
+  }
+  if (current !== within) throw new Error(`Koneko ${name} path leaves its evidence region`);
+  return node;
+}
+
 function selfHidden(node) {
   if (attr(node, 'hidden') !== undefined) return true;
   if (attr(node, 'aria-hidden')?.trim() === 'true') return true;
@@ -248,7 +276,7 @@ function evidenceCandidates(context, candidates, name, { optional = false } = {}
 
 function descendantEvidence(context, root, predicate, name, { optional = false } = {}) {
   const candidates = descendants(context, root, node => isHtmlElement(node) && predicate(node));
-  for (const node of candidates) assertSourceBacked(context, node, name, { within: root });
+  for (const node of candidates) assertEvidencePath(context, node, root, name);
   const visible = candidates.filter(node => !excludedByVisibility(node));
   if (visible.length === 0 && optional) return null;
   if (visible.length !== 1) throw new Error(`Koneko ${name} must be unique`);
@@ -306,9 +334,22 @@ function productJsonLd(context) {
   return products[0];
 }
 
-function productImages(product, pageUrl) {
+function productImages(product, expectedAccountId) {
   const raw = Array.isArray(product?.image) ? product.image : [product?.image];
-  const urls = raw.map(value => typeof value === 'string' ? absoluteUrl(value, pageUrl) : '');
+  const urls = raw.map((value) => {
+    if (!nonBlank(value)) return '';
+    const source = value.trim();
+    const authority = /^https:\/\/([^/?#]+)(?=\/)/i.exec(source)?.[1];
+    if (authority?.toLowerCase() !== 'www.koneko-breeder.com') return '';
+    let url;
+    try { url = new URL(source); } catch { return ''; }
+    if (url.protocol !== 'https:' || url.username || url.password || url.port
+      || url.hostname !== 'www.koneko-breeder.com') return '';
+    const path = /^\/breeder\/data\/([^/]+)\/(.+)$/.exec(url.pathname);
+    if (path && path[1] !== expectedAccountId) throw new Error('Koneko account mismatch');
+    if (!path || path[1] !== expectedAccountId || path[2].endsWith('/')) return '';
+    return url.href;
+  });
   if (!urls.length || urls.some(url => !url)) throw new Error('Koneko source photos are invalid');
   return urls;
 }
@@ -341,19 +382,19 @@ function normalizeGender(value) {
   return text;
 }
 
-function oneTableValue(context, rows, field, labels, { optional = false } = {}) {
+function oneTableValue(context, table, rows, field, labels, { optional = false } = {}) {
   const wanted = new Set(labels.map(normalizeLabel));
   const matches = [];
   for (const row of rows) {
-    assertSourceBacked(context, row, `${field} row`);
+    assertEvidencePath(context, row, table, `${field} row`);
     const cells = elementChildren(row);
+    for (const cell of cells) assertEvidencePath(context, cell, row, `${field} cell`);
     const label = cells[0] ? normalizeLabel(nodeText(cells[0])) : '';
     if (!wanted.has(label)) continue;
     if (cells.length !== 2 || !isHtmlElement(cells[0], 'th') || !isHtmlElement(cells[1], 'td')) {
       throw new Error(`Koneko ${field} row structure is malformed`);
     }
-    assertSourceBacked(context, cells[0], `${field} label`, { within: row });
-    assertSourceBacked(context, cells[1], `${field} value`, { within: row });
+    if (excludedByVisibility(row) || cells.some(cell => excludedByVisibility(cell))) continue;
     matches.push(nodeText(cells[1]));
   }
   if (matches.length === 0) {
@@ -378,10 +419,10 @@ function konekoFacts(context) {
     'facts table',
   );
   const rows = descendants(context, table, node => isHtmlElement(node, 'tr'));
-  const breed = oneTableValue(context, rows, 'breed', ['猫種', '品種', 'Breed']);
-  const color = oneTableValue(context, rows, 'color', ['毛色(毛質)', '毛色', 'Color']);
-  const gender = normalizeGender(oneTableValue(context, rows, 'gender', ['性別', 'Sex', 'Gender']));
-  const birthday = normalizeDate(oneTableValue(context, rows, 'birthday', ['誕生日', '生年月日', 'Birthday']));
+  const breed = oneTableValue(context, table, rows, 'breed', ['猫種', '品種', 'Breed']);
+  const color = oneTableValue(context, table, rows, 'color', ['毛色(毛質)', '毛色', 'Color']);
+  const gender = normalizeGender(oneTableValue(context, table, rows, 'gender', ['性別', 'Sex', 'Gender']));
+  const birthday = normalizeDate(oneTableValue(context, table, rows, 'birthday', ['誕生日', '生年月日', 'Birthday']));
   if (!nonBlank(gender)) throw new Error('Koneko gender evidence is missing');
   if (!nonBlank(birthday)) throw new Error('Koneko birthday evidence is missing');
   return {
@@ -389,7 +430,7 @@ function konekoFacts(context) {
     color,
     gender,
     birthday,
-    note: oneTableValue(context, rows, 'note', ['アピールポイント', '備考', '注記', 'Note', 'Short note'], { optional: true }),
+    note: oneTableValue(context, table, rows, 'note', ['アピールポイント', '備考', '注記', 'Note', 'Short note'], { optional: true }),
   };
 }
 
@@ -415,7 +456,7 @@ function konekoParents(context) {
   if (items.length !== 2) throw new Error('Koneko parent items are malformed');
   const names = new Map();
   for (const item of items) {
-    assertSourceBacked(context, item, 'parent item', { within: list });
+    assertEvidencePath(context, item, list, 'parent item');
     const heading = descendantEvidence(
       context,
       item,
@@ -430,12 +471,13 @@ function konekoParents(context) {
       node => node.tagName === 'li' && hasClass(node, 'parentName'),
       'parent name',
     );
-    const strong = descendantEvidence(
-      context,
-      nameNode,
-      node => node.tagName === 'strong',
-      'parent name value',
-    );
+    const strongCandidates = directChildrenByTag(nameNode, 'strong');
+    for (const candidate of strongCandidates) {
+      assertEvidencePath(context, candidate, nameNode, 'parent name value');
+    }
+    const visibleStrong = strongCandidates.filter(candidate => !excludedByVisibility(candidate));
+    if (visibleStrong.length !== 1) throw new Error('Koneko parent name value must be a unique direct strong child');
+    const [strong] = visibleStrong;
     const value = nodeText(strong);
     if (!nonBlank(value)) throw new Error('Koneko parent name is missing');
     names.set(sides[0], value);
@@ -456,7 +498,8 @@ function konekoVideoId(context, pageUrl) {
     && ['a', 'iframe', 'video', 'source'].includes(node.tagName));
   const ids = [];
   for (const node of media) {
-    assertSourceBacked(context, node, 'video media', { within: region });
+    assertEvidencePath(context, node, region, 'video media');
+    if (excludedByVisibility(node)) continue;
     const value = node.tagName === 'a' ? attr(node, 'href') : (attr(node, 'src') ?? attr(node, 'href'));
     if (value === undefined) continue;
     const id = canonicalYoutubeId(value, pageUrl);
@@ -505,7 +548,7 @@ function cardDetailIdentity(context, card, pageUrl) {
   const links = descendants(context, card, node => isHtmlElement(node, 'a') && attr(node, 'href') !== undefined);
   const matches = [];
   for (const link of links) {
-    assertSourceBacked(context, link, 'card breeder link', { within: card });
+    assertEvidencePath(context, link, card, 'card breeder link');
     const url = absoluteUrl(attr(link, 'href'), pageUrl);
     if (!url) continue;
     let parsed;
@@ -517,7 +560,7 @@ function cardDetailIdentity(context, card, pageUrl) {
   if (ids.length !== 1) throw new Error('card must contain exactly one breeder link');
   const breederId = ids[0];
   const images = descendants(context, card, node => isHtmlElement(node) && attr(node, 'id') === `src_${breederId}`);
-  for (const image of images) assertSourceBacked(context, image, 'card breeder image', { within: card });
+  for (const image of images) assertEvidencePath(context, image, card, 'card breeder image');
   if (images.length !== 1) throw new Error('card link/image IDs disagree');
   return { breederId, detailUrl: matches.find(match => match.breederId === breederId).url };
 }
@@ -529,16 +572,16 @@ function cardStatus(context, card) {
     node => hasClass(node, 'listLmtInfStt'),
     'list status container',
   );
-  const stateText = nodeText(state);
+  const stateText = directText(state);
   const directStatus = stateText === 'NEW' ? '' : STATUS_TEXT.get(stateText);
   if (stateText && !directStatus && stateText !== 'NEW') throw new Error(`unknown status markup: ${stateText}`);
 
-  const markedNodes = descendants(context, card, node => isHtmlElement(node)
-    && ['business', 'closed', 'sold', 'status'].some(className => hasClass(node, className))
-    && !excludedByVisibility(node));
+  const markedCandidates = descendants(context, state, node => isHtmlElement(node)
+    && ['business', 'closed', 'sold', 'status'].some(className => hasClass(node, className)));
+  for (const node of markedCandidates) assertEvidencePath(context, node, state, 'list status');
+  const markedNodes = markedCandidates.filter(node => !excludedByVisibility(node));
   const statuses = [];
   for (const node of markedNodes) {
-    assertSourceBacked(context, node, 'list status', { within: card });
     const label = nodeText(node);
     const status = STATUS_TEXT.get(label);
     if (!status) throw new Error(`unknown status markup: ${label}`);
@@ -551,9 +594,9 @@ function cardStatus(context, card) {
     return unique[0];
   }
 
-  const newMarkers = descendants(context, state, node => isHtmlElement(node)
-    && hasClass(node, 'new') && !excludedByVisibility(node));
-  for (const marker of newMarkers) assertSourceBacked(context, marker, 'live-list marker', { within: state });
+  const newCandidates = descendants(context, state, node => isHtmlElement(node) && hasClass(node, 'new'));
+  for (const marker of newCandidates) assertEvidencePath(context, marker, state, 'live-list marker');
+  const newMarkers = newCandidates.filter(marker => !excludedByVisibility(marker));
   if (newMarkers.length !== 1 || nodeText(newMarkers[0]) !== 'NEW') {
     throw new Error('live-list marker or status is missing');
   }
@@ -564,7 +607,7 @@ function paginationNextUrl(context, pagination, pageUrl, accountId) {
   const candidates = [];
   const anchors = descendants(context, pagination, node => isHtmlElement(node, 'a'));
   for (const anchor of anchors) {
-    assertSourceBacked(context, anchor, 'pagination link', { within: pagination });
+    assertEvidencePath(context, anchor, pagination, 'pagination link');
     if (excludedByVisibility(anchor)) continue;
     const label = nodeText(anchor);
     if (!/^(?:次へ|next)$/i.test(label)) continue;
@@ -587,6 +630,30 @@ function paginationNextUrl(context, pagination, pageUrl, accountId) {
   return unique[0] || '';
 }
 
+function directText(node) {
+  if (!isHtmlElement(node) || TEXT_EXCLUDED_ELEMENTS.has(node.tagName)) return '';
+  return normalizeText(
+    (node?.childNodes || []).filter(child => child.nodeName === '#text').map(child => child.value || ''),
+    false,
+  );
+}
+
+function paginationRangeEvidence(context, pagination) {
+  const rangePattern = /(\d+)\s*[～〜~-]\s*(\d+)\s*件を表示/i;
+  const nodes = [pagination, ...descendants(context, pagination, node => isHtmlElement(node))];
+  const sourceCandidates = nodes.map((node) => ({
+    node,
+    range: rangePattern.exec(directText(node)),
+  })).filter(candidate => candidate.range);
+  for (const { node } of sourceCandidates) {
+    if (node === pagination) assertSourceBacked(context, node, 'pagination range');
+    else assertEvidencePath(context, node, pagination, 'pagination range');
+  }
+  const visibleCandidates = sourceCandidates.filter(({ node }) => !excludedByVisibility(node));
+  if (visibleCandidates.length !== 1) throw new Error('pagination range receipt is missing or ambiguous');
+  return visibleCandidates[0];
+}
+
 export function parseKonekoListPage(html, { accountId, pageUrl } = {}) {
   if (!nonBlank(accountId) || !nonBlank(pageUrl)) throw new Error('accountId and pageUrl are required');
   const context = parseKonekoDocument(html);
@@ -605,19 +672,21 @@ export function parseKonekoListPage(html, { accountId, pageUrl } = {}) {
 
   const paginations = allElements(context, node => hasClass(node, 'pagenation'));
   for (const node of paginations) assertSourceBacked(context, node, 'pagination');
-  const matching = paginations.map((node) => {
-    const text = nodeText(node, { visibleOnly: false });
-    const range = /(\d+)\s*[～〜~-]\s*(\d+)\s*件を表示/i.exec(text);
+  const visiblePaginations = paginations.filter(node => !excludedByVisibility(node));
+  const matching = visiblePaginations.map((node) => {
+    const { range } = paginationRangeEvidence(context, node);
     return { node, range };
   }).filter(candidate => candidate.range
     && cards.length === Number(candidate.range[2]) - Number(candidate.range[1]) + 1);
   if (matching.length !== 1) throw new Error('pagination range receipt is missing or ambiguous');
   const { node: pagination, range } = matching[0];
-  const totals = descendants(context, pagination, node => isHtmlElement(node) && hasClass(node, 'totalNum'));
-  for (const node of totals) assertSourceBacked(context, node, 'pagination total', { within: pagination });
-  if (totals.length !== 1 || !/^\d+$/.test(nodeText(totals[0], { visibleOnly: false }))) {
-    throw new Error('pagination total receipt is missing or ambiguous');
-  }
+  const total = descendantEvidence(
+    context,
+    pagination,
+    node => hasClass(node, 'totalNum'),
+    'pagination total',
+  );
+  if (!/^\d+$/.test(nodeText(total))) throw new Error('pagination total receipt is missing or ambiguous');
   const rangeStart = Number(range[1]);
   const rangeEnd = Number(range[2]);
   if (cards.length !== rangeEnd - rangeStart + 1) throw new Error('range/card count mismatch');
@@ -625,7 +694,7 @@ export function parseKonekoListPage(html, { accountId, pageUrl } = {}) {
     accountId,
     pageUrl,
     cards,
-    declaredTotal: Number(nodeText(totals[0], { visibleOnly: false })),
+    declaredTotal: Number(nodeText(total)),
     rangeStart,
     rangeEnd,
     nextPageUrl: paginationNextUrl(context, pagination, pageUrl, accountId),
@@ -646,10 +715,8 @@ export function parseKonekoDetailPage(html, {
   const breederId = String(product?.sku || '');
   if (breederId !== expectedBreederId) throw new Error(`Koneko SKU/breeder mismatch: ${breederId}`);
   const facts = konekoFacts(context);
-  const photos = productImages(product, pageUrl);
+  const photos = productImages(product, expectedAccountId);
   if (!photos.length) throw new Error('Koneko source photos are missing');
-  const accountIds = [...new Set(photos.map(url => /\/breeder\/data\/([^/]+)\//i.exec(url)?.[1]).filter(Boolean))];
-  if (accountIds.length !== 1 || accountIds[0] !== expectedAccountId) throw new Error('Koneko account mismatch');
   const detailUrl = canonicalDetailUrl(context, pageUrl);
   let canonical;
   try { canonical = new URL(detailUrl); } catch { throw new Error('Koneko canonical URL is invalid'); }
