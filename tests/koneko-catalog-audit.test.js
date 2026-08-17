@@ -54,7 +54,14 @@ function exactInput() {
     fuluck: {
       apiRecords: ids.map(breederId => ({ breederId, status: 'available' })),
       renderedPages: ids.flatMap(breederId => ['ja', 'en', 'zh'].map(locale => page(breederId, locale))),
-      checkedUrls: ['https://fuluck-api.mouxue56.workers.dev/api/kittens', ...ids.flatMap(breederId => ['ja', 'en', 'zh'].map(locale => `https://fuluckpet.com${locale === 'ja' ? '' : `/${locale}`}/kittens/${breederId}.html`))],
+      checkedUrls: [
+        ...accounts.flatMap(account => [
+          ...account.receipts.map(item => item.url),
+          ...account.activeDetails.map(item => item.detailUrl),
+        ]),
+        'https://fuluck-api.mouxue56.workers.dev/api/kittens',
+        ...ids.flatMap(breederId => ['ja', 'en', 'zh'].map(locale => `https://fuluckpet.com${locale === 'ja' ? '' : `/${locale}`}/kittens/${breederId}.html`)),
+      ],
     },
   };
 }
@@ -79,7 +86,11 @@ test('returns EXACT with ordered fixed-account receipts when public catalogue ev
 });
 
 test('reports each source/target presence and status drift class by exact breeder ID', () => {
-  const sourceMissing = audit(input => { input.fuluck.apiRecords.shift(); input.fuluck.renderedPages = input.fuluck.renderedPages.filter(page => page.breederId !== '2608-00001'); });
+  const sourceMissing = audit(input => {
+    input.fuluck.apiRecords.shift();
+    input.fuluck.renderedPages = input.fuluck.renderedPages.filter(page => page.breederId !== '2608-00001');
+    input.fuluck.checkedUrls = input.fuluck.checkedUrls.filter(url => !(url.includes('fuluckpet.com') && url.includes('2608-00001')));
+  });
   assert.ok(diff(sourceMissing, 'source_active_missing', '2608-00001'));
 
   const targetInactive = audit(input => { input.fuluck.apiRecords[0].status = 'sold'; });
@@ -155,20 +166,44 @@ test('blocks on incomplete evidence instead of inferring a non-exact catalogue r
   }
 });
 
+test('blocks when checked URLs do not exactly bind account receipts, source details, API, and each rendered locale page', () => {
+  const cases = [
+    input => { input.accounts[0].receipts[0].url = 'https://example.test/breederDetail.php?breeder_id=c995680'; },
+    input => { input.fuluck.checkedUrls = input.fuluck.checkedUrls.filter(url => url !== input.accounts[0].receipts[0].url); },
+    input => { input.accounts[0].activeDetails[0].detailUrl = 'https://www.koneko-breeder.com/cat2608-00099.html'; },
+    input => { input.fuluck.checkedUrls = input.fuluck.checkedUrls.filter(url => url !== input.accounts[0].activeDetails[0].detailUrl); },
+    input => { input.fuluck.checkedUrls = input.fuluck.checkedUrls.filter(url => url !== 'https://fuluck-api.mouxue56.workers.dev/api/kittens'); },
+    input => { input.fuluck.checkedUrls = input.fuluck.checkedUrls.filter(url => url !== 'https://fuluckpet.com/en/kittens/2608-00001.html'); },
+    input => { input.fuluck.checkedUrls.push('https://fuluckpet.com/unrelated.html'); },
+  ];
+  for (const change of cases) {
+    const result = audit(change);
+    assert.equal(result.result, 'BLOCKED');
+    assert.equal(result.exitCode, 3);
+  }
+});
+
 test('renders bounded JST receipts with all checked identifiers and no write or credential disclosure', () => {
   const input = exactInput();
-  input.fuluck.renderedPages.find(item => item.breederId === '2608-00001' && item.locale === 'ja').description = `紹介\n${'秘密の本文 '.repeat(100)}`;
-  input.fuluck.renderedPages.find(item => item.breederId === '2608-00001' && item.locale === 'ja').note = '変更';
+  const ja = input.fuluck.renderedPages.find(item => item.breederId === '2608-00001' && item.locale === 'ja');
+  ja.breed = 'Bearer actual-secret';
+  ja.color = 'token actual-secret';
+  ja.gender = 'PASSWORD=actual-secret';
+  ja.papa = 'secret: actual-secret';
+  ja.mama = 'Cookie actual-secret';
+  ja.description = `Authorization actual-secret\n${'秘密の本文 '.repeat(100)}`;
+  ja.note = 'API-Key actual-secret';
   const markdown = renderAuditMarkdown(compareKonekoToFuluck(input));
 
   assert.match(markdown, /2026-08-17 12:04:05 JST/);
   assert.match(markdown, /DRIFT/);
   for (const accountId of ACCOUNT_IDS) assert.match(markdown, new RegExp(accountId));
   assert.match(markdown, /Fuluck API records: 2/);
+  assert.match(markdown, /Fuluck rendered pages: 6 \(ja: 2, en: 2, zh: 2\)/);
   assert.match(markdown, /2608-00001/);
   assert.match(markdown, /description/);
   assert.match(markdown, /https:\/\/fuluckpet\.com\/kittens\/2608-00001\.html/);
   assert.match(markdown, /NO WRITE PERFORMED/);
-  assert.doesNotMatch(markdown, /秘密の本文|supplied-secret|authorization:|bearer\s/i);
+  assert.doesNotMatch(markdown, /秘密の本文|actual-secret|authorization|bearer|token|password|secret|cookie|api-key/i);
   assert.doesNotMatch(markdown, /一段落\n\n二段落/);
 });

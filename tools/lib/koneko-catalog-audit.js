@@ -7,6 +7,10 @@ const FACT_FIELDS = ['breed', 'color', 'gender', 'price', 'birthday', 'papa', 'm
 const TEXT_FIELDS = ['note', 'description'];
 const LOCALES = ['ja', 'en', 'zh'];
 const BREEDER_ID = /^\d{4}-\d{5}$/;
+const KONEKO_ORIGIN = 'https://www.koneko-breeder.com';
+const FULUCK_ORIGIN = 'https://fuluckpet.com';
+const FULUCK_API_URL = 'https://fuluck-api.mouxue56.workers.dev/api/kittens';
+const CREDENTIAL_MARKER = /\b(?:authorization|bearer|api[-_ ]?key|token|password|secret|cookie)\b(?:\s*[:=]\s*|\s+)/i;
 
 function isObject(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -22,7 +26,7 @@ function sha256(value) {
 
 function preview(value) {
   const line = String(value ?? '').replace(/\r\n?/g, '\n').split('\n')[0].trim();
-  const safe = line.replace(/(?:authorization|bearer|api[_-]?key|token|secret)\s*[:=]\s*\S+/gi, '[redacted]');
+  const safe = redactCredentialLike(line);
   return safe.length > 120 ? `${safe.slice(0, 117)}...` : safe;
 }
 
@@ -30,13 +34,65 @@ function safeTextReceipt(value) {
   return { sha256: sha256(value), preview: preview(value) };
 }
 
-function safeUrl(value) {
+function canonicalEvidenceUrl(value) {
   try {
     const url = new URL(value);
-    return `${url.origin}${url.pathname}`;
+    if (url.protocol !== 'https:' || url.username || url.password) return '';
+    url.hash = '';
+    return url.href;
   } catch {
     return '';
   }
+}
+
+function safeUrl(value) {
+  const canonical = canonicalEvidenceUrl(value);
+  if (!canonical) return '';
+  const url = new URL(canonical);
+  if (url.origin === KONEKO_ORIGIN && url.pathname === '/breederDetail.php') {
+    const breederId = url.searchParams.get('breeder_id');
+    const pageNum = url.searchParams.get('pageNum');
+    const params = new URLSearchParams();
+    if (breederId) params.set('breeder_id', breederId);
+    if (pageNum) params.set('pageNum', pageNum);
+    return `${url.origin}${url.pathname}${params.size ? `?${params}` : ''}`;
+  }
+  return `${url.origin}${url.pathname}`;
+}
+
+function redactCredentialLike(value) {
+  const text = String(value ?? '');
+  const match = CREDENTIAL_MARKER.exec(text);
+  return match ? `${text.slice(0, match.index)}[redacted]` : text;
+}
+
+function renderedPageCounts(pages) {
+  const counts = Object.fromEntries(LOCALES.map(locale => [locale, 0]));
+  if (!Array.isArray(pages)) return counts;
+  for (const page of pages) if (LOCALES.includes(page?.locale)) counts[page.locale] += 1;
+  return counts;
+}
+
+function exactFuluckPageUrl(breederId, locale) {
+  return `${FULUCK_ORIGIN}${locale === 'ja' ? '' : `/${locale}`}/kittens/${breederId}.html`;
+}
+
+function receiptUrlMatchesAccount(value, accountId) {
+  const canonical = canonicalEvidenceUrl(value);
+  if (!canonical) return false;
+  const url = new URL(canonical);
+  const breederIds = url.searchParams.getAll('breeder_id');
+  if (url.origin !== KONEKO_ORIGIN || url.pathname !== '/breederDetail.php' || breederIds.length !== 1 || breederIds[0] !== accountId) return false;
+  return [...url.searchParams.keys()].every(key => key === 'breeder_id' || key === 'pageNum')
+    && url.searchParams.getAll('pageNum').every(value => /^\d+$/.test(value));
+}
+
+function sourceDetailUrlMatches(value, breederId) {
+  return canonicalEvidenceUrl(value) === `${KONEKO_ORIGIN}/cat${breederId}.html`;
+}
+
+function renderedPageUrl(page) {
+  return canonicalEvidenceUrl(page?.state === 'rendered_page_missing' ? page.url : page?.detailUrl);
 }
 
 function compareStrings(a, b) {
@@ -70,7 +126,10 @@ function blockedResult(input, blocks) {
   return {
     timestamp: typeof input?.timestamp === 'string' ? input.timestamp : '',
     result: 'BLOCKED', exitCode: 3, accounts,
-    fuluck: { apiRecordCount: Array.isArray(input?.fuluck?.apiRecords) ? input.fuluck.apiRecords.length : 0, checkedUrls: [] },
+    fuluck: {
+      apiRecordCount: Array.isArray(input?.fuluck?.apiRecords) ? input.fuluck.apiRecords.length : 0,
+      renderedPageCounts: renderedPageCounts(input?.fuluck?.renderedPages), checkedUrls: [],
+    },
     diffs: [], blocks: [...new Set(blocks)].sort(compareStrings), noWritePerformed: true,
   };
 }
@@ -101,6 +160,7 @@ function validateInput(input) {
 
   const sourceById = new Map();
   const sourceDetails = new Map();
+  const requiredCheckedUrls = new Set([FULUCK_API_URL]);
   for (const account of accounts) {
     if (!isObject(account) || !ACCOUNT_ORDER.includes(account.accountId)) { blocks.push('account receipt has an invalid account ID'); continue; }
     evidenceError(blocks, Number.isInteger(account.declaredTotal) && account.declaredTotal >= 0, `declared total is missing for ${account.accountId}`);
@@ -112,6 +172,8 @@ function validateInput(input) {
     for (const receipt of account.receipts) {
       evidenceError(blocks, receiptIsComplete(receipt), `pagination receipt is incomplete for ${account.accountId}`);
       if (!receiptIsComplete(receipt)) continue;
+      evidenceError(blocks, receiptUrlMatchesAccount(receipt.url, account.accountId), `pagination receipt URL is invalid for ${account.accountId}`);
+      if (receiptUrlMatchesAccount(receipt.url, account.accountId)) requiredCheckedUrls.add(canonicalEvidenceUrl(receipt.url));
       evidenceError(blocks, receipt.declaredTotal === account.declaredTotal && receipt.rangeStart === expectedStart && receipt.rangeEnd >= receipt.rangeStart && receipt.rangeEnd <= account.declaredTotal, `pagination receipt is inconsistent for ${account.accountId}`);
       expectedStart = receipt.rangeEnd + 1;
     }
@@ -131,6 +193,8 @@ function validateInput(input) {
       evidenceError(blocks, !detailIds.has(detail.breederId), `duplicate source detail ID: ${detail.breederId}`);
       detailIds.add(detail.breederId);
       sourceDetails.set(detail.breederId, detail);
+      evidenceError(blocks, sourceDetailUrlMatches(detail.detailUrl, detail.breederId), `source detail URL is invalid for ${detail.breederId}`);
+      if (sourceDetailUrlMatches(detail.detailUrl, detail.breederId)) requiredCheckedUrls.add(canonicalEvidenceUrl(detail.detailUrl));
       for (const field of [...FACT_FIELDS, ...TEXT_FIELDS]) evidenceError(blocks, field === 'price' ? Number.isFinite(detail[field]) : nonBlank(detail[field]), `source ${field} evidence is missing for ${detail.breederId}`);
       evidenceError(blocks, Array.isArray(detail.photos) && detail.photos.length > 0 && detail.photos.every(nonBlank), `source photo evidence is missing for ${detail.breederId}`);
       evidenceError(blocks, nonBlank(detail.videoId), `source video evidence is missing for ${detail.breederId}`);
@@ -164,9 +228,12 @@ function validateInput(input) {
       evidenceError(blocks, !pagesByKey.has(key), `duplicate Fuluck rendered page: ${key}`);
       pagesByKey.set(key, page);
       if (page.state === 'rendered_page_missing') {
-        evidenceError(blocks, nonBlank(page.url), `missing-page receipt is incomplete for ${key}`);
+        evidenceError(blocks, renderedPageUrl(page) === exactFuluckPageUrl(page.breederId, page.locale), `missing-page receipt URL is invalid for ${key}`);
+        if (renderedPageUrl(page) === exactFuluckPageUrl(page.breederId, page.locale)) requiredCheckedUrls.add(renderedPageUrl(page));
         continue;
       }
+      evidenceError(blocks, renderedPageUrl(page) === exactFuluckPageUrl(page.breederId, page.locale), `Fuluck rendered-page URL is invalid for ${key}`);
+      if (renderedPageUrl(page) === exactFuluckPageUrl(page.breederId, page.locale)) requiredCheckedUrls.add(renderedPageUrl(page));
       for (const field of [...FACT_FIELDS, ...(page.locale === 'ja' ? TEXT_FIELDS : [])]) evidenceError(blocks, field === 'price' ? Number.isFinite(page[field]) : nonBlank(page[field]), `Fuluck ${field} evidence is missing for ${key}`);
       evidenceError(blocks, Array.isArray(page.photos) && page.photos.length > 0 && page.photos.every(nonBlank), `Fuluck photo evidence is missing for ${key}`);
       evidenceError(blocks, nonBlank(page.videoId), `Fuluck video evidence is missing for ${key}`);
@@ -177,7 +244,12 @@ function validateInput(input) {
     for (const locale of LOCALES) evidenceError(blocks, pagesByKey.has(`${breederId}:${locale}`), `Fuluck rendered page evidence is missing for ${breederId}:${locale}`);
   }
   if (Array.isArray(input.fuluck.checkedUrls)) {
-    for (const url of input.fuluck.checkedUrls) evidenceError(blocks, nonBlank(safeUrl(url)), 'Fuluck checked URL is invalid');
+    const checkedUrls = input.fuluck.checkedUrls.map(canonicalEvidenceUrl);
+    for (const url of checkedUrls) evidenceError(blocks, nonBlank(url), 'Fuluck checked URL is invalid');
+    const checkedUrlSet = new Set(checkedUrls.filter(Boolean));
+    evidenceError(blocks, checkedUrlSet.size === checkedUrls.length, 'Fuluck checked URLs contain duplicates');
+    for (const url of requiredCheckedUrls) evidenceError(blocks, checkedUrlSet.has(url), `required checked URL is missing: ${safeUrl(url)}`);
+    for (const url of checkedUrlSet) evidenceError(blocks, requiredCheckedUrls.has(url), `unrelated checked URL: ${safeUrl(url)}`);
   }
   return { blocks, sourceById, sourceDetails, targetById, pagesByKey };
 }
@@ -232,7 +304,11 @@ export function compareKonekoToFuluck(input) {
   })).sort((a, b) => accountRank(a.accountId) - accountRank(b.accountId));
   return {
     timestamp: input.timestamp, result: diffs.length ? 'DRIFT' : 'EXACT', exitCode: diffs.length ? 2 : 0,
-    accounts, fuluck: { apiRecordCount: input.fuluck.apiRecords.length, checkedUrls: [...new Set(input.fuluck.checkedUrls.map(safeUrl))].sort(compareStrings) },
+    accounts,
+    fuluck: {
+      apiRecordCount: input.fuluck.apiRecords.length, renderedPageCounts: renderedPageCounts(input.fuluck.renderedPages),
+      checkedUrls: [...new Set(input.fuluck.checkedUrls.map(safeUrl))].sort(compareStrings),
+    },
     diffs: diffs.sort(diffSort), blocks: [], noWritePerformed: true,
   };
 }
@@ -244,9 +320,9 @@ function jstTimestamp(timestamp) {
 }
 
 function markdownValue(value) {
-  if (isObject(value) && nonBlank(value.sha256)) return `sha256:${value.sha256} preview:${value.preview || ''}`;
+  if (isObject(value) && nonBlank(value.sha256)) return `sha256:${value.sha256} preview:${redactCredentialLike(value.preview)}`;
   if (Array.isArray(value)) return `sha256:${sha256(JSON.stringify(value))} count:${value.length}`;
-  return String(value ?? '').replace(/[\r\n|]/g, ' ').replace(/(?:authorization|bearer|api[_-]?key|token|secret)\s*[:=]\s*\S+/gi, '[redacted]');
+  return redactCredentialLike(String(value ?? '').replace(/[\r\n|]/g, ' '));
 }
 
 export function renderAuditMarkdown(result) {
@@ -255,7 +331,8 @@ export function renderAuditMarkdown(result) {
     lines.push(`- ${account.accountId}: declared ${account.declaredTotal}, receipts ${account.receiptCount}`);
     for (const receipt of account.receipts || []) lines.push(`  - ${receipt.rangeStart}-${receipt.rangeEnd}/${receipt.declaredTotal}: ${receipt.url} (HTTP ${receipt.status}, ${receipt.contentType}, sha256:${receipt.sha256})`);
   }
-  lines.push('', '## Fuluck receipts', '', `- Fuluck API records: ${result.fuluck?.apiRecordCount ?? 0}`);
+  const counts = result.fuluck?.renderedPageCounts || renderedPageCounts();
+  lines.push('', '## Fuluck receipts', '', `- Fuluck API records: ${result.fuluck?.apiRecordCount ?? 0}`, `- Fuluck rendered pages: ${counts.ja + counts.en + counts.zh} (ja: ${counts.ja}, en: ${counts.en}, zh: ${counts.zh})`);
   for (const url of result.fuluck?.checkedUrls || []) lines.push(`- Checked URL: ${url}`);
   lines.push('', '## Findings', '');
   if (result.result === 'EXACT') lines.push('- None.');
