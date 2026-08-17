@@ -27,6 +27,11 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: '.node-version'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Regenerate static pages from API
         run: node tools/generate-site.js
@@ -91,6 +96,7 @@ jobs:
 
             # The base changed after our first green run. Regenerate and re-run every
             # gate against the rebased HEAD before another push attempt.
+            npm ci --ignore-scripts --no-audit --no-fund
             node tools/generate-site.js
             node tools/generate-diary.js
             node --test tests/*.test.js

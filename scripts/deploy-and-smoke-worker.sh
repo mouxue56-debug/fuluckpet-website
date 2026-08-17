@@ -11,7 +11,7 @@
 #         scripts/deploy-and-smoke-worker.sh --deploy   # gated deploy, then smoke
 #         scripts/deploy-and-smoke-worker.sh --help
 #
-# Requires: npx authenticated for the fuluck-api account; curl.
+# Requires for deploy: Node 24, npm, and npx authenticated for the fuluck-api account; curl.
 
 set -u -o pipefail
 
@@ -155,10 +155,19 @@ on_interrupt() {
 trap on_interrupt INT TERM HUP
 
 run_deploy_preflight() {
-  local branch origin_sha dirty
+  local branch origin_sha dirty required_node_major actual_node_major
   command -v git >/dev/null || die "git is required"
   command -v node >/dev/null || die "Node.js is required"
+  command -v npm >/dev/null || die "npm is required"
   command -v npx >/dev/null || die "npx is required"
+
+  required_node_major="$(tr -d '[:space:]' < "$REPO_ROOT/.node-version")" || die \
+    "cannot read the required Node.js version"
+  actual_node_major="$(node -p 'process.versions.node.split(".")[0]')" || die \
+    "cannot determine the Node.js version"
+  [ "$required_node_major" = "24" ] || die "the repository must require Node.js 24"
+  [ "$actual_node_major" = "$required_node_major" ] || die \
+    "Node.js 24 is required for deploy preflight (current major: ${actual_node_major:-unknown})"
 
   branch="$(git -C "$REPO_ROOT" branch --show-current)"
   [ "$branch" = "main" ] || die "deploy is allowed only from main (current: ${branch:-detached})"
@@ -173,6 +182,8 @@ run_deploy_preflight() {
   [ "$RELEASE_SHA" = "$origin_sha" ] || die "HEAD must exactly match origin/main"
 
   echo "== PREDEPLOY QUALITY GATES: git=$RELEASE_SHA =="
+  (cd "$REPO_ROOT" && npm ci --ignore-scripts --no-audit --no-fund) || die \
+    "dependency installation failed"
   (cd "$REPO_ROOT" && node --test tests/*.test.js) || die "test suite failed"
   (cd "$REPO_ROOT" && node tools/verify-generated.js) || die "generated-output verification failed"
   (cd "$REPO_ROOT/api" && "${WRANGLER[@]}" deploy --strict --dry-run \

@@ -8,15 +8,16 @@ Public website and operational tooling for Fuluck Pet. The repository intentiona
 - `tools/generate-site.js` and `tools/generate-diary.js` build tracked pages from the public API.
 - `api/worker.js` is the Cloudflare Worker API, backed by configured KV and R2 bindings.
 - `admin/` is the browser admin client. Authentication values must never be committed.
-- `tests/` contains Node's dependency-free regression suite; `tools/verify-generated.js` checks generated-page integrity.
+- `tests/` contains the Node regression suite; `tools/verify-generated.js` checks generated-page integrity.
 
 Private or regulated offerings remain fail-closed until their owner-controlled legal, data, and launch gates are complete. Never publish a private preview route or replace production catalogue data as part of ordinary maintenance.
 
 ## Local verification
 
-Use Node 24 (see `.node-version`). No package install is required for the repository test suite.
+Use Node 24 (see `.node-version`) and install only the committed lockfile before verification.
 
 ```bash
+npm ci --ignore-scripts --no-audit --no-fund
 node --test tests/*.test.js
 node tools/verify-generated.js
 ```
@@ -33,6 +34,7 @@ npx --yes wrangler@4.70.0 deploy --strict --dry-run --keep-vars
 Generation reads public catalogue endpoints and rewrites tracked output. Review the complete diff before committing.
 
 ```bash
+npm ci --ignore-scripts --no-audit --no-fund
 node tools/generate-site.js
 node tools/generate-diary.js
 node --test tests/*.test.js
@@ -50,7 +52,7 @@ The release helper is smoke-only by default:
 scripts/deploy-and-smoke-worker.sh
 ```
 
-A real Worker release requires the explicit `--deploy` flag. That mode refuses anything except a clean `main` exactly matching `origin/main`, runs the full tests and generated-output verifier, performs a Wrangler dry run, records the exact Git SHA in the Worker version metadata, and keeps a deterministic rollback target for failed smoke tests.
+A real Worker release requires the explicit `--deploy` flag. That mode refuses anything except Node 24 and a clean `main` exactly matching `origin/main`, installs the committed lockfile with lifecycle scripts disabled, runs the full tests and generated-output verifier, performs a Wrangler dry run, records the exact Git SHA in the Worker version metadata, and keeps a deterministic rollback target for failed smoke tests.
 
 ```bash
 scripts/deploy-and-smoke-worker.sh --deploy

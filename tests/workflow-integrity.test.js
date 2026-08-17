@@ -20,6 +20,13 @@ const seoGeoWorkflowPath = path.resolve(
 const seoGeoWorkflow = fs.existsSync(seoGeoWorkflowPath)
   ? fs.readFileSync(seoGeoWorkflowPath, 'utf8')
   : '';
+const konekoWorkflowPath = path.resolve(
+  __dirname,
+  '../.github/workflows/koneko-nightly-audit.yml',
+);
+const konekoWorkflow = fs.existsSync(konekoWorkflowPath)
+  ? fs.readFileSync(konekoWorkflowPath, 'utf8')
+  : '';
 const nodeVersion = fs.readFileSync(
   path.resolve(__dirname, '../.node-version'),
   'utf8',
@@ -28,6 +35,8 @@ const nodeVersion = fs.readFileSync(
 const CHECKOUT = 'actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5';
 const SETUP_NODE = 'actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020';
 const UPLOAD = 'actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02';
+const NPM_CI = 'npm ci --ignore-scripts --no-audit --no-fund';
+const KONEKO_TEST_COMMAND = 'node --test tests/koneko-public-html.test.js tests/koneko-public-crawl.test.js tests/koneko-catalog-audit.test.js tests/koneko-audit-cli.test.js tests/workflow-integrity.test.js';
 
 function assertAppearsInOrder(source, needles) {
   let previousIndex = -1;
@@ -264,6 +273,131 @@ function assertSeoGeoWorkflowPolicy(source) {
   ]);
 }
 
+function assertKonekoWorkflowPolicy(source) {
+  assert.match(source, /cron:\s*['"]0 11 \* \* \*['"]/);
+  assert.match(source, /workflow_dispatch:/);
+  assert.match(source, /permissions:\s*\n\s*contents:\s*read/);
+  assertReadOnlyPermissions(source);
+  assert.match(source, /timeout-minutes:\s*15/);
+  assert.match(source, /concurrency:\s*\n\s*group:\s*koneko-nightly-read-only-audit\s*\n\s*cancel-in-progress:\s*false/);
+  assert.match(source, /node-version-file:\s*['"]?\.node-version['"]?/);
+  assert.match(source, /cache:\s*npm/);
+  assert.match(source, /cache-dependency-path:\s*package-lock\.json/);
+  assert.match(source, new RegExp(`${CHECKOUT.replace('/', '\\/')}\\s+#\\s+v4`));
+  assert.match(source, new RegExp(`${SETUP_NODE.replace('/', '\\/')}\\s+#\\s+v4`));
+  assert.match(source, new RegExp(`${UPLOAD.replace('/', '\\/')}\\s+#\\s+v4\\.6\\.2`));
+  assert.match(source, new RegExp(escapeRegExp(KONEKO_TEST_COMMAND)));
+  assert.match(source, /retention-days:\s*14/);
+
+  const prepareStep = getNamedStepBlock(source, 'Prepare private Koneko audit directory');
+  assert.deepEqual(getLiteralRunScript(prepareStep).split('\n'), [
+    'umask 077',
+    'install -d -m 0700 "$RUNNER_TEMP/koneko-nightly-audit"',
+  ]);
+
+  const dependencyStep = getNamedStepBlock(source, 'Install locked dependencies');
+  assert.deepEqual(getStepMappingValues(dependencyStep, 'id'), ['dependencies']);
+  assert.deepEqual(getStepMappingValues(dependencyStep, 'continue-on-error'), ['true']);
+  assert.deepEqual(getStepMappingValues(dependencyStep, 'run'), [NPM_CI]);
+
+  const focusedStep = getNamedStepBlock(source, 'Run focused Koneko audit tests');
+  assert.deepEqual(getStepMappingValues(focusedStep, 'id'), ['focused_tests']);
+  assert.deepEqual(
+    getStepMappingValues(focusedStep, 'if'),
+    ["steps.dependencies.outcome == 'success'"],
+  );
+  assert.deepEqual(getStepMappingValues(focusedStep, 'continue-on-error'), ['true']);
+  assert.deepEqual(getStepMappingValues(focusedStep, 'run'), [KONEKO_TEST_COMMAND]);
+
+  const auditStep = getNamedStepBlock(source, 'Run Koneko catalogue audit');
+  assert.deepEqual(getStepMappingValues(auditStep, 'id'), ['audit']);
+  assert.deepEqual(
+    getStepMappingValues(auditStep, 'if'),
+    ["steps.dependencies.outcome == 'success' && steps.focused_tests.outcome == 'success'"],
+  );
+  const continuation = String.fromCharCode(92);
+  assert.deepEqual(getLiteralRunScript(auditStep).split('\n'), [
+    'set +e',
+    `timeout --signal=TERM --kill-after=15s 8m ${continuation}`,
+    `  node tools/audit-koneko-catalog.js ${continuation}`,
+    `  --json "$RUNNER_TEMP/koneko-nightly-audit/audit.json" ${continuation}`,
+    '  --markdown "$RUNNER_TEMP/koneko-nightly-audit/audit.md"',
+    'status=$?',
+    'set -e',
+    'echo "status=$status" >> "$GITHUB_OUTPUT"',
+  ]);
+
+  const dependencyBlockStep = getNamedStepBlock(source, 'Write dependency-install BLOCKED audit');
+  assert.deepEqual(
+    getStepMappingValues(dependencyBlockStep, 'if'),
+    ["always() && steps.dependencies.outcome != 'success'"],
+  );
+  assert.deepEqual(getLiteralRunScript(dependencyBlockStep).split('\n'), [
+    `node tools/write-koneko-dependency-block.js ${continuation}`,
+    `  --json "$RUNNER_TEMP/koneko-nightly-audit/audit.json" ${continuation}`,
+    '  --markdown "$RUNNER_TEMP/koneko-nightly-audit/audit.md"',
+  ]);
+
+  const testBlockStep = getNamedStepBlock(source, 'Write focused-test BLOCKED audit');
+  assert.deepEqual(
+    getStepMappingValues(testBlockStep, 'if'),
+    ["always() && steps.dependencies.outcome == 'success' && steps.focused_tests.outcome != 'success'"],
+  );
+  assert.match(getLiteralRunScript(testBlockStep), /--blocked focused_tests_failed/);
+
+  const timeoutBlockStep = getNamedStepBlock(source, 'Write audit-timeout BLOCKED audit');
+  assert.deepEqual(
+    getStepMappingValues(timeoutBlockStep, 'if'),
+    ["always() && (steps.audit.outputs.status == '124' || steps.audit.outputs.status == '137')"],
+  );
+  assert.deepEqual(getLiteralRunScript(timeoutBlockStep).split('\n'), [
+    `node tools/write-koneko-timeout-block.js ${continuation}`,
+    `  --json "$RUNNER_TEMP/koneko-nightly-audit/audit.json" ${continuation}`,
+    '  --markdown "$RUNNER_TEMP/koneko-nightly-audit/audit.md"',
+  ]);
+
+  const summaryStep = getNamedStepBlock(source, 'Append Koneko audit summary');
+  assert.deepEqual(getStepMappingValues(summaryStep, 'if'), ['always()']);
+  assert.match(getLiteralRunScript(summaryStep), /audit\.md.*GITHUB_STEP_SUMMARY/);
+  const uploadStep = getNamedStepBlock(source, 'Upload Koneko audit');
+  assert.deepEqual(getStepMappingValues(uploadStep, 'if'), ['always()']);
+  assert.deepEqual(getStepMappingValues(uploadStep, 'uses'), [UPLOAD]);
+  const reemitStep = getNamedStepBlock(source, 'Re-emit Koneko audit status');
+  assert.deepEqual(getStepMappingValues(reemitStep, 'if'), ['always()']);
+  assert.match(reemitStep, /AUDIT_STATUS:\s*\$\{\{ steps\.audit\.outputs\.status \}\}/);
+  assert.deepEqual(getLiteralRunScript(reemitStep).split('\n'), [
+    'if [ "$DEPENDENCY_OUTCOME" != "success" ] || [ "$TEST_OUTCOME" != "success" ]; then',
+    '  exit 3',
+    'fi',
+    'case "$AUDIT_STATUS" in',
+    '  0|2|3) exit "$AUDIT_STATUS" ;;',
+    '  *) exit 3 ;;',
+    'esac',
+  ]);
+
+  assertAppearsInOrder(source, [
+    '- name: Prepare private Koneko audit directory',
+    NPM_CI,
+    KONEKO_TEST_COMMAND,
+    '- name: Run Koneko catalogue audit',
+    '- name: Write dependency-install BLOCKED audit',
+    '- name: Write focused-test BLOCKED audit',
+    '- name: Write audit-timeout BLOCKED audit',
+    '- name: Append Koneko audit summary',
+    '- name: Upload Koneko audit',
+    '- name: Re-emit Koneko audit status',
+  ]);
+  for (const forbidden of [
+    'FULUCK_ADMIN', 'cursor-agent', 'grok',
+    'codex exec', 'wrangler', 'repository_dispatch', 'openai', 'anthropic',
+  ]) {
+    assert.equal(source.includes(forbidden), false, `forbidden workflow capability: ${forbidden}`);
+  }
+  assert.doesNotMatch(source, /\bsecrets\b/i, 'workflow cannot reference the secrets context');
+  assert.doesNotMatch(source, /contents:\s*write|git\s+(?:push|commit)|\b(?:POST|PUT|PATCH|DELETE)\b/);
+  assert.doesNotMatch(source, /\bnpm\s+install\b|parse5@(?:latest|next)|--force/);
+}
+
 function replaceExactlyOnce(source, before, after) {
   assert.equal(
     source.split(before).length - 1,
@@ -298,6 +432,7 @@ test('push and pull requests have a read-only quality gate on Node 24', () => {
   assert.match(qualityWorkflow, /permissions:\s*\n\s+contents:\s*read/);
   assert.match(qualityWorkflow, /timeout-minutes:\s*\d+/);
   assert.match(qualityWorkflow, /node-version-file:\s*['"]?\.node-version['"]?/);
+  assert.match(qualityWorkflow, new RegExp(escapeRegExp(NPM_CI)));
   assert.match(qualityWorkflow, /node --test tests\/\*\.test\.js/);
   assert.match(qualityWorkflow, /node tools\/verify-generated\.js/);
   assert.doesNotMatch(qualityWorkflow, /contents:\s*write/);
@@ -310,7 +445,7 @@ test('GitHub-maintained actions use the exact reviewed immutable SHAs', () => {
     ['actions/upload-artifact', UPLOAD],
   ]);
 
-  for (const source of [workflow, qualityWorkflow, seoGeoWorkflow]) {
+  for (const source of [workflow, qualityWorkflow, seoGeoWorkflow, konekoWorkflow]) {
     for (const match of source.matchAll(/actions\/(?:checkout|setup-node|upload-artifact)@[^\s]+/g)) {
       const action = match[0].slice(0, match[0].indexOf('@'));
       assert.equal(match[0], approvedActions.get(action));
@@ -318,6 +453,64 @@ test('GitHub-maintained actions use the exact reviewed immutable SHAs', () => {
 
     assert.match(source, new RegExp(`${CHECKOUT.replace('/', '\\/')}\\s+#\\s+v4`));
     assert.match(source, new RegExp(`${SETUP_NODE.replace('/', '\\/')}\\s+#\\s+v4`));
+  }
+});
+
+test('Koneko nightly audit is anonymous, read-only, scheduled at 20:00 JST, and preserves receipts before failing', () => {
+  assertKonekoWorkflowPolicy(konekoWorkflow);
+});
+
+test('Koneko workflow validator rejects audit status masking and broken capture sequencing', async (t) => {
+  const mutations = [
+    [
+      'dependency failure aborts artifacts',
+      `        continue-on-error: true\n        run: ${NPM_CI}`,
+      `        run: ${NPM_CI}`,
+    ],
+    [
+      'dependency fallback loses always',
+      "      - name: Write dependency-install BLOCKED audit\n        if: always() && steps.dependencies.outcome != 'success'",
+      "      - name: Write dependency-install BLOCKED audit\n        if: steps.dependencies.outcome != 'success'",
+    ],
+    ['dependency fallback removed', 'node tools/write-koneko-dependency-block.js', 'node tools/audit-koneko-catalog.js'],
+    ['test fallback masked', '--blocked focused_tests_failed', '--blocked dependency_install_failed'],
+    ['audit deadline removed', 'timeout --signal=TERM --kill-after=15s 8m', 'true'],
+    [
+      'audit-timeout fallback loses always',
+      "      - name: Write audit-timeout BLOCKED audit\n        if: always() && (steps.audit.outputs.status == '124' || steps.audit.outputs.status == '137')",
+      "      - name: Write audit-timeout BLOCKED audit\n        if: steps.audit.outputs.status == '124' || steps.audit.outputs.status == '137'",
+    ],
+    [
+      'audit-timeout SIGKILL fallback removed',
+      "always() && (steps.audit.outputs.status == '124' || steps.audit.outputs.status == '137')",
+      "always() && steps.audit.outputs.status == '124'",
+    ],
+    ['audit-timeout fallback removed', 'node tools/write-koneko-timeout-block.js', 'node tools/audit-koneko-catalog.js'],
+    ['unknown status passes', '          *) exit 3 ;;', '          *) exit 0 ;;'],
+  ];
+
+  for (const [label, before, after] of mutations) {
+    await t.test(label, () => {
+      const mutated = replaceExactlyOnce(konekoWorkflow, before, after);
+      assert.throws(() => assertKonekoWorkflowPolicy(mutated), assert.AssertionError);
+    });
+  }
+});
+
+test('Koneko workflow validator rejects case-insensitive dot and bracket secrets contexts', async (t) => {
+  for (const [label, expression] of [
+    ['mixed-case dot context', '${{ SeCrEtS.TOKEN }}'],
+    ['lower-case bracket context', "${{ secrets['TOKEN'] }}"],
+    ['upper-case bracket context', '${{ SECRETS["TOKEN"] }}'],
+  ]) {
+    await t.test(label, () => {
+      const mutated = replaceExactlyOnce(
+        konekoWorkflow,
+        '    runs-on: ubuntu-latest',
+        `    runs-on: ubuntu-latest\n    env:\n      TOKEN: ${expression}`,
+      );
+      assert.throws(() => assertKonekoWorkflowPolicy(mutated), assert.AssertionError);
+    });
   }
 });
 
@@ -338,11 +531,43 @@ test('push-retry rebase reruns generators and every gate before retrying', () =>
   const rebaseIndex = workflow.indexOf('git pull --rebase origin main');
   assert.notEqual(rebaseIndex, -1);
   const retryTail = workflow.slice(rebaseIndex);
+  assert.match(retryTail, new RegExp(escapeRegExp(NPM_CI)));
   assert.match(retryTail, /node tools\/generate-site\.js/);
   assert.match(retryTail, /node tools\/generate-diary\.js/);
   assert.match(retryTail, /node --test tests\/\*\.test\.js/);
   assert.match(retryTail, /node tools\/verify-generated\.js/);
   assert.match(retryTail, /git commit --amend --no-edit/);
+});
+
+test('all dependency-aware workflows install the exact lockfile without scripts or audits', () => {
+  for (const source of [konekoWorkflow, qualityWorkflow, workflow]) {
+    assert.doesNotMatch(source, /\bnpm\s+install\b|npm\s+ci(?! --ignore-scripts --no-audit --no-fund)/);
+  }
+  assertAppearsInOrder(qualityWorkflow, [
+    'node-version-file:',
+    NPM_CI,
+    'node --test tests/*.test.js',
+    'node tools/seo-geo-audit.js',
+    'node tools/verify-generated.js',
+  ]);
+
+  assert.equal(
+    workflow.split(NPM_CI).length - 1,
+    2,
+    'regeneration needs one initial install and one command inside every rebase retry',
+  );
+  const firstRebase = workflow.indexOf('git pull --rebase origin main');
+  assertAppearsInOrder(workflow.slice(0, firstRebase), [
+    'node-version-file:',
+    NPM_CI,
+    'node tools/generate-site.js',
+  ]);
+  assertAppearsInOrder(workflow.slice(firstRebase), [
+    'git pull --rebase origin main',
+    NPM_CI,
+    'node tools/generate-site.js',
+    'node --test tests/*.test.js',
+  ]);
 });
 
 test('quality workflow runs the SEO GEO audit after tests and before generated verification', () => {
