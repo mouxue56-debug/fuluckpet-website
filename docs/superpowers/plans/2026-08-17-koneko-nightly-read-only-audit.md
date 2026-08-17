@@ -123,7 +123,7 @@ Run the same focused test and confirm the new cases fail because detail function
 
 - [ ] **Step 7: Implement detail parsers and verify GREEN**
 
-Parse Koneko Product JSON-LD for SKU/images/price; one balanced `.petDtlData table.gnrTbl` for the live labelled facts; `#parentInfo` for father/mother; `.movieGalleryCnt.youtube` for a canonical 11-character ID; and `.petDtlInt .gnrCnt` for long text. Require one non-empty breed/colour/gender/birthday row, but record absent/empty appeal, parent, introduction, and video containers as observed empty strings where their contracts permit. Do not fall back to whole-page labels, scripts, or footer markup. Parse Fuluck Product JSON-LD plus fixed `kitten-detail-*` sections. Normalize CRLF, entities, non-breaking spaces, padded dates, and `<br>` without executing HTML.
+Parse Koneko Product JSON-LD for SKU/images/price; one visible, non-footer balanced `.petDtlData table.gnrTbl` for the live labelled facts; `#parentInfo` for father/mother; `.movieGalleryCnt.youtube` for a canonical 11-character ID; and `.petDtlInt .gnrCnt` for long text. Outer evidence selectors match exact ID/class semantics independently of tag name. Record every visible non-footer target candidate from opening through matching close: unclosed, mismatched, self-closing, duplicate, or otherwise malformed candidates block even if a valid candidate also exists, while unrelated outer-document imbalance remains tolerated. Hidden or footer candidates are ignored rather than treated as conflicts. Require one non-empty breed/colour/gender/birthday row, but record absent/empty appeal, parent, introduction, and video containers as observed empty strings where their contracts permit. Parse YouTube URLs with URL-origin/path/query validation (HTTPS, allowlisted host, one 11-character `watch?v`/`embed`/`shorts`/short-link ID), not substring matching. Do not fall back to whole-page labels, scripts, or footer markup. Parse Fuluck Product JSON-LD plus fixed `kitten-detail-*` sections using the same canonical video extractor. Normalize CRLF, entities, non-breaking spaces, padded dates, and `<br>` without executing HTML.
 
 Run `node --test tests/koneko-public-html.test.js`; expected all pass.
 
@@ -227,7 +227,7 @@ assert.deepEqual(result.diffs, []);
 assert.deepEqual(result.accounts.map((a) => a.accountId), ['c995680', 'd696506']);
 ```
 
-Missing account receipts, incomplete pagination, duplicate target IDs, or missing required evidence must produce `BLOCKED`. A Japanese text change must add `translation_review_required` for EN and ZH.
+Missing account receipts, incomplete pagination, duplicate target IDs, or missing required evidence must produce `BLOCKED`. A Japanese text change with a non-empty Koneko source must add `translation_review_required` for EN and ZH; target-only text must not.
 
 - [ ] **Step 2: Verify comparator RED**
 
@@ -235,7 +235,7 @@ Run `node --test tests/koneko-catalog-audit.test.js`; expected missing-module fa
 
 - [ ] **Step 3: Implement deterministic comparison**
 
-Sort by fixed account order, breeder ID, type, and field. Require non-empty breed/colour/gender/price/birthday and ordered photos; require `papa`, `mama`, `note`, `description`, and `videoId` to be strings but allow `''` as observed evidence. Compare JA photos/video/parents/short/long text even when one side is empty. Require EN/ZH short/long text only when the corresponding Japanese source field is non-empty. Do not claim EN/ZH wording equals Koneko. Keep safe per-account unique-ID/status/active aggregates in terminal `BLOCKED` receipts without restoring unverified checked URLs. Use a closed field mismatch shape:
+Sort by fixed account order, breeder ID, type, and field. Require non-empty breed/colour/gender/price/birthday and ordered photos; require `papa`, `mama`, `note`, `description`, and `videoId` to be strings but allow `''` as observed evidence. Compare JA photos/video/parents/short/long text even when one side is empty. Require EN/ZH short/long text only when the corresponding Japanese source field is non-empty, including `translation_review_required`; do not claim EN/ZH wording equals Koneko. Keep safe per-account unique-ID/status/ambiguous-status/active aggregates in terminal `BLOCKED` receipts without restoring unverified checked URLs: group records by valid breeder ID and count a status only when all records for that ID share the same known status. Use a closed field mismatch shape:
 
 ```js
 {

@@ -134,16 +134,26 @@ function diffSort(a, b) {
 
 function safeKittensSummary(kittens) {
   const statusCounts = { available: 0, reserved: 0, sold: 0 };
-  const breederIds = new Set();
-  if (!Array.isArray(kittens)) return { uniqueIdCount: 0, statusCounts, activeCount: 0 };
+  const statusByBreederId = new Map();
+  if (!Array.isArray(kittens)) return { uniqueIdCount: 0, statusCounts, ambiguousStatusCount: 0, activeCount: 0 };
   for (const kitten of kittens) {
-    if (!isObject(kitten) || !BREEDER_ID.test(kitten.breederId) || !KNOWN_STATUSES.has(kitten.status) || breederIds.has(kitten.breederId)) continue;
-    breederIds.add(kitten.breederId);
-    statusCounts[kitten.status] += 1;
+    if (!isObject(kitten) || !BREEDER_ID.test(kitten.breederId)) continue;
+    if (!statusByBreederId.has(kitten.breederId)) statusByBreederId.set(kitten.breederId, new Set());
+    statusByBreederId.get(kitten.breederId).add(KNOWN_STATUSES.has(kitten.status) ? kitten.status : null);
+  }
+  let ambiguousStatusCount = 0;
+  for (const statuses of statusByBreederId.values()) {
+    const [status] = statuses;
+    if (statuses.size !== 1 || !KNOWN_STATUSES.has(status)) {
+      ambiguousStatusCount += 1;
+      continue;
+    }
+    statusCounts[status] += 1;
   }
   return {
-    uniqueIdCount: breederIds.size,
+    uniqueIdCount: statusByBreederId.size,
     statusCounts,
+    ambiguousStatusCount,
     activeCount: statusCounts.available + statusCounts.reserved,
   };
 }
@@ -350,7 +360,9 @@ export function compareKonekoToFuluck(input) {
     for (const field of TEXT_FIELDS) {
       if (sourceDetail[field] === ja[field]) continue;
       add({ type: 'japanese_text_mismatch', accountId: source.accountId, breederId, field, source: safeTextReceipt(sourceDetail[field]), target: safeTextReceipt(ja[field]) });
-      for (const locale of ['en', 'zh']) add({ type: 'translation_review_required', accountId: source.accountId, breederId, field, locale, source: 'Japanese source text changed', target: 'review required' });
+      if (nonBlank(sourceDetail[field])) {
+        for (const locale of ['en', 'zh']) add({ type: 'translation_review_required', accountId: source.accountId, breederId, field, locale, source: 'Japanese source text changed', target: 'review required' });
+      }
     }
     for (const locale of ['en', 'zh']) {
       const translated = evidence.pagesByKey.get(`${breederId}:${locale}`);
@@ -390,7 +402,7 @@ export function renderAuditMarkdown(result) {
   const lines = ['# Koneko catalogue audit', '', `- Timestamp: ${jstTimestamp(result.timestamp)}`, `- Result: ${result.result}`, `- Exit code: ${result.exitCode}`, '- NO WRITE PERFORMED', '', '## Koneko account receipts', ''];
   for (const account of result.accounts || []) {
     const statusCounts = account.statusCounts || { available: 0, reserved: 0, sold: 0 };
-    lines.push(`- ${account.accountId}: declared ${account.declaredTotal}, receipts ${account.receiptCount}; unique IDs ${account.uniqueIdCount ?? 0}; available ${statusCounts.available ?? 0}, reserved ${statusCounts.reserved ?? 0}, sold ${statusCounts.sold ?? 0}; active ${account.activeCount ?? 0}`);
+    lines.push(`- ${account.accountId}: declared ${account.declaredTotal}, receipts ${account.receiptCount}; unique IDs ${account.uniqueIdCount ?? 0}; available ${statusCounts.available ?? 0}, reserved ${statusCounts.reserved ?? 0}, sold ${statusCounts.sold ?? 0}; ambiguous ${account.ambiguousStatusCount ?? 0}; active ${account.activeCount ?? 0}`);
     for (const receipt of account.receipts || []) lines.push(`  - ${receipt.rangeStart}-${receipt.rangeEnd}/${receipt.declaredTotal}: ${safeUrl(receipt.url)} (HTTP ${markdownValue(receipt.status)}, ${markdownValue(receipt.contentType)}, sha256:${markdownValue(receipt.sha256)})`);
   }
   const counts = result.fuluck?.renderedPageCounts || renderedPageCounts();

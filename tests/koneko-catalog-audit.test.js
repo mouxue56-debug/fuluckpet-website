@@ -203,6 +203,21 @@ test('accepts observed-empty Koneko optional fields while still comparing empty 
   assert.ok(diff(drift, 'japanese_text_mismatch', source.breederId, 'description'));
 });
 
+test('does not request EN or ZH translation review for target-only text when the Koneko source is empty', () => {
+  const input = exactInput();
+  const source = input.accounts[0].activeDetails[0];
+  const ja = input.fuluck.renderedPages.find(item => item.breederId === source.breederId && item.locale === 'ja');
+  source.note = '';
+  source.description = '';
+  ja.note = 'Target-only note';
+  ja.description = 'Target-only description';
+
+  const result = compareKonekoToFuluck(input);
+  assert.ok(diff(result, 'japanese_text_mismatch', source.breederId, 'note'));
+  assert.ok(diff(result, 'japanese_text_mismatch', source.breederId, 'description'));
+  assert.equal(result.diffs.some(item => item.type === 'translation_review_required' && item.breederId === source.breederId), false);
+});
+
 test('blocks optional Koneko evidence with a non-string value and retains only safe account aggregate counts', () => {
   const input = exactInput();
   const account = input.accounts[0];
@@ -223,8 +238,49 @@ test('blocks optional Koneko evidence with a non-string value and retains only s
   assert.equal(blocked.accounts.find(item => item.accountId === 'c995680').activeCount, 2);
   assert.match(blocked.blocks.join('\n'), /papa.*missing|papa.*string/i);
   const markdown = renderAuditMarkdown(blocked);
-  assert.match(markdown, /unique IDs 3; available 1, reserved 1, sold 1; active 2/);
+  assert.match(markdown, /unique IDs 3; available 1, reserved 1, sold 1; ambiguous 0; active 2/);
   assert.doesNotMatch(markdown.split('## Findings')[0], /not-a-breeder-id/);
+});
+
+test('keeps BLOCKED status aggregates order-independent and marks conflicting or invalid duplicate statuses ambiguous', () => {
+  const kittens = [
+    { breederId: '2608-01001', status: 'available' },
+    { breederId: '2608-01001', status: 'sold' },
+    { breederId: '2608-01002', status: 'reserved' },
+    { breederId: '2608-01002', status: 'unknown' },
+    { breederId: '2608-01003', status: 'available' },
+    { breederId: '2608-01003', status: 'available' },
+    { breederId: '2608-01004', status: 'sold' },
+  ];
+  const first = exactInput();
+  first.accounts[0].kittens = kittens;
+  first.accounts[0].activeDetails[0].papa = null;
+  const reversed = exactInput();
+  reversed.accounts[0].kittens = [...kittens].reverse();
+  reversed.accounts[0].activeDetails[0].papa = null;
+
+  const firstReceipt = compareKonekoToFuluck(first).accounts.find(item => item.accountId === 'c995680');
+  const reversedReceipt = compareKonekoToFuluck(reversed).accounts.find(item => item.accountId === 'c995680');
+  const summary = {
+    uniqueIdCount: firstReceipt.uniqueIdCount,
+    statusCounts: firstReceipt.statusCounts,
+    ambiguousStatusCount: firstReceipt.ambiguousStatusCount,
+    activeCount: firstReceipt.activeCount,
+  };
+  assert.deepEqual(summary, {
+    uniqueIdCount: 4,
+    statusCounts: { available: 1, reserved: 0, sold: 1 },
+    ambiguousStatusCount: 2,
+    activeCount: 1,
+  });
+  assert.deepEqual({
+    uniqueIdCount: reversedReceipt.uniqueIdCount,
+    statusCounts: reversedReceipt.statusCounts,
+    ambiguousStatusCount: reversedReceipt.ambiguousStatusCount,
+    activeCount: reversedReceipt.activeCount,
+  }, summary);
+  assert.deepEqual(reversedReceipt, firstReceipt);
+  assert.match(renderAuditMarkdown(compareKonekoToFuluck(first)), /available 1, reserved 0, sold 1; ambiguous 2; active 1/);
 });
 
 test('blocks on incomplete evidence instead of inferring a non-exact catalogue result', () => {

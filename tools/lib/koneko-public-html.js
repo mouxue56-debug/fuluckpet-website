@@ -9,7 +9,8 @@ const STATUS_TEXT = new Map([
   ['販売終了', 'sold'],
 ]);
 
-const YOUTUBE_ID = /(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:[^\s#]*?&)?v=|embed\/|shorts\/))([A-Za-z0-9_-]{11})(?:[?&#/]|$)/i;
+const YOUTUBE_ID = /^[A-Za-z0-9_-]{11}$/;
+const YOUTUBE_HOSTS = new Set(['youtube.com', 'www.youtube.com', 'm.youtube.com', 'youtube-nocookie.com', 'www.youtube-nocookie.com', 'youtu.be']);
 const VOID_HTML_TAGS = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
 const NON_VISIBLE_TEXT_TAGS = new Set(['script', 'style', 'template']);
 const HTML_TEXT_ELEMENTS = new Set(['script', 'style', 'title', 'textarea', 'xmp', 'iframe', 'noembed', 'noframes', 'noscript']);
@@ -344,48 +345,72 @@ function walkHtml(html, { onOpen, onClose, onText } = {}) {
 
 function balancedElements(html, matches) {
   const elements = [];
+  const candidates = [];
   const stack = [];
   let hiddenDepth = 0;
+  let footerDepth = 0;
   let structurallyValid = true;
   const complete = walkHtml(html, {
     onOpen({ tag, attributes, start, end, selfClosing }) {
-      if (selfClosing) return;
       const hidden = hasHiddenAttributes(attributes) || NON_VISIBLE_TEXT_TAGS.has(tag);
+      const inFooter = footerDepth > 0 || tag === 'footer';
+      const candidate = matches({ tag, attributes }) ? {
+        start,
+        tag,
+        attributes,
+        ancestorHidden: hiddenDepth > 0 || hidden,
+        inFooter,
+        invalid: selfClosing,
+        element: null,
+      } : null;
+      if (candidate) candidates.push(candidate);
+      if (selfClosing) return;
       stack.push({
         tag,
         start,
         attributes,
         contentStart: end,
         hidden,
+        footer: tag === 'footer',
         ancestorHidden: hiddenDepth > 0 || hidden,
-        wanted: matches({ tag, attributes }),
+        candidate,
       });
       if (hidden) hiddenDepth += 1;
+      if (tag === 'footer') footerDepth += 1;
     },
     onClose({ tag, start }) {
       const current = stack.at(-1);
       if (!current || current.tag !== tag) {
         structurallyValid = false;
         for (const element of stack) {
-          if (element.wanted) element.invalid = true;
+          if (element.candidate) element.candidate.invalid = true;
         }
         return;
       }
       stack.pop();
       if (current.hidden) hiddenDepth -= 1;
-      if (current.wanted && !current.invalid) elements.push({
-        start: current.start,
-        tag: current.tag,
-        content: html.slice(current.contentStart, start),
-        attributes: current.attributes,
-        ancestorHidden: current.ancestorHidden,
-      });
+      if (current.footer) footerDepth -= 1;
+      if (current.candidate && !current.candidate.invalid) {
+        const element = {
+          start: current.start,
+          tag: current.tag,
+          content: html.slice(current.contentStart, start),
+          attributes: current.attributes,
+          ancestorHidden: current.ancestorHidden,
+        };
+        current.candidate.element = element;
+        elements.push(element);
+      }
     },
   });
-  if (stack.length || hiddenDepth !== 0) structurallyValid = false;
+  if (stack.length || hiddenDepth !== 0 || footerDepth !== 0) {
+    structurallyValid = false;
+    for (const element of stack) if (element.candidate) element.candidate.invalid = true;
+  }
   return {
     complete: complete && structurallyValid,
     elements: elements.sort((left, right) => left.start - right.start),
+    candidates: candidates.sort((left, right) => left.start - right.start),
   };
 }
 
@@ -438,6 +463,48 @@ function visibleAnchors(html, { ancestorHidden = false } = {}) {
 function absoluteUrl(value, pageUrl) {
   if (!nonBlank(value)) return '';
   try { return new URL(decodeEntities(value.trim()), pageUrl).href; } catch { return ''; }
+}
+
+function canonicalYoutubeId(value, pageUrl) {
+  if (!nonBlank(value)) return '';
+  let url;
+  try {
+    url = new URL(decodeEntities(value.trim()), pageUrl);
+  } catch {
+    return '';
+  }
+  if (url.protocol !== 'https:' || url.username || url.password || url.port || !YOUTUBE_HOSTS.has(url.hostname.toLowerCase())) return '';
+  if (url.hostname.toLowerCase() === 'youtu.be') {
+    const match = /^\/([A-Za-z0-9_-]{11})$/.exec(url.pathname);
+    return match && url.searchParams.getAll('v').length === 0 ? match[1] : '';
+  }
+  if (url.pathname === '/watch') {
+    const values = url.searchParams.getAll('v');
+    return values.length === 1 && YOUTUBE_ID.test(values[0]) ? values[0] : '';
+  }
+  const match = /^\/(?:embed|shorts)\/([A-Za-z0-9_-]{11})$/.exec(url.pathname);
+  return match && url.searchParams.getAll('v').length === 0 ? match[1] : '';
+}
+
+function youtubeMediaIds(html, pageUrl, { rejectInvalid = false } = {}) {
+  const ids = [];
+  let malformed = false;
+  const complete = walkHtml(html, {
+    onOpen({ tag, attributes }) {
+      if (!['a', 'iframe', 'video', 'source'].includes(tag)) return;
+      const values = htmlAttributes(attributes);
+      if (!values) {
+        malformed = true;
+        return;
+      }
+      const attribute = tag === 'a' ? values.get('href') : values.get('src') || values.get('href');
+      if (!attribute?.hasValue) return;
+      const id = canonicalYoutubeId(attribute.value, pageUrl);
+      if (!id && rejectInvalid) malformed = true;
+      if (id) ids.push(id);
+    },
+  });
+  return { complete, malformed, ids };
 }
 
 function productJsonLd(html) {
@@ -512,13 +579,9 @@ function gender(value) {
   return text;
 }
 
-function youtubeId(html) {
-  for (const match of html.matchAll(/<(?:iframe|a|video)\b[^>]*(?:src|href)\s*=\s*["']([^"']+)["'][^>]*>/gi)) {
-    const found = match[1].match(YOUTUBE_ID);
-    if (found) return found[1];
-  }
-  const found = html.match(YOUTUBE_ID);
-  return found ? found[1] : '';
+function youtubeId(html, pageUrl) {
+  const evidence = youtubeMediaIds(html, pageUrl);
+  return evidence.complete && !evidence.malformed ? evidence.ids[0] || '' : '';
 }
 
 function textAfterLabel(source, labels) {
@@ -610,7 +673,7 @@ function detailFields(html, product, pageUrl, { koneko = false } = {}) {
     price: productPrice(product),
     birthday: normalizeDate(html.match(/data-i18n-birthday\s*=\s*["']([^"']+)["']/i)?.[1] || fact(html, ['誕生日', '生年月日', 'Birthday'])),
     photos: imageUrls,
-    videoId: youtubeId(html),
+    videoId: youtubeId(html, pageUrl),
     papa: parentsValue.papa,
     mama: parentsValue.mama,
     note: note(html),
@@ -619,10 +682,19 @@ function detailFields(html, product, pageUrl, { koneko = false } = {}) {
 }
 
 function uniqueKonekoElement(result, name, { optional = false, requireComplete = true } = {}) {
+  const candidates = Array.isArray(result.candidates)
+    ? result.candidates.filter(candidate => !candidate.ancestorHidden && !candidate.inFooter)
+    : null;
+  if (candidates) {
+    if (candidates.some(candidate => candidate.invalid || !candidate.element)) {
+      throw new Error(`Koneko ${name} candidate is malformed`);
+    }
+  }
   if (requireComplete && !result.complete) throw new Error(`Koneko ${name} structure is malformed`);
-  if (result.elements.length === 0 && optional) return null;
-  if (result.elements.length !== 1) throw new Error(`Koneko ${name} must be unique`);
-  return result.elements[0];
+  const elements = candidates ? candidates.map(candidate => candidate.element) : result.elements;
+  if (elements.length === 0 && optional) return null;
+  if (elements.length !== 1) throw new Error(`Koneko ${name} must be unique`);
+  return elements[0];
 }
 
 function directElementsByTag(html, desiredTag) {
@@ -725,7 +797,7 @@ function oneKonekoTableValue(rows, field, labels, { optional = false } = {}) {
 }
 
 function konekoTableFacts(html) {
-  const dataRegion = uniqueKonekoElement(balancedElements(html, ({ tag, attributes }) => tag === 'div' && hasClassToken(attributes, 'petDtlData')), 'facts region', { requireComplete: false });
+  const dataRegion = uniqueKonekoElement(balancedElements(html, ({ attributes }) => hasClassToken(attributes, 'petDtlData')), 'facts region', { requireComplete: false });
   const table = uniqueKonekoElement(balancedElements(dataRegion.content, ({ tag, attributes }) => tag === 'table' && hasClassToken(attributes, 'gnrTbl')), 'facts table');
   const tableRows = readKonekoTableRows(table.content);
   if (!tableRows) throw new Error('Koneko facts table structure is malformed');
@@ -745,7 +817,7 @@ function konekoTableFacts(html) {
 }
 
 function konekoParents(html) {
-  const region = uniqueKonekoElement(balancedElements(html, ({ tag, attributes }) => tag === 'div' && hasExactId(attributes, 'parentInfo')), 'parent region', { optional: true, requireComplete: false });
+  const region = uniqueKonekoElement(balancedElements(html, ({ attributes }) => hasExactId(attributes, 'parentInfo')), 'parent region', { optional: true, requireComplete: false });
   if (!region) return { papa: '', mama: '' };
   const list = uniqueKonekoElement(balancedElements(region.content, ({ tag, attributes }) => tag === 'ul' && hasClassToken(attributes, 'parentInfo_list')), 'parent list');
   const items = directElementsByTag(list.content, 'li');
@@ -765,33 +837,18 @@ function konekoParents(html) {
   return { papa: values.get('father'), mama: values.get('mother') };
 }
 
-function konekoVideoId(html) {
-  const region = uniqueKonekoElement(balancedElements(html, ({ tag, attributes }) => tag === 'div' && hasClassToken(attributes, 'movieGalleryCnt') && hasClassToken(attributes, 'youtube')), 'video region', { optional: true, requireComplete: false });
+function konekoVideoId(html, pageUrl) {
+  const region = uniqueKonekoElement(balancedElements(html, ({ attributes }) => hasClassToken(attributes, 'movieGalleryCnt') && hasClassToken(attributes, 'youtube')), 'video region', { optional: true, requireComplete: false });
   if (!region) return '';
-  const ids = [];
-  let malformed = false;
-  const complete = walkHtml(region.content, {
-    onOpen({ tag, attributes }) {
-      if (!['a', 'iframe', 'video', 'source'].includes(tag)) return;
-      const values = htmlAttributes(attributes);
-      if (!values) {
-        malformed = true;
-        return;
-      }
-      const attribute = tag === 'a' ? values.get('href') : values.get('src') || values.get('href');
-      if (!attribute?.hasValue) return;
-      const match = decodeEntities(attribute.value).match(YOUTUBE_ID);
-      if (match) ids.push(match[1]);
-    },
-  });
-  if (!complete || malformed) throw new Error('Koneko video structure is malformed');
-  const uniqueIds = [...new Set(ids)];
+  const evidence = youtubeMediaIds(region.content, pageUrl, { rejectInvalid: true });
+  if (!evidence.complete || evidence.malformed) throw new Error('Koneko video structure is malformed');
+  const uniqueIds = [...new Set(evidence.ids)];
   if (uniqueIds.length !== 1) throw new Error('Koneko video evidence is missing or conflicting');
   return uniqueIds[0];
 }
 
 function konekoDescription(html) {
-  const region = uniqueKonekoElement(balancedElements(html, ({ tag, attributes }) => tag === 'div' && hasClassToken(attributes, 'petDtlInt')), 'introduction region', { optional: true, requireComplete: false });
+  const region = uniqueKonekoElement(balancedElements(html, ({ attributes }) => hasClassToken(attributes, 'petDtlInt')), 'introduction region', { optional: true, requireComplete: false });
   if (!region) return '';
   const content = uniqueKonekoElement(balancedElements(region.content, ({ tag, attributes }) => tag === 'div' && hasClassToken(attributes, 'gnrCnt')), 'introduction content');
   return decodeHtmlText(content.content.replace(/<h[1-6]\b[^>]*>[\s\S]*?<\/h[1-6]\s*>/gi, ''), { preserveBreaks: true });
@@ -804,7 +861,7 @@ function konekoDetailFields(html, product, pageUrl) {
     ...facts,
     price: productPrice(product),
     photos: productImages(product, pageUrl),
-    videoId: konekoVideoId(html),
+    videoId: konekoVideoId(html, pageUrl),
     ...parentValues,
     description: konekoDescription(html),
   };
