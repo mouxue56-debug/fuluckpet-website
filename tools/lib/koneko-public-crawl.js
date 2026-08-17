@@ -21,6 +21,116 @@ const ALLOWED_HOSTS = new Set([
 const RETRYABLE_STATUSES = new Set([429, 502, 503, 504]);
 const CHALLENGE_MARKERS = /challenge-platform|cf-chl-|just a moment|interstitial/i;
 const BREEDER_ID = /^\d{4}-\d{5}$/;
+const FIXED_ACCOUNTS = new Set(['c995680', 'd696506']);
+const FAILURE_STAGES = new Set(['koneko_list', 'koneko_detail', 'fuluck_api', 'fuluck_rendered']);
+const FAILURE_REASONS = new Set([
+  'challenge',
+  'timeout',
+  'http_status',
+  'content_type',
+  'response_too_large',
+  'redirect_policy',
+  'pagination_contract',
+  'identity_contract',
+  'parse_contract',
+  'public_request_failed',
+]);
+const GENERIC_BLOCKER = 'Public catalogue evidence could not be completed.';
+
+function exactDiagnosticUrl(stage, value, context) {
+  let url;
+  try { url = new URL(value); } catch { return ''; }
+  if (url.protocol !== 'https:' || url.username || url.password || url.hash) return '';
+  const keys = [...url.searchParams.keys()];
+  if (stage === 'koneko_list') {
+    const breederIds = url.searchParams.getAll('breeder_id');
+    const pageNums = url.searchParams.getAll('pageNum');
+    if (url.origin !== KONEKO_ORIGIN || url.pathname !== '/breederDetail.php'
+      || breederIds.length !== 1 || breederIds[0] !== context.accountId
+      || pageNums.length > 1 || pageNums.some(page => !/^\d+$/.test(page))
+      || keys.some(key => key !== 'breeder_id' && key !== 'pageNum')) return '';
+    return url.href;
+  }
+  if (stage === 'koneko_detail') {
+    if (url.origin !== KONEKO_ORIGIN || url.search || url.pathname !== `/cat${context.breederId}.html`) return '';
+    return url.href;
+  }
+  if (stage === 'fuluck_api') {
+    return url.origin === FULUCK_API_ORIGIN && url.pathname === '/api/kittens' && !url.search ? url.href : '';
+  }
+  const prefix = context.locale === 'ja' ? '' : `/${context.locale}`;
+  if (url.origin !== FULUCK_ORIGIN || url.search || url.pathname !== `${prefix}/kittens/${context.breederId}.html`) return '';
+  return url.href;
+}
+
+function validatedDiagnostic(details) {
+  if (!details || typeof details !== 'object' || Array.isArray(details)) return null;
+  const allowedKeys = new Set(['stage', 'reason', 'accountId', 'breederId', 'locale', 'url']);
+  if (Object.keys(details).some(key => !allowedKeys.has(key))) return null;
+  const { stage, reason } = details;
+  if (!FAILURE_STAGES.has(stage) || !FAILURE_REASONS.has(reason)) return null;
+  const required = {
+    koneko_list: ['accountId'],
+    koneko_detail: ['accountId', 'breederId'],
+    fuluck_api: [],
+    fuluck_rendered: ['breederId', 'locale'],
+  }[stage];
+  const forbidden = {
+    koneko_list: ['breederId', 'locale'],
+    koneko_detail: ['locale'],
+    fuluck_api: ['accountId', 'breederId', 'locale'],
+    fuluck_rendered: ['accountId'],
+  }[stage];
+  if (required.some(key => details[key] === undefined) || forbidden.some(key => details[key] !== undefined)) return null;
+  if (details.accountId !== undefined && !FIXED_ACCOUNTS.has(details.accountId)) return null;
+  if (details.breederId !== undefined && (typeof details.breederId !== 'string' || !BREEDER_ID.test(details.breederId))) return null;
+  if (details.locale !== undefined && !['ja', 'en', 'zh'].includes(details.locale)) return null;
+  const url = exactDiagnosticUrl(stage, details.url, details);
+  return url ? { ...details, url } : null;
+}
+
+export class PublicAuditFailure extends Error {
+  constructor(details, { cause } = {}) {
+    super('Public catalogue audit failed.', cause === undefined ? undefined : { cause });
+    this.name = 'PublicAuditFailure';
+    const diagnostic = validatedDiagnostic(details);
+    Object.defineProperty(this, 'diagnostic', { value: diagnostic });
+    if (diagnostic) Object.assign(this, diagnostic);
+  }
+}
+
+export function formatPublicAuditFailure(error) {
+  if (!(error instanceof PublicAuditFailure) || !error.diagnostic) return GENERIC_BLOCKER;
+  const value = error.diagnostic;
+  const parts = [`stage=${value.stage}`, `reason=${value.reason}`];
+  if (value.accountId) parts.push(`account=${value.accountId}`);
+  if (value.breederId) parts.push(`breeder=${value.breederId}`);
+  if (value.locale) parts.push(`locale=${value.locale}`);
+  parts.push(`url=${value.url}`);
+  return `Public catalogue audit blocked: ${parts.join('; ')}`;
+}
+
+function reasonFromCause(cause, fallback) {
+  if (isAbort(cause)) return 'timeout';
+  const message = String(cause?.message || '');
+  if (/challenge|interstitial/i.test(message)) return 'challenge';
+  if (/non-2xx status/i.test(message)) return 'http_status';
+  if (/content type/i.test(message)) return 'content_type';
+  if (/exceeds 2 MiB/i.test(message)) return 'response_too_large';
+  if (/redirect|final URL|public URL (?:is invalid|must use HTTPS|host)|rendered target URL/i.test(message)) return 'redirect_policy';
+  if (/pagination|range|declared total|final count|next URL/i.test(message)) return 'pagination_contract';
+  if (/duplicate|mismatch|disagree|breeder ID|exactly one breeder link/i.test(message)) return 'identity_contract';
+  if (/malformed|missing|invalid|must return an array|unknown status|conflicting status|no Koneko cards|marker/i.test(message)) return 'parse_contract';
+  return fallback;
+}
+
+function typedFailure(stage, context, cause, fallback) {
+  return new PublicAuditFailure({ stage, reason: reasonFromCause(cause, fallback), ...context }, { cause });
+}
+
+function contractFailure(stage, context, reason, message) {
+  return new PublicAuditFailure({ stage, reason, ...context }, { cause: new Error(message) });
+}
 
 function checkedUrl(value) {
   let parsed;
@@ -175,46 +285,69 @@ export async function crawlKonekoAccount({ accountId, fetchImpl = globalThis.fet
   const receipts = [];
   let declaredTotal;
   let expectedRangeStart = 1;
+  let lastListUrl = nextUrl;
 
   while (nextUrl) {
-    if (visitedUrls.has(nextUrl)) throw new Error('repeated Koneko next URL');
+    const listContext = { accountId, url: nextUrl };
+    if (visitedUrls.has(nextUrl)) throw contractFailure('koneko_list', listContext, 'pagination_contract', 'repeated Koneko next URL');
     visitedUrls.add(nextUrl);
-    const fetched = await fetchPublicText(nextUrl, { fetchImpl });
-    const page = parseKonekoListPage(fetched.text, { accountId, pageUrl: fetched.url });
+    lastListUrl = nextUrl;
+    let fetched;
+    try {
+      fetched = await fetchPublicText(nextUrl, { fetchImpl });
+    } catch (cause) {
+      throw typedFailure('koneko_list', listContext, cause, 'public_request_failed');
+    }
+    let page;
+    try {
+      page = parseKonekoListPage(fetched.text, { accountId, pageUrl: fetched.url });
+    } catch (cause) {
+      throw typedFailure('koneko_list', listContext, cause, 'parse_contract');
+    }
     if (declaredTotal === undefined) declaredTotal = page.declaredTotal;
-    else if (page.declaredTotal !== declaredTotal) throw new Error('Koneko declared total changed during pagination');
-    if (page.rangeStart !== expectedRangeStart) throw new Error('Koneko pagination range is not contiguous');
-    if (page.rangeEnd > declaredTotal) throw new Error('Koneko pagination range exceeds declared total');
+    else if (page.declaredTotal !== declaredTotal) throw contractFailure('koneko_list', listContext, 'pagination_contract', 'Koneko declared total changed during pagination');
+    if (page.rangeStart !== expectedRangeStart) throw contractFailure('koneko_list', listContext, 'pagination_contract', 'Koneko pagination range is not contiguous');
+    if (page.rangeEnd > declaredTotal) throw contractFailure('koneko_list', listContext, 'pagination_contract', 'Koneko pagination range exceeds declared total');
     for (const kitten of page.cards) {
-      if (breederIds.has(kitten.breederId)) throw new Error(`duplicate Koneko breeder ID: ${kitten.breederId}`);
+      if (breederIds.has(kitten.breederId)) throw contractFailure('koneko_list', listContext, 'identity_contract', 'duplicate Koneko breeder ID');
       breederIds.add(kitten.breederId);
       kittens.push(kitten);
     }
     receipts.push(listReceipt(page, fetched));
     expectedRangeStart = page.rangeEnd + 1;
     if (page.rangeEnd === declaredTotal) {
-      if (page.nextPageUrl) throw new Error('Koneko final page unexpectedly has a next URL');
+      if (page.nextPageUrl) throw contractFailure('koneko_list', listContext, 'pagination_contract', 'Koneko final page unexpectedly has a next URL');
       nextUrl = '';
     } else {
-      if (!page.nextPageUrl) throw new Error('Koneko pagination ended before declared total');
+      if (!page.nextPageUrl) throw contractFailure('koneko_list', listContext, 'pagination_contract', 'Koneko pagination ended before declared total');
       nextUrl = page.nextPageUrl;
     }
   }
 
   if (declaredTotal === undefined || kittens.length !== declaredTotal || expectedRangeStart !== declaredTotal + 1) {
-    throw new Error('Koneko final count does not equal declared total');
+    throw contractFailure('koneko_list', { accountId, url: lastListUrl }, 'pagination_contract', 'Koneko final count does not equal declared total');
   }
 
   const activeDetails = [];
   for (const kitten of kittens) {
     if (kitten.status !== 'available' && kitten.status !== 'reserved') continue;
     await sleep(delayMs);
-    const fetched = await fetchPublicText(kitten.detailUrl, { fetchImpl });
-    activeDetails.push(parseKonekoDetailPage(fetched.text, {
-      expectedAccountId: accountId,
-      expectedBreederId: kitten.breederId,
-      pageUrl: fetched.url,
-    }));
+    const detailContext = { accountId, breederId: kitten.breederId, url: kitten.detailUrl };
+    let fetched;
+    try {
+      fetched = await fetchPublicText(kitten.detailUrl, { fetchImpl });
+    } catch (cause) {
+      throw typedFailure('koneko_detail', detailContext, cause, 'public_request_failed');
+    }
+    try {
+      activeDetails.push(parseKonekoDetailPage(fetched.text, {
+        expectedAccountId: accountId,
+        expectedBreederId: kitten.breederId,
+        pageUrl: fetched.url,
+      }));
+    } catch (cause) {
+      throw typedFailure('koneko_detail', detailContext, cause, 'parse_contract');
+    }
   }
   return { accountId, declaredTotal, receipts, kittens, activeDetails };
 }
@@ -256,17 +389,27 @@ export async function readFuluckPublicTarget({ activeIds, fetchImpl = globalThis
   }
 
   const apiUrl = `${FULUCK_API_ORIGIN}/api/kittens`;
-  const apiResponse = await fetchPublicText(apiUrl, {
-    fetchImpl,
-    acceptedContentTypes: ['application/json'],
-  });
+  let apiResponse;
+  try {
+    apiResponse = await fetchPublicText(apiUrl, {
+      fetchImpl,
+      acceptedContentTypes: ['application/json'],
+    });
+  } catch (cause) {
+    throw typedFailure('fuluck_api', { url: apiUrl }, cause, 'public_request_failed');
+  }
   let apiRecords;
   try {
     apiRecords = JSON.parse(apiResponse.text);
-  } catch {
-    throw new Error('Fuluck kittens API returned malformed JSON');
+  } catch (cause) {
+    throw typedFailure('fuluck_api', { url: apiUrl }, cause, 'parse_contract');
   }
-  const apiIds = requiredUniqueBreederIds(apiRecords);
+  let apiIds;
+  try {
+    apiIds = requiredUniqueBreederIds(apiRecords);
+  } catch (cause) {
+    throw typedFailure('fuluck_api', { url: apiUrl }, cause, 'identity_contract');
+  }
   const checkedUrls = [apiResponse.url];
   const renderedPages = [];
 
@@ -274,17 +417,27 @@ export async function readFuluckPublicTarget({ activeIds, fetchImpl = globalThis
     if (!apiIds.has(breederId)) continue;
     for (const locale of ['ja', 'en', 'zh']) {
       const url = localeUrl(breederId, locale);
-      const fetched = await fetchFuluckRenderedTarget(url, fetchImpl);
+      const renderContext = { breederId, locale, url };
+      let fetched;
+      try {
+        fetched = await fetchFuluckRenderedTarget(url, fetchImpl);
+      } catch (cause) {
+        throw typedFailure('fuluck_rendered', renderContext, cause, 'public_request_failed');
+      }
       checkedUrls.push(fetched.url);
       if (fetched.status === 404) {
         renderedPages.push({ breederId, locale, state: 'rendered_page_missing', url: fetched.url });
         continue;
       }
-      renderedPages.push(parseFuluckDetailPage(fetched.text, {
-        expectedBreederId: breederId,
-        locale,
-        pageUrl: fetched.url,
-      }));
+      try {
+        renderedPages.push(parseFuluckDetailPage(fetched.text, {
+          expectedBreederId: breederId,
+          locale,
+          pageUrl: fetched.url,
+        }));
+      } catch (cause) {
+        throw typedFailure('fuluck_rendered', renderContext, cause, 'parse_contract');
+      }
     }
   }
   return { apiRecords, renderedPages, checkedUrls };

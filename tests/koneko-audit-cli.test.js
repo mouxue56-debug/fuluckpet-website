@@ -51,6 +51,9 @@ export default async function fixtureFetch(url, options) {
   if (process.env.AUDIT_FIXTURE_MODE === 'blocked') {
     throw new Error('Authorization: Bearer ' + secret);
   }
+  if (process.env.AUDIT_FIXTURE_MODE === 'malicious') {
+    throw new Error('Authorization: Bearer ' + secret + '\\npassword=hunter2 owner@example.com https://evil.example/?token=query-secret\\nsecond-line');
+  }
   if (options?.method !== 'GET' || options?.credentials !== 'omit' || options?.headers?.authorization) {
     throw new Error('credentialed request: ' + secret);
   }
@@ -65,7 +68,11 @@ export default async function fixtureFetch(url, options) {
     const records = process.env.AUDIT_FIXTURE_MODE === 'drift'
       ? [{ breederId: '2608-00001', status: 'available' }]
       : [];
-    return response(url, JSON.stringify(records), 'application/json; charset=utf-8');
+    return response(
+      url,
+      process.env.AUDIT_FIXTURE_MODE === 'diagnostic' ? '{}' : JSON.stringify(records),
+      process.env.AUDIT_FIXTURE_MODE === 'diagnostic' ? 'text/html; charset=utf-8' : 'application/json; charset=utf-8',
+    );
   }
   throw new Error('unexpected public URL: ' + secret);
 }
@@ -150,6 +157,34 @@ test('CLI exits three and writes redacted BLOCKED receipts after an audit except
   assert.match(reports.markdown, /BLOCKED/);
   assert.doesNotMatch(emitted, new RegExp(secret));
   assert.doesNotMatch(emitted, /authorization|bearer/i);
+});
+
+test('CLI BLOCKED receipts preserve a closed Fuluck API diagnostic', (t) => {
+  const paths = workspace(t);
+  const result = run(paths, { mode: 'diagnostic' });
+  const reports = readReports(paths);
+  const expected = 'Public catalogue audit blocked: stage=fuluck_api; reason=content_type; url=https://fuluck-api.mouxue56.workers.dev/api/kittens';
+
+  assert.equal(result.status, 3);
+  assert.deepEqual(reports.json.blocks, [expected]);
+  assert.match(reports.markdown, new RegExp(expected.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+});
+
+test('CLI never emits a malicious public failure cause in stdout, stderr, JSON, or Markdown', (t) => {
+  const paths = workspace(t);
+  const secret = 'private-fixture-credential';
+  const result = run(paths, { mode: 'malicious', env: { AUDIT_TEST_SECRET: secret } });
+  const reports = readReports(paths);
+  const emitted = `${result.stdout}\n${result.stderr}\n${JSON.stringify(reports.json)}\n${reports.markdown}`;
+
+  assert.equal(result.status, 3);
+  assert.deepEqual(reports.json.blocks, [
+    'Public catalogue audit blocked: stage=koneko_list; reason=public_request_failed; account=c995680; url=https://www.koneko-breeder.com/breederDetail.php?breeder_id=c995680',
+  ]);
+  for (const forbidden of [
+    secret, 'Authorization', 'Bearer', 'password', 'hunter2', 'owner@example.com',
+    'evil.example', 'query-secret', 'second-line',
+  ]) assert.equal(emitted.includes(forbidden), false, forbidden);
 });
 
 test('CLI atomically replaces old reports with mode 0600 files', (t) => {

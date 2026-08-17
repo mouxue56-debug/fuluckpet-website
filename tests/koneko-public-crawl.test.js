@@ -7,6 +7,7 @@ import {
   fetchPublicText,
   readFuluckPublicTarget,
 } from '../tools/lib/koneko-public-crawl.js';
+import * as publicCrawl from '../tools/lib/koneko-public-crawl.js';
 
 const KONEKO_ORIGIN = 'https://www.koneko-breeder.com';
 const API_ORIGIN = 'https://fuluck-api.mouxue56.workers.dev';
@@ -116,6 +117,13 @@ function crawlerFetch(pages) {
   };
 }
 
+function assertSafeFailure(error, expected) {
+  assert.equal(error.name, 'PublicAuditFailure');
+  for (const [key, value] of Object.entries(expected)) assert.equal(error[key], value, key);
+  assert.ok(error.cause instanceof Error);
+  return true;
+}
+
 test('crawlKonekoAccount traverses contiguous stable pages and fetches only active or reserved details', async () => {
   const first = `${KONEKO_ORIGIN}/breederDetail.php?breeder_id=c995680`;
   const second = `${KONEKO_ORIGIN}/breederDetail.php?pageNum=2&breeder_id=c995680`;
@@ -141,18 +149,70 @@ test('crawlKonekoAccount fails closed for repeated links, gaps, changing totals,
   await assert.rejects(run([
     [first, listPage([listCard('2608-00001')], { total: 3, start: 1, end: 1, next: 'breederDetail.php?pageNum=2&breeder_id=c995680' })],
     [second, listPage([listCard('2608-00002')], { total: 3, start: 2, end: 2, next: 'breederDetail.php?pageNum=2&breeder_id=c995680' })],
-  ]), /repeated|next/i);
-  await assert.rejects(run([[first, listPage([listCard('2608-00001')], { total: 2, start: 2, end: 2 })]]), /range|contiguous/i);
-  await assert.rejects(run([[first, listPage([listCard('2608-00001')], { total: 2, start: 1, end: 1, next: 'breederDetail.php?pageNum=2&breeder_id=c995680' })], [second, listPage([listCard('2608-00002')], { total: 3, start: 2, end: 2 })]]), /total/i);
-  await assert.rejects(run([[first, listPage([listCard('2608-00001')], { total: 2, start: 1, end: 1, next: 'breederDetail.php?pageNum=2&breeder_id=c995680' })], [second, listPage([listCard('2608-00001')], { total: 2, start: 2, end: 2 })]]), /duplicate/i);
+  ]), error => assertSafeFailure(error, { stage: 'koneko_list', reason: 'pagination_contract' }));
+  await assert.rejects(run([[first, listPage([listCard('2608-00001')], { total: 2, start: 2, end: 2 })]]), error => assertSafeFailure(error, { stage: 'koneko_list', reason: 'pagination_contract' }));
+  await assert.rejects(run([[first, listPage([listCard('2608-00001')], { total: 2, start: 1, end: 1, next: 'breederDetail.php?pageNum=2&breeder_id=c995680' })], [second, listPage([listCard('2608-00002')], { total: 3, start: 2, end: 2 })]]), error => assertSafeFailure(error, { stage: 'koneko_list', reason: 'pagination_contract' }));
+  await assert.rejects(run([[first, listPage([listCard('2608-00001')], { total: 2, start: 1, end: 1, next: 'breederDetail.php?pageNum=2&breeder_id=c995680' })], [second, listPage([listCard('2608-00001')], { total: 2, start: 2, end: 2 })]]), error => assertSafeFailure(error, { stage: 'koneko_list', reason: 'identity_contract' }));
   await assert.rejects(run([[first, listPage([listCard('2608-00001')], {
     total: 2,
     start: 1,
     end: 1,
     links: '<a href="breederDetail.php?pageNum=2&amp;breeder_id=c995680">2</a>',
-  })]]), /pagination ended before declared total/i);
-  await assert.rejects(run([[first, listPage([listCard('2608-00001')], { total: 1, start: 1, end: 1 })], [`${KONEKO_ORIGIN}/cat2608-00001.html`, konekoDetail('2608-00001', 'd696506')]]), /account/i);
-  await assert.rejects(run([[first, listPage([listCard('2608-00001')], { total: 1, start: 1, end: 1 })], [`${KONEKO_ORIGIN}/cat2608-00001.html`, konekoDetail('2608-00002')]]), /SKU|breeder/i);
+  })]]), error => assertSafeFailure(error, { stage: 'koneko_list', reason: 'pagination_contract' }));
+  await assert.rejects(run([[first, listPage([listCard('2608-00001')], { total: 1, start: 1, end: 1 })], [`${KONEKO_ORIGIN}/cat2608-00001.html`, konekoDetail('2608-00001', 'd696506')]]), error => assertSafeFailure(error, { stage: 'koneko_detail', reason: 'identity_contract' }));
+  await assert.rejects(run([[first, listPage([listCard('2608-00001')], { total: 1, start: 1, end: 1 })], [`${KONEKO_ORIGIN}/cat2608-00001.html`, konekoDetail('2608-00002')]]), error => assertSafeFailure(error, { stage: 'koneko_detail', reason: 'identity_contract' }));
+});
+
+test('crawlKonekoAccount types list parser and pagination failures with fixed safe context', async () => {
+  const first = `${KONEKO_ORIGIN}/breederDetail.php?breeder_id=c995680`;
+  await assert.rejects(
+    crawlKonekoAccount({
+      accountId: 'c995680',
+      fetchImpl: crawlerFetch(new Map([[first, listPage([listCard('2608-00001', '未知')], { total: 1, start: 1, end: 1 })]])),
+      delayMs: 0,
+    }),
+    error => assertSafeFailure(error, {
+      stage: 'koneko_list',
+      reason: 'parse_contract',
+      accountId: 'c995680',
+      url: first,
+    }),
+  );
+  await assert.rejects(
+    crawlKonekoAccount({
+      accountId: 'c995680',
+      fetchImpl: crawlerFetch(new Map([[first, listPage([listCard('2608-00001')], { total: 2, start: 1, end: 1 })]])),
+      delayMs: 0,
+    }),
+    error => assertSafeFailure(error, {
+      stage: 'koneko_list',
+      reason: 'pagination_contract',
+      accountId: 'c995680',
+      url: first,
+    }),
+  );
+});
+
+test('crawlKonekoAccount types Koneko detail identity failures with breeder context', async () => {
+  const listUrl = `${KONEKO_ORIGIN}/breederDetail.php?breeder_id=c995680`;
+  const detailUrl = `${KONEKO_ORIGIN}/cat2608-00001.html`;
+  await assert.rejects(
+    crawlKonekoAccount({
+      accountId: 'c995680',
+      fetchImpl: crawlerFetch(new Map([
+        [listUrl, listPage([listCard('2608-00001')], { total: 1, start: 1, end: 1 })],
+        [detailUrl, konekoDetail('2608-00002')],
+      ])),
+      delayMs: 0,
+    }),
+    error => assertSafeFailure(error, {
+      stage: 'koneko_detail',
+      reason: 'identity_contract',
+      accountId: 'c995680',
+      breederId: '2608-00001',
+      url: detailUrl,
+    }),
+  );
 });
 
 function fuluckDetail(id, locale) {
@@ -195,10 +255,10 @@ test('readFuluckPublicTarget records authoritative target 404s but blocks on mal
     { breederId: '2608-00001', locale: 'zh', state: 'rendered_page_missing', url: zh },
   ]);
 
-  await assert.rejects(readFuluckPublicTarget({ activeIds: ['2608-00001'], fetchImpl: async url => publicResponse({ body: url === api ? '{}' : fuluckDetail('2608-00001', 'ja'), contentType: url === api ? 'application/json' : 'text/html', url }) }), /array/i);
-  await assert.rejects(readFuluckPublicTarget({ activeIds: ['2608-00001'], fetchImpl: async () => { throw new DOMException('timed out', 'TimeoutError'); } }), /timeout|abort/i);
-  await assert.rejects(readFuluckPublicTarget({ activeIds: ['2608-00001'], fetchImpl: async url => publicResponse({ body: url === api ? JSON.stringify([{ breederId: '2608-00001' }]) : '<title>Just a moment...</title>', contentType: url === api ? 'application/json' : 'text/html', url }) }), /challenge|interstitial/i);
-  await assert.rejects(readFuluckPublicTarget({ activeIds: ['2608-00001'], fetchImpl: async url => publicResponse({ body: url === api ? JSON.stringify([{ breederId: '2608-00001' }]) : fuluckDetail('2608-00002', 'ja'), contentType: url === api ? 'application/json' : 'text/html', url }) }), /SKU|breeder/i);
+  await assert.rejects(readFuluckPublicTarget({ activeIds: ['2608-00001'], fetchImpl: async url => publicResponse({ body: url === api ? '{}' : fuluckDetail('2608-00001', 'ja'), contentType: url === api ? 'application/json' : 'text/html', url }) }), error => assertSafeFailure(error, { stage: 'fuluck_api', reason: 'parse_contract' }));
+  await assert.rejects(readFuluckPublicTarget({ activeIds: ['2608-00001'], fetchImpl: async () => { throw new DOMException('timed out', 'TimeoutError'); } }), error => assertSafeFailure(error, { stage: 'fuluck_api', reason: 'timeout' }));
+  await assert.rejects(readFuluckPublicTarget({ activeIds: ['2608-00001'], fetchImpl: async url => publicResponse({ body: url === api ? JSON.stringify([{ breederId: '2608-00001' }]) : '<title>Just a moment...</title>', contentType: url === api ? 'application/json' : 'text/html', url }) }), error => assertSafeFailure(error, { stage: 'fuluck_rendered', reason: 'challenge' }));
+  await assert.rejects(readFuluckPublicTarget({ activeIds: ['2608-00001'], fetchImpl: async url => publicResponse({ body: url === api ? JSON.stringify([{ breederId: '2608-00001' }]) : fuluckDetail('2608-00002', 'ja'), contentType: url === api ? 'application/json' : 'text/html', url }) }), error => assertSafeFailure(error, { stage: 'fuluck_rendered', reason: 'identity_contract' }));
 });
 
 test('readFuluckPublicTarget blocks same-host redirected 404s instead of treating them as target-page absence', async () => {
@@ -217,7 +277,74 @@ test('readFuluckPublicTarget blocks same-host redirected 404s instead of treatin
           url: url === api ? url : redirectedUrl,
         }),
       }),
-      /target|redirect|non-2xx|404/i,
+      error => assertSafeFailure(error, { stage: 'fuluck_rendered', reason: 'redirect_policy' }),
     );
+  }
+});
+
+test('readFuluckPublicTarget types Fuluck API parse failures with only the fixed API URL', async () => {
+  const api = `${API_ORIGIN}/api/kittens`;
+  await assert.rejects(
+    readFuluckPublicTarget({
+      activeIds: [],
+      fetchImpl: async url => publicResponse({ body: '{', contentType: 'application/json', url }),
+    }),
+    error => assertSafeFailure(error, {
+      stage: 'fuluck_api',
+      reason: 'parse_contract',
+      url: api,
+    }),
+  );
+});
+
+test('readFuluckPublicTarget types one locale render challenge with breeder and locale context', async () => {
+  const api = `${API_ORIGIN}/api/kittens`;
+  const ja = `${FULUCK_ORIGIN}/kittens/2608-00001.html`;
+  await assert.rejects(
+    readFuluckPublicTarget({
+      activeIds: ['2608-00001'],
+      fetchImpl: async url => url === api
+        ? publicResponse({ body: JSON.stringify([{ breederId: '2608-00001' }]), contentType: 'application/json', url })
+        : publicResponse({ body: '<title>Just a moment...</title>', url }),
+    }),
+    error => assertSafeFailure(error, {
+      stage: 'fuluck_rendered',
+      reason: 'challenge',
+      breederId: '2608-00001',
+      locale: 'ja',
+      url: ja,
+    }),
+  );
+});
+
+test('closed failure formatter emits only validated allowlisted context and never its cause', () => {
+  assert.equal(typeof publicCrawl.PublicAuditFailure, 'function');
+  assert.equal(typeof publicCrawl.formatPublicAuditFailure, 'function');
+  const cause = new Error('Authorization: Bearer stolen\npassword=hunter2 owner@example.com https://evil.example/?token=secret');
+  const safe = new publicCrawl.PublicAuditFailure({
+    stage: 'koneko_detail',
+    reason: 'identity_contract',
+    accountId: 'c995680',
+    breederId: '2608-00001',
+    url: `${KONEKO_ORIGIN}/cat2608-00001.html`,
+  }, { cause });
+
+  assert.equal(safe.cause, cause);
+  assert.equal(
+    publicCrawl.formatPublicAuditFailure(safe),
+    `Public catalogue audit blocked: stage=koneko_detail; reason=identity_contract; account=c995680; breeder=2608-00001; url=${KONEKO_ORIGIN}/cat2608-00001.html`,
+  );
+
+  for (const unsafe of [
+    new Error(cause.message),
+    new publicCrawl.PublicAuditFailure({
+      stage: 'koneko_detail', reason: 'parse_contract', accountId: 'owner@example.com',
+      breederId: '2608-00001', url: 'https://evil.example/cat2608-00001.html',
+    }, { cause }),
+    new publicCrawl.PublicAuditFailure({
+      stage: 'unknown\nstage', reason: 'password=hunter2', url: `${KONEKO_ORIGIN}/cat2608-00001.html`,
+    }, { cause }),
+  ]) {
+    assert.equal(publicCrawl.formatPublicAuditFailure(unsafe), 'Public catalogue evidence could not be completed.');
   }
 });

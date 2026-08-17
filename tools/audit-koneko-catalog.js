@@ -14,7 +14,11 @@ import { basename, dirname, join, parse, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import { compareKonekoToFuluck, renderAuditMarkdown } from './lib/koneko-catalog-audit.js';
-import { crawlKonekoAccount, readFuluckPublicTarget } from './lib/koneko-public-crawl.js';
+import {
+  crawlKonekoAccount,
+  formatPublicAuditFailure,
+  readFuluckPublicTarget,
+} from './lib/koneko-public-crawl.js';
 
 const ACCOUNT_IDS = ['c995680', 'd696506'];
 const ACTIVE_STATUSES = new Set(['available', 'reserved']);
@@ -169,8 +173,8 @@ async function main() {
   } else {
     try {
       result = await runAudit(options);
-    } catch {
-      result = blockedReceipt();
+    } catch (error) {
+      result = blockedReceipt(formatPublicAuditFailure(error));
     }
   }
 
