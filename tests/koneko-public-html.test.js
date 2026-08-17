@@ -35,6 +35,13 @@ function directStateCard(id, stateHtml) {
   );
 }
 
+function stateClassCard(id, className, stateHtml) {
+  return listCard(id).replace(
+    /<div class="listLmtInfStt">[\s\S]*?<\/div>/,
+    `<div class="${className}">${stateHtml}</div>`,
+  );
+}
+
 function listPage(cards, { total = 4, start = 1, end = 3, next = true } = {}) {
   return `<!doctype html><html><body>
     <div class="pagenation"><div class="disp_pagePosition">全<span class="totalNum">${total}</span>件中&nbsp;&nbsp;${start}～${end}件を表示</div>
@@ -93,6 +100,21 @@ test('maps exact unwrapped Japanese list status containers', () => {
     );
     assert.equal(page.cards[0].status, status, label);
   }
+});
+
+test('requires an exact whitespace-delimited list status container class', () => {
+  for (const className of ['listLmtInfStt-extra', 'not-listLmtInfStt']) {
+    assert.throws(
+      () => parseKonekoListPage(listPage([stateClassCard('2608-00001', className, '成約済み')], { total: 1, end: 1 }), LIST_OPTIONS),
+      /live|marker|status/i,
+      className,
+    );
+  }
+  const page = parseKonekoListPage(
+    listPage([stateClassCard('2608-00001', 'foo listLmtInfStt bar', '成約済み')], { total: 1, end: 1 }),
+    LIST_OPTIONS,
+  );
+  assert.equal(page.cards[0].status, 'sold');
 });
 
 test('fails closed for out-of-contract, repeated, or unmarked list states', () => {
@@ -171,6 +193,11 @@ test('normalizes a Koneko detail Product, facts, parents, note, introduction, an
     description: '一段落\n続き\n\n二段落\n続き',
     detailUrl: KONEKO_DETAIL_OPTIONS.pageUrl,
   });
+});
+
+test('does not treat a suffix detail-note class as the note region', () => {
+  const detail = konekoDetail().replace('class="pic_detail_appeal"', 'class="pic_detail_appeal-extra"');
+  assert.equal(parseKonekoDetailPage(detail, KONEKO_DETAIL_OPTIONS).note, '');
 });
 
 test('fails closed for malformed JSON-LD, zero source photos, and mismatched Koneko SKU/account', () => {

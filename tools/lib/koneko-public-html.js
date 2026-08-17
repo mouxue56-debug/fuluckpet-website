@@ -50,7 +50,8 @@ export function decodeHtmlText(html, { preserveBreaks = false } = {}) {
 }
 
 function classOpening(html, className, tag = '[a-z][a-z0-9]*') {
-  const re = new RegExp(`<(${tag})\\b[^>]*\\bclass\\s*=\\s*["'][^"']*\\b${escRegExp(className)}\\b[^"']*["'][^>]*>`, 'ig');
+  const whitespace = '[\\t\\n\\f\\r ]';
+  const re = new RegExp(`<(${tag})\\b[^>]*\\bclass\\s*=\\s*["'](?:${whitespace}*|[^"']*${whitespace})${escRegExp(className)}(?=${whitespace}|["'])[^"']*["'][^>]*>`, 'ig');
   return re;
 }
 
