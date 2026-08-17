@@ -193,6 +193,43 @@ test('crawlKonekoAccount types list parser and pagination failures with fixed sa
   );
 });
 
+test('crawlKonekoAccount formats a page-2 #cat_list transport failure with a canonical safe URL', async () => {
+  const first = `${KONEKO_ORIGIN}/breederDetail.php?breeder_id=c995680`;
+  const canonicalSecond = `${KONEKO_ORIGIN}/breederDetail.php?pageNum=2&breeder_id=c995680`;
+  let failure;
+
+  try {
+    await crawlKonekoAccount({
+      accountId: 'c995680',
+      fetchImpl: crawlerFetch(new Map([
+        [first, listPage([listCard('2608-00001')], {
+          total: 2,
+          start: 1,
+          end: 1,
+          next: 'breederDetail.php?pageNum=2&breeder_id=c995680#cat_list',
+        })],
+      ])),
+      delayMs: 0,
+    });
+    assert.fail('expected the page-2 transport to fail');
+  } catch (error) {
+    failure = error;
+  }
+
+  assertSafeFailure(failure, {
+    stage: 'koneko_list',
+    reason: 'public_request_failed',
+    accountId: 'c995680',
+    url: canonicalSecond,
+  });
+  assert.equal(
+    publicCrawl.formatPublicAuditFailure(failure),
+    `Public catalogue audit blocked: stage=koneko_list; reason=public_request_failed; account=c995680; url=${canonicalSecond}`,
+  );
+  assert.equal(publicCrawl.formatPublicAuditFailure(failure).includes('#'), false);
+  assert.notEqual(publicCrawl.formatPublicAuditFailure(failure), 'Public catalogue evidence could not be completed.');
+});
+
 test('crawlKonekoAccount types Koneko detail identity failures with breeder context', async () => {
   const listUrl = `${KONEKO_ORIGIN}/breederDetail.php?breeder_id=c995680`;
   const detailUrl = `${KONEKO_ORIGIN}/cat2608-00001.html`;
@@ -346,5 +383,26 @@ test('closed failure formatter emits only validated allowlisted context and neve
     }, { cause }),
   ]) {
     assert.equal(publicCrawl.formatPublicAuditFailure(unsafe), 'Public catalogue evidence could not be completed.');
+  }
+});
+
+test('closed list failure formatter rejects unapproved fragments and query keys', () => {
+  const generic = 'Public catalogue evidence could not be completed.';
+  const base = `${KONEKO_ORIGIN}/breederDetail.php?pageNum=2&breeder_id=c995680`;
+
+  for (const url of [
+    `${base}#cat_list%0Ahttps://evil.example/`,
+    `${base}&token=query-secret#cat_list`,
+  ]) {
+    const formatted = publicCrawl.formatPublicAuditFailure(new publicCrawl.PublicAuditFailure({
+      stage: 'koneko_list',
+      reason: 'public_request_failed',
+      accountId: 'c995680',
+      url,
+    }));
+
+    assert.equal(formatted, generic);
+    assert.equal(formatted.includes('evil.example'), false);
+    assert.equal(formatted.includes('query-secret'), false);
   }
 });

@@ -40,7 +40,7 @@ const GENERIC_BLOCKER = 'Public catalogue evidence could not be completed.';
 function exactDiagnosticUrl(stage, value, context) {
   let url;
   try { url = new URL(value); } catch { return ''; }
-  if (url.protocol !== 'https:' || url.username || url.password || url.hash) return '';
+  if (url.protocol !== 'https:' || url.username || url.password) return '';
   const keys = [...url.searchParams.keys()];
   if (stage === 'koneko_list') {
     const breederIds = url.searchParams.getAll('breeder_id');
@@ -48,9 +48,12 @@ function exactDiagnosticUrl(stage, value, context) {
     if (url.origin !== KONEKO_ORIGIN || url.pathname !== '/breederDetail.php'
       || breederIds.length !== 1 || breederIds[0] !== context.accountId
       || pageNums.length > 1 || pageNums.some(page => !/^\d+$/.test(page))
+      || (url.hash && url.hash !== '#cat_list')
       || keys.some(key => key !== 'breeder_id' && key !== 'pageNum')) return '';
+    url.hash = '';
     return url.href;
   }
+  if (url.hash) return '';
   if (stage === 'koneko_detail') {
     if (url.origin !== KONEKO_ORIGIN || url.search || url.pathname !== `/cat${context.breederId}.html`) return '';
     return url.href;
