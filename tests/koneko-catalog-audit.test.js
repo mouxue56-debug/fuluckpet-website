@@ -33,7 +33,7 @@ function page(breederId, locale, overrides = {}) {
 function receipt(accountId) {
   return {
     url: `https://www.koneko-breeder.com/breederDetail.php?breeder_id=${accountId}`,
-    status: 200, contentType: 'text/html', sha256: `${accountId}-receipt`,
+    status: 200, contentType: 'text/html; charset=utf-8', sha256: accountId === 'c995680' ? 'a'.repeat(64) : 'b'.repeat(64),
     rangeStart: 1, rangeEnd: 1, declaredTotal: 1,
   };
 }
@@ -181,6 +181,24 @@ test('blocks when checked URLs do not exactly bind account receipts, source deta
     assert.equal(result.result, 'BLOCKED');
     assert.equal(result.exitCode, 3);
   }
+});
+
+test('blocks and never renders credential-like Koneko receipt content types or hashes', () => {
+  const cases = [
+    input => { input.accounts[0].receipts[0].contentType = 'Bearer actual-secret'; },
+    input => { input.accounts[0].receipts[0].sha256 = 'token actual-secret'; },
+  ];
+  for (const change of cases) {
+    const input = exactInput();
+    change(input);
+    const result = compareKonekoToFuluck(input);
+    assert.equal(result.result, 'BLOCKED');
+    assert.doesNotMatch(renderAuditMarkdown(result), /actual-secret|bearer|token/i);
+  }
+
+  const markdown = renderAuditMarkdown(compareKonekoToFuluck(exactInput()));
+  assert.match(markdown, /text\/html; charset=utf-8/);
+  assert.match(markdown, /a{64}/);
 });
 
 test('renders bounded JST receipts with all checked identifiers and no write or credential disclosure', () => {

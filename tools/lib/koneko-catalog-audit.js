@@ -119,8 +119,10 @@ function blockedResult(input, blocks) {
       declaredTotal: account.declaredTotal,
       receiptCount: Array.isArray(account.receipts) ? account.receipts.length : 0,
       receipts: Array.isArray(account.receipts) ? account.receipts.map(receipt => ({
-        url: safeUrl(receipt?.url), status: receipt?.status, contentType: receipt?.contentType,
-        sha256: receipt?.sha256, rangeStart: receipt?.rangeStart, rangeEnd: receipt?.rangeEnd, declaredTotal: receipt?.declaredTotal,
+        url: safeUrl(receipt?.url), status: Number.isInteger(receipt?.status) ? receipt.status : '',
+        contentType: allowedReceiptContentType(receipt?.contentType) ? receipt.contentType : '',
+        sha256: validReceiptHash(receipt?.sha256) ? receipt.sha256 : '',
+        rangeStart: receipt?.rangeStart, rangeEnd: receipt?.rangeEnd, declaredTotal: receipt?.declaredTotal,
       })) : [],
     })).sort((a, b) => accountRank(a.accountId) - accountRank(b.accountId)) : [];
   return {
@@ -138,9 +140,17 @@ function evidenceError(blocks, condition, message) {
   if (!condition) blocks.push(message);
 }
 
+function allowedReceiptContentType(value) {
+  return typeof value === 'string' && /^text\/html(?:\s*;\s*charset\s*=\s*(?:utf-8|us-ascii))?$/i.test(value);
+}
+
+function validReceiptHash(value) {
+  return typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
+}
+
 function receiptIsComplete(receipt) {
   return isObject(receipt)
-    && nonBlank(receipt.url) && Number.isInteger(receipt.status) && nonBlank(receipt.contentType) && nonBlank(receipt.sha256)
+    && nonBlank(receipt.url) && Number.isInteger(receipt.status) && allowedReceiptContentType(receipt.contentType) && validReceiptHash(receipt.sha256)
     && Number.isInteger(receipt.rangeStart) && Number.isInteger(receipt.rangeEnd) && Number.isInteger(receipt.declaredTotal);
 }
 
@@ -329,7 +339,7 @@ export function renderAuditMarkdown(result) {
   const lines = ['# Koneko catalogue audit', '', `- Timestamp: ${jstTimestamp(result.timestamp)}`, `- Result: ${result.result}`, `- Exit code: ${result.exitCode}`, '- NO WRITE PERFORMED', '', '## Koneko account receipts', ''];
   for (const account of result.accounts || []) {
     lines.push(`- ${account.accountId}: declared ${account.declaredTotal}, receipts ${account.receiptCount}`);
-    for (const receipt of account.receipts || []) lines.push(`  - ${receipt.rangeStart}-${receipt.rangeEnd}/${receipt.declaredTotal}: ${receipt.url} (HTTP ${receipt.status}, ${receipt.contentType}, sha256:${receipt.sha256})`);
+    for (const receipt of account.receipts || []) lines.push(`  - ${receipt.rangeStart}-${receipt.rangeEnd}/${receipt.declaredTotal}: ${safeUrl(receipt.url)} (HTTP ${markdownValue(receipt.status)}, ${markdownValue(receipt.contentType)}, sha256:${markdownValue(receipt.sha256)})`);
   }
   const counts = result.fuluck?.renderedPageCounts || renderedPageCounts();
   lines.push('', '## Fuluck receipts', '', `- Fuluck API records: ${result.fuluck?.apiRecordCount ?? 0}`, `- Fuluck rendered pages: ${counts.ja + counts.en + counts.zh} (ja: ${counts.ja}, en: ${counts.en}, zh: ${counts.zh})`);
