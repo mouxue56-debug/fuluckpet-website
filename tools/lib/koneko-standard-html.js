@@ -470,7 +470,12 @@ function konekoParents(context) {
       item,
       node => node.tagName === 'li' && hasClass(node, 'parentName'),
       'parent name',
+      { optional: true },
     );
+    if (!nameNode) {
+      names.set(sides[0], '');
+      continue;
+    }
     const strongCandidates = directChildrenByTag(nameNode, 'strong');
     for (const candidate of strongCandidates) {
       assertEvidencePath(context, candidate, nameNode, 'parent name value');

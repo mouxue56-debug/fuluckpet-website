@@ -952,6 +952,18 @@ test('treats absent Koneko optional parent, video, note, and introduction region
   });
 });
 
+test('records an observed-empty name when one required Koneko parent side has no parentName item', () => {
+  const motherNameAbsent = konekoParentInfo().replace(
+    '<li class="parentName"><strong>母猫</strong></li>',
+    '',
+  );
+  const parsed = parseKonekoDetailPage(
+    konekoDetail({ parentInfo: motherNameAbsent }),
+    KONEKO_DETAIL_OPTIONS,
+  );
+  assert.deepEqual({ papa: parsed.papa, mama: parsed.mama }, { papa: '父猫', mama: '' });
+});
+
 test('fails closed when present Koneko parent, video, or description structures conflict', () => {
   const parentConflict = konekoDetail({ parentInfo: konekoParentInfo().replace('</ul></div>', '<li><h3 class="parentInfo_head father">Again</h3><ul><li class="parentName"><strong>別の父猫</strong></li></ul></li></ul></div>') });
   assert.throws(() => parseKonekoDetailPage(parentConflict, KONEKO_DETAIL_OPTIONS), /parent|father|mother/i);
