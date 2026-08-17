@@ -99,8 +99,9 @@ function listCard(id, status = '') {
   return `<li class="Min_d-flex box02Inner"><div class="listLmtInf">${statusMarkup}</div><a href="cat${id}.html"><img id="src_${id}"></a></li>`;
 }
 
-function listPage(cards, { total, start, end, next = '' }) {
-  return `<html><body><div class="pagenation"><div>全<span class="totalNum">${total}</span>件中 ${start}～${end}件を表示</div>${next ? `<a href="${next}">次へ</a>` : ''}</div><ul>${cards.join('')}</ul></body></html>`;
+function listPage(cards, { total, start, end, next = '', links } = {}) {
+  const paginationLinks = links ?? (next ? `<a href="${next}">次へ</a>` : '');
+  return `<html><body><div class="pagenation"><div>全<span class="totalNum">${total}</span>件中 ${start}～${end}件を表示</div>${paginationLinks}</div><ul>${cards.join('')}</ul></body></html>`;
 }
 
 function konekoDetail(id, accountId = 'c995680') {
@@ -144,6 +145,12 @@ test('crawlKonekoAccount fails closed for repeated links, gaps, changing totals,
   await assert.rejects(run([[first, listPage([listCard('2608-00001')], { total: 2, start: 2, end: 2 })]]), /range|contiguous/i);
   await assert.rejects(run([[first, listPage([listCard('2608-00001')], { total: 2, start: 1, end: 1, next: 'breederDetail.php?pageNum=2&breeder_id=c995680' })], [second, listPage([listCard('2608-00002')], { total: 3, start: 2, end: 2 })]]), /total/i);
   await assert.rejects(run([[first, listPage([listCard('2608-00001')], { total: 2, start: 1, end: 1, next: 'breederDetail.php?pageNum=2&breeder_id=c995680' })], [second, listPage([listCard('2608-00001')], { total: 2, start: 2, end: 2 })]]), /duplicate/i);
+  await assert.rejects(run([[first, listPage([listCard('2608-00001')], {
+    total: 2,
+    start: 1,
+    end: 1,
+    links: '<a href="breederDetail.php?pageNum=2&amp;breeder_id=c995680">2</a>',
+  })]]), /pagination ended before declared total/i);
   await assert.rejects(run([[first, listPage([listCard('2608-00001')], { total: 1, start: 1, end: 1 })], [`${KONEKO_ORIGIN}/cat2608-00001.html`, konekoDetail('2608-00001', 'd696506')]]), /account/i);
   await assert.rejects(run([[first, listPage([listCard('2608-00001')], { total: 1, start: 1, end: 1 })], [`${KONEKO_ORIGIN}/cat2608-00001.html`, konekoDetail('2608-00002')]]), /SKU|breeder/i);
 });

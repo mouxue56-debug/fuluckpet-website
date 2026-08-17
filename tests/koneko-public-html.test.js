@@ -42,10 +42,11 @@ function stateClassCard(id, className, stateHtml) {
   );
 }
 
-function listPage(cards, { total = 4, start = 1, end = 3, next = true } = {}) {
+function listPage(cards, { total = 4, start = 1, end = 3, next = true, links } = {}) {
+  const paginationLinks = links ?? (next ? '<li><a href="breederDetail.php?pageNum=2&amp;breeder_id=c995680#cat_list">次へ</a></li>' : '');
   return `<!doctype html><html><body>
     <div class="pagenation"><div class="disp_pagePosition">全<span class="totalNum">${total}</span>件中&nbsp;&nbsp;${start}～${end}件を表示</div>
-      <ul class="list_pagenation">${next ? '<li><a href="breederDetail.php?pageNum=2&amp;breeder_id=c995680#cat_list">次へ</a></li>' : ''}</ul>
+      <ul class="list_pagenation">${paginationLinks}</ul>
     </div>
     <ul id="cat_list">${cards.join('\n')}</ul>
   </body></html>`;
@@ -71,6 +72,39 @@ test('parses live, reserved, and sold list cards with the range receipt and same
     'https://www.koneko-breeder.com/breederDetail.php?pageNum=2&breeder_id=c995680#cat_list',
   );
   assert.match(page.sha256, /^[0-9a-f]{64}$/);
+});
+
+test('uses only visible explicit same-host pagination next links', () => {
+  const finalPage = parseKonekoListPage(
+    listPage([listCard('2608-00001')], {
+      total: 1,
+      end: 1,
+      next: false,
+      links: '<li><a href="breederDetail.php?pageNum=15&amp;breeder_id=c995680">15</a></li><li><a href="breederDetail.php?pageNum=14&amp;breeder_id=c995680">前へ</a></li>',
+    }),
+    LIST_OPTIONS,
+  );
+  assert.equal(finalPage.nextPageUrl, '');
+
+  const englishNextPage = parseKonekoListPage(
+    listPage([listCard('2608-00001')], {
+      total: 2,
+      end: 1,
+      next: false,
+      links: '<li><a href="breederDetail.php?pageNum=2&amp;breeder_id=c995680">Next</a></li>',
+    }),
+    LIST_OPTIONS,
+  );
+  assert.equal(englishNextPage.nextPageUrl, 'https://www.koneko-breeder.com/breederDetail.php?pageNum=2&breeder_id=c995680');
+
+  for (const links of [
+    '<li><a hidden href="breederDetail.php?pageNum=2&amp;breeder_id=c995680">次へ</a></li>',
+    '<li><a href="breederDetail.php?pageNum=2&amp;breeder_id=c995680">詳しく見る</a></li>',
+    '<li><a href="breederDetail.php?pageNum=2&amp;breeder_id=c995680">Next results</a></li>',
+  ]) {
+    const page = parseKonekoListPage(listPage([listCard('2608-00001')], { total: 1, end: 1, next: false, links }), LIST_OPTIONS);
+    assert.equal(page.nextPageUrl, '', links);
+  }
 });
 
 test('maps 事前成約申請 to reserved and rejects unknown status, duplicate IDs, disagreement, and range mismatch', () => {

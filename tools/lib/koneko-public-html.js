@@ -286,12 +286,14 @@ export function parseKonekoListPage(html, { accountId, pageUrl } = {}) {
   const rangeEnd = Number(rangeMatch[2]);
   if (cards.length !== rangeEnd - rangeStart + 1) throw new Error('range/card count mismatch');
   let nextPageUrl = '';
-  for (const match of pagination.matchAll(/<a\b[^>]*\bhref\s*=\s*["']([^"']+)["'][^>]*>([\s\S]*?)<\/a\s*>/gi)) {
-    const href = absoluteUrl(match[1], pageUrl);
+  for (const match of pagination.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a\s*>/gi)) {
+    const attributes = match[1];
+    const rawHref = attributes.match(/\bhref\s*=\s*["']([^"']+)["']/i)?.[1];
+    if (!rawHref || /(?:^|\s)hidden(?=\s|=|$)/i.test(attributes) || /\baria-hidden\s*=\s*["']true["']/i.test(attributes)) continue;
+    const href = absoluteUrl(rawHref, pageUrl);
     if (!href) continue;
     try { if (new URL(href).origin !== new URL(pageUrl).origin) continue; } catch { continue; }
-    if (/pageNum=\d+/i.test(href) && /次へ|next/i.test(decodeHtmlText(match[2]))) { nextPageUrl = href; break; }
-    if (!nextPageUrl && /pageNum=\d+/i.test(href)) nextPageUrl = href;
+    if (/pageNum=\d+/i.test(href) && /^(?:次へ|next)$/i.test(decodeHtmlText(match[2]))) { nextPageUrl = href; break; }
   }
   return {
     accountId,
