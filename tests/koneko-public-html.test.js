@@ -150,6 +150,8 @@ test('uses only visible explicit same-host pagination next links', () => {
     'aria-hidden="true"',
     'style="display:none"',
     'style="visibility:hidden"',
+    'style=display:none',
+    'style=visibility:hidden',
   ]) {
     const page = parseKonekoListPage(
       listPage([listCard('2608-00001')], {
@@ -170,6 +172,8 @@ test('uses only visible explicit same-host pagination next links', () => {
     '<li><a aria-hidden="true" href="breederDetail.php?pageNum=2&amp;breeder_id=c995680">次へ</a></li>',
     '<li><a style="display:none" href="breederDetail.php?pageNum=2&amp;breeder_id=c995680">次へ</a></li>',
     '<li><a style="visibility: hidden" href="breederDetail.php?pageNum=2&amp;breeder_id=c995680">Next</a></li>',
+    '<li><a style=display:none href="breederDetail.php?pageNum=2&amp;breeder_id=c995680">次へ</a></li>',
+    '<li style=visibility:hidden><a href="breederDetail.php?pageNum=2&amp;breeder_id=c995680">Next</a></li>',
     '<li><a href="breederDetail.php?pageNum=2&amp;breeder_id=c995680"><span hidden>次へ</span></a></li>',
     '<li hidden><a href="breederDetail.php?pageNum=2&amp;breeder_id=c995680">次へ</a></li>',
     '<li><a href="breederDetail.php?pageNum=2&amp;breeder_id=c995680">詳しく見る</a></li>',
@@ -422,6 +426,59 @@ test('blocks a valid Koneko facts candidate when a second exact candidate is unc
   assert.throws(() => parseKonekoDetailPage(html, KONEKO_DETAIL_OPTIONS), /facts.*(malformed|unique)|facts region/i);
 });
 
+test('blocks malformed Koneko optional candidates whose real selectors remain recoverable', () => {
+  const cases = [
+    ['parent', konekoDetail({
+      parentInfo: konekoParentInfo({ tag: 'section' }).replace('id="parentInfo"', 'id="parentInfo" data-x="one" data-x="two"'),
+    })],
+    ['video', konekoDetail({
+      video: konekoVideo('AbCdEfGhI12', { tag: 'section' }).replace('class="movieGalleryCnt youtube"', 'class="movieGalleryCnt youtube" data-x="one" data-x="two"'),
+    })],
+    ['introduction', konekoDetail({
+      introduction: '<section class="petDtlInt" data-x="one" data-x="two"><div class="gnrCnt">紹介</div></section>',
+    })],
+  ];
+
+  for (const [name, html] of cases) {
+    assert.throws(() => parseKonekoDetailPage(html, KONEKO_DETAIL_OPTIONS), new RegExp(name, 'i'), name);
+  }
+});
+
+test('blocks a valid Koneko candidate when a later recoverable selector has malformed attributes', () => {
+  const html = konekoDetail({
+    parentInfo: `${konekoParentInfo()}<section id="other" id="parentInfo"><ul class="parentInfo_list"></ul></section>`,
+  });
+  assert.throws(() => parseKonekoDetailPage(html, KONEKO_DETAIL_OPTIONS), /parent.*(malformed|unique)|parent region/i);
+});
+
+test('blocks a Koneko video candidate whose matching compound class is a later duplicate occurrence', () => {
+  const html = konekoDetail({
+    video: '<section class="not-video" class="movieGalleryCnt youtube"><iframe src="https://www.youtube.com/embed/AbCdEfGhI12"></iframe></section>',
+  });
+  assert.throws(() => parseKonekoDetailPage(html, KONEKO_DETAIL_OPTIONS), /video.*malformed|video region/i);
+});
+
+test('blocks a Koneko selector recovered after malformed opening-tag syntax', () => {
+  const html = konekoDetail({
+    parentInfo: konekoParentInfo({ tag: 'section' }).replace(' id="parentInfo"', ' =bad id="parentInfo"'),
+  });
+  assert.throws(() => parseKonekoDetailPage(html, KONEKO_DETAIL_OPTIONS), /parent.*malformed|parent region/i);
+});
+
+test('blocks a recoverable malformed Koneko selector even when it is hidden', () => {
+  const html = konekoDetail({
+    parentInfo: `${konekoParentInfo()}<aside hidden>${konekoParentInfo({ tag: 'section' }).replace('id="parentInfo"', 'id="parentInfo" data-x="one" data-x="two"')}</aside>`,
+  });
+  assert.throws(() => parseKonekoDetailPage(html, KONEKO_DETAIL_OPTIONS), /parent.*malformed|parent region/i);
+});
+
+test('blocks a malformed inner Koneko required selector instead of choosing a sibling table', () => {
+  const html = konekoDetail({
+    factRows: `${konekoFactRows()}</table><table class="gnrTbl" data-x="one" data-x="two">${konekoFactRows({ breed: '別の猫種' })}`,
+  });
+  assert.throws(() => parseKonekoDetailPage(html, KONEKO_DETAIL_OPTIONS), /facts table.*(malformed|unique)|facts table/i);
+});
+
 test('parses well-formed section Koneko evidence containers and blocks an unclosed section candidate', () => {
   const parsed = parseKonekoDetailPage(konekoDetail({
     factsTag: 'section',
@@ -467,6 +524,50 @@ test('uses visible Koneko evidence when hidden and footer lookalikes coexist', (
   assert.deepEqual({ breed: parsed.breed, papa: parsed.papa, mama: parsed.mama, videoId: parsed.videoId, description: parsed.description }, {
     breed: 'サイベリアン', papa: '父猫', mama: '母猫', videoId: 'AbCdEfGhI12', description: '一段落\n続き\n\n二段落\n続き',
   });
+});
+
+test('rejects unquoted decoded hidden styles as the only Koneko required evidence', () => {
+  const html = konekoDetail({
+    parentInfo: '',
+    video: '',
+    introduction: '',
+    outside: `<aside style=display&#58;none><section class="petDtlData"><table class="gnrTbl">${konekoFactRows({ breed: '隠し猫種' })}</table></section></aside>`,
+  }).replace('class="petDtlData"', 'class="notPetDtlData"');
+  assert.throws(() => parseKonekoDetailPage(html, KONEKO_DETAIL_OPTIONS), /facts region|facts.*unique/i);
+});
+
+test('uses a visible Koneko facts candidate when a malformed ancestor has another hidden style', () => {
+  const parsed = parseKonekoDetailPage(konekoDetail({
+    outside: `<aside style="color:red" style=display:none><section class="petDtlData"><table class="gnrTbl">${konekoFactRows({ breed: '隠し猫種' })}</table></section></aside>`,
+  }), KONEKO_DETAIL_OPTIONS);
+  assert.equal(parsed.breed, 'サイベリアン');
+});
+
+test('does not treat words in a title attribute as hidden Koneko evidence', () => {
+  const html = konekoDetail().replace('class="petDtlData"', 'class="petDtlData" title="foo hidden bar"');
+  assert.equal(parseKonekoDetailPage(html, KONEKO_DETAIL_OPTIONS).breed, 'サイベリアン');
+});
+
+test('does not treat words in a data attribute as hidden Koneko evidence', () => {
+  const html = konekoDetail({
+    parentInfo: konekoParentInfo().replace('id="parentInfo"', 'id="parentInfo" data-note="foo hidden bar"'),
+  });
+  assert.equal(parseKonekoDetailPage(html, KONEKO_DETAIL_OPTIONS).papa, '父猫');
+});
+
+test('requires exactly lower-case true for aria-hidden visibility evidence', () => {
+  const html = konekoDetail().replace('class="petDtlData"', 'class="petDtlData" aria-hidden="TRUE"');
+  assert.equal(parseKonekoDetailPage(html, KONEKO_DETAIL_OPTIONS).breed, 'サイベリアン');
+});
+
+test('recognizes trimmed decoded aria-hidden true as Koneko hidden evidence', () => {
+  const html = konekoDetail({
+    parentInfo: '',
+    video: '',
+    introduction: '',
+    outside: `<aside aria-hidden=" &#116;rue "><section class="petDtlData"><table class="gnrTbl">${konekoFactRows({ breed: '隠し猫種' })}</table></section></aside>`,
+  }).replace('class="petDtlData"', 'class="notPetDtlData"');
+  assert.throws(() => parseKonekoDetailPage(html, KONEKO_DETAIL_OPTIONS), /facts region|facts.*unique/i);
 });
 
 test('treats absent Koneko optional parent, video, note, and introduction regions as observed empty strings', () => {

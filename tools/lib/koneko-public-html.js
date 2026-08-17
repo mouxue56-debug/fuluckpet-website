@@ -125,20 +125,43 @@ function htmlTagAt(html, start) {
   };
 }
 
-function htmlAttributes(source) {
-  const attributes = new Map();
+function parseHtmlAttributes(source) {
+  const values = new Map();
+  const occurrences = new Map();
+  let malformed = false;
   let cursor = 0;
+
+  function record(name, value, hasValue) {
+    const occurrence = { value, hasValue };
+    const all = occurrences.get(name) || [];
+    all.push(occurrence);
+    occurrences.set(name, all);
+    if (values.has(name)) malformed = true;
+    else values.set(name, occurrence);
+  }
+
   while (cursor < source.length) {
     while (isHtmlWhitespace(source[cursor])) cursor += 1;
-    if (cursor === source.length) return attributes;
+    if (cursor === source.length) break;
     if (source[cursor] === '/') {
-      return source.slice(cursor + 1).split('').every(isHtmlWhitespace) ? attributes : null;
+      if (source.slice(cursor + 1).split('').every(isHtmlWhitespace)) break;
+      malformed = true;
+      cursor += 1;
+      continue;
     }
-    if (/["'=<>`]/.test(source[cursor])) return null;
+    if (/["'=<>`]/.test(source[cursor])) {
+      malformed = true;
+      cursor += 1;
+      continue;
+    }
     const nameStart = cursor;
     while (cursor < source.length && !isHtmlWhitespace(source[cursor]) && !/["'=<>`]/.test(source[cursor])) cursor += 1;
     const name = source.slice(nameStart, cursor).toLowerCase();
-    if (!name || attributes.has(name)) return null;
+    if (!name) {
+      malformed = true;
+      cursor += 1;
+      continue;
+    }
     while (isHtmlWhitespace(source[cursor])) cursor += 1;
     let value = '';
     let hasValue = false;
@@ -151,22 +174,36 @@ function htmlAttributes(source) {
         cursor += 1;
         const valueStart = cursor;
         while (cursor < source.length && source[cursor] !== quote) cursor += 1;
-        if (cursor === source.length) return null;
         value = source.slice(valueStart, cursor);
-        cursor += 1;
+        if (cursor === source.length) malformed = true;
+        else cursor += 1;
       } else {
         const valueStart = cursor;
         while (cursor < source.length && !isHtmlWhitespace(source[cursor])) {
-          if (/["'<>=`]/.test(source[cursor])) return null;
+          if (/["'<>=`]/.test(source[cursor])) {
+            malformed = true;
+            while (cursor < source.length && !isHtmlWhitespace(source[cursor])) cursor += 1;
+            break;
+          }
           cursor += 1;
         }
-        if (valueStart === cursor) return null;
+        if (valueStart === cursor) malformed = true;
         value = source.slice(valueStart, cursor);
       }
     }
-    attributes.set(name, { value, hasValue });
+    record(name, value, hasValue);
   }
-  return attributes;
+  return { values, occurrences, malformed };
+}
+
+function htmlAttributes(source) {
+  const parsed = parseHtmlAttributes(source);
+  return parsed.malformed ? null : parsed.values;
+}
+
+function attributeOccurrences(attributes, name) {
+  const parsed = typeof attributes === 'string' ? parseHtmlAttributes(attributes) : attributes;
+  return parsed?.occurrences?.get(name.toLowerCase()) || [];
 }
 
 function textElementClose(html, tag, start) {
@@ -283,8 +320,8 @@ function foreignElementClose(html, tag, start) {
 }
 
 function hasClassToken(attributes, className) {
-  const value = htmlAttributes(attributes)?.get('class');
-  return value?.hasValue && value.value.split(HTML_WHITESPACE_SPLIT).some(token => token.toLowerCase() === className.toLowerCase());
+  return attributeOccurrences(attributes, 'class').some(({ value, hasValue }) => hasValue
+    && value.split(HTML_WHITESPACE_SPLIT).some(token => token.toLowerCase() === className.toLowerCase()));
 }
 
 function walkHtml(html, { onOpen, onClose, onText } = {}) {
@@ -352,15 +389,18 @@ function balancedElements(html, matches) {
   let structurallyValid = true;
   const complete = walkHtml(html, {
     onOpen({ tag, attributes, start, end, selfClosing }) {
-      const hidden = hasHiddenAttributes(attributes) || NON_VISIBLE_TEXT_TAGS.has(tag);
+      const parsedAttributes = parseHtmlAttributes(attributes);
+      const hidden = hasHiddenAttributes(parsedAttributes) || NON_VISIBLE_TEXT_TAGS.has(tag);
       const inFooter = footerDepth > 0 || tag === 'footer';
-      const candidate = matches({ tag, attributes }) ? {
+      const result = matches({ tag, attributes, parsedAttributes });
+      const match = typeof result === 'boolean' ? { matches: result, malformed: false } : result;
+      const candidate = match?.matches ? {
         start,
         tag,
         attributes,
         ancestorHidden: hiddenDepth > 0 || hidden,
         inFooter,
-        invalid: selfClosing,
+        invalid: selfClosing || match.malformed === true,
         element: null,
       } : null;
       if (candidate) candidates.push(candidate);
@@ -415,19 +455,41 @@ function balancedElements(html, matches) {
 }
 
 function balancedElementsByClass(html, className) {
-  return balancedElements(html, ({ attributes }) => hasClassToken(attributes, className)).elements;
+  return balancedElements(html, ({ parsedAttributes }) => ({
+    matches: hasClassToken(parsedAttributes, className),
+    malformed: parsedAttributes.malformed,
+  })).elements;
 }
 
 function hasExactId(attributes, id) {
-  const value = htmlAttributes(attributes)?.get('id');
-  return value?.hasValue && value.value === id;
+  return attributeOccurrences(attributes, 'id').some(({ value, hasValue }) => hasValue && decodeEntities(value) === id);
+}
+
+function attributeSelectorMatch(parsedAttributes, matches) {
+  return { matches: matches(parsedAttributes), malformed: parsedAttributes.malformed };
+}
+
+function konekoCandidateMatcher(matches) {
+  return ({ tag, parsedAttributes }) => attributeSelectorMatch(
+    parsedAttributes,
+    attributes => matches({ tag, attributes }),
+  );
 }
 
 function hasHiddenAttributes(attributes) {
-  if (/(?:^|\s)hidden(?=\s|=|$)/i.test(attributes)) return true;
-  if (/\baria-hidden\s*=\s*(?:["']\s*true\s*["']|true\b)/i.test(attributes)) return true;
-  const style = attributes.match(/\bstyle\s*=\s*["']([^"']*)["']/i)?.[1] || '';
-  return /\bdisplay\s*:\s*none\b|\bvisibility\s*:\s*hidden\b/i.test(style);
+  const parsed = typeof attributes === 'string' ? parseHtmlAttributes(attributes) : attributes;
+  if (attributeOccurrences(parsed, 'hidden').length > 0) return true;
+  if (attributeOccurrences(parsed, 'aria-hidden').some(({ value, hasValue }) => hasValue && decodeEntities(value).trim() === 'true')) return true;
+  return attributeOccurrences(parsed, 'style').some(({ value, hasValue }) => {
+    if (!hasValue) return false;
+    return decodeEntities(value).split(';').some((declaration) => {
+      const separator = declaration.indexOf(':');
+      if (separator === -1) return false;
+      const property = declaration.slice(0, separator).trim().toLowerCase();
+      const rawValue = declaration.slice(separator + 1).trim().replace(/\s*!important\s*$/i, '').trim().toLowerCase();
+      return (property === 'display' && rawValue === 'none') || (property === 'visibility' && rawValue === 'hidden');
+    });
+  });
 }
 
 function visibleAnchors(html, { ancestorHidden = false } = {}) {
@@ -438,7 +500,7 @@ function visibleAnchors(html, { ancestorHidden = false } = {}) {
   walkHtml(html, {
     onOpen({ tag, attributes, selfClosing }) {
       if (selfClosing) return;
-      const hidden = hasHiddenAttributes(attributes) || NON_VISIBLE_TEXT_TAGS.has(tag);
+      const hidden = hasHiddenAttributes(parseHtmlAttributes(attributes)) || NON_VISIBLE_TEXT_TAGS.has(tag);
       const anchor = tag === 'a' ? { attributes, label: '' } : null;
       stack.push({ tag, hidden, anchor, previousAnchor: currentAnchor });
       if (anchor) currentAnchor = anchor;
@@ -682,14 +744,13 @@ function detailFields(html, product, pageUrl, { koneko = false } = {}) {
 }
 
 function uniqueKonekoElement(result, name, { optional = false, requireComplete = true } = {}) {
-  const candidates = Array.isArray(result.candidates)
-    ? result.candidates.filter(candidate => !candidate.ancestorHidden && !candidate.inFooter)
-    : null;
-  if (candidates) {
-    if (candidates.some(candidate => candidate.invalid || !candidate.element)) {
-      throw new Error(`Koneko ${name} candidate is malformed`);
-    }
+  const allCandidates = Array.isArray(result.candidates) ? result.candidates : null;
+  if (allCandidates?.some(candidate => candidate.invalid || !candidate.element)) {
+    throw new Error(`Koneko ${name} candidate is malformed`);
   }
+  const candidates = allCandidates
+    ? allCandidates.filter(candidate => !candidate.ancestorHidden && !candidate.inFooter)
+    : null;
   if (requireComplete && !result.complete) throw new Error(`Koneko ${name} structure is malformed`);
   const elements = candidates ? candidates.map(candidate => candidate.element) : result.elements;
   if (elements.length === 0 && optional) return null;
@@ -797,8 +858,8 @@ function oneKonekoTableValue(rows, field, labels, { optional = false } = {}) {
 }
 
 function konekoTableFacts(html) {
-  const dataRegion = uniqueKonekoElement(balancedElements(html, ({ attributes }) => hasClassToken(attributes, 'petDtlData')), 'facts region', { requireComplete: false });
-  const table = uniqueKonekoElement(balancedElements(dataRegion.content, ({ tag, attributes }) => tag === 'table' && hasClassToken(attributes, 'gnrTbl')), 'facts table');
+  const dataRegion = uniqueKonekoElement(balancedElements(html, konekoCandidateMatcher(({ attributes }) => hasClassToken(attributes, 'petDtlData'))), 'facts region', { requireComplete: false });
+  const table = uniqueKonekoElement(balancedElements(dataRegion.content, konekoCandidateMatcher(({ tag, attributes }) => tag === 'table' && hasClassToken(attributes, 'gnrTbl'))), 'facts table');
   const tableRows = readKonekoTableRows(table.content);
   if (!tableRows) throw new Error('Koneko facts table structure is malformed');
   const breed = oneKonekoTableValue(tableRows, 'breed', ['猫種', '品種', 'Breed']);
@@ -817,17 +878,17 @@ function konekoTableFacts(html) {
 }
 
 function konekoParents(html) {
-  const region = uniqueKonekoElement(balancedElements(html, ({ attributes }) => hasExactId(attributes, 'parentInfo')), 'parent region', { optional: true, requireComplete: false });
+  const region = uniqueKonekoElement(balancedElements(html, konekoCandidateMatcher(({ attributes }) => hasExactId(attributes, 'parentInfo'))), 'parent region', { optional: true, requireComplete: false });
   if (!region) return { papa: '', mama: '' };
-  const list = uniqueKonekoElement(balancedElements(region.content, ({ tag, attributes }) => tag === 'ul' && hasClassToken(attributes, 'parentInfo_list')), 'parent list');
+  const list = uniqueKonekoElement(balancedElements(region.content, konekoCandidateMatcher(({ tag, attributes }) => tag === 'ul' && hasClassToken(attributes, 'parentInfo_list'))), 'parent list');
   const items = directElementsByTag(list.content, 'li');
   if (!items.complete || items.elements.length !== 2) throw new Error('Koneko parent items are malformed');
   const values = new Map();
   for (const item of items.elements) {
-    const header = uniqueKonekoElement(balancedElements(item.content, ({ tag, attributes }) => tag === 'h3' && hasClassToken(attributes, 'parentInfo_head')), 'parent heading');
+    const header = uniqueKonekoElement(balancedElements(item.content, konekoCandidateMatcher(({ tag, attributes }) => tag === 'h3' && hasClassToken(attributes, 'parentInfo_head'))), 'parent heading');
     const sides = ['father', 'mother'].filter(side => hasClassToken(header.attributes, side));
     if (sides.length !== 1 || values.has(sides[0])) throw new Error('Koneko parent heading is conflicting');
-    const name = uniqueKonekoElement(balancedElements(item.content, ({ tag, attributes }) => tag === 'li' && hasClassToken(attributes, 'parentName')), 'parent name');
+    const name = uniqueKonekoElement(balancedElements(item.content, konekoCandidateMatcher(({ tag, attributes }) => tag === 'li' && hasClassToken(attributes, 'parentName'))), 'parent name');
     const strong = uniqueKonekoElement(directElementsByTag(name.content, 'strong'), 'parent name');
     const value = textFromKonekoElement(strong);
     if (!nonBlank(value)) throw new Error('Koneko parent name is missing');
@@ -838,7 +899,7 @@ function konekoParents(html) {
 }
 
 function konekoVideoId(html, pageUrl) {
-  const region = uniqueKonekoElement(balancedElements(html, ({ attributes }) => hasClassToken(attributes, 'movieGalleryCnt') && hasClassToken(attributes, 'youtube')), 'video region', { optional: true, requireComplete: false });
+  const region = uniqueKonekoElement(balancedElements(html, konekoCandidateMatcher(({ attributes }) => hasClassToken(attributes, 'movieGalleryCnt') && hasClassToken(attributes, 'youtube'))), 'video region', { optional: true, requireComplete: false });
   if (!region) return '';
   const evidence = youtubeMediaIds(region.content, pageUrl, { rejectInvalid: true });
   if (!evidence.complete || evidence.malformed) throw new Error('Koneko video structure is malformed');
@@ -848,9 +909,9 @@ function konekoVideoId(html, pageUrl) {
 }
 
 function konekoDescription(html) {
-  const region = uniqueKonekoElement(balancedElements(html, ({ attributes }) => hasClassToken(attributes, 'petDtlInt')), 'introduction region', { optional: true, requireComplete: false });
+  const region = uniqueKonekoElement(balancedElements(html, konekoCandidateMatcher(({ attributes }) => hasClassToken(attributes, 'petDtlInt'))), 'introduction region', { optional: true, requireComplete: false });
   if (!region) return '';
-  const content = uniqueKonekoElement(balancedElements(region.content, ({ tag, attributes }) => tag === 'div' && hasClassToken(attributes, 'gnrCnt')), 'introduction content');
+  const content = uniqueKonekoElement(balancedElements(region.content, konekoCandidateMatcher(({ tag, attributes }) => tag === 'div' && hasClassToken(attributes, 'gnrCnt'))), 'introduction content');
   return decodeHtmlText(content.content.replace(/<h[1-6]\b[^>]*>[\s\S]*?<\/h[1-6]\s*>/gi, ''), { preserveBreaks: true });
 }
 
