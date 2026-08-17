@@ -39,6 +39,10 @@ The accepted Koneko status map is:
 
 After complete list pagination, the crawler reads every active kitten detail page and extracts the exact breeder ID, account ID, status, price, birthday, breed, colour, gender, parents, ordered full-size photo URLs, canonical YouTube video ID, short Japanese appeal, and long Japanese introduction. Detail identity must match the list identity. Missing required facts, zero photos, invalid media URLs, or conflicting list/detail values make the entire run `BLOCKED`.
 
+Koneko field evidence is scoped to balanced, actual detail containers rather than the whole document. Facts come only from one `.petDtlData` containing one `table.gnrTbl`; the observed labels are `猫種`, `毛色(毛質)`, `性別`, `誕生日`, and `アピール<br>ポイント` (with only explicit historical aliases accepted). Breed, colour, gender, and birthday must each have one non-empty row; the appeal row is an observed optional string, so a missing row or empty cell is `''`, while a duplicate or malformed matching row is `BLOCKED`. A malformed candidate container is `BLOCKED`; unrelated malformed outer markup cannot supply, replace, or invalidate a locally balanced evidence container.
+
+Parents come only from one `#parentInfo`: an absent region records `papa: ''` and `mama: ''`; a present region must prove one father and one mother item, each through its corresponding `li.parentName > strong`. There is no whole-page fallback. Video comes only from one `.movieGalleryCnt.youtube`; absence records `videoId: ''`, while a present region must contain one consistent YouTube ID from actual link/media elements. The description comes only from `.petDtlInt .gnrCnt`; absent is `''`, and a present but ambiguous or malformed introduction is `BLOCKED`. Page-footer and script text are never evidence for parents or video.
+
 ### Fuluck API, controlled rendered-site reader, and deterministic comparator
 
 The Fuluck reader first fetches the public catalogue with the same domain, timeout, response-size, and content-type protections. It requires an array of unique, non-empty breeder IDs and valid public record shapes. The production public API does not currently expose long introductions or translated text, so every source-active breeder ID must also be checked against its Japanese, English, and Chinese public detail URL.
@@ -56,13 +60,13 @@ The comparator joins Koneko, the Fuluck API, and rendered pages only by exact br
 - `source_inactive_target_active`;
 - `status_mismatch`;
 - `fact_mismatch` for price, birthday, breed, colour, gender, or parents;
-- `photo_mismatch` for ordered URL count or sequence;
-- `video_mismatch` using canonical YouTube IDs;
+- `photos_mismatch` for ordered URL count or sequence;
+- `video_id_mismatch` using canonical YouTube IDs;
 - `japanese_text_mismatch` for short appeal or long introduction;
 - `rendered_page_missing` when a required language detail page is absent;
-- `translation_missing` when an active target lacks either Chinese or English short/long text.
+- `translation_missing` when a non-empty Japanese source short/long text lacks the corresponding Chinese or English text.
 
-Koneko has no authoritative Chinese or English copy, so the audit must not invent translations or claim that translated wording is source-equal. A changed Japanese text marks the existing translations as requiring review.
+The required source/target facts are breed, colour, gender, price, birthday, and ordered photos. `papa`, `mama`, `note`, `description`, and `videoId` must always be strings but may be `''` as an observed fact. They are still compared: an empty/non-empty difference produces the same fact, text, or video drift class and cannot become `EXACT`. Koneko has no authoritative Chinese or English copy, so the audit must not invent translations or claim that translated wording is source-equal. A changed Japanese text marks the existing translations as requiring review; an empty Japanese source does not fabricate a translation requirement.
 
 The result is `EXACT` only when both accounts are completely proven and no drift exists. Any catalogue difference is `DRIFT`. Any incomplete pagination, parser uncertainty, network failure, invalid response, duplicate identity, or schema failure is `BLOCKED`. The tool never guesses around a blocked condition.
 
@@ -72,7 +76,7 @@ Every run writes a compact Markdown summary to the GitHub Actions job summary an
 
 - observed time in JST;
 - result: `EXACT`, `DRIFT`, or `BLOCKED`;
-- per-account page, declared-total, unique-ID, active, reserved, and inactive counts;
+- per-account page, declared-total, safely verified unique-ID count, `available`/`reserved`/`sold` status counts, and active count; these safe aggregates remain present for each fixed account even when the terminal result is `BLOCKED`;
 - Fuluck total and status counts;
 - each verified Fuluck rendered-page URL, locale, and shared controlled-render SHA-256;
 - every exact breeder ID and field-level difference;
@@ -101,9 +105,9 @@ If a later approved Fuluck update needs new Chinese or English text, a separate 
 
 ## Testing
 
-Unit fixtures cover both account layouts, multiple pages, each known Koneko status, HTML escaping, duplicate IDs, inconsistent totals, repeated pages, missing next-page receipts, challenge pages, malformed details, photo ordering, and YouTube URL canonicalisation.
+Unit fixtures cover both account layouts, multiple pages, each known Koneko status, HTML escaping, duplicate IDs, inconsistent totals, repeated pages, missing next-page receipts, challenge pages, malformed details, photo ordering, and YouTube URL canonicalisation. Detail fixtures specifically cover the live Koneko labels and facts region, required-row conflicts, parent/video container absence and conflicts, footer/script lookalikes, scoped malformed outer markup, and observed-empty optional values.
 
-Comparator tests cover every drift class, exact equality, Japanese-change translation review, and the rule that missing or blocked source evidence cannot become `EXACT`.
+Comparator tests cover every drift class, exact equality, empty/non-empty optional drift, conditional translation requirements, bounded per-account `BLOCKED` aggregates, and the rule that missing or blocked source evidence cannot become `EXACT`.
 
 Workflow contract tests require the exact JST-equivalent schedule, manual dispatch, `contents: read`, absence of secrets and write commands, artifact preservation, bounded execution, and zero model/CLI invocations.
 

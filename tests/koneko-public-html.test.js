@@ -279,7 +279,43 @@ const KONEKO_DETAIL_OPTIONS = {
   pageUrl: 'https://www.koneko-breeder.com/cat2608-00001.html',
 };
 
-function konekoDetail({ json = true, images = true, sku = '2608-00001', account = 'c995680', price = '230000' } = {}) {
+function konekoFactRows({
+  breed = 'サイベリアン',
+  color = 'シルバータビー&amp;ホワイト（トリプルコート）',
+  gender = '♂',
+  birthday = '2026/5/9',
+  note = '短い紹介',
+} = {}) {
+  return `<tr><th>猫種</th><td>${breed}</td></tr>
+    <tr><th>毛色(毛質)</th><td>${color}</td></tr>
+    <tr><th>性別</th><td>${gender}</td></tr>
+    <tr><th>誕生日</th><td>${birthday}</td></tr>
+    <tr><th>アピール<br>ポイント</th><td>${note}</td></tr>`;
+}
+
+function konekoParentInfo({ papa = '父猫', mama = '母猫' } = {}) {
+  return `<div id="parentInfo"><ul class="parentInfo_list">
+    <li><h3 class="parentInfo_head father">Father</h3><ul class="parentInfo_detail_list"><li class="parentName"><strong>${papa}</strong></li></ul></li>
+    <li><h3 class="parentInfo_head mother">Mother</h3><ul class="parentInfo_detail_list"><li class="parentName"><strong>${mama}</strong></li></ul></li>
+  </ul></div>`;
+}
+
+function konekoVideo(videoId = 'AbCdEfGhI12') {
+  return `<div class="movieGalleryCnt youtube"><iframe src="https://www.youtube.com/embed/${videoId}"></iframe></div>`;
+}
+
+function konekoDetail({
+  json = true,
+  images = true,
+  sku = '2608-00001',
+  account = 'c995680',
+  price = '230000',
+  factRows = konekoFactRows(),
+  parentInfo = konekoParentInfo(),
+  video = konekoVideo(),
+  introduction = '<div class="petDtlInt"><div class="gnrCnt"><p>一段落<br>続き</p><p>二段落<br>続き</p></div></div>',
+  outside = '',
+} = {}) {
   const product = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -293,14 +329,16 @@ function konekoDetail({ json = true, images = true, sku = '2608-00001', account 
   return `<html><head><link rel="canonical" href="${KONEKO_DETAIL_OPTIONS.pageUrl}">
     ${json ? `<script type="application/ld+json">${JSON.stringify(product)}</script>` : '<script type="application/ld+json">{bad json</script>'}
   </head><body>
-    <table class="petDtlTable"><tr><th>品種</th><td>サイベリアン</td></tr><tr><th>毛色</th><td>シルバータビー&amp;ホワイト（トリプルコート）</td></tr><tr><th>性別</th><td>♂</td></tr><tr><th>誕生日</th><td>2026/5/9</td></tr></table>
-    <div class="gnrCnt"><p>汎用欄の文章</p></div><div class="petDtlInt"><div class="gnrCnt"><p>一段落<br>続き</p><p>二段落<br>続き</p></div></div>
-    <div class="parents"><p>父猫：父猫</p><p>母猫：母猫</p></div>
-    <p class="pic_detail_appeal">短い紹介</p><iframe src="https://www.youtube.com/watch?v=AbCdEfGhI12"></iframe>
+    <table class="gnrTbl">${konekoFactRows({ breed: '外側の猫種', color: '外側の毛色', gender: '♀', birthday: '2020/1/1', note: '外側の紹介' })}</table>
+    <div class="petDtlData"><table class="gnrTbl">${factRows}</table></div>
+    ${parentInfo}
+    ${video}
+    ${introduction}
+    ${outside}
   </body></html>`;
 }
 
-test('normalizes a Koneko detail Product, facts, parents, note, introduction, and canonical video ID', () => {
+test('normalizes live-shaped Koneko Product facts, parents, note, introduction, and canonical video ID', () => {
   assert.deepEqual(parseKonekoDetailPage(konekoDetail(), KONEKO_DETAIL_OPTIONS), {
     breederId: '2608-00001',
     accountId: 'c995680',
@@ -322,9 +360,74 @@ test('normalizes a Koneko detail Product, facts, parents, note, introduction, an
   });
 });
 
-test('does not treat a suffix detail-note class as the note region', () => {
-  const detail = konekoDetail().replace('class="pic_detail_appeal"', 'class="pic_detail_appeal-extra"');
+test('does not treat an outside suffix detail-note class as a Koneko note region', () => {
+  const detail = konekoDetail({
+    factRows: konekoFactRows({ note: '' }),
+    outside: '<p class="pic_detail_appeal-extra">偽の紹介</p>',
+  });
   assert.equal(parseKonekoDetailPage(detail, KONEKO_DETAIL_OPTIONS).note, '');
+});
+
+test('uses only the unique live Koneko facts region and rejects missing, duplicate, or malformed required rows', () => {
+  const parsed = parseKonekoDetailPage(konekoDetail({
+    factRows: konekoFactRows({ breed: '内側の猫種', color: '内側の毛色', gender: '女の子', birthday: '2026/5/10' }),
+  }), KONEKO_DETAIL_OPTIONS);
+  assert.equal(parsed.breed, '内側の猫種');
+  assert.equal(parsed.color, '内側の毛色');
+  assert.equal(parsed.gender, '♀');
+  assert.equal(parsed.birthday, '2026-05-10');
+
+  const missing = konekoDetail({ factRows: konekoFactRows().replace(/<tr><th>猫種<\/th><td>[\s\S]*?<\/td><\/tr>/, '') });
+  assert.throws(() => parseKonekoDetailPage(missing, KONEKO_DETAIL_OPTIONS), /breed|猫種|required/i);
+
+  const duplicate = konekoDetail({ factRows: `${konekoFactRows()}<tr><th>猫種</th><td>別の猫種</td></tr>` });
+  assert.throws(() => parseKonekoDetailPage(duplicate, KONEKO_DETAIL_OPTIONS), /breed|猫種|duplicate/i);
+
+  const duplicateNote = konekoDetail({ factRows: `${konekoFactRows()}<tr><th>アピール<br>ポイント</th><td>別の紹介</td></tr>` });
+  assert.throws(() => parseKonekoDetailPage(duplicateNote, KONEKO_DETAIL_OPTIONS), /note|アピール|duplicate/i);
+
+  const malformed = konekoDetail({ factRows: konekoFactRows().replace('<tr><th>毛色(毛質)</th><td>', '<tr><th>毛色(毛質)</th>') });
+  assert.throws(() => parseKonekoDetailPage(malformed, KONEKO_DETAIL_OPTIONS), /facts|color|毛色|structure/i);
+});
+
+test('keeps Koneko evidence scoped to balanced detail regions when unrelated outer markup is malformed', () => {
+  const parsed = parseKonekoDetailPage(konekoDetail({
+    outside: '<span class="unrelated">not Koneko evidence</div>',
+  }), KONEKO_DETAIL_OPTIONS);
+  assert.equal(parsed.breed, 'サイベリアン');
+  assert.equal(parsed.papa, '父猫');
+  assert.equal(parsed.videoId, 'AbCdEfGhI12');
+});
+
+test('treats absent Koneko optional parent, video, note, and introduction regions as observed empty strings', () => {
+  const parsed = parseKonekoDetailPage(konekoDetail({
+    factRows: konekoFactRows({ note: '' }),
+    parentInfo: '',
+    video: '',
+    introduction: '',
+    outside: `<footer><a href="https://youtu.be/ZyXwVuTsRq0">Footer video</a></footer>
+      <script>const modal = '父親猫画像をモーダル表示 / 母親猫画像をモーダル表示 / https://youtu.be/ZyXwVuTsRq0';</script>`,
+  }), KONEKO_DETAIL_OPTIONS);
+  assert.deepEqual({ papa: parsed.papa, mama: parsed.mama, note: parsed.note, description: parsed.description, videoId: parsed.videoId }, {
+    papa: '', mama: '', note: '', description: '', videoId: '',
+  });
+});
+
+test('fails closed when present Koneko parent, video, or description structures conflict', () => {
+  const parentConflict = konekoDetail({ parentInfo: konekoParentInfo().replace('</ul></div>', '<li><h3 class="parentInfo_head father">Again</h3><ul><li class="parentName"><strong>別の父猫</strong></li></ul></li></ul></div>') });
+  assert.throws(() => parseKonekoDetailPage(parentConflict, KONEKO_DETAIL_OPTIONS), /parent|father|mother/i);
+
+  const parentMalformed = konekoDetail({ parentInfo: '<div id="parentInfo"><ul class="parentInfo_list"><li><h3 class="parentInfo_head father">Father</h3><ul><li class="parentName"><strong>父猫</strong></li></ul></li></ul></div>' });
+  assert.throws(() => parseKonekoDetailPage(parentMalformed, KONEKO_DETAIL_OPTIONS), /parent|father|mother/i);
+
+  const videoConflict = konekoDetail({ video: '<div class="movieGalleryCnt youtube"><iframe src="https://www.youtube.com/embed/AbCdEfGhI12"></iframe><a href="https://youtu.be/ZyXwVuTsRq0">Other</a></div>' });
+  assert.throws(() => parseKonekoDetailPage(videoConflict, KONEKO_DETAIL_OPTIONS), /video|YouTube/i);
+
+  const duplicateVideoRegion = konekoDetail({ video: `${konekoVideo()}${konekoVideo('ZyXwVuTsRq0')}` });
+  assert.throws(() => parseKonekoDetailPage(duplicateVideoRegion, KONEKO_DETAIL_OPTIONS), /video|unique/i);
+
+  const malformedDescription = konekoDetail({ introduction: '<div class="petDtlInt"><p>紹介だけ</p></div>' });
+  assert.throws(() => parseKonekoDetailPage(malformedDescription, KONEKO_DETAIL_OPTIONS), /description|introduction/i);
 });
 
 test('fails closed for malformed JSON-LD, zero source photos, and mismatched Koneko SKU/account', () => {

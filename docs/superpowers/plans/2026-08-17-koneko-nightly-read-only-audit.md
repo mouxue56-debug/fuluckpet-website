@@ -4,7 +4,7 @@
 
 **Goal:** Run a deterministic, public, GET-only comparison of both Koneko breeder catalogues against Fuluck every day at 20:00 JST and preserve an exact approval report without any production write or language-model call.
 
-**Architecture:** Pure HTML parsers normalize Koneko list/detail pages. A guarded crawl layer proves full pagination for both fixed accounts. For Fuluck HTTP `200` details, it removes only the proven Cloudflare tail, requires byte equality with the same-id/locale controlled generated checkout file, then parses only that in-memory controlled string. A pure comparator emits `EXACT`, `DRIFT`, or `BLOCKED`; and a CLI writes JSON and Markdown receipts. A read-only GitHub Actions workflow runs at `0 11 * * *` UTC, preserves evidence, then re-emits the audit exit code.
+**Architecture:** Pure HTML parsers normalize Koneko list/detail pages. Koneko detail evidence is scoped to balanced `.petDtlData table.gnrTbl`, `#parentInfo`, `.movieGalleryCnt.youtube`, and `.petDtlInt .gnrCnt` containers; required facts fail closed, while observed optional parent/note/description/video strings may be empty and remain comparable. A guarded crawl layer proves full pagination for both fixed accounts. For Fuluck HTTP `200` details, it removes only the proven Cloudflare tail, requires byte equality with the same-id/locale controlled generated checkout file, then parses only that in-memory controlled string. A pure comparator emits `EXACT`, `DRIFT`, or `BLOCKED`; and a CLI writes JSON and Markdown receipts. A read-only GitHub Actions workflow runs at `0 11 * * *` UTC, preserves evidence, then re-emits the audit exit code.
 
 **Tech Stack:** Node.js 24 ESM, built-in `fetch`, `node:test`, GitHub Actions, public Koneko HTML, Fuluck public API and static detail pages.
 
@@ -123,7 +123,7 @@ Run the same focused test and confirm the new cases fail because detail function
 
 - [ ] **Step 7: Implement detail parsers and verify GREEN**
 
-Parse Koneko Product JSON-LD for SKU/images/price; labelled table rows for facts; `.petDtlInt .gnrCnt` for long text; father/mother sections; and YouTube by canonical 11-character ID. Parse Fuluck Product JSON-LD plus fixed `kitten-detail-*` sections. Normalize CRLF, entities, non-breaking spaces, padded dates, and `<br>` without executing HTML.
+Parse Koneko Product JSON-LD for SKU/images/price; one balanced `.petDtlData table.gnrTbl` for the live labelled facts; `#parentInfo` for father/mother; `.movieGalleryCnt.youtube` for a canonical 11-character ID; and `.petDtlInt .gnrCnt` for long text. Require one non-empty breed/colour/gender/birthday row, but record absent/empty appeal, parent, introduction, and video containers as observed empty strings where their contracts permit. Do not fall back to whole-page labels, scripts, or footer markup. Parse Fuluck Product JSON-LD plus fixed `kitten-detail-*` sections. Normalize CRLF, entities, non-breaking spaces, padded dates, and `<br>` without executing HTML.
 
 Run `node --test tests/koneko-public-html.test.js`; expected all pass.
 
@@ -235,7 +235,7 @@ Run `node --test tests/koneko-catalog-audit.test.js`; expected missing-module fa
 
 - [ ] **Step 3: Implement deterministic comparison**
 
-Sort by fixed account order, breeder ID, type, and field. Compare API facts; compare JA rendered photos/video/short/long text; require non-empty EN/ZH short and long text. Do not claim EN/ZH wording equals Koneko. Use a closed field mismatch shape:
+Sort by fixed account order, breeder ID, type, and field. Require non-empty breed/colour/gender/price/birthday and ordered photos; require `papa`, `mama`, `note`, `description`, and `videoId` to be strings but allow `''` as observed evidence. Compare JA photos/video/parents/short/long text even when one side is empty. Require EN/ZH short/long text only when the corresponding Japanese source field is non-empty. Do not claim EN/ZH wording equals Koneko. Keep safe per-account unique-ID/status/active aggregates in terminal `BLOCKED` receipts without restoring unverified checked URLs. Use a closed field mismatch shape:
 
 ```js
 {

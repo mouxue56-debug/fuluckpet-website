@@ -119,7 +119,12 @@ function listPage(cards, { total, start, end, next = '', links } = {}) {
 }
 
 function konekoDetail(id, accountId = 'c995680') {
-  return `<html><head><link rel="canonical" href="${KONEKO_ORIGIN}/cat${id}.html"><script type="application/ld+json">${JSON.stringify({ '@type': 'Product', sku: id, image: [`${KONEKO_ORIGIN}/breeder/data/${accountId}/child.jpg`], offers: { price: '230000' } })}</script></head><body><table><tr><th>品種</th><td>サイベリアン</td></tr></table><div class="petDtlInt"><div class="gnrCnt">紹介</div></div></body></html>`;
+  return `<html><head><link rel="canonical" href="${KONEKO_ORIGIN}/cat${id}.html"><script type="application/ld+json">${JSON.stringify({ '@type': 'Product', sku: id, image: [`${KONEKO_ORIGIN}/breeder/data/${accountId}/child.jpg`], offers: { price: '230000' } })}</script></head><body>
+    <div class="petDtlData"><table class="gnrTbl"><tr><th>猫種</th><td>サイベリアン</td></tr><tr><th>毛色(毛質)</th><td>シルバー</td></tr><tr><th>性別</th><td>♂</td></tr><tr><th>誕生日</th><td>2026/5/9</td></tr><tr><th>アピール<br>ポイント</th><td>紹介</td></tr></table></div>
+    <div id="parentInfo"><ul class="parentInfo_list"><li><h3 class="parentInfo_head father">Father</h3><ul><li class="parentName"><strong>父猫</strong></li></ul></li><li><h3 class="parentInfo_head mother">Mother</h3><ul><li class="parentName"><strong>母猫</strong></li></ul></li></ul></div>
+    <div class="movieGalleryCnt youtube"><iframe src="https://www.youtube.com/embed/AbCdEfGhI12"></iframe></div>
+    <div class="petDtlInt"><div class="gnrCnt">紹介</div></div>
+  </body></html>`;
 }
 
 function crawlerFetch(pages) {

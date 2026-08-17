@@ -171,6 +171,62 @@ test('reports missing rendered pages and missing EN/ZH short and long text witho
   assert.equal(translations.diffs.some(item => item.type.includes('equivalence')), false);
 });
 
+test('accepts observed-empty Koneko optional fields while still comparing empty and nonempty values', () => {
+  const input = exactInput();
+  const source = input.accounts[0].activeDetails[0];
+  const ja = input.fuluck.renderedPages.find(item => item.breederId === source.breederId && item.locale === 'ja');
+  for (const field of ['papa', 'mama', 'note', 'description', 'videoId']) {
+    source[field] = '';
+    ja[field] = '';
+  }
+  for (const locale of ['en', 'zh']) {
+    const translated = input.fuluck.renderedPages.find(item => item.breederId === source.breederId && item.locale === locale);
+    translated.note = '';
+    translated.description = '';
+  }
+
+  const exact = compareKonekoToFuluck(input);
+  assert.equal(exact.result, 'EXACT');
+  assert.equal(exact.diffs.some(item => item.type === 'translation_missing'), false);
+
+  ja.papa = '父猫';
+  ja.videoId = 'AbCdEfGhI12';
+  ja.note = '短い紹介';
+  ja.description = '一段落';
+  const drift = compareKonekoToFuluck(input);
+  assert.equal(drift.result, 'DRIFT');
+  assert.deepEqual(diff(drift, 'fact_mismatch', source.breederId, 'papa'), {
+    type: 'fact_mismatch', accountId: source.accountId, breederId: source.breederId, field: 'papa', source: '', target: '父猫',
+  });
+  assert.ok(diff(drift, 'video_id_mismatch', source.breederId, 'videoId'));
+  assert.ok(diff(drift, 'japanese_text_mismatch', source.breederId, 'note'));
+  assert.ok(diff(drift, 'japanese_text_mismatch', source.breederId, 'description'));
+});
+
+test('blocks optional Koneko evidence with a non-string value and retains only safe account aggregate counts', () => {
+  const input = exactInput();
+  const account = input.accounts[0];
+  account.receipts = [];
+  account.kittens = [
+    { breederId: '2608-00001', status: 'available' },
+    { breederId: '2608-00003', status: 'reserved' },
+    { breederId: '2608-00004', status: 'sold' },
+    { breederId: '2608-00003', status: 'reserved' },
+    { breederId: 'not-a-breeder-id', status: 'available' },
+  ];
+  account.activeDetails[0].papa = null;
+
+  const blocked = compareKonekoToFuluck(input);
+  assert.equal(blocked.result, 'BLOCKED');
+  assert.deepEqual(blocked.accounts.find(item => item.accountId === 'c995680').statusCounts, { available: 1, reserved: 1, sold: 1 });
+  assert.equal(blocked.accounts.find(item => item.accountId === 'c995680').uniqueIdCount, 3);
+  assert.equal(blocked.accounts.find(item => item.accountId === 'c995680').activeCount, 2);
+  assert.match(blocked.blocks.join('\n'), /papa.*missing|papa.*string/i);
+  const markdown = renderAuditMarkdown(blocked);
+  assert.match(markdown, /unique IDs 3; available 1, reserved 1, sold 1; active 2/);
+  assert.doesNotMatch(markdown.split('## Findings')[0], /not-a-breeder-id/);
+});
+
 test('blocks on incomplete evidence instead of inferring a non-exact catalogue result', () => {
   const cases = [
     input => { input.accounts[0].receipts = []; },

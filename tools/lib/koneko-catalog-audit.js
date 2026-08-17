@@ -3,8 +3,11 @@ import { createHash } from 'node:crypto';
 const ACCOUNT_ORDER = ['c995680', 'd696506'];
 const ACTIVE_STATUSES = new Set(['available', 'reserved']);
 const KNOWN_STATUSES = new Set(['available', 'reserved', 'sold']);
-const FACT_FIELDS = ['breed', 'color', 'gender', 'price', 'birthday', 'papa', 'mama'];
+const REQUIRED_FACT_FIELDS = ['breed', 'color', 'gender', 'price', 'birthday'];
+const OPTIONAL_FACT_FIELDS = ['papa', 'mama'];
+const COMPARISON_FACT_FIELDS = [...REQUIRED_FACT_FIELDS, ...OPTIONAL_FACT_FIELDS];
 const TEXT_FIELDS = ['note', 'description'];
+const OPTIONAL_STRING_FIELDS = [...OPTIONAL_FACT_FIELDS, ...TEXT_FIELDS, 'videoId'];
 const LOCALES = ['ja', 'en', 'zh'];
 const BREEDER_ID = /^\d{4}-\d{5}$/;
 const KONEKO_ORIGIN = 'https://www.koneko-breeder.com';
@@ -18,6 +21,10 @@ function isObject(value) {
 
 function nonBlank(value) {
   return typeof value === 'string' && value.trim() !== '';
+}
+
+function isString(value) {
+  return typeof value === 'string';
 }
 
 function sha256(value) {
@@ -125,19 +132,49 @@ function diffSort(a, b) {
     || compareStrings(a.locale, b.locale);
 }
 
+function safeKittensSummary(kittens) {
+  const statusCounts = { available: 0, reserved: 0, sold: 0 };
+  const breederIds = new Set();
+  if (!Array.isArray(kittens)) return { uniqueIdCount: 0, statusCounts, activeCount: 0 };
+  for (const kitten of kittens) {
+    if (!isObject(kitten) || !BREEDER_ID.test(kitten.breederId) || !KNOWN_STATUSES.has(kitten.status) || breederIds.has(kitten.breederId)) continue;
+    breederIds.add(kitten.breederId);
+    statusCounts[kitten.status] += 1;
+  }
+  return {
+    uniqueIdCount: breederIds.size,
+    statusCounts,
+    activeCount: statusCounts.available + statusCounts.reserved,
+  };
+}
+
+function safeAccountReceipt(account) {
+  return {
+    accountId: account.accountId,
+    declaredTotal: Number.isInteger(account.declaredTotal) && account.declaredTotal >= 0 ? account.declaredTotal : '',
+    receiptCount: Array.isArray(account.receipts) ? account.receipts.length : 0,
+    ...safeKittensSummary(account.kittens),
+    receipts: Array.isArray(account.receipts) ? account.receipts.map(receipt => ({
+      url: safeUrl(receipt?.url), status: Number.isInteger(receipt?.status) ? receipt.status : '',
+      contentType: allowedReceiptContentType(receipt?.contentType) ? receipt.contentType : '',
+      sha256: validReceiptHash(receipt?.sha256) ? receipt.sha256 : '',
+      rangeStart: receipt?.rangeStart, rangeEnd: receipt?.rangeEnd, declaredTotal: receipt?.declaredTotal,
+    })) : [],
+  };
+}
+
+function safeAccountReceipts(accounts) {
+  const seen = new Set();
+  if (!Array.isArray(accounts)) return [];
+  return accounts.filter(account => {
+    if (!isObject(account) || !ACCOUNT_ORDER.includes(account.accountId) || seen.has(account.accountId)) return false;
+    seen.add(account.accountId);
+    return true;
+  }).map(safeAccountReceipt).sort((a, b) => accountRank(a.accountId) - accountRank(b.accountId));
+}
+
 function blockedResult(input, blocks) {
-  const accounts = Array.isArray(input?.accounts) ? input.accounts
-    .filter(isObject).map(account => ({
-      accountId: account.accountId,
-      declaredTotal: account.declaredTotal,
-      receiptCount: Array.isArray(account.receipts) ? account.receipts.length : 0,
-      receipts: Array.isArray(account.receipts) ? account.receipts.map(receipt => ({
-        url: safeUrl(receipt?.url), status: Number.isInteger(receipt?.status) ? receipt.status : '',
-        contentType: allowedReceiptContentType(receipt?.contentType) ? receipt.contentType : '',
-        sha256: validReceiptHash(receipt?.sha256) ? receipt.sha256 : '',
-        rangeStart: receipt?.rangeStart, rangeEnd: receipt?.rangeEnd, declaredTotal: receipt?.declaredTotal,
-      })) : [],
-    })).sort((a, b) => accountRank(a.accountId) - accountRank(b.accountId)) : [];
+  const accounts = safeAccountReceipts(input?.accounts);
   return {
     timestamp: typeof input?.timestamp === 'string' ? input.timestamp : '',
     result: 'BLOCKED', exitCode: 3, accounts,
@@ -220,9 +257,9 @@ function validateInput(input) {
       sourceDetails.set(detail.breederId, detail);
       evidenceError(blocks, sourceDetailUrlMatches(detail.detailUrl, detail.breederId), `source detail URL is invalid for ${detail.breederId}`);
       if (sourceDetailUrlMatches(detail.detailUrl, detail.breederId)) requiredCheckedUrls.add(canonicalEvidenceUrl(detail.detailUrl));
-      for (const field of [...FACT_FIELDS, ...TEXT_FIELDS]) evidenceError(blocks, field === 'price' ? Number.isFinite(detail[field]) : nonBlank(detail[field]), `source ${field} evidence is missing for ${detail.breederId}`);
+      for (const field of REQUIRED_FACT_FIELDS) evidenceError(blocks, field === 'price' ? Number.isFinite(detail[field]) : nonBlank(detail[field]), `source ${field} evidence is missing for ${detail.breederId}`);
       evidenceError(blocks, Array.isArray(detail.photos) && detail.photos.length > 0 && detail.photos.every(nonBlank), `source photo evidence is missing for ${detail.breederId}`);
-      evidenceError(blocks, nonBlank(detail.videoId), `source video evidence is missing for ${detail.breederId}`);
+      for (const field of OPTIONAL_STRING_FIELDS) evidenceError(blocks, isString(detail[field]), `source ${field} evidence is not a string for ${detail.breederId}`);
     }
     for (const kitten of account.kittens.filter(item => ACTIVE_STATUSES.has(item.status))) {
       evidenceError(blocks, detailIds.has(kitten.breederId), `source active detail is missing for ${kitten.breederId}`);
@@ -260,9 +297,9 @@ function validateInput(input) {
       evidenceError(blocks, renderedPageUrl(page) === exactFuluckPageUrl(page.breederId, page.locale), `Fuluck rendered-page URL is invalid for ${key}`);
       if (renderedPageUrl(page) === exactFuluckPageUrl(page.breederId, page.locale)) requiredCheckedUrls.add(renderedPageUrl(page));
       evidenceError(blocks, validReceiptHash(page.sha256), `Fuluck rendered-page hash is missing for ${key}`);
-      for (const field of [...FACT_FIELDS, ...(page.locale === 'ja' ? TEXT_FIELDS : [])]) evidenceError(blocks, field === 'price' ? Number.isFinite(page[field]) : nonBlank(page[field]), `Fuluck ${field} evidence is missing for ${key}`);
+      for (const field of REQUIRED_FACT_FIELDS) evidenceError(blocks, field === 'price' ? Number.isFinite(page[field]) : nonBlank(page[field]), `Fuluck ${field} evidence is missing for ${key}`);
       evidenceError(blocks, Array.isArray(page.photos) && page.photos.length > 0 && page.photos.every(nonBlank), `Fuluck photo evidence is missing for ${key}`);
-      evidenceError(blocks, nonBlank(page.videoId), `Fuluck video evidence is missing for ${key}`);
+      for (const field of OPTIONAL_STRING_FIELDS) evidenceError(blocks, isString(page[field]), `Fuluck ${field} evidence is not a string for ${key}`);
     }
   }
   for (const [breederId, source] of sourceById) {
@@ -307,7 +344,7 @@ export function compareKonekoToFuluck(input) {
       add({ type: 'rendered_page_missing', accountId: source.accountId, breederId, field: 'ja', locale: 'ja', url: safeUrl(ja.url) });
       continue;
     }
-    for (const field of FACT_FIELDS) if (sourceDetail[field] !== ja[field]) add({ type: 'fact_mismatch', accountId: source.accountId, breederId, field, source: sourceDetail[field], target: ja[field] });
+    for (const field of COMPARISON_FACT_FIELDS) if (sourceDetail[field] !== ja[field]) add({ type: 'fact_mismatch', accountId: source.accountId, breederId, field, source: sourceDetail[field], target: ja[field] });
     if (JSON.stringify(sourceDetail.photos) !== JSON.stringify(ja.photos)) add({ type: 'photos_mismatch', accountId: source.accountId, breederId, field: 'photos', source: sourceDetail.photos, target: ja.photos });
     if (sourceDetail.videoId !== ja.videoId) add({ type: 'video_id_mismatch', accountId: source.accountId, breederId, field: 'videoId', source: sourceDetail.videoId, target: ja.videoId });
     for (const field of TEXT_FIELDS) {
@@ -321,13 +358,10 @@ export function compareKonekoToFuluck(input) {
         add({ type: 'rendered_page_missing', accountId: source.accountId, breederId, field: locale, locale, url: safeUrl(translated.url) });
         continue;
       }
-      for (const field of TEXT_FIELDS) if (!nonBlank(translated[field])) add({ type: 'translation_missing', accountId: source.accountId, breederId, field, locale, source: 'required', target: 'missing' });
+      for (const field of TEXT_FIELDS) if (nonBlank(sourceDetail[field]) && !nonBlank(translated[field])) add({ type: 'translation_missing', accountId: source.accountId, breederId, field, locale, source: 'required', target: 'missing' });
     }
   }
-  const accounts = input.accounts.map(account => ({
-    accountId: account.accountId, declaredTotal: account.declaredTotal, receiptCount: account.receipts.length,
-    receipts: account.receipts.map(receipt => ({ url: safeUrl(receipt.url), status: receipt.status, contentType: receipt.contentType, sha256: receipt.sha256, rangeStart: receipt.rangeStart, rangeEnd: receipt.rangeEnd, declaredTotal: receipt.declaredTotal })),
-  })).sort((a, b) => accountRank(a.accountId) - accountRank(b.accountId));
+  const accounts = safeAccountReceipts(input.accounts);
   return {
     timestamp: input.timestamp, result: diffs.length ? 'DRIFT' : 'EXACT', exitCode: diffs.length ? 2 : 0,
     accounts,
@@ -355,7 +389,8 @@ function markdownValue(value) {
 export function renderAuditMarkdown(result) {
   const lines = ['# Koneko catalogue audit', '', `- Timestamp: ${jstTimestamp(result.timestamp)}`, `- Result: ${result.result}`, `- Exit code: ${result.exitCode}`, '- NO WRITE PERFORMED', '', '## Koneko account receipts', ''];
   for (const account of result.accounts || []) {
-    lines.push(`- ${account.accountId}: declared ${account.declaredTotal}, receipts ${account.receiptCount}`);
+    const statusCounts = account.statusCounts || { available: 0, reserved: 0, sold: 0 };
+    lines.push(`- ${account.accountId}: declared ${account.declaredTotal}, receipts ${account.receiptCount}; unique IDs ${account.uniqueIdCount ?? 0}; available ${statusCounts.available ?? 0}, reserved ${statusCounts.reserved ?? 0}, sold ${statusCounts.sold ?? 0}; active ${account.activeCount ?? 0}`);
     for (const receipt of account.receipts || []) lines.push(`  - ${receipt.rangeStart}-${receipt.rangeEnd}/${receipt.declaredTotal}: ${safeUrl(receipt.url)} (HTTP ${markdownValue(receipt.status)}, ${markdownValue(receipt.contentType)}, sha256:${markdownValue(receipt.sha256)})`);
   }
   const counts = result.fuluck?.renderedPageCounts || renderedPageCounts();
