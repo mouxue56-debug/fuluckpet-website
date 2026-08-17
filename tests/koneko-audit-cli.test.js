@@ -74,7 +74,7 @@ export default async function fixtureFetch(url, options) {
           breederId: '2608-00001', status: 'available', breed: 'サイベリアン',
           color: 'シルバータビー', gender: '男の子', price: 220000,
           birthday: '2026-08-01', photos: ['https://fuluckpet.com/images/fixture.webp'],
-          video: '', note: '公開中',
+          coverIndex: 0, video: '', note: '公開中',
         }]
       : [];
     return response(

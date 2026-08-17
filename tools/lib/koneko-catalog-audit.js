@@ -66,6 +66,10 @@ function safeListReceipt(value) {
   return { sha256: sha256(JSON.stringify(list)), preview: `count:${list.length}` };
 }
 
+function safeFactReceipt(field, value) {
+  return field === 'price' ? value : safeTextReceipt(value);
+}
+
 function canonicalYoutubeId(value) {
   if (!nonBlank(value)) return '';
   let url;
@@ -267,10 +271,17 @@ function validateActiveApiRecord(blocks, target) {
     evidenceError(blocks, valid, `Fuluck API ${field} evidence is missing for ${target.breederId}`);
   }
   evidenceError(blocks, Number.isFinite(target.price) && target.price > 0, `Fuluck API price evidence is missing for ${target.breederId}`);
+  const photosAreValid = Array.isArray(target.photos)
+    && target.photos.length > 0
+    && target.photos.every(nonBlank);
+  evidenceError(blocks, photosAreValid, `Fuluck API photo evidence is missing for ${target.breederId}`);
   evidenceError(
     blocks,
-    Array.isArray(target.photos) && target.photos.length > 0 && target.photos.every(nonBlank),
-    `Fuluck API photo evidence is missing for ${target.breederId}`,
+    photosAreValid
+      && Number.isInteger(target.coverIndex)
+      && target.coverIndex >= 0
+      && target.coverIndex < target.photos.length,
+    `Fuluck API cover index evidence is invalid for ${target.breederId}`,
   );
   evidenceError(blocks, isString(target.video), `Fuluck API video evidence is not a string for ${target.breederId}`);
   if (isString(target.video) && nonBlank(target.video)) {
@@ -397,14 +408,13 @@ function compareApiProjection(add, { accountId, breederId, sourceDetail, target,
   for (const field of [...REQUIRED_FACT_FIELDS, ...OPTIONAL_FACT_FIELDS]) {
     const targetValue = hasOwn(target, field) ? target[field] : '';
     if (sourceDetail[field] !== targetValue) {
-      const bounded = field === 'price' ? value => value : safeTextReceipt;
       add({
         type: 'api_fact_mismatch',
         accountId,
         breederId,
         field,
-        source: bounded(sourceDetail[field]),
-        target: bounded(targetValue),
+        source: safeFactReceipt(field, sourceDetail[field]),
+        target: safeFactReceipt(field, targetValue),
       });
     }
   }
@@ -416,6 +426,16 @@ function compareApiProjection(add, { accountId, breederId, sourceDetail, target,
       field: 'photos',
       source: safeListReceipt(sourceDetail.photos),
       target: safeListReceipt(target.photos),
+    });
+  }
+  if (target.coverIndex !== 0) {
+    add({
+      type: 'api_cover_index_mismatch',
+      accountId,
+      breederId,
+      field: 'coverIndex',
+      source: 0,
+      target: target.coverIndex,
     });
   }
   const targetVideoId = canonicalYoutubeId(target.video);
@@ -498,8 +518,28 @@ export function compareKonekoToFuluck(input) {
       add({ type: 'rendered_page_missing', accountId: source.accountId, breederId, field: 'ja', locale: 'ja', url: safeUrl(ja.url) });
       continue;
     }
-    for (const field of COMPARISON_FACT_FIELDS) if (sourceDetail[field] !== ja[field]) add({ type: 'fact_mismatch', accountId: source.accountId, breederId, field, source: sourceDetail[field], target: ja[field] });
-    if (JSON.stringify(sourceDetail.photos) !== JSON.stringify(ja.photos)) add({ type: 'photos_mismatch', accountId: source.accountId, breederId, field: 'photos', source: sourceDetail.photos, target: ja.photos });
+    for (const field of COMPARISON_FACT_FIELDS) {
+      if (sourceDetail[field] !== ja[field]) {
+        add({
+          type: 'fact_mismatch',
+          accountId: source.accountId,
+          breederId,
+          field,
+          source: safeFactReceipt(field, sourceDetail[field]),
+          target: safeFactReceipt(field, ja[field]),
+        });
+      }
+    }
+    if (JSON.stringify(sourceDetail.photos) !== JSON.stringify(ja.photos)) {
+      add({
+        type: 'photos_mismatch',
+        accountId: source.accountId,
+        breederId,
+        field: 'photos',
+        source: safeListReceipt(sourceDetail.photos),
+        target: safeListReceipt(ja.photos),
+      });
+    }
     if (sourceDetail.videoId !== ja.videoId) add({ type: 'video_id_mismatch', accountId: source.accountId, breederId, field: 'videoId', source: sourceDetail.videoId, target: ja.videoId });
     for (const field of TEXT_FIELDS) {
       if (sourceDetail[field] === ja[field]) continue;

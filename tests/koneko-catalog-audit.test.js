@@ -43,6 +43,7 @@ function apiRecord(breederId, status = 'available', overrides = {}) {
     price: source.price,
     birthday: source.birthday,
     photos: [...source.photos],
+    coverIndex: 0,
     video: `https://www.youtube.com/embed/${source.videoId}`,
     papa: source.papa,
     mama: source.mama,
@@ -208,23 +209,35 @@ test('treats 準備中 as a distinct non-active source status', () => {
 
 test('reports factual, ordered media, video, and Japanese text drift without exposing long text', () => {
   const result = audit(input => {
-    input.fuluck.renderedPages.find(item => item.breederId === '2608-00001' && item.locale === 'ja').price = 220000;
-    input.fuluck.renderedPages.find(item => item.breederId === '2608-00002' && item.locale === 'ja').photos.reverse();
+    const first = input.fuluck.renderedPages.find(item => item.breederId === '2608-00001' && item.locale === 'ja');
+    const second = input.fuluck.renderedPages.find(item => item.breederId === '2608-00002' && item.locale === 'ja');
+    first.price = 220000;
+    first.breed = `Bearer rendered-fact-secret ${'y'.repeat(5000)}`;
+    second.photos[0] = `https://fuluckpet.com/photo.jpg?signature=photo-secret&padding=${'z'.repeat(5000)}`;
     input.fuluck.renderedPages.find(item => item.breederId === '2608-00002' && item.locale === 'ja').videoId = 'ZyXwVuTsRq0';
-    const ja = input.fuluck.renderedPages.find(item => item.breederId === '2608-00001' && item.locale === 'ja');
-    ja.note = '変更された短い紹介';
-    ja.description = `変更された長い紹介\n${'AUTHORIZATION: supplied-secret '.repeat(40)}`;
+    first.note = '変更された短い紹介';
+    first.description = `変更された長い紹介\n${'AUTHORIZATION: supplied-secret '.repeat(40)}`;
   });
 
   assert.deepEqual(diff(result, 'fact_mismatch', '2608-00001', 'price'), {
     type: 'fact_mismatch', accountId: 'c995680', breederId: '2608-00001', field: 'price', source: 230000, target: 220000,
   });
-  assert.ok(diff(result, 'photos_mismatch', '2608-00002', 'photos'));
+  const fact = diff(result, 'fact_mismatch', '2608-00001', 'breed');
+  assert.deepEqual(Object.keys(fact.source).sort(), ['preview', 'sha256']);
+  assert.deepEqual(Object.keys(fact.target).sort(), ['preview', 'sha256']);
+  const photos = diff(result, 'photos_mismatch', '2608-00002', 'photos');
+  assert.deepEqual(Object.keys(photos.source).sort(), ['preview', 'sha256']);
+  assert.deepEqual(Object.keys(photos.target).sort(), ['preview', 'sha256']);
   assert.ok(diff(result, 'video_id_mismatch', '2608-00002', 'videoId'));
   const longText = diff(result, 'japanese_text_mismatch', '2608-00001', 'description');
   assert.match(longText.source.sha256, /^[a-f0-9]{64}$/);
   assert.match(longText.target.sha256, /^[a-f0-9]{64}$/);
-  assert.equal(JSON.stringify(longText).includes('supplied-secret'), false);
+  const serialized = JSON.stringify(result);
+  assert.equal(serialized.includes('supplied-secret'), false);
+  assert.equal(serialized.includes('rendered-fact-secret'), false);
+  assert.equal(serialized.includes('photo-secret'), false);
+  assert.equal(serialized.includes('y'.repeat(121)), false);
+  assert.equal(serialized.includes('z'.repeat(121)), false);
   assert.ok(diff(result, 'translation_review_required', '2608-00001', 'note'));
   assert.deepEqual(result.diffs.filter(item => item.type === 'translation_review_required' && item.breederId === '2608-00001').map(item => item.locale), ['en', 'zh', 'en', 'zh']);
 });
@@ -251,6 +264,36 @@ test('reports Fuluck API public-field drift against Koneko and controlled locale
   assert.equal(serialized.includes('fact-secret'), false);
   assert.equal(serialized.includes('note-secret'), false);
   assert.equal(serialized.includes('x'.repeat(121)), false);
+});
+
+test('requires the source-authoritative coverIndex zero and reports a valid nonzero index as drift', () => {
+  const exact = compareKonekoToFuluck(exactInput());
+  assert.equal(exact.result, 'EXACT');
+
+  const drift = audit(input => { input.fuluck.apiRecords[0].coverIndex = 1; });
+  assert.deepEqual(diff(drift, 'api_cover_index_mismatch', '2608-00001', 'coverIndex'), {
+    type: 'api_cover_index_mismatch',
+    accountId: 'c995680',
+    breederId: '2608-00001',
+    field: 'coverIndex',
+    source: 0,
+    target: 1,
+  });
+});
+
+test('blocks missing, negative, out-of-range, or non-integer active API coverIndex', () => {
+  const cases = [
+    input => { delete input.fuluck.apiRecords[0].coverIndex; },
+    input => { input.fuluck.apiRecords[0].coverIndex = -1; },
+    input => { input.fuluck.apiRecords[0].coverIndex = input.fuluck.apiRecords[0].photos.length; },
+    input => { input.fuluck.apiRecords[0].coverIndex = 0.5; },
+    input => { input.fuluck.apiRecords[0].coverIndex = '0'; },
+  ];
+  for (const change of cases) {
+    const result = audit(change);
+    assert.equal(result.result, 'BLOCKED');
+    assert.match(result.blocks.join('\n'), /cover index/i);
+  }
 });
 
 test('blocks malformed required or present optional Fuluck API public fields', () => {
@@ -330,9 +373,9 @@ test('accepts observed-empty Koneko optional fields while still comparing empty 
   ja.description = '一段落';
   const drift = compareKonekoToFuluck(input);
   assert.equal(drift.result, 'DRIFT');
-  assert.deepEqual(diff(drift, 'fact_mismatch', source.breederId, 'papa'), {
-    type: 'fact_mismatch', accountId: source.accountId, breederId: source.breederId, field: 'papa', source: '', target: '父猫',
-  });
+  const parent = diff(drift, 'fact_mismatch', source.breederId, 'papa');
+  assert.deepEqual(Object.keys(parent.source).sort(), ['preview', 'sha256']);
+  assert.deepEqual(Object.keys(parent.target).sort(), ['preview', 'sha256']);
   assert.ok(diff(drift, 'video_id_mismatch', source.breederId, 'videoId'));
   assert.ok(diff(drift, 'japanese_text_mismatch', source.breederId, 'note'));
   assert.ok(diff(drift, 'japanese_text_mismatch', source.breederId, 'description'));
