@@ -373,6 +373,11 @@ function jsonLdScript(value, attributes = 'type="application/ld+json"') {
   return `<script ${attributes}>${JSON.stringify(value)}</script>`;
 }
 
+function foreignIdentityMarkup(tag, content) {
+  const wrapper = tag === 'svg' ? 'g' : 'mrow';
+  return `<${tag}><${wrapper}><${tag}>${content}</${tag}></${wrapper}></${tag}>`;
+}
+
 function fuluckDetail(locale = 'ja', options = {}) {
   const breederId = options.breederId ?? FULUCK_BREEDER_ID;
   const canonical = Object.hasOwn(options, 'canonical') ? options.canonical : fuluckPageUrl(locale, breederId);
@@ -425,6 +430,58 @@ test('accepts no-SKU Fuluck Products only with the exact generated JA/EN/ZH bind
   }
 });
 
+test('rejects no-SKU Fuluck identity evidence after plaintext despite an apparent closing tag', () => {
+  const pageUrl = 'https://fuluckpet.com/en/kittens/2608-00001.html';
+  const options = { expectedBreederId: '2608-00001', locale: 'en', pageUrl };
+  const product = fuluckProduct('en', { sku: undefined });
+  const expectedLink = `<link rel="canonical" href="${pageUrl}">`;
+  const plaintext = '<plaintext></plaintext>';
+  const cases = [
+    ['canonical link only', { canonicalMarkup: `${jsonLdScript(product)}${plaintext}${expectedLink}`, schemaMarkup: '' }],
+    ['Product JSON-LD only', { canonicalMarkup: expectedLink, schemaMarkup: `${plaintext}${jsonLdScript(product)}` }],
+    ['canonical link and Product JSON-LD', { canonicalMarkup: `${plaintext}${expectedLink}${jsonLdScript(product)}`, schemaMarkup: '' }],
+  ];
+
+  for (const [name, fixture] of cases) {
+    assert.throws(
+      () => parseFuluckDetailPage(fuluckDetail('en', { sku: undefined, ...fixture }), options),
+      /SKU|breeder|identity|Product/i,
+      name,
+    );
+  }
+});
+
+test('ignores SVG and MathML pseudo-elements while retaining outer no-SKU Fuluck identity evidence', () => {
+  const pageUrl = 'https://fuluckpet.com/en/kittens/2608-00001.html';
+  const options = { expectedBreederId: '2608-00001', locale: 'en', pageUrl };
+  const product = fuluckProduct('en', { sku: undefined });
+  const conflictingProduct = { ...product, '@id': fuluckProductId('2608-00002') };
+  const expectedLink = `<link rel="canonical" href="${pageUrl}">`;
+
+  for (const tag of ['svg', 'math']) {
+    const cases = [
+      ['canonical link only', { canonicalMarkup: foreignIdentityMarkup(tag, expectedLink), schemaMarkup: jsonLdScript(product) }],
+      ['Product JSON-LD only', { canonicalMarkup: expectedLink, schemaMarkup: foreignIdentityMarkup(tag, jsonLdScript(product)) }],
+      ['canonical link and Product JSON-LD', { canonicalMarkup: foreignIdentityMarkup(tag, `${expectedLink}${jsonLdScript(product)}`), schemaMarkup: '' }],
+    ];
+
+    for (const [name, fixture] of cases) {
+      assert.throws(
+        () => parseFuluckDetailPage(fuluckDetail('en', { sku: undefined, ...fixture }), options),
+        /SKU|breeder|identity|Product/i,
+        `${tag} ${name}`,
+      );
+    }
+
+    const parsed = parseFuluckDetailPage(fuluckDetail('en', {
+      sku: undefined,
+      canonicalMarkup: `${expectedLink}${foreignIdentityMarkup(tag, '<link rel="canonical" href="https://fuluckpet.com/en/kittens/2608-00002.html">')}`,
+      schemaMarkup: `${foreignIdentityMarkup(tag, jsonLdScript(conflictingProduct))}${jsonLdScript(product)}`,
+    }), options);
+    assert.equal(parsed.detailUrl, pageUrl, `${tag} outer evidence`);
+  }
+});
+
 test('requires exactly one genuine canonical link for no-SKU Fuluck identity', () => {
   const pageUrl = 'https://fuluckpet.com/en/kittens/2608-00001.html';
   const options = { expectedBreederId: '2608-00001', locale: 'en', pageUrl };
@@ -442,6 +499,8 @@ test('requires exactly one genuine canonical link for no-SKU Fuluck identity', (
     ['duplicate matching canonical links', `${expectedLink}${expectedLink}`],
     ['conflicting second canonical link', `${expectedLink}<link rel="canonical" href="https://fuluckpet.com/en/kittens/2608-00002.html">`],
     ['mixed-order conflicting canonical link', `<link href="https://fuluckpet.com/en/kittens/2608-00002.html" rel="canonical">${expectedLink}`],
+    ['valid plus alternate canonical link', `${expectedLink}<link rel="alternate canonical" href="https://fuluckpet.com/en/kittens/2608-00002.html">`],
+    ['valid plus repeated canonical token link', `${expectedLink}<link rel="canonical canonical" href="https://fuluckpet.com/en/kittens/2608-00002.html">`],
   ];
 
   for (const [name, canonicalMarkup] of cases) {

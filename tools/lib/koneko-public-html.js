@@ -13,6 +13,7 @@ const YOUTUBE_ID = /(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:[^\s
 const VOID_HTML_TAGS = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
 const NON_VISIBLE_TEXT_TAGS = new Set(['script', 'style', 'template']);
 const HTML_TEXT_ELEMENTS = new Set(['script', 'style', 'title', 'textarea', 'xmp', 'iframe', 'noembed', 'noframes', 'noscript']);
+const FOREIGN_CONTENT_ELEMENTS = new Set(['svg', 'math']);
 const HTML_WHITESPACE = /[\t\n\f\r ]/;
 const HTML_WHITESPACE_SPLIT = /[\t\n\f\r ]+/;
 const FULUCK_ORIGIN = 'https://fuluckpet.com';
@@ -230,6 +231,58 @@ function templateClose(html, start) {
   return null;
 }
 
+function foreignElementClose(html, tag, start) {
+  const stack = [tag];
+  let cursor = start;
+  while (cursor < html.length) {
+    const tokenStart = html.indexOf('<', cursor);
+    if (tokenStart === -1) return null;
+    if (html.startsWith('<!--', tokenStart)) {
+      const commentEnd = html.indexOf('-->', tokenStart + 4);
+      if (commentEnd === -1) return null;
+      cursor = commentEnd + 3;
+      continue;
+    }
+    if (html.startsWith('<!', tokenStart) || html.startsWith('<?', tokenStart)) {
+      const end = htmlTagEnd(html, tokenStart);
+      if (end === -1) return null;
+      cursor = end;
+      continue;
+    }
+    const token = htmlTagAt(html, tokenStart);
+    if (token?.incomplete) return null;
+    if (!token) {
+      cursor = tokenStart + 1;
+      continue;
+    }
+    if (token.closing) {
+      if (FOREIGN_CONTENT_ELEMENTS.has(token.tag)) {
+        if (stack.at(-1) !== token.tag) return null;
+        stack.pop();
+        if (stack.length === 0) return token;
+      }
+      cursor = token.end;
+      continue;
+    }
+    if (token.tag === 'plaintext') return null;
+    if (!token.selfClosing && token.tag === 'template') {
+      const close = templateClose(html, token.end);
+      if (!close) return null;
+      cursor = close.end;
+      continue;
+    }
+    if (!token.selfClosing && HTML_TEXT_ELEMENTS.has(token.tag)) {
+      const close = textElementClose(html, token.tag, token.end);
+      if (!close) return null;
+      cursor = close.end;
+      continue;
+    }
+    if (!token.selfClosing && FOREIGN_CONTENT_ELEMENTS.has(token.tag)) stack.push(token.tag);
+    cursor = token.end;
+  }
+  return null;
+}
+
 function hasClassToken(attributes, className) {
   const value = htmlAttributes(attributes)?.get('class');
   return value?.hasValue && value.value.split(HTML_WHITESPACE_SPLIT).some(token => token.toLowerCase() === className.toLowerCase());
@@ -267,6 +320,14 @@ function walkHtml(html, { onOpen, onClose, onText } = {}) {
     cursor = token.end;
     if (token.closing) {
       onClose?.(token);
+      continue;
+    }
+    if (token.tag === 'plaintext') return false;
+    if (FOREIGN_CONTENT_ELEMENTS.has(token.tag)) {
+      if (token.selfClosing) continue;
+      const close = foreignElementClose(source, token.tag, token.end);
+      if (!close) return false;
+      cursor = close.end;
       continue;
     }
     onOpen?.(token);
@@ -539,9 +600,13 @@ function longDescription(html, { koneko = false } = {}) {
   return decodeHtmlText(content.replace(/<h[1-6]\b[^>]*>[\s\S]*?<\/h[1-6]\s*>/gi, ''), { preserveBreaks: true });
 }
 
+function canonicalRelTokens(attribute) {
+  return attribute?.hasValue ? attribute.value.split(HTML_WHITESPACE_SPLIT).filter(Boolean).map(token => token.toLowerCase()) : [];
+}
+
 function isExactCanonicalRel(attribute) {
-  const tokens = attribute?.hasValue ? attribute.value.split(HTML_WHITESPACE_SPLIT).filter(Boolean) : [];
-  return tokens.length === 1 && tokens[0].toLowerCase() === 'canonical';
+  const tokens = canonicalRelTokens(attribute);
+  return tokens.length === 1 && tokens[0] === 'canonical';
 }
 
 function canonicalHref(html) {
@@ -555,10 +620,13 @@ function canonicalHref(html) {
         malformedLink = true;
         return;
       }
-      if (isExactCanonicalRel(values.get('rel'))) canonicals.push(values.get('href')?.hasValue ? values.get('href').value : '');
+      const rel = values.get('rel');
+      if (canonicalRelTokens(rel).includes('canonical')) {
+        canonicals.push({ href: values.get('href')?.hasValue ? values.get('href').value : '', exactRel: isExactCanonicalRel(rel) });
+      }
     },
   });
-  return complete && !malformedLink && canonicals.length === 1 ? canonicals[0] : '';
+  return complete && !malformedLink && canonicals.length === 1 && canonicals[0].exactRel ? canonicals[0].href : '';
 }
 
 function detailUrl(html, pageUrl) {
