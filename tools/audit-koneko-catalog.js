@@ -10,7 +10,7 @@ import {
   unlinkSync,
   writeFileSync,
 } from 'node:fs';
-import { basename, dirname, resolve } from 'node:path';
+import { basename, dirname, join, parse, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import { compareKonekoToFuluck, renderAuditMarkdown } from './lib/koneko-catalog-audit.js';
@@ -64,8 +64,16 @@ function existingEntry(pathname) {
 
 function validateDestination(pathname) {
   const destination = resolve(pathname);
-  const parent = existingEntry(dirname(destination));
-  if (!parent?.isDirectory() || parent.isSymbolicLink()) throw new Error('report destination is unsafe');
+  const parentPath = dirname(destination);
+  const root = parse(parentPath).root;
+  let current = root;
+  for (const component of parentPath.slice(root.length).split(sep).filter(Boolean)) {
+    current = join(current, component);
+    const ancestor = existingEntry(current);
+    if (!ancestor || ancestor.isSymbolicLink()) throw new Error('report destination is unsafe');
+  }
+  const parent = existingEntry(parentPath);
+  if (!parent?.isDirectory()) throw new Error('report destination is unsafe');
   const entry = existingEntry(destination);
   if (entry && (!entry.isFile() || entry.isSymbolicLink())) throw new Error('report destination is unsafe');
   return destination;

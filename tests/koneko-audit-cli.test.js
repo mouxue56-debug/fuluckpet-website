@@ -3,15 +3,17 @@ import { spawnSync } from 'node:child_process';
 import {
   chmodSync,
   lstatSync,
+  mkdirSync,
   mkdtempSync,
   readFileSync,
   readdirSync,
+  realpathSync,
   rmSync,
   symlinkSync,
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import test from 'node:test';
 
 const PROJECT = resolve(dirname(new URL(import.meta.url).pathname), '..');
@@ -70,7 +72,7 @@ export default async function fixtureFetch(url, options) {
 `;
 
 function workspace(t) {
-  const root = mkdtempSync(join(tmpdir(), 'fuluck-koneko-audit-cli-'));
+  const root = mkdtempSync(join(realpathSync(tmpdir()), 'fuluck-koneko-audit-cli-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   const fixture = join(root, 'fixture.mjs');
   writeFileSync(fixture, fixtureSource, { encoding: 'utf8', mode: 0o600 });
@@ -181,6 +183,28 @@ test('CLI refuses to replace a report path that is a symbolic link', (t) => {
   assert.equal(lstatSync(paths.json).isSymbolicLink(), true);
   assert.doesNotMatch(`${result.stdout}\n${result.stderr}`, new RegExp(paths.root));
 });
+
+for (const report of ['json', 'markdown']) {
+  for (const depth of ['immediate', 'higher']) {
+    test(`CLI refuses a ${report} path with a symlink in its ${depth} ancestor`, (t) => {
+      const paths = workspace(t);
+      const realParent = join(paths.root, 'real-parent');
+      const linkedParent = join(paths.root, 'linked-parent');
+      mkdirSync(join(realParent, 'nested'), { recursive: true });
+      symlinkSync(realParent, linkedParent, 'dir');
+      const relativeParent = depth === 'immediate' ? linkedParent : join(linkedParent, 'nested');
+      const fileName = report === 'json' ? 'linked-audit.json' : 'linked-audit.md';
+      paths[report] = join(relativeParent, fileName);
+
+      const result = run(paths);
+
+      assert.equal(result.status, 3);
+      assert.equal(readdirSync(depth === 'immediate' ? realParent : join(realParent, 'nested')).includes(fileName), false);
+      const safePeer = report === 'json' ? paths.markdown : paths.json;
+      assert.equal(readdirSync(dirname(safePeer)).includes(basename(safePeer)), false);
+    });
+  }
+}
 
 test('CLI rejects invalid arguments with BLOCKED receipts when both output paths are valid', (t) => {
   const paths = workspace(t);

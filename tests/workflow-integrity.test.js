@@ -292,6 +292,20 @@ function assertKonekoWorkflowPolicy(source) {
   );
   assert.match(source, /retention-days:\s*14/);
 
+  const auditStep = getNamedStepBlock(source, 'Run Koneko catalogue audit');
+  assert.deepEqual(getStepMappingValues(auditStep, 'id'), ['audit']);
+  const continuation = String.fromCharCode(92);
+  assert.deepEqual(getLiteralRunScript(auditStep).split('\n'), [
+    'mkdir -p "$RUNNER_TEMP/koneko-nightly-audit"',
+    'set +e',
+    `node tools/audit-koneko-catalog.js ${continuation}`,
+    `  --json "$RUNNER_TEMP/koneko-nightly-audit/audit.json" ${continuation}`,
+    '  --markdown "$RUNNER_TEMP/koneko-nightly-audit/audit.md"',
+    'status=$?',
+    'set -e',
+    'echo "status=$status" >> "$GITHUB_OUTPUT"',
+  ]);
+
   const summaryStep = getNamedStepBlock(source, 'Append Koneko audit summary');
   assert.deepEqual(getStepMappingValues(summaryStep, 'if'), ['always()']);
   assert.match(getLiteralRunScript(summaryStep), /audit\.md.*GITHUB_STEP_SUMMARY/);
@@ -313,11 +327,12 @@ function assertKonekoWorkflowPolicy(source) {
     '- name: Re-emit Koneko audit status',
   ]);
   for (const forbidden of [
-    'secrets.', 'FULUCK_ADMIN', 'cursor-agent', 'grok',
+    'FULUCK_ADMIN', 'cursor-agent', 'grok',
     'codex exec', 'wrangler', 'repository_dispatch', 'openai', 'anthropic',
   ]) {
     assert.equal(source.includes(forbidden), false, `forbidden workflow capability: ${forbidden}`);
   }
+  assert.doesNotMatch(source, /\bsecrets\b/i, 'workflow cannot reference the secrets context');
   assert.doesNotMatch(source, /contents:\s*write|git\s+(?:push|commit)|\b(?:POST|PUT|PATCH|DELETE)\b/);
 }
 
@@ -380,6 +395,43 @@ test('GitHub-maintained actions use the exact reviewed immutable SHAs', () => {
 
 test('Koneko nightly audit is anonymous, read-only, scheduled at 20:00 JST, and preserves receipts before failing', () => {
   assertKonekoWorkflowPolicy(konekoWorkflow);
+});
+
+test('Koneko workflow validator rejects audit status masking and broken capture sequencing', async (t) => {
+  const mutations = [
+    ['missing set +e', '          set +e', '          true'],
+    ['constant status', '          status=$?', '          status=0'],
+    [
+      'constant status output',
+      '          echo "status=$status" >> "$GITHUB_OUTPUT"',
+      '          echo "status=0" >> "$GITHUB_OUTPUT"',
+    ],
+    ['missing set -e', '          set -e', '          true'],
+  ];
+
+  for (const [label, before, after] of mutations) {
+    await t.test(label, () => {
+      const mutated = replaceExactlyOnce(konekoWorkflow, before, after);
+      assert.throws(() => assertKonekoWorkflowPolicy(mutated), assert.AssertionError);
+    });
+  }
+});
+
+test('Koneko workflow validator rejects case-insensitive dot and bracket secrets contexts', async (t) => {
+  for (const [label, expression] of [
+    ['mixed-case dot context', '${{ SeCrEtS.TOKEN }}'],
+    ['lower-case bracket context', "${{ secrets['TOKEN'] }}"],
+    ['upper-case bracket context', '${{ SECRETS["TOKEN"] }}'],
+  ]) {
+    await t.test(label, () => {
+      const mutated = replaceExactlyOnce(
+        konekoWorkflow,
+        '    runs-on: ubuntu-latest',
+        `    runs-on: ubuntu-latest\n    env:\n      TOKEN: ${expression}`,
+      );
+      assert.throws(() => assertKonekoWorkflowPolicy(mutated), assert.AssertionError);
+    });
+  }
 });
 
 test('regeneration workflow keeps both generators and integrity verification before commit', () => {
