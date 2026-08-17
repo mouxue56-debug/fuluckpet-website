@@ -233,6 +233,36 @@ test('maps exact unwrapped Japanese list status containers', () => {
   }
 });
 
+test('maps known live span.cls statuses only inside the unique status container', () => {
+  const cases = [
+    ['販売中', 'available'],
+    ['商談中', 'reserved'],
+    ['事前成約申請', 'reserved'],
+    ['成約済み', 'sold'],
+    ['販売終了', 'sold'],
+  ];
+  for (const [label, status] of cases) {
+    const page = parseKonekoListPage(
+      listPage([directStateCard('2608-00001', `<span class="cls">${label}</span>`)], { total: 1, end: 1 }),
+      LIST_OPTIONS,
+    );
+    assert.equal(page.cards[0].status, status, label);
+  }
+
+  const unknown = directStateCard('2608-00001', '<span class="cls">掲載停止</span>');
+  assert.throws(
+    () => parseKonekoListPage(listPage([unknown], { total: 1, end: 1 }), LIST_OPTIONS),
+    /unknown status/i,
+  );
+
+  const outsideConflict = directStateCard('2608-00001', '<span class="cls">成約済み</span>')
+    .replace('</li>', '<span class="cls">販売中</span></li>');
+  assert.equal(
+    parseKonekoListPage(listPage([outsideConflict], { total: 1, end: 1 }), LIST_OPTIONS).cards[0].status,
+    'sold',
+  );
+});
+
 test('requires an exact whitespace-delimited list status container class', () => {
   for (const className of ['listLmtInfStt-extra', 'not-listLmtInfStt']) {
     assert.throws(

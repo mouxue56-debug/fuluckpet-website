@@ -577,7 +577,7 @@ function cardStatus(context, card) {
   if (stateText && !directStatus && stateText !== 'NEW') throw new Error(`unknown status markup: ${stateText}`);
 
   const markedCandidates = descendants(context, state, node => isHtmlElement(node)
-    && ['business', 'closed', 'sold', 'status'].some(className => hasClass(node, className)));
+    && ['business', 'closed', 'sold', 'status', 'cls'].some(className => hasClass(node, className)));
   for (const node of markedCandidates) assertEvidencePath(context, node, state, 'list status');
   const markedNodes = markedCandidates.filter(node => !excludedByVisibility(node));
   const statuses = [];
