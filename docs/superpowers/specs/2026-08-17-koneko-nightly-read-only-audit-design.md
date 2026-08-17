@@ -12,6 +12,8 @@ Use a read-only GitHub Actions workflow scheduled at `0 11 * * *` UTC, equivalen
 
 This is preferred over a Mac-only scheduler because it does not depend on a laptop being awake and produces a durable run receipt, job summary, and downloadable artifact. It is preferred over a model-led browser agent because inventory identity, pagination, statuses, amounts, and media ordering are exact data-processing tasks. If Koneko later blocks GitHub-hosted network traffic, the workflow must report `BLOCKED`; a separately reviewed local-browser runner may then replace only the transport layer without changing validation or diff semantics.
 
+Koneko responses are `text/html` interpreted with the WHATWG parsing model, so the Koneko list and detail readers use exactly `parse5` `8.0.1` rather than extending the repository's partial HTML scanner. The root `package.json` pins exactly `"parse5": "8.0.1"`, is private, and deliberately has no `type` field because the repository contains both CommonJS and ESM `.js` files under Node 24 syntax detection. A committed root `package-lock.json` pins `parse5` and every transitive dependency with integrity metadata. There is no legacy-parser, browser, model, CDN, or best-effort runtime fallback: if the locked parser is unavailable, the audit is `BLOCKED`.
+
 ## Scope and authority
 
 - Source direction is fixed: two Koneko accounts to Fuluck.
@@ -23,6 +25,14 @@ This is preferred over a Mac-only scheduler because it does not depend on a lapt
 - Phase one does not automatically update Fuluck. Every production write remains a separate owner-approved action.
 
 ## Components
+
+### Locked parser dependency and bootstrap boundary
+
+Every execution path that loads the Koneko parser first runs `npm ci --ignore-scripts --no-audit --no-fund` against the committed root lockfile. This installation is required by the nightly workflow, the push/pull-request quality workflow, the static regeneration workflow before generation, every regeneration retry after a rebase, the deploy smoke helper before its full test suite, and the documented local verification path. The regeneration and deployment paths stop before any generation, commit, push, dry run, or deployment when installation fails.
+
+The nightly workflow keeps a dependency-free report bootstrap that imports only Node built-ins and the bounded report writer, never `parse5` or the Koneko crawl graph. If `npm ci` fails, that bootstrap writes schema-valid mode-0600 JSON and Markdown receipts with `result: BLOCKED`, `exitCode: 3`, the closed diagnostic `stage=bootstrap; reason=dependency_install`, empty unverified account/target evidence, and `NO WRITE PERFORMED`. It does not copy npm output, environment values, registry configuration, or exception text into the artifact. The existing `always()` summary/upload path then preserves both receipts and the final status step exits 3. A partial or cached `node_modules` tree after a failed install is never used to run the audit.
+
+The parser is a syntax layer, not an evidence authority. Each Koneko response is parsed once with scripting enabled, source locations enabled, and parse errors collected. Extraction then applies the existing exact-ID, exact-class-token, uniqueness, visibility, identity, URL, and field contracts to that tree. Parsed attributes and text are already decoded once by the HTML parser and must never pass through a second entity decoder.
 
 ### Public catalogue crawler
 
@@ -39,7 +49,9 @@ The accepted Koneko status map is:
 
 After complete list pagination, the crawler reads every active kitten detail page and extracts the exact breeder ID, account ID, status, price, birthday, breed, colour, gender, parents, ordered full-size photo URLs, canonical YouTube video ID, short Japanese appeal, and long Japanese introduction. Detail identity must match the list identity. Missing required facts, zero photos, invalid media URLs, or conflicting list/detail values make the entire run `BLOCKED`.
 
-Koneko field evidence is scoped to balanced, actual detail containers rather than the whole document. Facts come only from one visible, non-footer `.petDtlData` containing one `table.gnrTbl`; the observed labels are `猫種`, `毛色(毛質)`, `性別`, `誕生日`, and `アピール<br>ポイント` (with only explicit historical aliases accepted). Breed, colour, gender, and birthday must each have one non-empty row; the appeal row is an observed optional string, so a missing row or empty cell is `''`, while a duplicate or malformed matching row is `BLOCKED`. The target selectors are exact ID/class selectors, not hard-coded `div` selectors; the compound video selector requires both whitespace-delimited class tokens. Each opening tag is tokenized once into its first values, all occurrences, and a malformed flag. A recoverable target ID/class occurrence is still recorded when that tag is malformed, so duplicate, illegal, incomplete, or valid-plus-malformed target openings block rather than becoming absence; a tag with no recoverable target selector supplies no target evidence. The walker records every target candidate when it opens; an unclosed, mismatched, self-closing, malformed, or additional exact candidate blocks even if another candidate closed correctly. Unrelated malformed outer markup cannot supply, replace, or invalidate an already locally balanced evidence container.
+Koneko field evidence is scoped to source-backed, actual HTML-namespace detail containers rather than the whole document. Facts come only from one visible, non-footer `.petDtlData` containing one `table.gnrTbl`; the observed labels are `猫種`, `毛色(毛質)`, `性別`, `誕生日`, and `アピール<br>ポイント` (with only explicit historical aliases accepted). Breed, colour, gender, and birthday must each have one non-empty row; the appeal row is an observed optional string, so a missing row or empty cell is `''`, while a duplicate or malformed matching row is `BLOCKED`. The target selectors are exact decoded DOM ID/class selectors, not hard-coded `div` selectors; the compound video selector requires both HTML-whitespace-delimited class tokens. Template contents are inert, and SVG/MathML nodes never satisfy an HTML target selector.
+
+Target-local parse evidence remains fail closed on top of the standards parser. An exact DOM candidate or required descendant must have explicit source-backed start and end tags in a properly nested target subtree. A parse error intersecting its start tag, end tag, or required structural span; an EOF/incomplete, mismatched, non-void self-closing, duplicate, additional, or source-location-less target; or a valid candidate plus a second invalid exact candidate makes that evidence `BLOCKED`, even when browser repair produced a node. Candidate recognition always follows the parsed DOM first: malformed source such as `<aside =class=petDtlData>` has an attribute named `=class`, does not invent a `class`, and therefore cannot block unrelated valid evidence. Parse errors outside a DOM-recognised target and outside its required structural span do not invalidate the whole document. This preserves local tolerance without allowing an optional field to become false absence.
 
 Parents come only from one visible, non-footer `#parentInfo`: an absent region records `papa: ''` and `mama: ''`; a present region must prove one father and one mother item, each through its corresponding `li.parentName > strong`. There is no whole-page fallback. Video comes only from one visible, non-footer `.movieGalleryCnt.youtube`; absence records `videoId: ''`, while a present region must contain one consistent canonical ID from actual link/media elements. The description comes only from a visible, non-footer `.petDtlInt .gnrCnt`; absent is `''`, and a present but ambiguous or malformed introduction is `BLOCKED`. Visibility is derived only from the tokenized attributes: boolean `hidden`, a decoded and trimmed `aria-hidden` value exactly equal to `true`, or any decoded quoted/unquoted `style` occurrence declaring `display:none` or `visibility:hidden`; title/data text is never a visibility signal. A well-formed hidden/self-hidden candidate or candidate under `footer` is not evidence and never conflicts with a visible candidate; it leaves required evidence missing or optional evidence observed-empty. A recoverable target selector already marked malformed remains `BLOCKED` before that visibility exclusion. Page-footer and script text are never evidence for parents or video. A canonical video URL must be HTTPS with no credentials or non-default port, an allowlisted `youtube.com`, `www.youtube.com`, `m.youtube.com`, `youtube-nocookie.com`, `www.youtube-nocookie.com`, or `youtu.be` host, and exactly one supported `watch?v`, `embed/{id}`, `shorts/{id}`, or `youtu.be/{id}` form with an 11-character ID. Protocol-relative links resolve only from the HTTPS page base; redirects, lookalike hosts, duplicate `v` parameters, and non-HTTPS URLs are not video evidence.
 
@@ -51,7 +63,7 @@ For a rendered-page HTTP `200`, the reader performs a deliberately narrow render
 
 The cleaned remote string and that single in-memory controlled string must be byte-for-byte equal. Any mismatch, unavailable controlled file, unsafe file type, oversized file, or read failure is `BLOCKED`. Only after equality does the reader parse the controlled string; it never parses the remote copy after that comparison. An authoritative exact `404` remains `rendered_page_missing` drift and does not need a local file. This keeps the field extractor in a verified/tracked-file trust boundary rather than presenting a partial HTML tokenizer as a remote identity proof.
 
-The receipt records the one SHA-256 digest shared by the cleaned remote page and controlled generated file, but never stores the HTML. This has two useful properties: ordinary generated inline SVG remains accepted as bytes, and any text, media, canonical, Product, Offer, whitespace, entity, or markup rewrite is visible as a contract mismatch. It adds no dependency. Reconsider a fixed `parse5` dependency only if a stable CDN response rewrite becomes a separately measured production requirement.
+The receipt records the one SHA-256 digest shared by the cleaned remote page and controlled generated file, but never stores the HTML. This has two useful properties: ordinary generated inline SVG remains accepted as bytes, and any text, media, canonical, Product, Offer, whitespace, entity, or markup rewrite is visible as a contract mismatch. The new parser dependency does not alter this trust boundary: arbitrary remote Fuluck HTML is never passed to `parse5` or any other semantic parser before byte equality, and the existing controlled-file loader, Cloudflare-tail proof, limits, and exact `404` rule remain unchanged.
 
 The comparator joins Koneko, the Fuluck API, and rendered pages only by exact breeder ID. It emits these machine-readable drift classes:
 
@@ -85,7 +97,7 @@ Every run writes a compact Markdown summary to the GitHub Actions job summary an
 
 The artifact contains receipts, normalized field values needed to reproduce the diff, and hashes for long text. It excludes credentials, cookies, response headers containing identifiers, and full HTML. The public job summary must not print full kitten introductions.
 
-The scheduled workflow succeeds for `EXACT` and fails visibly for `DRIFT` or `BLOCKED`, while an `always()` artifact step preserves the evidence. A network or parser failure must never be reported as catalogue equality.
+The scheduled workflow succeeds for `EXACT` and fails visibly for `DRIFT` or `BLOCKED`, while an `always()` artifact step preserves the evidence. A network, parser, or locked-dependency installation failure must never be reported as catalogue equality; installation failure still produces both bounded `BLOCKED` artifacts before the final failing status is re-emitted.
 
 ## Model and quota policy
 
@@ -99,29 +111,40 @@ If a later approved Fuluck update needs new Chinese or English text, a separate 
 - Fetches use limited retries only for transient GET failures; parsing or validation failures are not retried as if they were network failures.
 - The crawler stops before comparing when either account lacks complete pagination receipts.
 - There is no carry-forward of an older successful snapshot and no fallback to historical counts.
-- The first implementation may tune selectors against current public HTML, but all parser assumptions must be represented by fixtures and explicit invariant checks.
+- There is no runtime fallback from `parse5` to the retired hand-written Koneko scanner, a browser DOM, regex-only extraction, an older snapshot, or model inference.
+- Selectors may follow current public Koneko structure, but every parser and evidence assumption must be represented by fixtures and explicit invariant checks.
 - GitHub cron can start later than 20:00 JST; the receipt records the actual observation time and must not claim an exact start time.
 - No diff class can trigger an automatic update, regeneration, deployment, deletion, or customer communication in phase one.
 
 ## Testing
 
-Unit fixtures cover both account layouts, multiple pages, each known Koneko status, HTML escaping, duplicate IDs, inconsistent totals, repeated pages, missing next-page receipts, challenge pages, malformed details, photo ordering, and YouTube URL canonicalisation. Detail fixtures specifically cover the live Koneko labels and facts region, required-row conflicts, unclosed and valid-plus-unclosed exact candidates, recoverable malformed target openings and malformed inner selectors, non-`div` containers, visible versus hidden/footer candidates, quoted/unquoted decoded visibility styles and unrelated `title`/`data-*` text, parent/video container absence and conflicts, scoped malformed outer markup, canonical HTTPS/allowlisted YouTube forms, and observed-empty optional values.
+Unit fixtures cover both account layouts, multiple pages, each known Koneko status, duplicate IDs, inconsistent totals, repeated pages, missing next-page receipts, challenge pages, malformed details, photo ordering, and YouTube URL canonicalisation. The standards-parser adversarial matrix additionally covers:
+
+- tokenizer and attribute behavior: quoted/unquoted attributes, HTML whitespace, duplicate attributes, forbidden characters in attribute names, exact-selector near misses, EOF in every opening-tag state, valid-plus-incomplete candidates, nulls, and non-void self-closing syntax;
+- character references: complete named references, decimal and hexadecimal references with and without semicolons, entity-encoded ID/class/URL/style/ARIA values, ambiguous ampersands, and double-encoded values that must decode exactly once;
+- tree construction and context: comments, bogus comments, script/style/title/textarea/xmp/iframe/noembed/noframes/noscript/plaintext, templates, SVG, MathML, CDATA, HTML integration points, implied/mismatched closes, nested candidates, table foster parenting, and source versus DOM nesting;
+- target evidence: outer and inner facts/parent/video/introduction selectors, Product JSON-LD script identity and cardinality, cards, pagination, canonical links, actual HTML namespace, explicit source locations, duplicate/conflicting candidates, and optional absence that must never hide malformed evidence;
+- visibility: boolean `hidden`, exact decoded lower-case `aria-hidden=true`, `&Tab;true&Tab;`, named and semicolon-less encoded colons in `display:none`/`visibility:hidden`, `!important`, multiple declarations, hidden ancestors/footer, visible-plus-hidden candidates, and non-signals in `title`/`data-*`;
+- operational behavior: a fresh locked install, absent/corrupt dependency, no lifecycle scripts, no parser fallback, the 2 MiB body ceiling, no script/resource execution, and schema-valid dependency-install `BLOCKED` artifacts.
 
 Comparator tests cover every drift class, exact equality, empty/non-empty optional drift, conditional translation requirements including target-only text, bounded order-independent per-account `BLOCKED` aggregates with ambiguous statuses, and the rule that missing or blocked source evidence cannot become `EXACT`.
 
 Workflow contract tests require the exact JST-equivalent schedule, manual dispatch, `contents: read`, absence of secrets and write commands, artifact preservation, bounded execution, and zero model/CLI invocations.
 
-Before enabling the schedule, one manual read-only run must prove both accounts' complete pagination, produce a valid receipt artifact, and compare against the live Fuluck public API and all required customer-visible detail pages. Enabling the scheduled workflow requires normal pull-request review and passing repository quality checks, but no Worker deployment or Fuluck data change.
+Before enabling the schedule, one local read-only run with the locked parser must prove both real accounts' complete pagination, produce a valid receipt artifact, and compare against the live Fuluck public API and all required customer-visible detail pages. Enabling the scheduled workflow requires normal pull-request review and passing repository quality checks, but no Worker deployment or Fuluck data change. After merge, an explicit `workflow_dispatch` run on the exact default-branch commit is the final hosted gate: its summary and downloadable JSON/Markdown artifacts must be present, schema-valid, `NO WRITE PERFORMED`, and terminal `EXACT` or `DRIFT`; `BLOCKED`, a missing artifact, a dependency fallback, or an unrelated SHA means the schedule is not operationally accepted.
 
 ## Acceptance criteria
 
 - A manual GitHub Actions run completes using public GET requests only and produces a schema-valid audit artifact.
+- Root `package.json` has no `type`, pins exactly `parse5` `8.0.1`, and the committed lockfile is the only dependency-resolution authority.
+- A clean `npm ci --ignore-scripts --no-audit --no-fund` succeeds in every parser-loading path; a nightly install failure instead preserves JSON and Markdown `BLOCKED` artifacts and exits 3 without crawling.
 - Both breeder accounts have complete, internally consistent pagination receipts and unique breeder IDs, or the run is visibly `BLOCKED`.
 - Exact breeder-ID and field-level differences are reported without inference from appearance or wording.
 - The workflow runs daily on the `0 11 * * *` UTC schedule and can also be dispatched manually.
 - The workflow has no secrets, no production write path, no model invocation, and no repository write permission.
+- No Koneko runtime path can reach the retired scanner or a browser/model fallback, and the Fuluck controlled-byte gate remains byte-for-byte unchanged.
 - `EXACT` means the validated source and Fuluck projections match; `DRIFT` and `BLOCKED` can never be silently converted to success.
-- Existing full repository tests and the new focused tests pass before integration.
+- Existing full repository tests, the complete adversarial matrix, both-account local read-only acceptance, and the exact-SHA hosted workflow gate pass before operational acceptance.
 
 ## Deferred work
 

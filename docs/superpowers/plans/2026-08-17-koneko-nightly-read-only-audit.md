@@ -4,9 +4,9 @@
 
 **Goal:** Run a deterministic, public, GET-only comparison of both Koneko breeder catalogues against Fuluck every day at 20:00 JST and preserve an exact approval report without any production write or language-model call.
 
-**Architecture:** Pure HTML parsers normalize Koneko list/detail pages. Koneko detail evidence is scoped to balanced `.petDtlData table.gnrTbl`, `#parentInfo`, `.movieGalleryCnt.youtube`, and `.petDtlInt .gnrCnt` containers; a single attribute tokenizer retains first values, every occurrence, and a malformed flag so recoverable malformed target selectors fail closed rather than becoming absence. Visibility uses only real parsed `hidden`, exact decoded `aria-hidden=true`, and decoded style declarations; required facts fail closed, while observed optional parent/note/description/video strings may be empty and remain comparable. A guarded crawl layer proves full pagination for both fixed accounts. For Fuluck HTTP `200` details, it removes only the proven Cloudflare tail, requires byte equality with the same-id/locale controlled generated checkout file, then parses only that in-memory controlled string. A pure comparator emits `EXACT`, `DRIFT`, or `BLOCKED`; and a CLI writes JSON and Markdown receipts. A read-only GitHub Actions workflow runs at `0 11 * * *` UTC, preserves evidence, then re-emits the audit exit code.
+**Architecture:** A locked WHATWG parser normalizes Koneko list/detail pages once, then a target-local evidence layer applies exact HTML-namespace selectors, source-location integrity, visibility, uniqueness, identity, and field contracts. Required facts fail closed, while observed optional parent/note/description/video strings may be empty only after the standard DOM proves actual absence. A guarded crawl layer proves full pagination for both fixed accounts. For Fuluck HTTP `200` details, it removes only the proven Cloudflare tail, requires byte equality with the same-id/locale controlled generated checkout file, then parses only that in-memory controlled string; this gate is unchanged by the Koneko parser migration. A pure comparator emits `EXACT`, `DRIFT`, or `BLOCKED`; and a dependency-free report bootstrap preserves JSON and Markdown `BLOCKED` receipts even when parser installation fails. A read-only GitHub Actions workflow runs at `0 11 * * *` UTC, preserves evidence, then re-emits the audit exit code.
 
-**Tech Stack:** Node.js 24 ESM, built-in `fetch`, `node:test`, GitHub Actions, public Koneko HTML, Fuluck public API and static detail pages.
+**Tech Stack:** Node.js 24 mixed ESM/CommonJS, exact `parse5` `8.0.1` with a committed npm lockfile, built-in `fetch`, `node:test`, GitHub Actions, public Koneko HTML, Fuluck public API and static detail pages.
 
 ## Global Constraints
 
@@ -18,6 +18,9 @@
 - Phase one reports drift but never updates Fuluck.
 - A Fuluck `200` is evidence only when its cleaned bytes exactly equal the fixed mapped generated file; no arbitrary remote HTML semantic proof is accepted.
 - Controlled-page files are module-relative, regular non-symlinks below 2 MiB. Missing, unsafe, unreadable, or unequal content is `BLOCKED`; only an exact rendered `404` is drift.
+- Root `package.json` is private, pins exactly `"parse5": "8.0.1"`, and has no `type` field; root `package-lock.json` is the only dependency-resolution authority.
+- No Koneko runtime path may fall back from `parse5` to the retired scanner, regex-only parsing, system Chrome, an older snapshot, or a model.
+- Nightly parser-install failure must still write schema-valid JSON and Markdown `BLOCKED` artifacts through a Node-built-in-only bootstrap; it must not crawl with partial dependencies.
 - Workflow permissions are exactly `contents: read`, with 14-day artifacts and no workflow commit.
 - Record actual observation time in JST; do not hide GitHub scheduling delay.
 
@@ -380,6 +383,174 @@ git commit -m "ci: schedule nightly Koneko read-only audit"
 
 ---
 
+### Task 5f: Migrate Koneko evidence to the standard HTML parser
+
+**Files:**
+- Create: `package.json`
+- Create: `package-lock.json`
+- Create: `tools/lib/koneko-standard-html.js`
+- Create: `tools/lib/koneko-audit-output.js`
+- Create: `tools/write-koneko-dependency-block.js`
+- Modify: `tools/lib/koneko-public-html.js`
+- Modify: `tools/lib/koneko-public-crawl.js`
+- Modify: `tools/audit-koneko-catalog.js`
+- Modify: `tests/koneko-public-html.test.js`
+- Modify: `tests/koneko-public-crawl.test.js`
+- Modify: `tests/koneko-audit-cli.test.js`
+- Modify: `tests/workflow-integrity.test.js`
+- Modify: `.github/workflows/koneko-nightly-audit.yml`
+- Modify: `.github/workflows/quality.yml`
+- Modify: `.github/workflows/regenerate-site.yml`
+- Modify: `scripts/deploy-and-smoke-worker.sh`
+- Modify: `README.md`
+
+**Interfaces:**
+- Preserve: `parseKonekoListPage(html, { accountId, pageUrl }) -> ListPageReceipt`
+- Preserve: `parseKonekoDetailPage(html, { expectedAccountId, expectedBreederId, pageUrl }) -> SourceActiveKitten`
+- Preserve: `parseVerifiedFuluckDetailPage(controlledHtml, options) -> RenderedKittenPage`, callable only after the existing controlled-byte equality gate.
+- Add: `writeAuditReports({ jsonPath, markdownPath }, result) -> void`, a Node-built-in-only, atomic mode-0600 writer shared by the main CLI and dependency-failure bootstrap.
+- Add CLI: `node tools/write-koneko-dependency-block.js --json <path> --markdown <path>`; it writes the one closed `bootstrap/dependency_install` `BLOCKED` result and performs no import from the Koneko parser/crawler graph.
+
+**Decision:** Stop extending the hand-written Koneko scanner. Use exactly `parse5` `8.0.1` for HTML tokenization, complete character-reference decoding, namespace assignment, template/raw-text handling, and tree construction. Keep the strict Koneko evidence policy above the parsed tree, and keep the Fuluck controlled-render byte gate exactly as it is. Parser absence or failure has no runtime fallback.
+
+- [ ] **Step 1: Read the test rules and establish the clean baseline**
+
+```bash
+sed -n '1,260p' /Users/willma/.codex/plugins/cache/openai-curated-remote/superpowers/6.2.0/skills/test-driven-development/writing-good-tests.md
+git status --short
+node --test tests/koneko-public-html.test.js tests/koneko-public-crawl.test.js tests/koneko-audit-cli.test.js tests/workflow-integrity.test.js
+```
+
+Expected: the complete test-quality checklist is read, the worktree is clean, and the existing focused suite passes before new RED cases are added.
+
+- [ ] **Step 2: Add the complete standards-parser RED matrix**
+
+Exercise only the public list/detail parser APIs with synthetic fixtures; do not duplicate a tokenizer inside tests. Add explicit assertions for every row below:
+
+| Area | Required fixtures and expected result |
+| --- | --- |
+| EOF/opening states | `<section id="parentInfo" data-x="` alone and after a valid parent; equivalent facts/video/introduction and inner selectors; every recognisable incomplete candidate is `BLOCKED` |
+| Attribute names | `=class`, `=id`, `<class`, and backtick-prefixed near selectors do not invent selectors; malformed tags with a separate real exact selector are target candidates and `BLOCKED`; duplicate target attributes are `BLOCKED` |
+| Attribute values | quoted/unquoted values, CR/LF/FF/TAB separators, null replacement, and first duplicate value follow browser DOM semantics |
+| References | `you&#116;ube`, `petDtl&#73;nt`, `parent&#73nfo`, named references, decimal/hex references with and without semicolons, ambiguous ampersands, and encoded URLs match the parsed DOM; `&amp;colon;` and `&amp;#116;` prove values are decoded exactly once |
+| Text contexts | fake candidates in comments, bogus comments, script, style, title, textarea, xmp, iframe, noembed, noframes, noscript, and plaintext never become evidence |
+| Tree contexts | template content is inert; SVG/MathML/CDATA nodes are excluded unless the HTML integration-point rules produce an actual HTML node; mismatched/implied closing, nested candidates, and table foster parenting follow the DOM while malformed source-backed targets still block |
+| Visibility | boolean `hidden`, exact trimmed lower-case `aria-hidden=true`, `&Tab;true&Tab;`, `display&colon;none`, `display&#58none`, hexadecimal colon, `visibility:hidden`, `!important`, and multiple declarations hide evidence; uppercase `TRUE`, `title`, and `data-*` lookalikes remain visible |
+| Scope/cardinality | hidden/footer plus visible candidates, valid plus malformed candidates, outer and inner facts/parents/video/introduction selectors, cards, status nodes, pagination, and canonical links preserve exact uniqueness and source scope |
+| Structured/media identity | only actual HTML-namespace `script[type="application/ld+json"]` Product nodes count; malformed, duplicate, or conflicting Products block; SKU/account/photo order and strict YouTube host/path/query rules remain exact |
+| Resource behavior | a 2 MiB page remains bounded; no script or subresource executes; an unavailable parser cannot fall back to the retired scanner |
+
+The named EOF, entity-encoded selector, encoded hidden-state, and `=class` examples are mandatory direct regressions rather than being implied by a broad property test.
+
+- [ ] **Step 3: Verify the new matrix is RED for the architectural reasons**
+
+```bash
+node --test tests/koneko-public-html.test.js
+```
+
+Expected: failures reproduce incomplete-target disappearance, invented illegal-attribute selectors, entity-encoded ID/class absence, named/semicolon-less hidden-state exposure, and the absent locked dependency contract. Do not accept failures caused only by broken fixture construction.
+
+- [ ] **Step 4: Add the exact root dependency contract**
+
+Create a private root `package.json` containing exactly `"dependencies": { "parse5": "8.0.1" }` and no `type` field or version range. Generate and verify the root lockfile:
+
+```bash
+npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+npm ci --ignore-scripts --no-audit --no-fund
+node -e "const p=require('./package.json'); if ('type' in p || p.dependencies?.parse5 !== '8.0.1') process.exit(1)"
+npm ls parse5 entities --depth=1
+git diff -- package.json package-lock.json
+```
+
+Expected: `parse5` is exactly `8.0.1`, its transitive `entities` resolution and integrity are fixed by `package-lock.json`, no lifecycle script runs, and no `node_modules` file is tracked.
+
+- [ ] **Step 5: Implement one standards-based Koneko DOM boundary**
+
+In `tools/lib/koneko-standard-html.js`, import `parse` from `parse5` and parse each complete response once with `scriptingEnabled: true`, `sourceCodeLocationInfo: true`, and an `onParseError` collector that retains only code/start/end offsets.
+
+Traverse `childNodes` iteratively, do not enter a template element's separate `content`, and require `namespaceURI === 'http://www.w3.org/1999/xhtml'` for every evidence selector. Use parse5's already-decoded `attrs` and text nodes exactly once. Do not call `decodeEntities()` on parsed values.
+
+Recognise a target from its actual decoded DOM attributes first. Then reject that candidate when its own start/end tag or required structural span lacks explicit source location, intersects a collected parse error, is improperly source-nested, or contains an incomplete/mismatched/self-closing/duplicate required target. A valid candidate plus an invalid exact candidate is `BLOCKED`, including when the invalid one is hidden/footer. A parse error on a non-candidate such as `<aside =class=petDtlData>` does not become a class selector and does not globally invalidate a valid target.
+
+- [ ] **Step 6: Move every Koneko structural extractor onto the parsed tree**
+
+Implement list cards, exact status nodes, pagination/range/Next, Product JSON-LD, facts rows, parents, video, introduction, canonical URL, and photo/account identity from node relationships and parsed attributes. Preserve all public return shapes and closed status/URL rules. JSON-LD must come from an actual HTML script node and its script text; structural regexes may not search comments, templates, raw-text contents, foreign nodes, or the original Koneko HTML string.
+
+Re-export the two public Koneko functions from `tools/lib/koneko-public-html.js` for compatibility, but make `tools/lib/koneko-public-crawl.js` import them directly from `koneko-standard-html.js`. Delete or isolate every old helper so no Koneko runtime branch can reach `htmlTagAt`, `parseHtmlAttributes`, `walkHtml`, `balancedElements`, raw card/status/pagination regexes, or the incomplete entity decoder. Pure URL/date/status normalization may remain shared.
+
+Do not change the Fuluck trust order: clean at most the one proven Cloudflare tail, load the fixed controlled file, require exact byte equality and common SHA-256, and only then call `parseVerifiedFuluckDetailPage()` on the controlled string. Do not parse arbitrary remote Fuluck `200` HTML with parse5 before equality.
+
+- [ ] **Step 7: Verify the parser matrix and existing crawl contracts are GREEN**
+
+```bash
+node --test tests/koneko-public-html.test.js tests/koneko-public-crawl.test.js tests/koneko-catalog-audit.test.js
+rg -n "parseKoneko(List|Detail)Page" tools/lib/koneko-public-crawl.js tools/lib/koneko-standard-html.js tools/lib/koneko-public-html.js
+rg -n "htmlTagAt|parseHtmlAttributes|walkHtml|balancedElements" tools/lib/koneko-standard-html.js
+```
+
+Expected: all parser/crawl/comparator tests pass; the crawler's Koneko imports resolve to the standards module; the final search returns no old scanner reference in that module. Fuluck controlled-render tests remain unchanged and green.
+
+- [ ] **Step 8: Write RED tests for dependency-install `BLOCKED` artifacts**
+
+Extend CLI and workflow tests to require:
+
+- an isolated copy of `tools/write-koneko-dependency-block.js` plus its output module runs from a temporary directory with no `package.json`, `node_modules`, parser, crawler, or network access;
+- it atomically writes different JSON/Markdown destinations with mode 0600 and refuses symlink destinations/ancestors;
+- JSON contains `result: "BLOCKED"`, `exitCode: 3`, empty account/Fuluck evidence, `noWritePerformed: true`, and only `stage=bootstrap; reason=dependency_install`;
+- Markdown contains `BLOCKED` and `NO WRITE PERFORMED`, but no npm stderr, registry URL, environment value, credential marker, stack, or filesystem path;
+- nightly dependency installation is `continue-on-error`, successful parser tests/audit are conditional on install success, the failure writer is conditional on install failure, summary/upload remain `always()`, and the final step exits 3 for dependency failure.
+
+Run:
+
+```bash
+node --test tests/koneko-audit-cli.test.js tests/workflow-integrity.test.js
+```
+
+Expected: RED because the dependency-free output boundary and workflow branches do not exist.
+
+- [ ] **Step 9: Extract the dependency-free writer and implement the nightly failure branch**
+
+Move destination validation, mode-0600 atomic writes, bounded `blockedReceipt`, and Markdown rendering access behind `writeAuditReports()` without importing `koneko-public-crawl.js` or `koneko-standard-html.js`. The main CLI continues to use that writer. The dependency-block entry accepts only `--json` and `--markdown`, constructs the closed bootstrap receipt, writes both files, and exits successfully so the workflow can preserve them before deliberately re-emitting status 3.
+
+In the nightly workflow, give the exact `npm ci` step `id: dependencies` and `continue-on-error: true`. When `steps.dependencies.outcome != 'success'`, create the runner-temp directory, call the fixed dependency-block writer, and set a closed status output of 3. Run focused tests and the normal audit only when installation succeeded. Never run the audit against partial/cached dependencies after failure. Keep summary and artifact upload under `if: always()`; the final always-run shell exits 3 for dependency failure and otherwise re-emits the audit status.
+
+- [ ] **Step 10: Add every locked-install execution chain**
+
+- In `.github/workflows/koneko-nightly-audit.yml`, enable `setup-node` npm caching against `package-lock.json` and use the guarded flow above.
+- In `.github/workflows/quality.yml`, run the exact `npm ci` command immediately after Node setup and before any test/audit.
+- In `.github/workflows/regenerate-site.yml`, run it before the first generator. After every successful `git pull --rebase origin main`, run it again before the retry's generators/tests because the lockfile may have changed. Any failure stops before generation/commit/push.
+- In `scripts/deploy-and-smoke-worker.sh`, require `npm` and run the exact install before the full suite and before any Wrangler dry run/deploy. Install failure calls `die` and leaves production untouched.
+- In `README.md`, replace the dependency-free/no-install claim and put the exact `npm ci` command before local tests, generated-page verification, regeneration checks, and deploy helper prerequisites.
+- In `tests/workflow-integrity.test.js`, assert install command spelling and ordering, the regenerate rebase retry installation, the nightly failure artifact branch, and the absence of `npm install`, floating versions, secrets, model calls, browser commands, or parser fallback.
+
+- [ ] **Step 11: Run clean-install, focused, full, and repository verification**
+
+```bash
+npm ci --ignore-scripts --no-audit --no-fund
+node --test tests/koneko-public-html.test.js tests/koneko-public-crawl.test.js tests/koneko-catalog-audit.test.js tests/koneko-audit-cli.test.js tests/workflow-integrity.test.js
+node --test tests/*.test.js
+node tools/seo-geo-audit.js
+node tools/verify-generated.js
+git diff --check
+git status --short
+```
+
+Expected: the exact install and every focused/full/static gate pass; only the reviewed Task 5f files are changed; no captured Koneko HTML, report artifact, credential, `node_modules`, generated page, or production data is staged.
+
+- [ ] **Step 12: Prove both real accounts through one local read-only run**
+
+Create a mode-0700 `mktemp -d`, run the CLI with JSON/Markdown paths inside it, accept only exit 0 or 2, use `jq` to require `EXACT|DRIFT` and account order `c995680,d696506`, and require `NO WRITE PERFORMED` in Markdown.
+
+Expected: both fixed accounts have complete, contiguous pagination and active-detail receipts; result is `EXACT` or `DRIFT`; every request remains anonymous public GET; JSON/Markdown contain no raw HTML or secret. `BLOCKED` prevents merge and hosted enablement.
+
+- [ ] **Step 13: Review and commit the migration**
+
+Use `superpowers:requesting-code-review` against the complete Task 5f range. Resolve every P0/P1, rerun Steps 11 and 12, stage exactly the files declared by Task 5f, and commit with `git commit -m "refactor: parse Koneko HTML with parse5"`.
+
+Expected: one reviewable migration commit. Task 5f is not operationally complete until Task 5's exact-default-branch hosted workflow gate succeeds; no local green run substitutes for that gate.
+
+---
+
 ### Task 5: Live acceptance and enablement
 
 **Files:**
@@ -388,7 +559,7 @@ git commit -m "ci: schedule nightly Koneko read-only audit"
 - Knowledge-base closeout only after verified enablement.
 
 **Interfaces:**
-- Consumes: completed CLI and workflow plus public Koneko/Fuluck pages.
+- Consumes: completed Task 5f locked parser, CLI, workflow, and public Koneko/Fuluck pages.
 - Produces: local live receipt, reviewed PR, merged schedule, and first hosted receipt.
 
 - [ ] **Step 1: Run a local live read-only audit**
