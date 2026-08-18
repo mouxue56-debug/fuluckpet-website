@@ -25,7 +25,10 @@ function loadSiteGeneratorInTempSite(t) {
   }
 
   const source = fs.readFileSync(path.join(PROJECT, 'tools/generate-site.js'), 'utf8');
-  const mainCall = source.lastIndexOf('\nmain().catch');
+  const mainCall = Math.max(
+    source.lastIndexOf('\nif (require.main === module) {'),
+    source.lastIndexOf('\nmain().catch('),
+  );
   assert.notEqual(mainCall, -1, 'generate-site.js main call boundary changed');
   fs.writeFileSync(
     path.join(toolsDir, 'generate-site.js'),
