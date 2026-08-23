@@ -2517,6 +2517,31 @@ button { font-family: inherit; cursor: pointer; }
 }
 .cta-widget-line svg { flex-shrink: 0; }
 
+/* Booking button in the fixed sub-page CTA bar (Fable site-upgrade 2026-08-23):
+   same footprint as .cta-widget-line, mint brand color instead of LINE green. */
+.cta-widget-book {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--mint);
+  color: var(--ink, #26332F);
+  padding: 10px 22px;
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: transform 0.2s, box-shadow 0.2s;
+  flex-shrink: 0;
+  min-height: 44px;
+  box-sizing: border-box;
+}
+.cta-widget-book:hover {
+  background: var(--mint-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(125,211,192,0.45);
+}
+
 @media (max-width: 480px) {
   .cta-widget { padding: 0 12px 12px; }
   .cta-widget-inner {
@@ -2526,6 +2551,7 @@ button { font-family: inherit; cursor: pointer; }
   }
   .cta-widget-kittens { font-size: 13px; }
   .cta-widget-line { padding: 10px 16px; font-size: 12px; }
+  .cta-widget-book { padding: 10px 16px; font-size: 12px; }
 }
 
 /* ===== Print Styles ===== */
@@ -4320,3 +4346,98 @@ body .guide-article .guide-steps li {
   margin: 2px 0 6px;
   max-width: 100%;
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   Fable site-upgrade 2026-08-23 — mix/adult positioning, badges,
+   kittens list entries, empty-state (COPY-SPEC §5/§6)
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Homepage "ミックスという選択" / "成猫・若猫という選択" sections (§5.1/§6.1)
+   and the equivalent "なぜミックス" / "成猫" blocks on kitten detail pages. */
+.choice-block { max-width: 760px; margin: 0 auto; }
+.choice-body {
+  font-size: 16px;
+  line-height: 1.9;
+  color: var(--text-body);
+  margin-bottom: 24px;
+}
+.choice-points {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 32px;
+  max-width: 620px;
+  margin: 0 auto;
+}
+@media (max-width: 640px) {
+  .choice-points { grid-template-columns: 1fr; }
+}
+
+/* Card badges: mix (§5.2), adult (§6.2), neutered/spayed (§6.2). Sit alongside
+   .usp-chip--card in the kitten card body — never over the photo. */
+.badge-mix,
+.badge-adult,
+.badge-neutered {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 10px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.5;
+  margin: 2px 6px 6px 0;
+}
+.badge-mix { background: var(--mint-milk); color: var(--mint-deep, var(--text-heading)); }
+.badge-adult { background: var(--peach-milk); color: var(--text-heading); }
+.badge-neutered { background: var(--blueberry-milk); color: var(--text-heading); }
+
+/* kittens.html three-entry filter bar (§6.3): サイベリアン / 金渐层（ブリティッシュ
+   ゴールデン）/ 成猫・ミックス. Clicking an entry filters the existing grid in place —
+   no new page. Consumed by the kittens.html catalog script (out of this file's scope). */
+.kittens-entry-bar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 0 0 28px;
+}
+.kittens-entry-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: 100px;
+  border: 1px solid rgba(125,211,192,0.3);
+  background: var(--bg-white);
+  color: var(--text-heading);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.2s;
+  min-height: 44px;
+  box-sizing: border-box;
+}
+.kittens-entry-btn:hover { transform: translateY(-1px); border-color: var(--mint); }
+.kittens-entry-btn.active {
+  background: var(--mint);
+  border-color: var(--mint);
+  color: var(--ink, #26332F);
+}
+
+/* Empty-state prompt: shown when a filter (e.g. an entry above) matches zero
+   kittens, so the grid never renders as a silent blank area. */
+.catalog-empty-state {
+  max-width: 480px;
+  margin: 40px auto;
+  padding: 40px 28px;
+  text-align: center;
+  background: var(--bg-cream);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+.catalog-empty-state .ico { font-size: 32px; color: var(--mint-dark); margin-bottom: 12px; }
+.catalog-empty-state p { color: var(--text-body); font-size: 15px; line-height: 1.7; margin: 0 0 16px; }
+
+/* Footer legal disclosure — link to the full about.html registration section
+   when the compact footer version is used (§7.3). */
+.legal-full-link { margin-top: 8px; font-size: 13px; }
+.legal-full-link a { color: var(--mint-dark); text-decoration: underline; }

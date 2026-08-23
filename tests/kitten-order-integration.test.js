@@ -43,7 +43,7 @@ function divContentsByOpeningTag(html, openingPattern) {
 }
 
 function kittenRecords(html) {
-  return [...html.matchAll(/<div class="kitten-card"([^>]*)>/g)].map((match) => {
+  return [...html.matchAll(/<(?:a|div) class="kitten-card"([^>]*)>/g)].map((match) => {
     const attributes = Object.create(null);
     for (const attribute of match[1].matchAll(/\b(data-[a-z-]+)="([^"]*)"/g)) {
       attributes[attribute[1]] = attribute[2];

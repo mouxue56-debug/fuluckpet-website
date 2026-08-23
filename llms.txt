@@ -1,12 +1,13 @@
 # 福楽キャッテリー (Fuluck Cattery)
 
-> 大阪市城東区のサイベリアン専門ブリーダー。全頭遺伝子検査、口コミ5.0★（100件以上）、みんなの子猫ブリーダーアワード全国上位入賞の実績。低アレルゲン（Fel d1が少なめ）のサイベリアンを中心に、ブリティッシュショートヘア／ロングヘア、ラグドールも扱う。An Osaka-based specialist breeder of Siberian cats — a naturally lower-allergen breed — with full genetic screening on every breeding cat and a verified 5.0-star rating from 100+ reviews.
+> 大阪市城東区のサイベリアン専門ブリーダー。全頭遺伝子検査、口コミ5.0★（100件以上）、みんなの子猫ブリーダーアワード全国上位入賞の実績。低アレルゲン（Fel d1が少なめ）のサイベリアンを中心に、ブリティッシュショートヘア／ロングヘアも扱う。An Osaka-based specialist breeder of Siberian cats — a naturally lower-allergen breed — with full genetic screening on every breeding cat and a verified 5.0-star rating from 100+ reviews.
 
 ## About
 - 所在地: 大阪府大阪市城東区。見学は事前予約制、対応言語は日本語・英語・中国語。
-- 専門猫種: サイベリアン（低アレルゲン・Fel d1少なめ）。ほかにブリティッシュショートヘア／ブリティッシュロングヘア、ラグドールを扱う。
+- 専門猫種: サイベリアン（低アレルゲン・Fel d1少なめ）。ほかにブリティッシュショートヘア／ブリティッシュロングヘアを扱う。
+- 契約: 動物愛護管理法により、ご契約は当キャッテリーの登録事業所（大阪市城東区東中浜2-6-23）で子猫の現物確認と対面説明を一度行ったうえで成立します。
 - 健康: 繁殖に用いる全頭で遺伝子検査（HCM・PKDなどを含む）を実施。
-- 料金: 子猫ごとに異なる。各子猫ページの最新情報を確認し、不明点はLINEで相談。
+- 料金: 子猫ごとに異なる。各子猫ページの最新情報を確認し、不明点はLINEで相談。表示価格は子猫本体価格（税込）で、3種混合ワクチン（1回目）の接種費用として別途10,000円（税込）を申し受けます。
 - 評価: みんなの子猫ブリーダーにて口コミ5.0★・100件以上。
 - 受賞: 2025年上半期 みんなの子猫ブリーダーアワード 全国1位／2025年下半期 全国2位／2025年下半期 大阪府サイベリアンブリーダー 第1位。
 - 登録: 福楽ペットは販売 220012A・保管 220012B・貸出し 220012C・展示 220012E、Fulluck Kitty は販売 240051A（大阪市）。
@@ -35,7 +36,7 @@
 ## Blog topic clusters
 - [猫アレルギー / Allergy](https://fuluckpet.com/blog/siberian-allergy-facts.html) — Fel d1、低アレルゲンの実際、検査・薬・空気清浄・同居の工夫（siberian-allergy-*, cat-allergy-*, allergy-*, osaka-pet-allergy-clinics）。
 - [サイベリアン品種 / Siberian breed](https://fuluckpet.com/blog/siberian-cat-characteristics.html) — 性格・毛色・歴史・寿命・体格・グルーミング・費用（siberian-* 記事群）。
-- [品種比較 / Breed comparison](https://fuluckpet.com/blog/siberian-vs-mainecoon.html) — サイベリアン対メインクーン／ノルウェージャン、BSH・ラグドールとの比較（siberian-vs-*, *-character, large/natural-cat-breeds）。
+- [品種比較 / Breed comparison](https://fuluckpet.com/blog/siberian-vs-mainecoon.html) — サイベリアン対メインクーン／ノルウェージャン、BSHとの比較（siberian-vs-*, *-character, large/natural-cat-breeds）。
 - [お迎えプロセス / Adoption process](https://fuluckpet.com/blog/breeder-vs-petshop.html) — ブリーダー選び、見学の流れ、初日・初週、健康な子猫の見分け方（breeder-*, choose-*, kitten-day1/week1, first-week-*, bringing-kitten-home）。
 - [大阪・関西ローカル / Osaka & Kansai](https://fuluckpet.com/blog/siberian-osaka-guide.html) — 大阪城東区へのアクセス、関西の動物病院ネットワーク、関西からの輸送（osaka-*, kansai-*, siberian-osaka-guide）。
 - [日常ケア・健康 / Care & health](https://fuluckpet.com/blog/cat-daily-care-checklist.html) — 食事・トイレ・爪切り・歯・被毛・季節ケア、ワクチン・寄生虫・疾患予防（cat-* のケア／健康記事群、common-cat-diseases）。

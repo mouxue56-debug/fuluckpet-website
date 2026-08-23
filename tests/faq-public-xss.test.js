@@ -245,8 +245,11 @@ test('standalone FAQ safely preserves categories, icons, filtering, a11y, and la
   assert.ok(iconClasses.some((value) => value.includes('ico-clipboard-list')));
   assert.ok(iconClasses.some((value) => value.includes('ico-message-circle')));
 
+  // applyTrustOverrides() always appends its 3 owner-reviewed additions (ids
+  // faq_25/26/27 — 1 "purchase", 2 "general") to whatever the API returned, so the
+  // 3 synthetic items above become 6 rendered questions.
   const questions = result.listContainer.querySelectorAll('.faq-q');
-  assert.equal(questions.length, 3);
+  assert.equal(questions.length, 6);
   assert.equal(questions[0].getAttribute('aria-expanded'), 'false');
   assert.equal(questions[0].nextElementSibling.getAttribute('role'), 'region');
   questions[0].click();
@@ -256,7 +259,8 @@ test('standalone FAQ safely preserves categories, icons, filtering, a11y, and la
   const generalFilter = result.filterContainer.querySelectorAll('.faq-filter-btn').find((button) => button.dataset.cat === 'general');
   assert.ok(generalFilter);
   generalFilter.click();
-  assert.equal(result.listContainer.querySelectorAll('.faq-q').length, 1);
+  // "known" (synthetic) plus the 2 general-category additions (faq_26, faq_27).
+  assert.equal(result.listContainer.querySelectorAll('.faq-q').length, 3);
   assert.match(result.listContainer.textContent, /一般の質問/);
   assert.doesNotMatch(result.listContainer.textContent, /危険な質問/);
 

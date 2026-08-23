@@ -16,6 +16,7 @@ function loadDiaryGeneratorInTempSite(t) {
   fs.copyFileSync(path.join(PROJECT, 'tools/generate-diary.js'), path.join(toolsDir, 'generate-diary.js'));
   fs.copyFileSync(path.join(PROJECT, 'tools/lastmod-store.js'), path.join(toolsDir, 'lastmod-store.js'));
   fs.copyFileSync(path.join(PROJECT, 'tools/safe-json-for-html.js'), path.join(toolsDir, 'safe-json-for-html.js'));
+  fs.copyFileSync(path.join(PROJECT, 'tools/robots-meta.js'), path.join(toolsDir, 'robots-meta.js'));
   t.after(() => fs.rmSync(siteDir, { recursive: true, force: true }));
   return {
     siteDir,
@@ -34,6 +35,7 @@ function createRunnableDiarySite(t, failureMode) {
   fs.copyFileSync(path.join(PROJECT, 'tools/generate-diary.js'), path.join(toolsDir, 'generate-diary.js'));
   fs.copyFileSync(path.join(PROJECT, 'tools/lastmod-store.js'), path.join(toolsDir, 'lastmod-store.js'));
   fs.copyFileSync(path.join(PROJECT, 'tools/safe-json-for-html.js'), path.join(toolsDir, 'safe-json-for-html.js'));
+  fs.copyFileSync(path.join(PROJECT, 'tools/robots-meta.js'), path.join(toolsDir, 'robots-meta.js'));
   fs.copyFileSync(
     path.join(PROJECT, 'blog/siberian-grooming-basics.html'),
     path.join(blogDir, 'siberian-grooming-basics.html')

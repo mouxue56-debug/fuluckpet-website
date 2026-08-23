@@ -48,7 +48,13 @@
     try { return localStorage.getItem('fuluckpet-lang') || 'ja'; } catch(e) { return 'ja'; }
   }
 
-  var BOOKING_URL = '/booking.html';
+  // Kitten detail pages deep-link the fixed CTA straight to that kitten's booking
+  // form (?kitten=<id>) instead of the generic booking page. Matches /kittens/<id>.html
+  // and its localized /en//zh/ siblings — booking.html itself has no per-language
+  // variant, so the target path is always /booking.html regardless of prefix.
+  var KITTEN_DETAIL_RE = /^\/(?:(en|zh)\/)?kittens\/([^\/]+)\.html$/;
+  var kittenDetailMatch = path.match(KITTEN_DETAIL_RE);
+  var BOOKING_URL = kittenDetailMatch ? ('/booking.html?kitten=' + kittenDetailMatch[2]) : '/booking.html';
   var T = {
     ja: { available: '子猫募集中', count: '{n}匹', view: '子猫を見る', line: 'LINEで相談', book: '<i class="ico ico-calendar-check" aria-hidden="true"></i> 予約' },
     en: { available: 'Kittens Available', count: '{n}', view: 'View Kittens', line: 'LINE Chat', book: '<i class="ico ico-calendar-check" aria-hidden="true"></i> Book' },

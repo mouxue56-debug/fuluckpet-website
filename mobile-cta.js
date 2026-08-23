@@ -55,6 +55,12 @@
           cta_href: a.getAttribute('href') || ''
         });
       }
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'mobile_cta_click', {
+          cta_label: label,
+          cta_href: a.getAttribute('href') || ''
+        });
+      }
     });
   }
 

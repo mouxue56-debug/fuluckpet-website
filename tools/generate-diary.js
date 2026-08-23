@@ -8,6 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const { createLastmodStore } = require('./lastmod-store');
 const { safeJsonForHtmlScript } = require('./safe-json-for-html');
+const { hasNoindexMeta } = require('./robots-meta');
 
 const API_BASE = 'https://fuluck-api.mouxue56.workers.dev';
 const SITE_DIR = path.resolve(__dirname, '..');
@@ -691,13 +692,16 @@ function diaryStyles() {
   </style>`;
 }
 
-function buildHead({ title, description, pageUrl, image, jsonLd, ogType = 'article' }) {
+function buildHead({ title, description, pageUrl, image, jsonLd, ogType = 'article', robots = '' }) {
   const imageUrl = absoluteUrl(image) || `${BASE_URL}/images/ogp.jpg`;
+  // §10 — an index page with nothing on it asks not to be indexed. Emitted only when a
+  // caller opts in, so real entry pages keep their default indexable head.
+  const robotsMeta = robots ? `\n  <meta name="robots" content="${escapeHtml(robots)}">` : '';
   return `<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">${robotsMeta}
   <title>${escapeHtml(title)}</title>
   <meta name="description" content="${escapeHtml(description)}">
   <meta name="keywords" content="">
@@ -716,12 +720,14 @@ function buildHead({ title, description, pageUrl, image, jsonLd, ogType = 'artic
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
-  <link rel="stylesheet" href="/style.css?v=${ver('style.css', '20260712f')}">
+  <link rel="stylesheet" href="/style.css?v=${ver('style.css', '20260823a')}">
   <link rel="stylesheet" href="/nav.css?v=${ver('nav.css', '20260711c')}">
   <link rel="stylesheet" href="/guide/guide.css?v=${ver('guide/guide.css', '20260706a')}">
   <link rel="stylesheet" href="/blog.css?v=${ver('blog.css', '20260706a')}">
+  <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
-  <script defer src="/nav.js?v=${ver('nav.js', '20260816a')}"></script>
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <script defer src="/nav.js?v=${ver('nav.js', '20260823a')}"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
 ${jsonLd.join('\n')}
@@ -975,10 +981,10 @@ ${bodyJa}
 
 ${chrome.footerHtml}
 
-  <script src="/i18n.js?v=${ver('i18n.js', '20260713a')}"></script>
+  <script src="/i18n.js?v=${ver('i18n.js', '20260823a')}"></script>
   <script>window._diaryArticleI18n = ${safeJsonForHtmlScript(i18n)}; window._blogArticleI18n = window._diaryArticleI18n;</script>
   <script src="/blog/blog-i18n.js?v=${ver('blog/blog-i18n.js', '20260710b')}"></script>
-  <script src="/script.js?v=${ver('script.js', '20260712e')}"></script>
+  <script src="/script.js?v=${ver('script.js', '20260823a')}"></script>
 
   <div class="mobile-cta-bar" role="navigation" aria-label="クイック連絡">
     <div class="mobile-cta-bar-inner">
@@ -992,7 +998,7 @@ ${chrome.footerHtml}
       </a>
     </div>
   </div>
-  <script defer src="/mobile-cta.js?v=${ver('mobile-cta.js', '20260711b')}"></script>
+  <script defer src="/mobile-cta.js?v=${ver('mobile-cta.js', '20260823a')}"></script>
 </body>
 </html>
 `;
@@ -1123,7 +1129,10 @@ function buildDiaryIndexHtml(entries, context) {
         <p><a href="/kittens.html" class="blog-nav-link" data-i18n="diary.emptyButton"><i class="ico ico-cat" aria-hidden="true"></i> 現在紹介中の子猫を見る</a></p>
       </div>`;
 
-  return `${buildHead({ title, description, pageUrl, image: '/images/ogp.jpg', jsonLd, ogType: 'website' })}
+  // An empty journal has no content worth indexing; it becomes indexable again the
+  // moment it has entries, and tools/generate-diary.js#updateSitemap follows suit.
+  const indexRobots = entries.length === 0 ? 'noindex,follow' : '';
+  return `${buildHead({ title, description, pageUrl, image: '/images/ogp.jpg', jsonLd, ogType: 'website', robots: indexRobots })}
 <body ${chrome.bodyAttrs}>
 
   <a class="skip-link" href="#main" data-i18n="a11y.skipToMain">メインコンテンツへスキップ</a>
@@ -1145,8 +1154,8 @@ ${chrome.headerHtml}
 
 ${chrome.footerHtml}
 
-  <script src="/i18n.js?v=${ver('i18n.js', '20260713a')}"></script>
-  <script src="/script.js?v=${ver('script.js', '20260712e')}"></script>
+  <script src="/i18n.js?v=${ver('i18n.js', '20260823a')}"></script>
+  <script src="/script.js?v=${ver('script.js', '20260823a')}"></script>
 
   <div class="mobile-cta-bar" role="navigation" aria-label="クイック連絡">
     <div class="mobile-cta-bar-inner">
@@ -1160,7 +1169,7 @@ ${chrome.footerHtml}
       </a>
     </div>
   </div>
-  <script defer src="/mobile-cta.js?v=${ver('mobile-cta.js', '20260711b')}"></script>
+  <script defer src="/mobile-cta.js?v=${ver('mobile-cta.js', '20260823a')}"></script>
 </body>
 </html>
 `;
@@ -1182,14 +1191,23 @@ function updateSitemap(entries) {
   // with generate-site.js; generate-site runs first and this run preserves its keys.
   const store = createLastmodStore(SITE_DIR, today);
 
-  const diaryEntries = `  ${marker}
-  <url>
+  // §10 — the diary index is noindex,follow while it has no real content. A sitemap
+  // <loc> for a noindex page is a contradictory signal, so the index URL is listed only
+  // while the page actually invites indexing. Individual entries are unaffected.
+  const indexPath = path.join(SITE_DIR, 'diary', 'index.html');
+  const indexIndexable = !fs.existsSync(indexPath)
+    || !hasNoindexMeta(fs.readFileSync(indexPath, 'utf-8'));
+  const indexUrl = indexIndexable
+    ? `  <url>
     <loc>${BASE_URL}/diary/</loc>
     <lastmod>${store.lastmodForUrl(`${BASE_URL}/diary/`)}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
-${sortEntriesDesc(entries).map((entry) => {
+`
+    : '';
+  const diaryEntries = `  ${marker}
+${indexUrl}${sortEntriesDesc(entries).map((entry) => {
     const loc = `${BASE_URL}${pagePathForEntry(entry)}`;
     return `  <url>
     <loc>${escapeHtml(loc)}</loc>
@@ -1242,27 +1260,11 @@ function ensureHomepageDiscoverability() {
   let html = fs.readFileSync(filepath, 'utf-8');
   let changed = false;
 
-  if (!html.includes('href="diary/" class="nav-link"')) {
-    const from = '        <a href="blog.html" class="nav-link" data-i18n="nav.blog">知識ライブラリ</a>';
-    const to = `${from}\n        <a href="diary/" class="nav-link">猫舎日記</a>`;
-    if (html.includes(from)) {
-      html = html.replace(from, to);
-      changed = true;
-    }
-  }
-
-  if (!html.includes('href="diary/" class="mobile-nav-link"')) {
-    const from = '      <a href="blog.html" class="mobile-nav-link" data-i18n="nav.blog">知識ライブラリ</a>';
-    const to = `${from}\n      <a href="diary/" class="mobile-nav-link">猫舎日記</a>`;
-    if (html.includes(from)) {
-      html = html.replace(from, to);
-      changed = true;
-    }
-  }
-
-  if (!html.includes('href="diary/">猫舎日記</a>')) {
+  // COPY-SPEC §11: /diary/ is noindex and lives in the footer only — never in the
+  // primary header or mobile navigation.
+  if (!html.includes('href="diary/" data-i18n="nav.diary"')) {
     const from = '          <a href="blog.html" data-i18n="nav.blog">知識ライブラリ</a>';
-    const to = `${from}\n          <a href="diary/">猫舎日記</a>`;
+    const to = `${from}\n          <a href="diary/" data-i18n="nav.diary">猫舎日記</a>`;
     if (html.includes(from)) {
       html = html.replace(from, to);
       changed = true;

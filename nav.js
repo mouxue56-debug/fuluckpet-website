@@ -59,7 +59,6 @@
       icon: 'paw-print',
       items: [
         { href: '/kittens.html', key: 'nav.kittens', icon: 'cat', localized: true, match: ['/kittens.html', '/kittens/'] },
-        { href: '/diary/', key: 'nav.diary', icon: 'camera', match: ['/diary/'] },
         { href: '/gallery.html', key: 'nav.gallery', icon: 'image', match: ['/gallery.html'] }
       ]
     },
@@ -289,6 +288,13 @@
     var path = window.location.pathname || '/';
     if (path.indexOf('/en/') === 0) return 'en';
     if (path.indexOf('/zh/') === 0) return 'zh';
+
+    // A ja-root page that has hand-baked /en/ + /zh/ siblings (kitten details, the five
+    // localized blog posts) carries hand-written Japanese body copy — profile text,
+    // JSON-LD — that no dictionary can translate. Honouring a remembered en/zh choice
+    // here rewrites only the chrome and leaves the article Japanese, so one URL renders
+    // in two languages. Stay in Japanese; the switcher navigates to the real sibling.
+    if (hasStaticSibling(normalizePath(path))) return 'ja';
 
     var params = new URLSearchParams(window.location.search || '');
     var urlLang = params.get('lang');

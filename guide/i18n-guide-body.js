@@ -92,6 +92,7 @@ guideBodyTranslations.en['guide.body.price'] = `
         <tr><td>Neutering (<i class="ico ico-mars" aria-hidden="true"></i>)</td><td>Includes post-op care</td><td>30,000 yen</td></tr>
         <tr><td>Spaying (<i class="ico ico-venus" aria-hidden="true"></i>)</td><td>Includes post-op care</td><td>35,000 yen</td></tr>
         <tr><td>Pre-Pickup Care</td><td>Shampoo, nail trim, ear cleaning</td><td>4,000 yen</td></tr>
+        <tr><td>FVRCP Vaccination (1st dose, 3-in-1)</td><td>Administered before handover</td><td>10,000 yen</td></tr>
       </tbody>
     </table>
   </div>
@@ -747,6 +748,7 @@ guideBodyTranslations.zh['guide.body.price'] = `
         <tr><td>去势手术（<i class="ico ico-mars" aria-hidden="true"></i>）</td><td>含术后护理</td><td>30,000日元</td></tr>
         <tr><td>避妊手术（<i class="ico ico-venus" aria-hidden="true"></i>）</td><td>含术后护理</td><td>35,000日元</td></tr>
         <tr><td>接猫前护理</td><td>洗澡·剪指甲·清耳</td><td>4,000日元</td></tr>
+        <tr><td>三联疫苗（第1针）</td><td>交付前接种</td><td>10,000日元</td></tr>
       </tbody>
     </table>
   </div>

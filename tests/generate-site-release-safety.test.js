@@ -638,6 +638,16 @@ test('kitten detail introductions are localized, escaped, paragraph-preserving, 
   assert.doesNotMatch(blankDetail, /<section class="kitten-detail-introduction">/);
 });
 
+// The featured block argues "an older kitten is easier to read", which is the same pitch
+// the §6 成猫・若猫 section makes in full. So it is emitted only while the cat is still
+// under 12 months; the birthday is computed from today, or this fixture would silently
+// cross into adulthood and start asserting the opposite of what it means to.
+function monthsAgoDate(months) {
+  const d = new Date();
+  d.setMonth(d.getMonth() - months);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 test('featured kitten details show localized recommendation context and suppress NEW', (t) => {
   const siteDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fuluck-featured-detail-'));
   copyFile(path.join(ROOT, 'kittens.html'), path.join(siteDir, 'kittens.html'));
@@ -648,7 +658,7 @@ test('featured kitten details show localized recommendation context and suppress
     breed: 'サイベリアン',
     color: 'ブルー',
     gender: '♂',
-    birthday: '2025-03-09',
+    birthday: monthsAgoDate(4),
     price: 100000,
     status: 'available',
     photos: ['https://images.example.test/featured.jpg'],
@@ -679,6 +689,17 @@ test('featured kitten details show localized recommendation context and suppress
   generator.generateKittenDetailPages([{ ...kitten, breederId: 'plain-detail', promotionTag: '' }], [], 'ja');
   const plain = fs.readFileSync(path.join(siteDir, 'kittens/plain-detail.html'), 'utf8');
     assert.doesNotMatch(plain, /<section class="kitten-detail-featured">|data-promotion-tag="featured"/);
+
+  // A featured cat aged 12 months or over gets the fuller §6 section instead, never both.
+  generator.generateKittenDetailPages(
+    [{ ...kitten, breederId: 'featured-adult', birthday: monthsAgoDate(15) }],
+    [],
+    'ja',
+  );
+  const adult = fs.readFileSync(path.join(siteDir, 'kittens/featured-adult.html'), 'utf8');
+  assert.doesNotMatch(adult, /<section class="kitten-detail-featured">/);
+  assert.match(adult, /data-usp="adult"/);
+  assert.match(adult, /kitten-promotion-chip[^>]*data-promotion-tag="featured"/);
 });
 
 test('Drive enrichment uses bounded concurrency instead of one serial request per kitten', async (t) => {

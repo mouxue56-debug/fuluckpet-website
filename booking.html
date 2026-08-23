@@ -22,11 +22,13 @@
   <link rel="alternate" hreflang="x-default" href="https://fuluckpet.com/booking.html">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
-  <link rel="stylesheet" href="style.css?v=20260712f">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
+  <link rel="stylesheet" href="style.css?v=20260823a">
   <link rel="stylesheet" href="/nav.css?v=20260711c">
+  <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%235BC4A8'/><g fill='%23ffffff'><ellipse cx='11' cy='12' rx='2.3' ry='2.7'/><ellipse cx='21' cy='12' rx='2.3' ry='2.7'/><ellipse cx='7.5' cy='17.5' rx='2.1' ry='2.4'/><ellipse cx='24.5' cy='17.5' rx='2.1' ry='2.4'/><path d='M16 16.5c3.1 0 5.6 2.2 5.6 4.9 0 2.2-1.9 3.1-5.6 3.1s-5.6-.9-5.6-3.1c0-2.7 2.5-4.9 5.6-4.9z'/></g></svg>">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
@@ -512,7 +514,7 @@
  }
  }
  </style>
-  <script defer src="/nav.js?v=20260816a"></script>
+  <script defer src="/nav.js?v=20260823a"></script>
 </head>
 <body class="has-mobile-cta">
   <a class="skip-link" href="#main" data-i18n="a11y.skipToMain">メインコンテンツへスキップ</a>
@@ -767,7 +769,16 @@
               <li><span class="icon"><i class="ico ico-camera" aria-hidden="true"></i></span><span data-i18n="booking.infoVideo">現地見学・LINE事前相談に対応</span></li>
               <li><span class="icon"><i class="ico ico-timer" aria-hidden="true"></i></span><span data-i18n="booking.infoDuration">見学時間：約30分〜1時間</span></li>
               <li><span class="icon"><i class="ico ico-users" aria-hidden="true"></i></span><span data-i18n="booking.infoFamily">ご家族でのご来訪も歓迎です</span></li>
-              <li><span class="icon"><i class="ico ico-map-pin" aria-hidden="true"></i></span><span data-i18n="booking.infoLocation">大阪市城東区東中浜<br>（詳細住所はご予約時にお伝えします）</span></li>
+              <li><span class="icon"><i class="ico ico-map-pin" aria-hidden="true"></i></span><span data-i18n="booking.infoLocation">見学場所：大阪市城東区東中浜2-6-23<br>（最寄り：Osaka Metro 緑橋駅）</span></li>
+            </ul>
+          </div>
+
+          <!-- Cost Flow Card (§4.1 vaccine fee + §8 deposit) -->
+          <div class="info-card">
+            <h3><i class="ico ico-japanese-yen" aria-hidden="true"></i> <span data-i18n="booking.infoCostTitle">お迎えまでの費用の流れ</span></h3>
+            <ul>
+              <li><span class="icon"><i class="ico ico-stethoscope" aria-hidden="true"></i></span><span data-i18n="booking.infoVaccineFee">表示価格は子猫本体価格（税込）です。3種混合ワクチン（1回目）の接種費用として、別途10,000円（税込）を申し受けます。</span></li>
+              <li><span class="icon"><i class="ico ico-handshake" aria-hidden="true"></i></span><span data-i18n="booking.infoDeposit">ご成約時に予約金として50,000円をお願いしています。残金はお引き渡し日当日にお支払いください。契約は登録事業所での現物確認後に行います。</span></li>
             </ul>
           </div>
 
@@ -822,6 +833,7 @@
           <a href="about.html" data-i18n="nav.aboutPage">受賞歴・認定</a>
           <a href="guide/" data-i18n="nav.guide">お迎えガイド</a>
           <a href="blog.html" data-i18n="nav.blog">知識ライブラリ</a>
+          <a href="diary/" data-i18n="nav.diary">猫舎日記</a>
           <a href="kittens.html" data-i18n="nav.allKittens">子猫一覧（すべて）</a>
           <a href="parents.html" data-i18n="nav.allParents">親猫紹介（すべて）</a>
           <a href="gallery.html" data-i18n="nav.gallery">卒業猫ギャラリー</a>
@@ -832,17 +844,22 @@
         <div class="footer-legal">
           <h2 data-i18n="footer.legalTitle">動物取扱業表示</h2>
           <div class="legal-box">
-            <p><strong>福楽キャッテリー（第一種動物取扱業）</strong></p>
-            <p>福楽株式会社 代表取締役 羅 方遠</p>
-            <p>登録番号: 220012A / 有効期限: ~2027年4月26日</p>
-            <p>所在地: 大阪府大阪市城東区東中浜 6-10-7</p>
+            <p><strong>福楽ペット（福楽株式会社）</strong></p>
+            <p>登録番号: 販売 220012A／保管 220012B／貸出し 220012C／展示 220012E</p>
+            <p>登録年月日: 2022年4月27日</p>
+            <p>有効期間の末日: 2027年4月26日</p>
+            <p>動物取扱責任者: 羅 方遠</p>
+            <p>所在地: 大阪市城東区東中浜6丁目10番7号</p>
           </div>
           <div class="legal-box">
-            <p><strong>Fulluck Kitty（第一種動物取扱業）</strong></p>
-            <p>代表: 刘 暁棉</p>
-            <p>登録番号: 240051A / 有効期限: ~2029年7月16日</p>
-            <p>所在地: 大阪市城東区東中浜 2-6-23</p>
+            <p><strong>Fulluck Kitty（福楽株式会社）</strong></p>
+            <p>登録番号: 販売 240051A</p>
+            <p>登録年月日: 2024年7月17日</p>
+            <p>有効期間の末日: 2029年7月16日</p>
+            <p>動物取扱責任者: 刘 暁棉</p>
+            <p>所在地: 大阪市城東区東中浜2丁目6番23号</p>
           </div>
+          <p class="legal-full-link"><a href="/about.html#registration" data-i18n="footer.legalFullLink">動物取扱業に関する表示の全文 →</a></p>
           <div class="law-notice-compact">
             <div class="law-notice-title" data-i18n="footer.lawTitle"><i class="ico ico-clipboard-list" aria-hidden="true"></i> 動物愛護管理法に基づく対面販売</div>
             <p data-i18n="footer.lawNoticeShort">法律の規定により、ご購入前に対面での説明と現物確認が必要です。</p>
@@ -866,8 +883,8 @@
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
   </button>
 
-  <script src="i18n.js?v=20260713a"></script>
-  <script src="script.js?v=20260712e"></script>
+  <script src="i18n.js?v=20260823a"></script>
+  <script src="script.js?v=20260823a"></script>
   <script>
   // ===== Booking Form Submission — POSTs to fuluck-api Worker =====
   // Worker endpoint: /api/booking (CORS locked to https://fuluckpet.com)
@@ -893,6 +910,37 @@
       }).join('');
       var reverseTime = String(Number.MAX_SAFE_INTEGER - Date.now()).padStart(16, '0');
       return reverseTime + '-' + randomHex;
+    }
+
+    // Attribution source string for the booking payload. Reads the sessionStorage
+    // snapshot captured on first landing this session (see analytics.js
+    // captureAttribution()): utm_source/utm_medium/utm_campaign/utm_content when
+    // present, joined with "|" (e.g. "line|kitten-detail|2607-02164"); otherwise
+    // falls back to "site:<path>" for a same-site referrer, the external referrer
+    // host, or the first landing pathname. Returns '' when everything is empty —
+    // callers must omit the field rather than send an empty string.
+    function buildAttributionSource() {
+      var raw;
+      try { raw = sessionStorage.getItem('fuluck_attr_v1'); } catch (e) { raw = null; }
+      if (!raw) return '';
+      var attr;
+      try { attr = JSON.parse(raw); } catch (e) { return ''; }
+      var parts = [];
+      ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'].forEach(function (k) {
+        if (attr[k]) parts.push(attr[k]);
+      });
+      var source = '';
+      if (parts.length) {
+        source = parts.join('|');
+      } else if (attr.ref_is_site && attr.ref_path) {
+        source = 'site:' + attr.ref_path;
+      } else if (attr.ref_host) {
+        source = attr.ref_host;
+      } else if (attr.landing_path) {
+        source = attr.landing_path;
+      }
+      if (source.length > 100) source = source.slice(0, 100);
+      return source;
     }
 
     function submissionIdForPayload(payload) {
@@ -1088,6 +1136,8 @@
         kitten_id: kittenEl ? kittenEl.value.trim() : '',
         message: msgEl ? msgEl.value : ''
       };
+      var attrSource = buildAttributionSource();
+      if (attrSource) payload.source = attrSource;
       payload.submission_id = submissionIdForPayload(payload);
 
       // Loading state — flip the guard BEFORE the async work starts.
@@ -1195,11 +1245,29 @@
     </div>
   </div>
 
-  <script defer src="mobile-cta.js?v=20260711b"></script>
-  <script defer src="analytics.js?v=20260623b"></script>
+  <script defer src="mobile-cta.js?v=20260823a"></script>
+  <script defer src="analytics.js?v=20260823a"></script>
   <!-- AI customer service chat widget -->
   <link rel="stylesheet" href="/assets/chat/widget.css?v=20260712e">
   <script defer src="/assets/chat/widget.js?v=20260714g"></script>
-  <script>(function(){var t=new Date().toISOString().slice(0,10);["bk-date","bk-date2"].forEach(function(id){var e=document.getElementById(id);if(e)e.setAttribute("min",t);});})();</script>
+  <script>(function(){
+    // Earliest bookable date = tomorrow in JST (Asia/Tokyo), regardless of the
+    // visitor's local timezone. Using Intl.DateTimeFormat avoids UTC-offset drift
+    // that a plain new Date() computation would introduce for non-JST visitors.
+    function jstTomorrowISO(){
+      var parts = new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Tokyo', year:'numeric', month:'2-digit', day:'2-digit'}).formatToParts(new Date());
+      var y, m, d;
+      parts.forEach(function(p){
+        if (p.type === 'year') y = parseInt(p.value, 10);
+        if (p.type === 'month') m = parseInt(p.value, 10);
+        if (p.type === 'day') d = parseInt(p.value, 10);
+      });
+      var jstToday = new Date(Date.UTC(y, m - 1, d));
+      jstToday.setUTCDate(jstToday.getUTCDate() + 1);
+      return jstToday.toISOString().slice(0, 10);
+    }
+    var t = jstTomorrowISO();
+    ["bk-date","bk-date2"].forEach(function(id){var e=document.getElementById(id);if(e)e.setAttribute("min",t);});
+  })();</script>
 </body>
 </html>

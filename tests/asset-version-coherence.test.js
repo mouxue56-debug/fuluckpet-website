@@ -8,20 +8,22 @@ const test = require('node:test');
 
 const ROOT = path.resolve(__dirname, '..');
 const RELEASE = '20260710b';
+// 2026-08-23 site-copy release: every public asset changed in that pass shares one stamp.
+const COPY_RELEASE = '20260823a';
 const TRUST_RELEASE = '20260711b';
-const STYLE_RELEASE = '20260712f';
-const SCRIPT_RELEASE = '20260712e';
+const STYLE_RELEASE = COPY_RELEASE;
+const SCRIPT_RELEASE = COPY_RELEASE;
 const TRUTH_RELEASE = '20260711c';
 const CATALOG_RELEASE = '20260711b';
 const KITTEN_CAROUSEL_RELEASE = '20260714g';
-const CARD_LOADER_RELEASE = '20260711d';
+const CARD_LOADER_RELEASE = COPY_RELEASE;
 const ADMIN_RENDER_RELEASE = '20260811a';
 const ADMIN_PHOTOS_RELEASE = '20260811a';
 const ADMIN_DIARY_RELEASE = '20260711a';
 const ADMIN_FAQ_RELEASE = TRUTH_RELEASE;
 const ADMIN_CALENDAR_RELEASE = '20260714c';
-const NAV_RELEASE = '20260816a';
-const I18N_RELEASE = '20260713a';
+const NAV_RELEASE = COPY_RELEASE;
+const I18N_RELEASE = COPY_RELEASE;
 const NAV_STYLE_RELEASE = '20260711c';
 const CHAT_STYLE_RELEASE = '20260712e';
 const CHAT_RELEASE = '20260714g';
@@ -37,16 +39,18 @@ const PUBLIC_ASSETS = {
   'i18n.js': I18N_RELEASE,
   'blog/blog-i18n.js': RELEASE,
   'blog-listing-i18n.js': RELEASE,
-  'catalog-i18n.js': RELEASE,
+  'catalog-i18n.js': COPY_RELEASE,
   'kitten-catalog.js': CATALOG_RELEASE,
   'card-loader.js': CARD_LOADER_RELEASE,
-  'faq-trust-copy.js': TRUST_RELEASE,
+  'faq-trust-copy.js': COPY_RELEASE,
   'faq-loader.js': TRUST_RELEASE,
   'faq-page-loader.js': TRUST_RELEASE,
   'kitten-carousel.js': KITTEN_CAROUSEL_RELEASE,
-  'cta-widget.js': CATALOG_RELEASE,
+  'cta-widget.js': COPY_RELEASE,
   'script.js': SCRIPT_RELEASE,
-  'mobile-cta.js': TRUST_RELEASE,
+  'analytics.js': COPY_RELEASE,
+  'guide/i18n-guide-body.js': COPY_RELEASE,
+  'mobile-cta.js': COPY_RELEASE,
   'assets/chat/widget.css': CHAT_STYLE_RELEASE,
   'assets/chat/widget.js': CHAT_RELEASE,
   'services.css': SERVICE_STYLE_RELEASE,

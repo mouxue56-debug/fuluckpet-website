@@ -16,6 +16,48 @@
 
   function dl(payload) {
     try { window.dataLayer.push(payload); } catch (e) { /* swallow */ }
+    try {
+      if (typeof window.gtag === 'function' && payload && payload.event) {
+        var rest = {};
+        for (var k in payload) { if (k !== 'event' && Object.prototype.hasOwnProperty.call(payload, k)) rest[k] = payload[k]; }
+        window.gtag('event', payload.event, rest);
+      }
+    } catch (e) { /* swallow */ }
+  }
+
+  // Attribution capture (booking.html source tracking, Fable site-upgrade 2026-08-23):
+  // on first landing this session, snapshot utm_source/utm_medium/utm_campaign/
+  // utm_content, the referrer, and this page's own pathname into sessionStorage.
+  // Runs once per session (first page wins) so booking.html can read it later —
+  // at form-submit time, long after this has already run — to build a short
+  // "source" string for the booking payload without re-deriving it from scratch.
+  var ATTR_KEY = 'fuluck_attr_v1';
+  function captureAttribution() {
+    try {
+      if (sessionStorage.getItem(ATTR_KEY)) return;
+      var qs = new URLSearchParams(window.location.search || '');
+      var ref = document.referrer || '';
+      var refHost = '', refPath = '', refIsSite = false;
+      if (ref) {
+        try {
+          var refUrl = new URL(ref);
+          refHost = refUrl.host;
+          refIsSite = (refHost === window.location.host);
+          refPath = refIsSite ? refUrl.pathname : '';
+        } catch (e) { /* malformed referrer — leave blank */ }
+      }
+      var attr = {
+        utm_source: qs.get('utm_source') || '',
+        utm_medium: qs.get('utm_medium') || '',
+        utm_campaign: qs.get('utm_campaign') || '',
+        utm_content: qs.get('utm_content') || '',
+        ref_host: refHost,
+        ref_path: refPath,
+        ref_is_site: refIsSite,
+        landing_path: window.location.pathname || ''
+      };
+      sessionStorage.setItem(ATTR_KEY, JSON.stringify(attr));
+    } catch (e) { /* sessionStorage unavailable (private mode etc.) — skip silently */ }
   }
 
   function path() {
@@ -140,36 +182,11 @@
     }, { passive: true });
   }
 
-  // -------- generate_lead (booking form submit) --------
-  function bindBookingLead() {
-    if (path() !== 'booking') return;
-    var form = document.getElementById('bookingForm') || document.querySelector('form#booking') || document.querySelector('form[data-booking]');
-    if (!form) {
-      // Fallback: any form on the booking page
-      form = document.querySelector('form');
-    }
-    if (!form) return;
-
-    var fired = false;
-    form.addEventListener('submit', function () {
-      if (fired) return;
-      fired = true;
-      var method = (document.querySelector('input[name="method"]:checked, [data-booking-method]:checked') || {}).value || '';
-      dl({
-        event: 'generate_lead',
-        currency: 'JPY',
-        value: 0,
-        method: method,
-        form_id: form.id || ''
-      });
-    });
-  }
-
   function init() {
+    captureAttribution();
     fireListView();
     bindCardClicks();
     bindHeroCtas();
-    bindBookingLead();
   }
 
   if (document.readyState === 'loading') {
