@@ -1265,6 +1265,7 @@ function sanitizeOwnerCopy(text) {
   out = out.replace(/[ \t　]+$/gm, '');
   out = dedupeAdjacentLines(out);
   out = closeDanglingBrackets(out);
+  out = reconcileListedItemCount(out);
   out = out.replace(/\n{3,}/g, '\n\n');
   return out.trim();
 }
@@ -1291,6 +1292,36 @@ function dedupeAdjacentLines(text) {
     out.push(line);
   }
   return out.join('\n');
+}
+
+const ITEM_COUNT_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+
+// The owner writes 「以下のN項目」 above a hand-typed genetic-test list and then edits the
+// list without touching N — 2603-02684 claims 4 and, once its duplicated HCM row is
+// dropped, ships 3. Re-count the rows that actually reach the page and rewrite N, in
+// whichever of the three languages the paragraph is written in.
+function reconcileListedItemCount(text) {
+  const CLEARED = /クリア|通过|通過|:\s*clear\b/i;
+  const PATTERNS = [
+    { re: /以下の(\d+)項目/, write: (n) => `以下の${n}項目` },
+    { re: /以下(\d+)[项項]/, write: (n) => `以下${n}項`.replace('項', '项') },
+    { re: /the following ([a-z]+|\d+) items?/i, write: (n) => `the following ${ITEM_COUNT_WORDS[n] || n} item${n === 1 ? '' : 's'}` },
+  ];
+  const lines = String(text).split('\n');
+  for (let i = 0; i < lines.length; i += 1) {
+    for (const pattern of PATTERNS) {
+      if (!pattern.re.test(lines[i])) continue;
+      let rows = 0;
+      for (let j = i + 1; j < lines.length; j += 1) {
+        if (!lines[j].trim()) { if (rows) break; else continue; }
+        if (!CLEARED.test(lines[j])) break;
+        rows += 1;
+      }
+      if (rows) lines[i] = lines[i].replace(pattern.re, pattern.write(rows));
+      break;
+    }
+  }
+  return lines.join('\n');
 }
 
 // A line that opens 「（」 and never closes it renders as a stray bracket. Close it at
