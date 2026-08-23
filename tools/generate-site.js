@@ -643,7 +643,12 @@ function generateHomepageKittens(kittens) {
   for (const kitten of KittenCatalog.orderKittens(kittens)) {
     if (!kitten || typeof kitten !== 'object' || Array.isArray(kitten)) continue;
     const effectiveStatus = KittenCatalog.normalizeStatus(kitten.status);
-    if (effectiveStatus === 'sold' || homepageBreedIndex(kitten.breed) !== 0) continue;
+    // Owner-tagged (featured/campaign) kittens may take a homepage slot regardless of breed line
+    // (2026-08-23: the ¥240,000 golden British line is a featured entry and must be visible on /).
+    const promoted = KittenCatalog.normalizePromotionTag
+      ? Boolean(KittenCatalog.normalizePromotionTag(kitten.promotionTag))
+      : Boolean(kitten.promotionTag);
+    if (effectiveStatus === 'sold' || (!promoted && homepageBreedIndex(kitten.breed) !== 0)) continue;
     const identity = homepageIdentity(kitten);
     const photo = safeHomepagePhoto(getCoverPhoto(kitten));
     if (!identity || !photo) continue;
@@ -1084,7 +1089,7 @@ const LIST_ENTRY_COPY = {
     legend: '絞り込み',
     all: 'すべて',
     siberian: 'サイベリアン',
-    golden: '金渐层（ブリティッシュ ゴールデン）',
+    golden: 'ブリティッシュ ゴールデン',
     adultmix: '成猫・ミックス',
     statusLegend: '販売状況',
     statusAvailable: '販売中のみ',
