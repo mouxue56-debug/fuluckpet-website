@@ -591,8 +591,12 @@
   }
 
   function selectHomepageKittens(kittens) {
+    // Mirrors tools/generate-site.js generateHomepageKittens(): Siberian line (incl. the mix)
+    // plus any owner-promoted kitten (featured/campaign) regardless of breed line, so the
+    // ¥240,000 golden British entry can surface on the homepage (2026-08-23).
     return KittenCatalog.orderKittens(kittens).filter(function(k) {
-      return breedSectionIndex(k.breed) === 0 && KittenCatalog.normalizeStatus(k.status) !== 'sold';
+      var promoted = Boolean(KittenCatalog.normalizePromotionTag(k.promotionTag));
+      return (promoted || breedSectionIndex(k.breed) === 0) && KittenCatalog.normalizeStatus(k.status) !== 'sold';
     }).slice(0, HOME_KITTEN_LIMIT);
   }
 
