@@ -322,7 +322,10 @@ test('runtime navigation exposes distinct truthful destinations and a dedicated 
   const items = groups.flatMap((group) => group.items);
   assert.equal(items.find((item) => item.key === 'nav.about').href, '/#about');
   assert.equal(items.find((item) => item.key === 'nav.aboutPage').href, '/about.html');
-  assert.equal(items.find((item) => item.key === 'nav.diary').featured, undefined);
+  // Cattery Journal moved out of primary nav into the footer (Fable site-upgrade
+  // 2026-08-23, diary/index.html noindex + footer relocation): it must no longer
+  // appear among the runtime-rendered nav items.
+  assert.equal(items.find((item) => item.key === 'nav.diary'), undefined);
   assert.deepEqual(groups.map((group) => group.id), ['pets', 'services', 'adoption', 'breed', 'cattery']);
   assert.deepEqual(groups.find((group) => group.id === 'services').items.map((item) => item.key), ['nav.boarding', 'nav.grooming', 'nav.shop']);
   assert.equal(items.find((item) => item.key === 'nav.boarding').href, '/boarding/');
@@ -341,7 +344,17 @@ test('runtime navigation exposes distinct truthful destinations and a dedicated 
 test('FAQ trust override ignores prototype-named or unknown API ids', () => {
   const trust = require('../faq-trust-copy.js');
   const source = { id: '__proto__', question: { ja: '原文' }, answer: { ja: '回答' } };
-  assert.deepEqual(trust.applyTrustOverrides([source]), [source]);
+  // applyTrustOverrides() also appends any owner-reviewed FAQ additions (ids the
+  // backend does not serve yet) that are missing from the input array — derive the
+  // expectation from trust.additions itself so this stays correct as that list changes.
+  const expectedAdditions = trust.additions.map((addition) => ({
+    id: addition.id,
+    category: addition.category,
+    question: Object.assign({}, addition.question),
+    answer: Object.assign({}, addition.answer),
+    trustCopyVersion: trust.version,
+  }));
+  assert.deepEqual(trust.applyTrustOverrides([source]), [source, ...expectedAdditions]);
   assert.deepEqual(trust.linksFor('__proto__', 'ja'), []);
   assert.deepEqual(trust.linksFor('unknown', 'ja'), []);
 });

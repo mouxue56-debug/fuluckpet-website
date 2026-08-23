@@ -322,8 +322,11 @@ test('nav and all three public pages consume the same generated projection', () 
   ]);
   assert.equal(nav.dogServicesProjectionUrl(180000), '/dog-services-launch.json?v=3');
   const i18n = fs.readFileSync(path.join(ROOT, 'i18n.js'), 'utf8');
-  assert.match(i18n, /'nav\.boarding': '猫・犬のお預かり/);
-  assert.match(i18n, /'nav\.grooming': '猫・犬のケア/);
+  // §11: the boarding/grooming surfaces are cat-only copy now. The dog pipeline still
+  // exists behind its launch flag — only the visitor-facing label changed.
+  assert.match(i18n, /'nav\.boarding': '猫のお預かり/);
+  assert.match(i18n, /'nav\.grooming': '猫のケア/);
+  assert.doesNotMatch(i18n, /'nav\.(?:boarding|grooming)': '猫・犬/);
   assert.doesNotMatch(i18n, /'nav\.dogServices'/);
 
   for (const relative of ['boarding/index.html', 'grooming/index.html', 'boarding/estimate.html']) {

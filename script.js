@@ -127,12 +127,59 @@ document.addEventListener('DOMContentLoaded', () => {
   // ===== Kitten filter tabs =====
   const filterBtns = document.querySelectorAll('.filter-btn');
 
+  // A status filter (e.g. "ご予約済" / "ご家族決定") can legitimately match zero
+  // cards — there simply may be no reserved/adopted kittens right now. Without an
+  // explicit message the grid just goes blank, which reads as broken. New copy,
+  // conservative wording (not in COPY-SPEC — kept deliberately plain/factual).
+  function getActiveLangForFilter() {
+    try {
+      const htmlLang = document.documentElement && document.documentElement.lang;
+      if (htmlLang === 'en' || htmlLang === 'zh') return htmlLang;
+      const saved = localStorage.getItem('fuluckpet-lang');
+      if (saved === 'en' || saved === 'zh') return saved;
+    } catch (e) { /* ignore */ }
+    return 'ja';
+  }
+
+  function kittenFilterEmptyText() {
+    const lang = getActiveLangForFilter();
+    if (lang === 'en') return 'No kittens currently match this status. Please check back soon, or ask us on LINE.';
+    if (lang === 'zh') return '目前没有符合该状态的猫咪，请稍后再来查看，或通过 LINE 咨询我们。';
+    return '現在、該当するステータスの子猫はいません。しばらくしてから再度ご確認いただくか、LINEでお問い合わせください。';
+  }
+
+  // Cached across calls (not re-discovered via querySelector) so this keeps working
+  // even though card-loader.js periodically replaces #kittensGrid's entire innerHTML
+  // (which would silently detach a freshly-queried node): appendChild() re-attaches
+  // a stale reference just fine, and a detached node is harmless to keep hidden.
+  let kittenFilterEmptyEl = null;
+
+  function updateKittenFilterEmptyState(filter, visibleCount) {
+    const grid = document.getElementById('kittensGrid');
+    if (!grid) return;
+    if (filter !== 'all' && visibleCount === 0) {
+      if (!kittenFilterEmptyEl) {
+        kittenFilterEmptyEl = document.createElement('div');
+        kittenFilterEmptyEl.className = 'kitten-filter-empty';
+        kittenFilterEmptyEl.setAttribute('role', 'status');
+        kittenFilterEmptyEl.style.cssText = 'grid-column:1/-1;text-align:center;padding:32px 16px;color:var(--text-note);';
+      }
+      kittenFilterEmptyEl.textContent = kittenFilterEmptyText();
+      kittenFilterEmptyEl.style.display = '';
+      grid.appendChild(kittenFilterEmptyEl);
+    } else if (kittenFilterEmptyEl) {
+      kittenFilterEmptyEl.style.display = 'none';
+    }
+  }
+
   function applyKittenFilter(filter, animate) {
     // Use a live DOM query so cards rebuilt by card-loader are included.
     const liveCards = document.querySelectorAll('.kitten-card');
+    let visibleCount = 0;
 
     liveCards.forEach((card, i) => {
       if (filter === 'all' || card.dataset.status === filter) {
+        visibleCount++;
         card.classList.remove('hidden');
         if (animate) {
           card.style.opacity = '0';
@@ -147,6 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
         card.classList.add('hidden');
       }
     });
+    updateKittenFilterEmptyState(filter, visibleCount);
     if (animate) setTimeout(updateKittenCount, 100);
     else updateKittenCount();
   }
@@ -158,6 +206,11 @@ document.addEventListener('DOMContentLoaded', () => {
       applyKittenFilter(btn.dataset.filter, true);
     });
   });
+
+  // No separate langChanged handling needed here: card-loader.js's own langChanged
+  // listener re-fetches and re-renders the grid, then dispatches "cardsLoaded" —
+  // which refreshKittenCatalogControls() (below) already answers by re-running
+  // applyKittenFilter(), so the empty-state text picks up the new language for free.
 
   // ===== Kitten Sorting =====
   const sortBtns = document.querySelectorAll('.sort-btn');
@@ -567,11 +620,11 @@ document.addEventListener('DOMContentLoaded', () => {
       soldText: 'ご家族が決まりました', tax: '（税込）', breed: '猫種', sex: '性別', color: 'カラー',
       birthday: '誕生日', listingId: '掲載ID', parents: '両親', dad: 'パパ', mom: 'ママ',
       previous: '前', next: '次', previousTitle: '前の子猫', nextTitle: '次の子猫',
-      parentFather: 'パパ猫', parentMother: 'ママ猫', parentFallback: '親猫', photosLoading: '読み込み中...', photosPreparing: '写真準備中',
+      parentFather: 'パパ猫', parentMother: 'ママ猫', parentFallback: '親猫', parentRetired: '過去の実績', photosLoading: '読み込み中...', photosPreparing: '写真準備中',
       age: '年齢', testInfo: '検査情報', testRecorded: '検査情報あり', testMissing: '検査情報の掲載なし', noChildren: '現在表示中の子猫はいません', childrenLoading: '子猫情報を読み込んでいます…', childrenError: '子猫情報を読み込めませんでした',
       male: '♂ 男の子', female: '♀ 女の子',
       lawTitle: '動物愛護管理法に基づく対面販売',
-      lawText: '法律の規定により、ご購入前に必ずキャッテリーにお越しいただき、子猫と対面していただく必要がございます。',
+      lawText: '法律の規定により、ご購入前にキャッテリーにお越しいただき、子猫と対面していただく必要がございます。',
       line: 'この子についてLINEで相談', note: '※ 購入前のちょっとした質問だけでもOKです', booking: '見学を予約',
     },
     en: {
@@ -579,7 +632,7 @@ document.addEventListener('DOMContentLoaded', () => {
       soldText: 'This kitten has joined a family', tax: '(tax incl.)', breed: 'Breed', sex: 'Sex', color: 'Color',
       birthday: 'Birthday', listingId: 'Listing ID', parents: 'Parents', dad: 'Dad', mom: 'Mom',
       previous: 'Previous', next: 'Next', previousTitle: 'Previous kitten', nextTitle: 'Next kitten',
-      parentFather: 'Father', parentMother: 'Mother', parentFallback: 'Parent cat', photosLoading: 'Loading photos...', photosPreparing: 'Photos are being prepared',
+      parentFather: 'Father', parentMother: 'Mother', parentFallback: 'Parent cat', parentRetired: 'Past breeding record', photosLoading: 'Loading photos...', photosPreparing: 'Photos are being prepared',
       age: 'Age', testInfo: 'Test information', testRecorded: 'Test information recorded', testMissing: 'No test information listed', noChildren: 'No kittens are currently displayed', childrenLoading: 'Loading kitten information…', childrenError: 'Unable to load kitten information',
       male: 'Male', female: 'Female',
       lawTitle: 'In-Person Sales under the Animal Protection Law',
@@ -587,11 +640,11 @@ document.addEventListener('DOMContentLoaded', () => {
       line: 'Ask about this kitten on LINE', note: 'Questions are welcome, even before you decide to purchase.', booking: 'Book a Visit',
     },
     zh: {
-      status: { available: '可预约', reserved: '已预订', sold: '已出售' },
+      status: { available: '可预约', reserved: '已预订', sold: '已找到家庭' },
       soldText: '这只猫咪已找到新家', tax: '（含税）', breed: '品种', sex: '性别', color: '毛色',
       birthday: '生日', listingId: '刊登ID', parents: '父母猫', dad: '爸爸', mom: '妈妈',
       previous: '上一只', next: '下一只', previousTitle: '上一只幼猫', nextTitle: '下一只幼猫',
-      parentFather: '父猫', parentMother: '母猫', parentFallback: '父母猫', photosLoading: '照片加载中...', photosPreparing: '照片准备中',
+      parentFather: '父猫', parentMother: '母猫', parentFallback: '父母猫', parentRetired: '过往繁育实绩', photosLoading: '照片加载中...', photosPreparing: '照片准备中',
       age: '年龄', testInfo: '检测信息', testRecorded: '已登记检测信息', testMissing: '未刊登检测信息', noChildren: '目前没有显示中的幼猫', childrenLoading: '正在加载幼猫信息…', childrenError: '幼猫信息加载失败',
       male: '男孩', female: '女孩',
       lawTitle: '依据《动物爱护管理法》的面对面销售',
@@ -727,29 +780,52 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentKittenIndex = -1;
   const isKittensPage = Boolean(document.querySelector('.page-hero')) && window.location.pathname.indexOf('kittens') >= 0;
 
+  // A generated catalogue card is a real <a href> (tools/generate-site.js, card-loader.js).
+  // The browser already owns click, Enter, middle-click and "open in new tab" for it, so
+  // the JS layer must not navigate a second time or swallow the native activation.
+  function isNativeLinkCard(card) {
+    return card.tagName === 'A' && !!card.getAttribute('href');
+  }
+
   function bindCardActivation(card, role, activate) {
-    card.setAttribute('role', role);
-    card.setAttribute('tabindex', '0');
-    if (role === 'button') card.setAttribute('aria-haspopup', 'dialog');
-    else card.removeAttribute('aria-haspopup');
+    const nativeLink = isNativeLinkCard(card);
+    if (nativeLink) {
+      // <a href> is focusable and exposes the link role natively; the generator still
+      // bakes role/tabindex for older markup, and neither hurts here.
+      card.removeAttribute('aria-haspopup');
+    } else {
+      card.setAttribute('role', role);
+      card.setAttribute('tabindex', '0');
+      if (role === 'button') card.setAttribute('aria-haspopup', 'dialog');
+      else card.removeAttribute('aria-haspopup');
+    }
 
     if (card.dataset.cardActivationBound === '1') return;
     card.dataset.cardActivationBound = '1';
     card.addEventListener('click', activate);
     card.addEventListener('keydown', (event) => {
       if (event.key !== 'Enter' && event.key !== ' ') return;
+      // Enter on an anchor is the browser's job — preventing it here would break the
+      // keyboard path entirely, because activate() deliberately does nothing for links.
+      if (nativeLink && event.key === 'Enter') return;
       event.preventDefault();
+      if (nativeLink) { card.click(); return; }
       activate();
     });
   }
 
-  function activateKittenCard(card) {
+  function activateKittenCard(card, event) {
+    // Anchor cards navigate natively. Doing it again from JS would double-navigate and
+    // would also defeat modified clicks (⌘/ctrl/middle → new tab).
+    if (isNativeLinkCard(card)) return;
     const detailUrl = card.dataset.detailUrl || card.getAttribute('data-detail-url') || '';
     if (isKittensPage && detailUrl) {
       window.location.href = detailUrl;
       return;
     }
     if (!kittenModal) return;
+    // This card opens the modal instead of following any link it may sit inside.
+    if (event && typeof event.preventDefault === 'function') event.preventDefault();
     currentKittenIndex = allKittenCards.indexOf(card);
     buildCarousel(card);
     populateModalInfo(card);
@@ -922,7 +998,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const roleEl = parentModal.querySelector('.parent-role');
     if (roleEl) {
-      roleEl.textContent = gender === '♂' ? copy.parentFather : gender === '♀' ? copy.parentMother : role;
+      // A data-role that is not one of the two standard parent labels is a deliberate
+      // override — parents.html marks the retired Ragdoll cats as 過去の実績 — and the
+      // gender-derived label would silently contradict the card the visitor clicked.
+      const genderLabel = gender === '♂' ? copy.parentFather : gender === '♀' ? copy.parentMother : role;
+      const overridden = role && role !== 'パパ猫' && role !== 'ママ猫';
+      roleEl.textContent = overridden
+        ? (role === '過去の実績' ? copy.parentRetired : role)
+        : genderLabel;
       roleEl.className = 'parent-role ' + (gender === '♂' ? 'role-papa' : 'role-mama');
     }
 
@@ -1251,7 +1334,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Small-animal cards share the visual class but own native links and no cat modal.
       if (!kittenModal && !detailUrl) return;
       const role = isKittensPage && detailUrl ? 'link' : 'button';
-      bindCardActivation(card, role, () => activateKittenCard(card));
+      bindCardActivation(card, role, (event) => activateKittenCard(card, event));
     });
     updateKittenCount();
   };

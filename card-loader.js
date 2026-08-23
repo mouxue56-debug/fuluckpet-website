@@ -42,7 +42,10 @@
       noKittens: '現在、掲載中の子猫はいません。', noParents: '現在、掲載中の親猫はいません。', noReviews: '現在、掲載中のレビューはありません。',
       bornFmt: function(y, m) { return y + '年' + m + '月生まれ'; },
       counter: '匹',
-      hypoallergenic: '低アレルゲンのシベリアン'
+      hypoallergenic: '低アレルゲン傾向のサイベリアン',
+      mix: 'ミックス・健やか志向',
+      adult: '成猫・すぐにお迎え可',
+      neutered: '去勢・避妊済み'
     },
     en: {
       available: 'Available', reserved: 'Reserved', sold: 'Adopted',
@@ -54,12 +57,15 @@
       noKittens: 'There are currently no kittens listed.', noParents: 'There are currently no parent cats listed.', noReviews: 'There are currently no reviews listed.',
       bornFmt: function(y, m) { return 'Born ' + y + '/' + m; },
       counter: '',
-      hypoallergenic: 'Hypoallergenic Siberian',
+      hypoallergenic: 'Siberian · lower-allergen tendency',
+      mix: 'Mix · genetic diversity',
+      adult: 'Adult · ready to go home',
+      neutered: 'Neutered/Spayed',
       breeds: { 'サイベリアン': 'Siberian', 'ブリティッシュショートヘア': 'British Shorthair', 'ブリティッシュロングヘア': 'British Longhair', 'ラグドール': 'Ragdoll' },
       roles: { 'パパ猫': 'Father', 'ママ猫': 'Mother' }
     },
     zh: {
-      available: '可预约', reserved: '已预订', sold: '已出售',
+      available: '可预约', reserved: '已预订', sold: '已找到家庭',
       male: '<i class="ico ico-mars" aria-hidden="true"></i> 男孩', female: '<i class="ico ico-venus" aria-hidden="true"></i> 女孩',
       photoAlt: '小猫照片', taxIncl: '（含税）',
       askPrice: '价格请咨询',
@@ -68,7 +74,10 @@
       noKittens: '目前没有在售幼猫。', noParents: '目前没有刊登中的父母猫。', noReviews: '目前没有刊登中的评价。',
       bornFmt: function(y, m) { return y + '年' + m + '月出生'; },
       counter: '只',
-      hypoallergenic: '低致敏西伯利亚猫',
+      hypoallergenic: '低致敏倾向的西伯利亚猫',
+      mix: '混血・遗传多样',
+      adult: '成猫・可直接接回家',
+      neutered: '已绝育',
       breeds: { 'サイベリアン': '西伯利亚猫', 'ブリティッシュショートヘア': '英国短毛猫', 'ブリティッシュロングヘア': '英国长毛猫', 'ラグドール': '布偶猫' },
       roles: { 'パパ猫': '父猫', 'ママ猫': '母猫' }
     }
@@ -154,20 +163,14 @@
     return ctBreed(breedJa);
   }
 
-  // Count suffix — mirrors tools/generate-site.js countLabel() exactly per language:
-  // ja " (N匹)"  en " (N)"  zh "（N只）" (fullwidth, no leading space).
-  function countLabel(n) {
+  // §11 catalogue H2 — MUST mirror tools/generate-site.js listHeadingText(). The number
+  // that matters to a shopper is how many kittens can actually be bought today, with the
+  // full published count kept honest next to it.
+  function listHeadingText(available, total) {
     var lang = getLang();
-    if (lang === 'en') return ' (' + n + ')';
-    if (lang === 'zh') return '（' + n + '只）';
-    return ' (' + n + '匹)';
-  }
-
-  function catalogTitle() {
-    var lang = getLang();
-    if (lang === 'en') return 'All kittens';
-    if (lang === 'zh') return '全部幼猫';
-    return 'すべての子猫';
+    if (lang === 'en') return 'Available ' + available + ' (of ' + total + ')';
+    if (lang === 'zh') return '在售 ' + available + ' 只（共 ' + total + ' 只）';
+    return '販売中 ' + available + '匹（全 ' + total + '匹）';
   }
 
   // ===== Utility Functions =====
@@ -319,6 +322,52 @@
     return bday;
   }
 
+  // Months between a "YYYY-MM" / "YYYY-MM-DD" birthday and today. Missing/invalid
+  // birthday returns -1 so no card is ever wrongly flagged as adult.
+  function monthsSinceBirth(bday) {
+    bday = safeBirthday(bday);
+    if (!bday) return -1;
+    var parts = bday.split('-');
+    var y = parseInt(parts[0], 10);
+    var m = parseInt(parts[1], 10);
+    var d = parts.length > 2 ? parseInt(parts[2], 10) : 1;
+    var birth = new Date(y, m - 1, d);
+    var now = new Date();
+    var months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
+    if (now.getDate() < d) months--;
+    return months;
+  }
+
+  // Mix badge: breed carries both parent-breed names (e.g. 'サイベリアン&ブリティッシュショートヘア',
+  // 'サイベリアン×ブリティッシュ'). A pure breed only ever contains one of the two names.
+  function isMixBreed(breed) {
+    breed = safeString(breed);
+    return breed.indexOf('サイベリアン') >= 0 && breed.indexOf('ブリティッシュ') >= 0;
+  }
+
+  // Neutered/spayed badge: scan the raw (ja-source) breed/color/note fields — these are
+  // language-invariant on the API, so the check works regardless of the active UI language.
+  function isNeuteredKitten(k) {
+    var fields = [safeString(k.breed), safeString(k.color), safeString(k.note)];
+    for (var i = 0; i < fields.length; i++) {
+      if (fields[i].indexOf('去勢') >= 0 || fields[i].indexOf('避妊') >= 0) return true;
+    }
+    return false;
+  }
+
+  // §6.3 list entry group — MUST mirror tools/generate-site.js listEntryGroup().
+  // The generated kittens.html filter bar reads data-entry-group off each card; a card
+  // hydrated by this loader without the attribute cannot answer the filter and is never
+  // hidden, so keeping the two implementations in sync is what makes the three entries
+  // keep working after a client-side re-render.
+  function listEntryGroup(k) {
+    if (isMixBreed(k && k.breed) || monthsSinceBirth(k && k.birthday) >= 12) return 'adultmix';
+    var breed = safeString(k && k.breed);
+    var color = safeString(k && k.color);
+    if (/ゴールデン|チンチラ|Golden/i.test(color) || /ブリティッシュ/.test(breed)) return 'golden';
+    return 'siberian';
+  }
+
   function fmtPrice(price) {
     // 200000 → "¥200,000"
     if (price === null) return '';
@@ -377,27 +426,50 @@
       : '';
     var cardRole = opts && opts.showImages && detailUrl ? 'link' : 'button';
     var modalSemantics = cardRole === 'button' ? ' aria-haspopup="dialog"' : '';
+    // A catalogue card that has a detail page IS a link: an anchor gives middle-click,
+    // "open in new tab", copy-link and crawlable markup for free, and matches the markup
+    // tools/generate-site.js bakes into kittens.html. Homepage cards (showImages:false)
+    // and sold cards (no detail page) stay divs that open the modal.
+    var cardTag = cardRole === 'link' ? 'a' : 'div';
+    var cardHref = cardRole === 'link' ? ' href="' + escAttr(detailUrl) + '"' : '';
+    var entryGroup = listEntryGroup(k);
     // Hypoallergenic chip: ONLY on pure Siberian (breed exactly 'サイベリアン').
     // NOT on the mix 'サイベリアン×ブリティッシュ' — that would overclaim on a mixed breed.
     var hypoChip = k.breed === 'サイベリアン'
       ? '<span class="usp-chip usp-chip--card" data-i18n="chip.hypoallergenic">' + ct('hypoallergenic') + '</span>'
       : '';
-    return '<div class="kitten-card" role="' + cardRole + '" tabindex="0"' + modalSemantics + ' data-status="' + status + '" data-promotion-tag="' + escAttr(promotionTag) + '" data-promotion-priority="' + promotionPriority + '" data-price="' + (price === null ? '' : price) + '" data-birthday="' + escAttr(fmtBdayAttr(k.birthday)) + '" data-images="' + dataImages + '" data-video="' + escAttr(video) + '" data-papa="' + escAttr(safeEmbeddedText(k.papa)) + '" data-mama="' + escAttr(safeEmbeddedText(k.mama)) + '" data-new="' + isNew + '" data-name="" data-breeder-id="' + escAttr(breederId) + '" data-detail-url="' + escAttr(detailUrl) + '">' +
+    // Mix / adult / neutered badges — §5.2, §6.2. Independent of hypoChip above (which
+    // stays exact-match-only on pure Siberian; a mix never gets the hypoallergenic claim).
+    var mixChip = isMixBreed(k.breed)
+      ? '<span class="usp-chip usp-chip--card" data-i18n="chip.mix">' + ct('mix') + '</span>'
+      : '';
+    var adultChip = monthsSinceBirth(k.birthday) >= 12
+      ? '<span class="usp-chip usp-chip--card" data-i18n="chip.adult">' + ct('adult') + '</span>'
+      : '';
+    var neuteredChip = isNeuteredKitten(k)
+      ? '<span class="usp-chip usp-chip--card" data-i18n="chip.neutered">' + ct('neutered') + '</span>'
+      : '';
+    return '<' + cardTag + ' class="kitten-card"' + cardHref + ' role="' + cardRole + '" tabindex="0"' + modalSemantics + ' data-status="' + status + '" data-entry-group="' + entryGroup + '" data-promotion-tag="' + escAttr(promotionTag) + '" data-promotion-priority="' + promotionPriority + '" data-price="' + (price === null ? '' : price) + '" data-birthday="' + escAttr(fmtBdayAttr(k.birthday)) + '" data-images="' + dataImages + '" data-video="' + escAttr(video) + '" data-papa="' + escAttr(safeEmbeddedText(k.papa)) + '" data-mama="' + escAttr(safeEmbeddedText(k.mama)) + '" data-new="' + isNew + '" data-name="" data-breeder-id="' + escAttr(breederId) + '" data-detail-url="' + escAttr(detailUrl) + '">' +
       '<div class="kitten-img">' +
         (cover ? '<img src="' + escAttr(cover) + '" alt="' + escAttr(ct('photoAlt')) + '" ' + imgLoad + ' style="width:100%;height:100%;object-fit:cover;">' : '<div class="img-placeholder"><span><i class="ico ico-cat" aria-hidden="true"></i></span></div>') +
         '<span class="kit-status ' + statusClass + '">' + statusText + '</span>' +
-        (isNew ? '<span class="kit-badge-new">NEW</span>' : '') +
+        // Sold cards never show NEW — a kitten that already went to its family isn't a
+        // fresh listing (§11).
+        (isNew && status !== 'sold' ? '<span class="kit-badge-new">NEW</span>' : '') +
       '</div>' +
       '<div class="kitten-body">' +
         '<h3>' + escAttr(ctBreed(breed)) + '</h3>' +
         promotionChip +
         hypoChip +
+        mixChip +
+        adultChip +
+        neuteredChip +
         '<p class="kit-meta">' + genderFull + ' ・ ' + escAttr(ctColor(color)) + '</p>' +
         '<p class="kit-meta">' + bdayText + '</p>' +
         (noteL ? '<p class="kit-meta" style="font-size:11px;color:var(--text-note);">' + escAttr(safeEmbeddedText(noteL)) + '</p>' : '') +
         '<p class="kit-price">' + (price === null ? escAttr(ct('askPrice')) : priceText + ' <span class="tax">' + ct('taxIncl') + '</span>') + '</p>' +
       '</div>' +
-    '</div>';
+    '</' + cardTag + '>';
   }
 
   // Generate parent card HTML matching existing structure
@@ -467,7 +539,14 @@
         : '';
     });
     if (slots[0].tag) slots[0].tag.textContent = 'CATALOG';
-    if (slots[0].title) slots[0].title.textContent = catalogTitle() + countLabel(ordered.length);
+    if (slots[0].title) {
+      var availableCount = 0;
+      for (var ai = 0; ai < ordered.length; ai++) {
+        if (KittenCatalog.normalizeStatus(ordered[ai].status) === 'available') availableCount++;
+      }
+      slots[0].title.textContent = listHeadingText(availableCount, ordered.length);
+      slots[0].title.removeAttribute('data-i18n');
+    }
   }
 
   // Render parents by the breed tag attached to each generated section. The page may

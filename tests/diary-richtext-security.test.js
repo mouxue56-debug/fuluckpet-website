@@ -16,7 +16,7 @@ function generateDiaryFixture(t) {
   fs.mkdirSync(toolsDir, { recursive: true });
   fs.mkdirSync(blogDir, { recursive: true });
 
-  for (const helper of ['generate-diary.js', 'lastmod-store.js', 'safe-json-for-html.js']) {
+  for (const helper of ['generate-diary.js', 'lastmod-store.js', 'safe-json-for-html.js', 'robots-meta.js']) {
     fs.copyFileSync(path.join(PROJECT, 'tools', helper), path.join(toolsDir, helper));
   }
   fs.copyFileSync(

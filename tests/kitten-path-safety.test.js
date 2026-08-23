@@ -175,10 +175,11 @@ test('unknown read status renders as sold and never receives a detail page or si
 
   generator.generateKittens([kitten]);
   const listing = fs.readFileSync(path.join(siteDir, 'kittens.html'), 'utf8');
-  const card = listing.match(new RegExp(`<div class="kitten-card"[^>]*data-breeder-id="${breederId}"[^>]*>[\\s\\S]*?<\\/div>\\s*<\\/div>`));
+  const card = listing.match(new RegExp(`<(?:a|div) class="kitten-card"[^>]*data-breeder-id="${breederId}"[^>]*>[\\s\\S]*?<\\/div>\\s*<\\/(?:a|div)>`));
   assert.ok(card, 'fixture card should render in the static list');
   assert.match(card[0], /data-status="sold"/);
-  assert.match(card[0], /class="kit-status st-sold"[^>]*>sold<\/span>/);
+  // COPY-SPEC §11: a sold card reads "ご家族決定", never the raw status token.
+  assert.match(card[0], /class="kit-status st-sold"[^>]*>ご家族決定<\/span>/);
   assert.match(card[0], /data-detail-url=""/);
   assert.doesNotMatch(listing, new RegExp(`/kittens/${breederId}\\.html`));
 
@@ -224,7 +225,7 @@ test('static cards, ItemList entries, and detail Products share the strict sale-
   assert.equal(itemList.itemListElement.length, 1);
   for (let index = 0; index < invalidPrices.length; index += 1) {
     const breederId = `invalid-price-${index}`;
-    const card = listing.match(new RegExp(`<div class="kitten-card"[^>]*data-breeder-id="${breederId}"[^>]*>[\\s\\S]*?<\\/div>\\s*<\\/div>`));
+    const card = listing.match(new RegExp(`<(?:a|div) class="kitten-card"[^>]*data-breeder-id="${breederId}"[^>]*>[\\s\\S]*?<\\/div>\\s*<\\/(?:a|div)>`));
     assert.ok(card, breederId);
     assert.match(card[0], /data-price=""/, breederId);
     assert.match(card[0], /価格はお問い合わせください/, breederId);
@@ -233,7 +234,7 @@ test('static cards, ItemList entries, and detail Products share the strict sale-
     assert.equal(detailProduct(detail), null, breederId);
   }
 
-  const validCard = listing.match(/<div class="kitten-card"[^>]*data-breeder-id="valid-string-price"[^>]*>[\s\S]*?<\/div>\s*<\/div>/);
+  const validCard = listing.match(/<(?:a|div) class="kitten-card"[^>]*data-breeder-id="valid-string-price"[^>]*>[\s\S]*?<\/div>\s*<\/(?:a|div)>/);
   assert.ok(validCard);
   assert.match(validCard[0], /data-price="220000"/);
   assert.match(validCard[0], /&yen;220,000/);

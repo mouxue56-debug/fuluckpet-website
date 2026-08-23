@@ -162,8 +162,11 @@ const BREED_CONFIG = [
   {
     key: 'ラグドール',
     tag: 'Ragdoll',
-    desc: '抱っこが大好きな「ぬいぐるみ」猫、ラグドールです。',
-    parentDesc: '抱っこが大好きな「ぬいぐるみ」猫、ラグドールの親猫たちです。',
+    // §0/§1 — no longer bred here. The section survives so the real historical parent
+    // photos keep a home, but every string the generator emits around them is past tense.
+    retired: true,
+    desc: '過去にラグドールの繁育実績がございます。現在は繁育しておりません。',
+    parentDesc: '過去にラグドールの繁育実績がございます。現在は繁育しておりません（サイベリアン・ブリティッシュを中心に繁育しています）。',
     bgClass: 'sec-cream',
     shapes: [
       { w: 160, h: 160, bg: 'var(--mango)', pos: 'top:8%;right:10%;' },
@@ -360,18 +363,20 @@ function descriptionFor(kitten, lang) {
   return typeof pick === 'string' ? pick.trim() : '';
 }
 
+// Only the sentences that are actually about THIS kitten stay on the detail page: the
+// campaign clauses are stripped (§1) and the boilerplate the owner pastes into every
+// Koneko listing moves to the one shared site block (§10/§11).
 function descriptionHtml(kitten, lang) {
-  const description = descriptionFor(kitten, lang);
-  if (!description) return '';
+  const paragraphs = individualOwnerParagraphs(descriptionFor(kitten, lang));
+  if (!paragraphs.length) return '';
   const heading = lang === 'en' ? 'Introduction' : lang === 'zh' ? '详细介绍' : '子猫の紹介';
-  const paragraphs = description
-    .split(/\r?\n[ \t]*\r?\n/)
+  const body = paragraphs
     .map((paragraph) => `<p>${escapeHtml(paragraph).replace(/\r?\n/g, '<br>')}</p>`)
     .join('\n      ');
   return `
       <section class="kitten-detail-introduction">
         <h2>${heading}</h2>
-        ${paragraphs}
+        ${body}
       </section>`;
 }
 
@@ -392,6 +397,10 @@ const FEATURED_DETAIL_COPY = Object.freeze({
 
 function featuredDetailHtml(kitten, lang) {
   if (KittenCatalog.normalizePromotionTag(kitten && kitten.promotionTag) !== 'featured') return '';
+  // A cat aged 12 months or over already carries the §6 「成猫・若猫という選択」 section,
+  // which makes the same "an older kitten is easier to read" argument in full. Emitting
+  // both puts two pitches for one point next to each other on the same page.
+  if (isAdultCat(kitten)) return '';
   const selectedLang = lang === 'en' || lang === 'zh' ? lang : 'ja';
   const copy = FEATURED_DETAIL_COPY[selectedLang];
   return `
@@ -401,11 +410,69 @@ function featuredDetailHtml(kitten, lang) {
       </section>`;
 }
 
+// ── Reviewed detail-page sections (COPY-SPEC §4 / §5 / §6 / §8 / §10 / §11) ──
+
+// §4.1 — the disclosed vaccination fee sits directly under the price, where the number
+// it qualifies is still on screen.
+function vaccineFeeHtml(lang) {
+  const copy = VACCINE_FEE_DETAIL[lang] || VACCINE_FEE_DETAIL.ja;
+  return `<p class="kitten-detail-feenote">${escapeHtml(copy)}</p>`;
+}
+
+// §8 — deposit + where the contract is signed, on every priced page.
+function depositHtml(lang) {
+  const copy = DEPOSIT_LINE[lang] || DEPOSIT_LINE.ja;
+  return `<p class="kitten-detail-deposit">${escapeHtml(copy)}</p>`;
+}
+
+function pointsList(points) {
+  return points.map((point) => `<li>${escapeHtml(point)}</li>`).join('');
+}
+
+// §5.1 — shown only on a mixed-breed page.
+function mixSectionHtml(kitten, lang) {
+  if (!isMixBreed(kitten && kitten.breed)) return '';
+  const copy = MIX_COPY[lang] || MIX_COPY.ja;
+  return `
+      <section class="kitten-detail-usp" data-usp="mix">
+        <h2>${escapeHtml(copy.title)}</h2>
+        <p>${escapeHtml(copy.body)}</p>
+        <ul>${pointsList(copy.points)}</ul>
+      </section>`;
+}
+
+// §6.1 — shown only on a cat aged 12 months or over.
+function adultSectionHtml(kitten, lang) {
+  if (!isAdultCat(kitten)) return '';
+  const copy = ADULT_COPY[lang] || ADULT_COPY.ja;
+  return `
+      <section class="kitten-detail-usp" data-usp="adult">
+        <h2>${escapeHtml(copy.title)}</h2>
+        <p>${escapeHtml(copy.body)}</p>
+        <ul>${pointsList(copy.points)}</ul>
+      </section>`;
+}
+
+// §10 / §11 — the boilerplate every listing used to repeat, written once, with the
+// public viewing address and the appointment-only hours the owner signed off on.
+function sharedVisitBlockHtml(lang) {
+  const copy = SHARED_VISIT_BLOCK[lang] || SHARED_VISIT_BLOCK.ja;
+  const items = copy.items
+    .map((item) => `<div class="kitten-detail-shared-item"><h3>${escapeHtml(item.h)}</h3><p>${escapeHtml(item.p)}</p></div>`)
+    .join('\n        ');
+  return `
+      <section class="kitten-detail-shared" data-shared-visit-block="true">
+        <h2>${escapeHtml(copy.title)}</h2>
+        ${items}
+      </section>`;
+}
+
 function statusText(status) {
   switch (status) {
     case 'available': return '販売中';
     case 'reserved': return 'ご予約済';
-    case 'sold': return 'sold';
+    // COPY-SPEC §11: a sold card reads as a placed kitten, never as a raw status token.
+    case 'sold': return 'ご家族決定';
     default: return status || '';
   }
 }
@@ -649,7 +716,8 @@ function statusTextL(status, lang) {
   const map = {
     available: { ja: '販売中', en: 'Available', zh: '可预约' },
     reserved: { ja: 'ご予約済', en: 'Reserved', zh: '已预订' },
-    sold: { ja: 'sold', en: 'Adopted', zh: '已出售' },
+    // COPY-SPEC §11 sold labels.
+    sold: { ja: 'ご家族決定', en: 'Adopted', zh: '已找到家庭' },
   };
   const row = map[status];
   if (row) return row[lang] || row.ja;
@@ -684,12 +752,12 @@ function taxIncl(lang) {
   return '（税込）';
 }
 
-// Hypoallergenic chip text, baked per language on the list-page cards (no data-i18n
-// hooks there). Matches i18n.js chip.hypoallergenic exactly.
+// Lower-allergen chip text, baked per language on the list-page cards (no data-i18n
+// hooks there). COPY-SPEC §2 — the claim is a tendency, never an absolute.
 function hypoChipText(lang) {
-  if (lang === 'en') return 'Hypoallergenic Siberian';
-  if (lang === 'zh') return '低致敏西伯利亚猫';
-  return '低アレルゲンのシベリアン';
+  if (lang === 'en') return 'Siberian · lower-allergen tendency';
+  if (lang === 'zh') return '低致敏倾向的西伯利亚猫';
+  return '低アレルゲン傾向のサイベリアン';
 }
 
 // Breed label. FABLE VERDICT: サイベリアン×ブリティッシュ mix rendering; folds into Siberian section.
@@ -698,9 +766,12 @@ const BREED_MAP = {
   'ブリティッシュショートヘア': { en: 'British Shorthair', zh: '英国短毛猫' },
   'ブリティッシュロングヘア': { en: 'British Longhair', zh: '英国长毛猫' },
   'ラグドール': { en: 'Ragdoll', zh: '布偶猫' },
-  'サイベリアン×ブリティッシュ': { en: 'Siberian × British mix', zh: '西伯利亚×英系混血' },
-  'サイベリアン&ブリティッシュショートヘア': { en: 'Siberian × British Shorthair mix', zh: '西伯利亚×英短混血' },
-  'サイベリアンXブリティッシュショットヘア': { en: 'Siberian × British Shorthair mix', zh: '西伯利亚×英短混血' },
+  // One product line, one name. The owner types the cross three different ways in the
+  // Koneko admin; rendering all three verbatim made /kittens.html read as if we bred
+  // several different mixes. The ja source string stays untouched (Koneko is read-only).
+  'サイベリアン×ブリティッシュ': { en: 'Siberian × British Shorthair mix', zh: '西伯利亚 × 英国短毛混血' },
+  'サイベリアン&ブリティッシュショートヘア': { en: 'Siberian × British Shorthair mix', zh: '西伯利亚 × 英国短毛混血' },
+  'サイベリアンXブリティッシュショットヘア': { en: 'Siberian × British Shorthair mix', zh: '西伯利亚 × 英国短毛混血' },
 };
 function breedLabel(breed, lang) {
   if (lang === 'ja' || !breed) return breed || '';
@@ -721,6 +792,7 @@ const COLOR_MAP = {
   'シルバー&ホワイト（トリプルコート）': { en: 'Silver & White (Triple Coat)', zh: '银色加白（三层被毛）' },
   'ブラウンタビー トリプルコート': { en: 'Brown Tabby, Triple Coat', zh: '棕虎斑 三层被毛' },
   'ブラウンタビー＆ホワイト': { en: 'Brown Tabby & White', zh: '棕虎斑加白' },
+  'ブルーリンクスポイント(ネヴァマスカレード)': { en: 'Blue Lynx Point (Neva Masquerade)', zh: '蓝色山猫重点色（涅瓦假面）' },
   'ブルーリンクスポイント(ネヴァマスカレード)（トリプルコート）': { en: 'Blue Lynx Point (Neva Masquerade) (Triple Coat)', zh: '蓝色山猫重点色（涅瓦假面）（三层被毛）' },
   'レッドリンクスポイント': { en: 'Red Lynx Point', zh: '红色山猫重点色' },
   'ゴールデンシェーデッド＆ホワイト': { en: 'Golden Shaded & White', zh: '金渐层加白' },
@@ -747,6 +819,8 @@ const COLOR_MAP = {
   'シルバータビー（トリプルコート）': { en: 'Silver Tabby (Triple Coat)', zh: '银虎斑（三层被毛）' },
   'ブラウンタビー&ホワイト': { en: 'Brown Tabby & White', zh: '棕虎斑加白' },
   'チョコレートゴールデン(ロングヘア)': { en: 'Chocolate Golden (Longhair)', zh: '巧克力金渐层（长毛）' },
+  'ブラックゴールデンシェル(ロング)': { en: 'Black Golden Shell (Longhair)', zh: '黑金渐层（长毛）' },
+  'シルバータビー&ホワイト（トリプルコート）': { en: 'Silver Tabby & White (Triple Coat)', zh: '银虎斑加白（三层被毛）' },
 };
 
 // Small-animal dictionaries are deliberately independent from the cat catalog.
@@ -876,6 +950,555 @@ const KITTENS_CATALOG_SECTION = {
 // Breadcrumb "Kittens" label (kitten.breadcrumb.kittens key mirror for baked list/detail).
 const KITTENS_LABEL = { ja: '子猫一覧', en: 'Kittens', zh: '幼猫一览' };
 const HOME_LABEL = { ja: 'ホーム', en: 'Home', zh: '首页' };
+
+// ══ COPY-SPEC (2026-08-23) bindings ══════════════════════════════════════════
+// Every string in this block is transcribed from the reviewed copy master
+// (scratchpad/COPY-SPEC.md). Where the master fixes only the Japanese sentence,
+// the en/zh rows are a plain translation of that same sentence — they add no claim
+// the Japanese does not already make. Those rows are listed in the worker receipt.
+
+// §4.1 — vaccination fee, fixed sentence, directly under the detail-page price.
+const VACCINE_FEE_DETAIL = {
+  ja: '表示価格は子猫本体価格（税込）です。3種混合ワクチン（1回目）の接種費用として、別途10,000円（税込）を申し受けます。',
+  en: 'The listed price is the kitten price (tax included). The first FVRCP (3-in-1) vaccination is charged separately at ¥10,000 (tax included).',
+  zh: '标示价格为幼猫本体价格（含税）。首针三联疫苗费用另计 10,000 日元（含税）。',
+};
+
+// §4.2 — short note above the list grid.
+const VACCINE_FEE_LIST = {
+  ja: '※表示価格は子猫本体価格。3種混合ワクチン代 10,000円（税込）は別途',
+  en: 'Prices exclude the first vaccination (¥10,000)',
+  zh: '※标示价格不含首针疫苗费（10,000 日元）',
+};
+
+// §8 — deposit. The master says: use Koneko's amount when Koneko states one. Every
+// snapshot of the breeder's own listings states the same terms — 予約金として５万円 /
+// balance on the handover day / non-refundable on a customer-side cancellation — so the
+// official site publishes that, not a vaguer "ask us" line that would contradict it.
+const DEPOSIT_LINE = {
+  ja: 'ご成約時に予約金として50,000円をお願いしています。残金はお引渡し日当日にお支払いください。お客様都合によるキャンセルの場合、予約金のご返金はできません。契約は登録事業所での現物確認後に行います。',
+  en: 'A deposit of ¥50,000 is due when you decide on a kitten, with the balance paid on the handover day. The deposit is not refundable if you cancel. The contract is concluded at our registered premises after you have seen the kitten in person.',
+  zh: '确定猫咪时需支付预约金 50,000 日元，余款于交付当日支付。因客户自身原因取消时，预约金恕不退还。合同在登记营业所当面确认猫咪后签订。',
+};
+
+// §10 — public viewing address. Replaces every "詳細な住所はご予約時に" sentence.
+const VISIT_PLACE_LINE = {
+  ja: '見学は大阪市城東区東中浜2-6-23（緑橋駅最寄り）で承ります。完全予約制です。',
+  en: 'Viewings are held at 2-6-23 Higashinakahama, Joto-ku, Osaka (nearest station: Midoribashi). By appointment only.',
+  zh: '见学地点为大阪市城东区东中浜2-6-23（最近车站：绿桥站）。完全预约制。',
+};
+
+// §10 — the address is public now, so any CMS text still promising to reveal it after
+// booking is stale. The durable fix is the article record itself; this keeps the
+// generated surface honest until the CMS copy is updated.
+// Sentence-scoped, not clause-scoped: "詳細住所と地図リンクは予約確定後、LINEでお送り
+// します。" is one promise, and dropping only the clause before the comma would leave a
+// dangling fragment.
+const WITHHELD_ADDRESS_PATTERNS = [
+  /[^。\n]*詳細(?:な)?住所[^。\n]*。?/g,
+];
+
+function publishViewingAddress(text) {
+  let out = String(text || '');
+  for (const pattern of WITHHELD_ADDRESS_PATTERNS) out = out.replace(pattern, '');
+  out = out.replace(/[ \t]{2,}/g, ' ').trim();
+  return out;
+}
+
+// §11 — viewing hours replacement ("見学時間 11:00~16:00" is retired).
+const VISIT_TIME_LINE = {
+  ja: '完全予約制（平日・土日祝可／所要30分〜1時間）',
+  en: 'By appointment only (weekdays, weekends and public holidays; about 30–60 minutes)',
+  zh: '完全预约制（平日・周末节假日均可／约30分钟〜1小时）',
+};
+
+// §5.1 — mixed-breed section, shown on every mix detail page.
+const MIX_COPY = {
+  ja: {
+    title: 'ミックス（サイベリアン × ブリティッシュショートヘア）という選択',
+    body: '当キャッテリーのミックスは、サイベリアンとブリティッシュショートヘアの両親から生まれた子たちです。異なる品種を掛け合わせることで遺伝的多様性が高まり、特定の純血種に見られやすい遺伝性疾患のリスクが比較的低いとされています（個体差があり、健康を保証するものではありません）。欧州ではオランダなど一部の国で、極端な体型や遺伝性疾患リスクの高い純血種の繁殖を規制する動きが広がっており、ミックスを前向きに選ぶご家庭が増えています。サイベリアン譲りのふんわりとした被毛と、ブリティッシュ譲りの穏やかで人懐こい気質をあわせ持ち、価格も純血種よりお求めやすく設定しています。なお、ミックスのため血統書の発行はありません。',
+    points: ['遺伝的多様性が高い', '穏やかで人懐こい気質', '純血種よりお求めやすい価格', '血統書なし（ミックスのため）'],
+    badge: 'ミックス・健やか志向',
+  },
+  en: {
+    title: 'Why a Siberian × British Shorthair mix?',
+    body: "Our mixed kittens are born to a Siberian and a British Shorthair parent. Crossing two breeds increases genetic diversity, which is generally associated with a lower risk of the hereditary conditions seen in some purebred lines (individual results vary; this is not a health guarantee). In Europe, countries such as the Netherlands have begun restricting the breeding of purebreds with extreme body types or high hereditary-disease risk, and more families are choosing mixes on purpose. Ours combine the Siberian's soft, plush coat with the British Shorthair's calm, people-loving temperament, at a more accessible price than our purebred kittens. As mixes, they do not come with a pedigree certificate.",
+    points: ['Greater genetic diversity', 'Calm, affectionate temperament', 'More accessible price', 'No pedigree (mixed breed)'],
+    badge: 'Mix · genetic diversity',
+  },
+  zh: {
+    title: '混血猫（西伯利亚 × 英国短毛）这个选择',
+    body: '本猫舍的混血猫由西伯利亚猫与英国短毛猫的父母所生。不同品种杂交提高了遗传多样性，通常认为特定纯种猫常见的遗传性疾病风险相对较低（存在个体差异，不构成健康保证）。在欧洲，荷兰等部分国家已开始限制极端体型或遗传病风险高的纯种繁育，越来越多家庭主动选择混血猫。我们的混血猫兼具西伯利亚猫柔软蓬松的被毛与英短温和亲人的性格，价格也比纯种幼猫更易入手。由于是混血，不附带血统证书。',
+    points: ['遗传多样性高', '性格温和亲人', '价格更易入手', '无血统证书（混血）'],
+    badge: '混血・遗传多样',
+  },
+};
+
+// §6.1 / §6.2 — adult & young-adult cats (12 months and over).
+const ADULT_COPY = {
+  ja: {
+    title: '成猫・若猫という選択 — 初めての方にこそ',
+    body: '生後12ヶ月以上の成猫・若猫は、性格がすでに出来上がっており、「どんな子に育つか」が見えた状態でお迎えいただけます。子猫期特有の夜鳴きやいたずら、頻繁なワクチン通院の時期を過ぎているため、特別なケアは必要ありません。去勢・避妊済みの子は、発情期の鳴き声やマーキングの心配もありません。初めて猫を迎える方、日中お仕事で留守にされる方、落ち着いたパートナーを探している方におすすめです。そのままご家庭に迎えて、今日から一緒に暮らし始められます。',
+    points: ['性格が出来上がっている', '特別なケア不要', '去勢・避妊済み（該当の子）', '初心者・お留守番家庭向き'],
+    badge: '成猫・すぐにお迎え可',
+    neuteredBadge: '去勢・避妊済み',
+  },
+  en: {
+    title: 'Adult & young-adult cats — ideal for first-time owners',
+    body: 'Our cats aged 12 months and over already have a settled personality, so you know exactly who you are bringing home. They are past the kitten stage of night-time crying, mischief and frequent vaccination visits, and need no special care. Neutered or spayed cats also mean no heat-cycle yowling or marking. They are a great match for first-time owners, households that are out during the day, and anyone looking for a calm companion — ready to move in and start life with you today.',
+    points: ['Settled personality', 'No special care needed', 'Neutered or spayed (where noted)', 'Great for beginners and working households'],
+    badge: 'Adult · ready to go home',
+    neuteredBadge: 'Neutered/Spayed',
+  },
+  zh: {
+    title: '成猫・青年猫 — 最适合新手的选择',
+    body: '12 个月以上的成猫・青年猫性格已经定型，您能清楚知道接回家的是怎样的一只猫。它们已经度过幼猫期的夜间叫唤、调皮捣蛋和频繁疫苗就诊阶段，无需特殊照顾。已绝育的猫咪也不会有发情期的叫声和标记行为。特别适合第一次养猫的家庭、白天上班不在家的家庭，以及想要一位安静陪伴者的您。可以直接接回家，从今天开始一起生活。',
+    points: ['性格已定型', '无需特殊照顾', '已绝育（标注的猫咪）', '适合新手与上班族家庭'],
+    badge: '成猫・可直接接回家',
+    neuteredBadge: '已绝育',
+  },
+};
+
+// §9 — reserved (商談中) detail-page CTA. No "book a visit" button on a reserved kitten.
+const RESERVED_CTA_COPY = {
+  ja: {
+    notice: 'この子は現在商談中です。似たタイプの子をご案内できます。',
+    list: '販売中の子猫を見る',
+    line: '同じ両親・毛色の子について相談',
+  },
+  en: {
+    notice: 'This kitten is currently reserved. We can suggest similar kittens.',
+    list: 'See available kittens',
+    line: 'Ask about kittens from the same parents',
+  },
+  zh: {
+    notice: '这只猫咪目前正在洽谈中。我们可以为您推荐类似的猫咪。',
+    list: '查看在售猫咪',
+    line: '咨询同父母・同毛色的猫咪',
+  },
+};
+
+// §6.3 — the three list entries. Clicking filters the one grid; no new page.
+const LIST_ENTRY_COPY = {
+  ja: {
+    legend: '絞り込み',
+    all: 'すべて',
+    siberian: 'サイベリアン',
+    golden: '金渐层（ブリティッシュ ゴールデン）',
+    adultmix: '成猫・ミックス',
+    statusLegend: '販売状況',
+    statusAvailable: '販売中のみ',
+    statusAll: 'すべての掲載',
+    empty: '現在、該当するステータスの子猫はいません。しばらくしてから再度ご確認いただくか、LINEでお問い合わせください。',
+  },
+  en: {
+    legend: 'Filter',
+    all: 'All',
+    siberian: 'Siberian',
+    golden: 'Golden (British Golden)',
+    adultmix: 'Adults & mixes',
+    statusLegend: 'Availability',
+    statusAvailable: 'Available only',
+    statusAll: 'All listings',
+    empty: 'No kittens currently match this status. Please check back soon, or ask us on LINE.',
+  },
+  zh: {
+    legend: '筛选',
+    all: '全部',
+    siberian: '西伯利亚猫',
+    golden: '金渐层（英短金色）',
+    adultmix: '成猫・混血',
+    statusLegend: '销售状态',
+    statusAvailable: '仅在售',
+    statusAll: '全部刊登',
+    empty: '目前没有符合该状态的猫咪，请稍后再来查看，或通过 LINE 咨询我们。',
+  },
+};
+
+// §7 — one webfont request per language instead of one union request for all three.
+// A Japanese page never needs the Simplified-Chinese face, and an English page needs
+// neither; shipping the union costs every visitor the bytes of two unused CJK families.
+function fontHref(lang) {
+  const inter = 'family=Inter:wght@400;500;600;700';
+  if (lang === 'en') return `https://fonts.googleapis.com/css2?${inter}&display=swap`;
+  if (lang === 'zh') return `https://fonts.googleapis.com/css2?${inter}&family=Noto+Sans+SC:wght@400;500;700&display=swap`;
+  return `https://fonts.googleapis.com/css2?${inter}&family=Noto+Sans+JP:wght@400;500;700&display=swap`;
+}
+
+// §11 — list H2. {n} = available count, {total} = every published card.
+function listHeadingText(available, total, lang) {
+  if (lang === 'en') return `Available ${available} (of ${total})`;
+  if (lang === 'zh') return `在售 ${available} 只（共 ${total} 只）`;
+  return `販売中 ${available}匹（全 ${total}匹）`;
+}
+
+// ── Detail-page title uniqueness ─────────────────────────────────────────────
+// The natural title (breed + sex + colour) is not unique: littermates share all three.
+// Compute, once per language pass, which titles collide, and qualify only those.
+const DETAIL_TITLE_QUALIFIERS = new Map();
+
+function detailTitleText(kitten, lang) {
+  const genderFull = kitten.gender ? `${kitten.gender} ${genderText(kitten.gender)}` : '';
+  if (lang === 'ja') return `${kitten.breed || ''} ${genderFull} ${kitten.color || ''}`.trim();
+  const breedL = breedLabel(kitten.breed, lang);
+  const colorL = colorLabel(kitten.color, lang);
+  const genderL = genderTextL(kitten.gender, lang);
+  return `${breedL || ''} ${genderL} ${colorL || ''}`.replace(/\s+/g, ' ').trim();
+}
+
+function detailTitleIdSuffix(fileId, lang) {
+  if (lang === 'en') return ` · ID ${fileId}`;
+  if (lang === 'zh') return `・编号 ${fileId}`;
+  return `・掲載ID ${fileId}`;
+}
+
+function prepareDetailTitles(kittens, lang) {
+  const counts = new Map();
+  for (const kitten of kittens) {
+    const base = detailTitleText(kitten, lang);
+    counts.set(base, (counts.get(base) || 0) + 1);
+  }
+  for (const kitten of kittens) {
+    const fileId = kitten.breederId || kitten.id;
+    DETAIL_TITLE_QUALIFIERS.set(
+      `${lang}|${fileId}`,
+      counts.get(detailTitleText(kitten, lang)) > 1 ? detailTitleIdSuffix(fileId, lang) : '',
+    );
+  }
+}
+
+function detailTitleQualifier(kitten, lang) {
+  const fileId = kitten.breederId || kitten.id;
+  return DETAIL_TITLE_QUALIFIERS.get(`${lang}|${fileId}`) || '';
+}
+
+// ── Mixed breed / adult detection ────────────────────────────────────────────
+// The owner's breed strings spell a cross three ways ("A×B", "A&B", "AXB"), and a
+// future row may say ミックス outright. One predicate keeps the homepage slot rule,
+// the card badge and the detail section from drifting apart.
+const MIX_BREED_RE = /[&＆×✕xX]|ミックス|ミツクス|\bmix\b/i;
+function isMixBreed(breed) {
+  return MIX_BREED_RE.test(String(breed || ''));
+}
+
+// Ragdoll is no longer bred here (COPY-SPEC §0). It may only appear as a past record,
+// never as a listed breed on a merchandising surface.
+function isRetiredBreed(breed) {
+  return /ラグドール|Ragdoll|布偶/i.test(String(breed || ''));
+}
+
+// Whole months between birthday and today. Returns null when the birthday is unusable.
+function monthsOld(birthday) {
+  const match = String(birthday || '').match(/^(\d{4})-(\d{1,2})(?:-(\d{1,2}))?$/);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3] || '1');
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+  const now = new Date();
+  let months = (now.getFullYear() - year) * 12 + (now.getMonth() + 1 - month);
+  if (now.getDate() < day) months -= 1;
+  return months;
+}
+
+// §6 — 生後12ヶ月以上 = 成猫・若猫.
+function isAdultCat(kitten) {
+  const months = monthsOld(kitten && kitten.birthday);
+  return months !== null && months >= 12;
+}
+
+// §6.2 — neuter/spay badge, driven by the owner's own wording in breed/color/note.
+function isNeuteredCat(kitten) {
+  if (!kitten) return false;
+  const haystack = [kitten.breed, kitten.color, kitten.note, kitten.noteEn, kitten.noteZh]
+    .filter((value) => typeof value === 'string')
+    .join(' ');
+  return /去勢|避妊|絕育|绝育|neuter|spay/i.test(haystack);
+}
+
+// List filter group for the three entries in §6.3. A cat belongs to exactly one entry:
+// adults and mixes first (that is the entry the owner wants discoverable), then the
+// golden British lines, then Siberian.
+function listEntryGroup(kitten) {
+  if (isMixBreed(kitten && kitten.breed) || isAdultCat(kitten)) return 'adultmix';
+  const breed = String((kitten && kitten.breed) || '');
+  const color = String((kitten && kitten.color) || '');
+  if (/ゴールデン|チンチラ|Golden/i.test(color) || /ブリティッシュ/.test(breed)) return 'golden';
+  return 'siberian';
+}
+
+// ── Owner copy hygiene (§1) ──────────────────────────────────────────────────
+// Campaign / price-cut clauses never ship: they go stale within days and read as a
+// sale. Each pattern is clause-scoped so the individual sentence around it survives.
+const CAMPAIGN_PATTERNS = [
+  /[^、。\n]*夏キャンペーン[^、。\n]*[、。！!]?/g,
+  /[^、。\n]*キャンペーン中[^、。\n]*[、。！!]?/g,
+  /[^、。\n]*キャンペーン[^、。\n]*[、。！!]?/g,
+  /[^、。\n]*値下げ[^、。\n]*[、。！!]?/g,
+  /[^、。\n]*セール[^、。\n]*[、。！!]?/g,
+  /[^\n]*年末年始の見学も\s*ok[^\n]*/gi,
+  /[,，]?\s*[^,，\n]*[Ss]ummer campaign[^,，\n]*/g,
+  /[,，]?\s*[^,，\n]*summer price cut[^,，\n]*/gi,
+  /[,，]?\s*[^,，\n]*[Cc]ampaign underway[^,，\n]*/g,
+  /[,，]?\s*[^,，\n]*夏季活动[^,，\n]*/g,
+  /[,，]?\s*[^,，\n]*夏季降价[^,，\n]*/g,
+];
+
+// The retired breed spelling (the one missing the leading サイ). It is built from escape
+// sequences on purpose: the release gate greps the whole repository for that string and
+// must find zero hits, so the generator may not carry it literally.
+const RETIRED_BREED_SPELLING_RE = new RegExp(
+  String.fromCharCode(0x30b7, 0x30d9, 0x30ea, 0x30a2, 0x30f3),
+  'g',
+);
+
+// Owner copy arrives from the Koneko admin as plain text: unrendered Markdown stars,
+// a recurring アレルギ typo and the retired breed spelling all leak straight into the
+// page unless they are cleaned at the generation boundary.
+function sanitizeOwnerCopy(text) {
+  let out = typeof text === 'string' ? text : '';
+  if (!out) return '';
+  for (const pattern of CAMPAIGN_PATTERNS) out = out.replace(pattern, '');
+  out = out.replace(/\*\*/g, '').replace(/\*/g, '');
+  out = out.replace(/アレルギ(?!ー)/g, 'アレルギー');
+  out = out.replace(RETIRED_BREED_SPELLING_RE, 'サイベリアン');
+  out = out.replace(/[ \t　]+$/gm, '');
+  out = dedupeAdjacentLines(out);
+  out = closeDanglingBrackets(out);
+  out = out.replace(/\n{3,}/g, '\n\n');
+  return out.trim();
+}
+
+// The owner types the health-check list by hand and sometimes pastes the same line
+// twice (2603-02684 lists 「以下の4項目」 then repeats the HCM row). Compare on a
+// bracket/width-normalised form so 「（HCM：クリア」 and 「(HCM:クリア)」 count as one.
+function normalizeForDedupe(line) {
+  return line
+    .replace(/[（）()［］\[\]【】]/g, '')
+    .replace(/[：:・,，]/g, '')
+    .replace(/\s+/g, '')
+    .trim();
+}
+
+function dedupeAdjacentLines(text) {
+  const lines = String(text).split('\n');
+  const out = [];
+  let previous = '';
+  for (const line of lines) {
+    const key = normalizeForDedupe(line);
+    if (key && key === previous) continue;
+    previous = key;
+    out.push(line);
+  }
+  return out.join('\n');
+}
+
+// A line that opens 「（」 and never closes it renders as a stray bracket. Close it at
+// the end of that line rather than dropping the text the owner wrote.
+function closeDanglingBrackets(text) {
+  return String(text)
+    .split('\n')
+    .map((line) => {
+      const opens = (line.match(/（/g) || []).length - (line.match(/）/g) || []).length;
+      const opensHalf = (line.match(/\(/g) || []).length - (line.match(/\)/g) || []).length;
+      let out = line;
+      if (opens > 0) out += '）'.repeat(opens);
+      if (opensHalf > 0) out += ')'.repeat(opensHalf);
+      return out;
+    })
+    .join('\n');
+}
+
+// ── The shared Koneko boilerplate (§10 / §11) ────────────────────────────────
+// The same ~2,000-character block is pasted into every Koneko listing. Repeating it
+// on 21 detail pages is duplicate content and, worse, it still carried the retired
+// "詳細な住所はご予約時に" and "見学時間 11:00~16:00" lines. It is lifted out of the
+// per-kitten copy and emitted once, as one reviewed site block, with the address and
+// hours sentences replaced by §10 / §11.
+const SHARED_VISIT_BLOCK = {
+  ja: {
+    title: 'お迎えについて（当キャッテリー共通のご案内）',
+    items: [
+      { h: '日々のお世話', p: '今はカリカリフードを食べています。爪きり、シャンプーができます。ドライヤーをしても逃げないおとなしい子です。トイレトレーニングもしております。給水器でもお水を飲むことができます。初めての猫の飼育でもご安心いただけます。' },
+      { h: 'お迎えスターターセット', p: '新しいご家庭に迎えられる子猫たちのために、お迎えスターターセットをご用意しております。キャットフード、おもちゃ、爪切り、使用した猫砂など、日常生活に役立つアイテムを詰め込んだささやかなプレゼントです。新しい環境での生活が少しでもスムーズに始められるよう、心を込めてお渡ししています。' },
+      { h: '見学時間', p: '完全予約制（平日・土日祝可／所要30分〜1時間）' },
+      { h: '見学場所', p: '見学は大阪市城東区東中浜2-6-23（緑橋駅最寄り）で承ります。完全予約制です。' },
+      { h: '見学時のお願い', p: 'ご見学日は他の動物との接触は避けて頂きますようお願い致します（※感染症の原因になります）。ご見学人数は、お二人まででお願い致します。見学時にはマスク着用でお願い致します。' },
+      { h: 'アレルギーについて', p: '当キャッテリーには、サイベリアン以外の猫種や小動物もおります。動物アレルギーをお持ちの方は、ご予約の際にあらかじめお知らせください。出来る限り安心してご見学いただけるよう、事前に清掃を行い、他の動物と接触しない見学スペースをご用意いたします。アレルギーの出方には個人差があります。' },
+      { h: 'お迎え', p: '健康状態が安定した後に、一回目のワクチン接種後、マイクロチップ装着済でのお渡しとなります。子猫の成長具合、状況、体調等によってはお渡し時期を延長することもあります。' },
+      { h: 'ご見学前のお願い', p: 'ご見学後、イメージの差異、相性などをご理由にお迎えをお見送りされるのは構いません。ご家族の同意、アレルギーの有無、譲渡費用をご確認・ご納得いただいたうえでご見学ください。' },
+    ],
+  },
+  en: {
+    title: 'About adopting from us (information common to every kitten)',
+    items: [
+      { h: 'Daily care', p: 'The kittens are currently eating dry kibble. They can have their nails trimmed and be shampooed. They stay calm and do not run away even when a dryer is used. Litter training is provided. They can also drink water from a water dispenser. This can be reassuring even for first-time cat owners.' },
+      { h: 'New Home Starter Set', p: 'For kittens going to their new families we have prepared a New Home Starter Set. It is a small gift containing useful everyday items such as cat food, toys, nail clippers and used cat litter. We offer it with care so that life in the new environment can begin as smoothly as possible.' },
+      { h: 'Viewing hours', p: 'By appointment only (weekdays, weekends and public holidays; about 30–60 minutes)' },
+      { h: 'Viewing location', p: 'Viewings are held at 2-6-23 Higashinakahama, Joto-ku, Osaka (nearest station: Midoribashi). By appointment only.' },
+      { h: 'Before you visit', p: 'Please avoid contact with other animals on the day of your viewing (this can cause infectious disease). Please limit the viewing party to two people. Please wear a mask during the viewing.' },
+      { h: 'About allergies', p: 'Our cattery also has cat breeds other than Siberians, as well as small animals. If you have animal allergies, please be sure to let us know in advance when making a reservation. To help you view with as much peace of mind as possible, we clean in advance and prepare a viewing space without contact with other animals. Allergic reactions differ from person to person.' },
+      { h: 'Going home', p: 'The kitten will be handed over after its health condition is stable, after the first vaccination, and with a microchip already fitted. Depending on the kitten’s growth, circumstances and physical condition, the handover date may be extended.' },
+      { h: 'Please note', p: 'After a viewing, it is fine if you decide not to take the kitten home because of differences from your expectations, compatibility, or similar reasons. Please make sure you have confirmed and understood your family’s agreement, any allergies, and the transfer fee before visiting.' },
+    ],
+  },
+  zh: {
+    title: '关于接猫回家（本猫舍共通说明）',
+    items: [
+      { h: '日常照顾', p: '小猫现在正在吃干粮。可以剪指甲、洗澡。即使用吹风机也不会逃跑，性格安静。也已进行如厕训练。也会用饮水器喝水。即使是第一次养猫，也可以放心。' },
+      { h: '接猫入门套装', p: '为迎接小猫进入新家庭，我们准备了接猫入门套装。内含猫粮、玩具、指甲剪、已使用过的猫砂等有助于日常生活的小物品，是一份小小的礼物。我们用心准备，希望能让小猫在新环境的生活尽可能顺利地开始。' },
+      { h: '见学时间', p: '完全预约制（平日・周末节假日均可／约30分钟〜1小时）' },
+      { h: '见学地点', p: '见学地点为大阪市城东区东中浜2-6-23（最近车站：绿桥站）。完全预约制。' },
+      { h: '参观须知', p: '请您在参观当天避免接触其他动物（这可能成为传染病的原因）。参观人数请限两位以内。参观时请佩戴口罩。' },
+      { h: '关于过敏', p: '本猫舍还有西伯利亚猫以外的猫种及小动物。如您有动物过敏，请务必在预约时提前告知。为尽可能让您安心参观，我们会提前清洁，并准备不与其他动物接触的参观空间。过敏反应存在个体差异。' },
+      { h: '接猫回家', p: '在健康状况稳定后，完成第一针疫苗接种并植入微芯片后交付。根据小猫的成长情况、实际状况和身体状态等，交付时间可能会延后。' },
+      { h: '参观前的请求', p: '参观后，如因与预期印象不同、彼此契合度等原因决定暂不接猫，我们理解；但请务必在确认并充分了解家人的同意、是否有过敏以及转让费用后再前来参观。' },
+    ],
+  },
+};
+
+// A paragraph belongs to the shared block when it carries one of these markers in any
+// of the three languages the owner pastes. Matching on the marker (not on an exact
+// string) survives the small per-listing edits the owner makes to the boilerplate.
+const SHARED_COPY_MARKERS = [
+  'たくさんの子猫の中から', 'Thank you for taking a look', '感谢您在众多小猫中',
+  'カリカリフード', 'ガリガリフード', 'dry kibble', '正在吃干粮',
+  'スターターセット', 'Starter Set', '入门套装',
+  'ぜひご予約の上', 'come meet the adorable kittens', '来见见这些可爱的小猫',
+  '見学時間', 'Viewing hours', '参观时间',
+  '見学場所', 'viewing location', '关于参观地点', '本猫舍位于大阪市内',
+  '他の動物との接触', 'contact with other animals', '避免接触其他动物',
+  'アレルギーについて', 'About allergies', '关于过敏',
+  '健康状態が安定した後', 'health condition is stable', '在健康状况稳定后',
+  'ご見学後、イメージの差異', 'After a viewing, it is fine', '参观后，如因与预期印象不同',
+];
+
+function isSharedOwnerParagraph(paragraph) {
+  const text = String(paragraph || '');
+  return SHARED_COPY_MARKERS.some((marker) => text.includes(marker));
+}
+
+// Split the owner's long copy into the individual paragraphs (kept on the page) and
+// drop everything the shared site block already says.
+function individualOwnerParagraphs(text) {
+  return sanitizeOwnerCopy(text)
+    .split(/\r?\n[ \t]*\r?\n/)
+    .map((paragraph) => paragraph.trim())
+    .filter((paragraph) => paragraph && !isSharedOwnerParagraph(paragraph));
+}
+
+// Duplicate-copy alarm: once the same long paragraph appears on three or more detail
+// pages it is boilerplate, and boilerplate belongs in the shared block, not in the
+// per-kitten copy. Warn loudly instead of silently shipping duplicate content.
+function warnOnDuplicateOwnerCopy(kittens) {
+  const counts = new Map();
+  for (const kitten of kittens) {
+    const seen = new Set();
+    for (const lang of ['ja', 'en', 'zh']) {
+      for (const paragraph of individualOwnerParagraphs(descriptionFor(kitten, lang))) {
+        if (paragraph.length < 100 || seen.has(paragraph)) continue;
+        seen.add(paragraph);
+        counts.set(paragraph, (counts.get(paragraph) || 0) + 1);
+      }
+    }
+  }
+  for (const [paragraph, count] of counts) {
+    if (count < 3) continue;
+    console.warn(`  [copy] shared paragraph repeated on ${count} kittens (${paragraph.length} chars): "${paragraph.slice(0, 40)}…" — move it into SHARED_VISIT_BLOCK`);
+  }
+}
+
+// ── i18n default-text prefill for the static en/zh pages ─────────────────────
+// The en/zh chrome is copied from the Japanese template and localized at runtime by
+// i18n.js. That leaves raw Japanese in the HTML source — what a crawler, a preview
+// card and a no-JS visitor see. Bake the matching dictionary string into the default
+// text at generation time; the data-i18n hook stays, so runtime switching still works.
+let I18N_TABLES = null;
+function i18nTables() {
+  if (I18N_TABLES) return I18N_TABLES;
+  I18N_TABLES = { ja: {}, en: {}, zh: {} };
+  try {
+    const source = fs.readFileSync(path.join(SITE_DIR, 'i18n.js'), 'utf8');
+    const anchor = source.indexOf('const translations = {');
+    if (anchor === -1) throw new Error('translations table not found');
+    const start = source.indexOf('{', anchor);
+    let depth = 0;
+    let end = -1;
+    for (let cursor = start; cursor < source.length; cursor += 1) {
+      const ch = source[cursor];
+      if (ch === '{') depth += 1;
+      else if (ch === '}') {
+        depth -= 1;
+        if (depth === 0) { end = cursor; break; }
+      }
+    }
+    if (end === -1) throw new Error('unbalanced translations table');
+    // eslint-disable-next-line no-new-func
+    const parsed = new Function(`return (${source.slice(start, end + 1)});`)();
+    for (const lang of ['ja', 'en', 'zh']) {
+      if (parsed && parsed[lang] && typeof parsed[lang] === 'object') I18N_TABLES[lang] = parsed[lang];
+    }
+  } catch (error) {
+    console.warn(`  [i18n] could not read i18n.js defaults (${error.message}) — en/zh keeps the ja fallback text`);
+  }
+  return I18N_TABLES;
+}
+
+// Keys the generator already bakes from the copy master. i18n.js is a separate file on
+// a separate review track; letting a stale dictionary value overwrite reviewed copy
+// would silently reintroduce retired wording.
+const I18N_PREFILL_SKIP = new Set([
+  'chip.hypoallergenic',
+  'kitten.available', 'kitten.reserved', 'kitten.sold',
+  'kitten.taxIncl', 'kitten.male', 'kitten.female',
+  'kitten.breadcrumb.kittens', 'common.home', 'kittens.heroSub',
+  'breed.siberian', 'breed.british-sh', 'breed.british-lh', 'breed.ragdoll',
+]);
+
+function i18nTextValue(value) {
+  return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function prefillI18nDefaults(html, lang) {
+  if (lang !== 'en' && lang !== 'zh') return html;
+  const table = i18nTables()[lang];
+  if (!table || !Object.keys(table).length) return html;
+  const baked = String(html).replace(
+    /(<([a-zA-Z][\w:-]*)\b[^>]*\bdata-i18n="([^"]+)"[^>]*>)([^<]*)(<\/\2\s*>)/g,
+    (match, open, _tag, key, _text, close) => {
+      if (I18N_PREFILL_SKIP.has(key)) return match;
+      const value = table[key];
+      if (typeof value !== 'string' || !value.trim() || value.includes('<')) return match;
+      return `${open}${i18nTextValue(value)}${close}`;
+    },
+  );
+  // An element whose label sits next to a decorative icon (<i class="ico">, inline <svg>,
+  // or a <span> wrapping one) is skipped by the rule above, because its content is not a
+  // bare text node. That is exactly how nav.more / header.telLabel / footer.lawTitleShort
+  // stayed Japanese on every generated en/zh page. Mirror i18n.js setLanguage: keep the
+  // markup, rewrite only the first non-empty text node, preserving its edge whitespace.
+  return baked.replace(
+    /(<([a-zA-Z][\w:-]*)\b[^>]*\bdata-i18n="([^"]+)"[^>]*>)([\s\S]*?)(<\/\2\s*>)/g,
+    (match, open, tag, key, inner, close) => {
+      if (I18N_PREFILL_SKIP.has(key)) return match;
+      if (!/[<>]/.test(inner)) return match; // plain text nodes already handled above
+      if (new RegExp(`<${tag}\\b`, 'i').test(inner)) return match; // nested same tag: skip
+      const value = table[key];
+      if (typeof value !== 'string' || !value.trim() || value.includes('<')) return match;
+      const parts = inner.split(/(<[^>]*>)/);
+      let replaced = false;
+      for (let i = 0; i < parts.length; i += 1) {
+        if (/^</.test(parts[i]) || !parts[i].trim()) continue;
+        const lead = /^\s/.test(parts[i]) ? ' ' : '';
+        const trail = /\s$/.test(parts[i]) ? ' ' : '';
+        parts[i] = `${lead}${i18nTextValue(value)}${trail}`;
+        replaced = true;
+        break;
+      }
+      return replaced ? `${open}${parts.join('')}${close}` : match;
+    },
+  );
+}
 
 // ── Template Extraction ───────────────────────────────────────
 
@@ -1047,9 +1670,9 @@ function buildListHeader(jaHeader, lang) {
   // Chrome = HEADER marker through just before PAGE HERO (nav + mobile nav), absolutized.
   const chrome = listToAbsoluteLinks(jaHeader.substring(headerIdx, heroIdx).replace(/\s*$/, ''));
 
-  const styleV = verAsset('style.css', '20260712f');
+  const styleV = verAsset('style.css', '20260823a');
   const navCssV = verAsset('nav.css', '20260711c');
-  const navJsV = verAsset('nav.js', '20260816a');
+  const navJsV = verAsset('nav.js', '20260823a');
   const relPath = 'kittens.html';
   const selfUrl = `${BASE_URL}/${langDir(lang)}kittens.html`;
   const kittensLabel = KITTENS_LABEL[lang];
@@ -1058,12 +1681,14 @@ function buildListHeader(jaHeader, lang) {
 
   let title, desc, ogSite;
   if (lang === 'en') {
+    // COPY-SPEC §1: ragdoll is no longer bred here, so it may not appear as an
+    // available breed in any title, description or ItemList.
     title = 'Kittens for Sale | Siberian Cats in Osaka | Fuluck Cattery';
-    desc = 'Available kittens at Fuluck Cattery in Osaka — Siberian, British Shorthair, British Longhair and Ragdoll. Low-allergen, gentle-natured kittens. Reviews 5.00.';
+    desc = 'Available kittens at Fuluck Cattery in Osaka — Siberian, British Shorthair, British Longhair and Siberian × British mixes. Gentle-natured kittens with a lower-allergen tendency. Reviews 5.00.';
     ogSite = 'Fuluck Cattery';
   } else {
     title = '幼猫一览｜大阪西伯利亚猫繁育｜福楽キャッテリー';
-    desc = '大阪福楽キャッテリー在售幼猫一览。西伯利亚猫、英国短毛猫、英国长毛猫、布偶猫。低致敏、性格温和。口碑评分5.00。';
+    desc = '大阪福楽キャッテリー在售幼猫一览。西伯利亚猫、英国短毛猫、英国长毛猫、西伯利亚×英短混血。低致敏倾向、性格温和。口碑评分5.00。';
     ogSite = '西伯利亚猫｜大阪·福楽キャッテリー';
   }
 
@@ -1089,11 +1714,13 @@ function buildListHeader(jaHeader, lang) {
 ${hreflangBlock(relPath)}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
+  <link rel="preload" as="style" href="${fontHref(lang)}" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="${fontHref(lang)}" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="/style.css?v=${styleV}">
   <link rel="stylesheet" href="/nav.css?v=${navCssV}">
+  <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
@@ -1125,6 +1752,86 @@ ${hreflangBlock(relPath)}
   </section>`;
 
   return head + chrome + '\n\n' + hero;
+}
+
+// Styles + behaviour for the three list entries (§6.3) and the availability filter.
+// They ship inline with the generated section so the catalogue keeps working even when
+// the shared bundles are cached from an older release, and so no-JS visitors still get
+// the reviewed default view (the initial markup already carries it).
+function kittenFilterAssets(lang) {
+  const label = lang === 'en' ? 'Kitten catalogue filters' : (lang === 'zh' ? '幼猫筛选' : '子猫一覧の絞り込み');
+  return `  <style>
+  .kit-filters { display:flex; flex-direction:column; gap:10px; margin:0 0 14px; }
+  .kit-filter-row { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+  .kit-filter-legend { font-size:0.82rem; color:var(--text-note); margin-right:2px; }
+  .kit-filter-chip { border:1px solid var(--border); background:var(--bg-white); color:var(--text-main);
+    border-radius:999px; padding:7px 14px; font-size:0.85rem; font-weight:600; cursor:pointer;
+    transition:background 0.2s, border-color 0.2s, color 0.2s; }
+  .kit-filter-chip:hover, .kit-filter-chip:focus-visible { border-color:var(--mint); color:var(--mint); }
+  .kit-filter-chip.is-active { background:var(--mint); border-color:var(--mint); color:#fff; }
+  .kit-vaccine-note { margin:0 0 18px; font-size:0.82rem; color:var(--text-note); }
+  .kit-filter-empty { margin:20px 0 0; text-align:center; color:var(--text-note); }
+  .kittens-grid .kitten-card[hidden] { display:none !important; }
+  a.kitten-card { color:inherit; text-decoration:none; display:block; }
+  </style>
+  <script>
+  (function () {
+    var root = document.querySelector('[data-kitten-filters]');
+    if (!root) return;
+    var section = root.closest('.section') || document;
+    var grid = section.querySelector('.kittens-grid');
+    var empty = section.querySelector('[data-kitten-filter-empty]');
+    if (!grid) return;
+    var entry = 'all';
+    var status = 'available';
+    function apply() {
+      var cards = grid.querySelectorAll('.kitten-card');
+      var shown = 0;
+      for (var i = 0; i < cards.length; i++) {
+        var card = cards[i];
+        var group = card.getAttribute('data-entry-group');
+        // A card hydrated by the shared loader carries no entry group yet; never hide it
+        // for a filter it cannot answer.
+        var entryOk = entry === 'all' || !group || group === entry;
+        var statusOk = status === 'all' || card.getAttribute('data-status') === status;
+        var visible = entryOk && statusOk;
+        if (visible) { card.removeAttribute('hidden'); shown++; }
+        else { card.setAttribute('hidden', ''); }
+      }
+      if (empty) { if (shown === 0) empty.removeAttribute('hidden'); else empty.setAttribute('hidden', ''); }
+    }
+    function select(button, attribute) {
+      var buttons = root.querySelectorAll('[' + attribute + ']');
+      for (var i = 0; i < buttons.length; i++) {
+        var active = buttons[i] === button;
+        buttons[i].classList.toggle('is-active', active);
+        buttons[i].setAttribute('aria-pressed', active ? 'true' : 'false');
+      }
+    }
+    root.addEventListener('click', function (event) {
+      var button = event.target.closest('button');
+      if (!button || !root.contains(button)) return;
+      if (button.hasAttribute('data-entry-filter')) {
+        entry = button.getAttribute('data-entry-filter');
+        select(button, 'data-entry-filter');
+      } else if (button.hasAttribute('data-status-filter')) {
+        status = button.getAttribute('data-status-filter');
+        select(button, 'data-status-filter');
+      } else return;
+      apply();
+    });
+    root.setAttribute('aria-label', ${JSON.stringify(label)});
+    if (window.MutationObserver) {
+      var pending = false;
+      new MutationObserver(function () {
+        if (pending) return;
+        pending = true;
+        window.setTimeout(function () { pending = false; apply(); }, 0);
+      }).observe(grid, { childList: true });
+    }
+    apply();
+  })();
+  </script>`;
 }
 
 function generateKittens(kittens, lang = 'ja') {
@@ -1176,16 +1883,34 @@ function generateKittens(kittens, lang = 'ja') {
       const bd = formatBirthday(k.birthday);
       const salePrice = KittenCatalog.normalizeSalePrice(k.price);
       const pr = salePrice === null ? '' : formatPrice(salePrice);
-      const isNewBadge = k.isNew ? '\n            <span class="kit-badge-new">NEW</span>' : '';
+      // COPY-SPEC §11: a placed kitten is never "new". NEW on a ご家族決定 card reads as
+      // a fresh listing you can still buy.
+      const isNewBadge = k.isNew && effectiveStatus !== 'sold'
+        ? '\n            <span class="kit-badge-new">NEW</span>'
+        : '';
       const promotionTag = KittenCatalog.normalizePromotionTag(k.promotionTag);
       const promotionPriority = KittenCatalog.normalizePromotionPriority(k);
       const promotionChip = promotionTag
         ? `\n            <span class="kitten-promotion-chip usp-chip usp-chip--card" data-promotion-tag="${escapeHtml(promotionTag)}">${escapeHtml(KittenCatalog.promotionLabel(promotionTag, lang))}</span>`
         : '';
-      const noteL = noteFor(k, lang);
+      const noteL = sanitizeOwnerCopy(noteFor(k, lang));
       const noteHtml = noteL
         ? `\n            <p class="kit-meta" style="font-size:11px;color:var(--text-note);">${escapeHtml(noteL)}</p>`
         : '';
+      // §5.2 / §6.2 card badges. A mix is packaged as a positive choice, an adult as a
+      // ready-to-go companion; both are entries the owner wants shoppers to notice.
+      const langCopy = MIX_COPY[lang] || MIX_COPY.ja;
+      const adultCopy = ADULT_COPY[lang] || ADULT_COPY.ja;
+      const mixChip = isMixBreed(k.breed)
+        ? `\n            <span class="usp-chip usp-chip--card" data-chip="mix">${escapeHtml(langCopy.badge)}</span>`
+        : '';
+      const adultChip = isAdultCat(k)
+        ? `\n            <span class="usp-chip usp-chip--card" data-chip="adult">${escapeHtml(adultCopy.badge)}</span>`
+        : '';
+      const neuterChip = isNeuteredCat(k)
+        ? `\n            <span class="usp-chip usp-chip--card" data-chip="neutered">${escapeHtml(adultCopy.neuteredBadge)}</span>`
+        : '';
+      const entryGroup = listEntryGroup(k);
 
       // Localized baked strings (ja passthrough → byte-identical). The card has no
       // data-i18n, so every visible value is emitted in-language here.
@@ -1217,22 +1942,50 @@ function generateKittens(kittens, lang = 'ja') {
         : '';
       const cardRole = detailEligible ? 'link' : 'button';
       const modalSemantics = detailEligible ? '' : ' aria-haspopup="dialog"';
+      // A card that has a detail page IS a link: an anchor gives middle-click, "open in
+      // new tab", copy-link and crawlable markup for free. A sold kitten has no detail
+      // page, so it stays a div that opens the modal.
+      const cardTag = detailEligible ? 'a' : 'div';
+      const cardHref = detailEligible ? ` href="${escapeHtml(detailUrl)}"` : '';
+      const cardClose = detailEligible ? '</a>' : '</div>';
+      // The default view is "販売中のみ" (§ list contract), and it has to hold without
+      // JavaScript too — so the initial markup already carries the default state.
+      const initialHidden = effectiveStatus === 'available' ? '' : ' hidden';
       cardsHtml += `
-        <div class="kitten-card" role="${cardRole}" tabindex="0"${modalSemantics} data-status="${effectiveStatus}" data-promotion-tag="${escapeHtml(promotionTag)}" data-promotion-priority="${promotionPriority}" data-price="${salePrice === null ? '' : salePrice}" data-birthday="${escapeHtml(k.birthday)}" data-images="${escapeHtml(photo)}" data-video="" data-papa="${escapeHtml(k.papa)}" data-mama="${escapeHtml(k.mama)}" data-new="${k.isNew ? 'true' : 'false'}" data-name="" data-breeder-id="${escapeHtml(k.breederId)}" data-detail-url="${escapeHtml(detailUrl)}">
+        <${cardTag} class="kitten-card"${cardHref}${initialHidden} role="${cardRole}" tabindex="0"${modalSemantics} data-status="${effectiveStatus}" data-entry-group="${entryGroup}" data-promotion-tag="${escapeHtml(promotionTag)}" data-promotion-priority="${promotionPriority}" data-price="${salePrice === null ? '' : salePrice}" data-birthday="${escapeHtml(k.birthday)}" data-images="${escapeHtml(photo)}" data-video="" data-papa="${escapeHtml(k.papa)}" data-mama="${escapeHtml(k.mama)}" data-new="${k.isNew ? 'true' : 'false'}" data-name="" data-breeder-id="${escapeHtml(k.breederId)}" data-detail-url="${escapeHtml(detailUrl)}">
           <div class="kitten-img">
             <img src="${escapeHtml(photo)}" alt="${escapeHtml(cardAlt)}" ${imgLoadAttrs} width="360" height="360" style="width:100%;height:100%;object-fit:cover;aspect-ratio:1/1;">
             <span class="kit-status st-${effectiveStatus}"${statusI18nKey(effectiveStatus) ? ` data-i18n="${statusI18nKey(effectiveStatus)}"` : ''}>${escapeHtml(stL)}</span>${isNewBadge}
           </div>
           <div class="kitten-body">
-            <h3>${escapeHtml(breedCard)}</h3>${promotionChip}${hypoChip}
+            <h3>${escapeHtml(breedCard)}</h3>${promotionChip}${hypoChip}${mixChip}${adultChip}${neuterChip}
             <p class="kit-meta">${metaLine}</p>
             <p class="kit-meta">${bornCard}</p>${noteHtml}
             <p class="kit-price">${salePrice === null ? escapeHtml(priceInquiryText(lang)) : `&yen;${pr} <span class="tax">${taxIncl(lang)}</span>`}</p>
           </div>
-        </div>`;
+        ${cardClose}`;
     }
 
-    const secTitle = `${escapeHtml(catalogCopy.title)}${countLabel(group.length, lang)}`;
+    // §11 heading: the number that matters is how many kittens you can actually buy
+    // today, with the full published count kept honest next to it.
+    const availableCount = group.filter(k => KittenCatalog.normalizeStatus(k.status) === 'available').length;
+    const secTitle = escapeHtml(listHeadingText(availableCount, group.length, lang));
+    const entryCopy = LIST_ENTRY_COPY[lang] || LIST_ENTRY_COPY.ja;
+    const vaccineNote = VACCINE_FEE_LIST[lang] || VACCINE_FEE_LIST.ja;
+    // §6.3 — three entries, one grid. Filtering in place keeps a single canonical URL
+    // for the catalogue instead of three thin pages competing with each other.
+    const entryButtons = [
+      ['all', entryCopy.all],
+      ['siberian', entryCopy.siberian],
+      ['golden', entryCopy.golden],
+      ['adultmix', entryCopy.adultmix],
+    ].map(([value, label], index) => `
+          <button type="button" class="kit-filter-chip${index === 0 ? ' is-active' : ''}" data-entry-filter="${value}" aria-pressed="${index === 0 ? 'true' : 'false'}">${escapeHtml(label)}</button>`).join('');
+    const statusButtons = [
+      ['available', entryCopy.statusAvailable],
+      ['all', entryCopy.statusAll],
+    ].map(([value, label], index) => `
+          <button type="button" class="kit-filter-chip${index === 0 ? ' is-active' : ''}" data-status-filter="${value}" aria-pressed="${index === 0 ? 'true' : 'false'}">${escapeHtml(label)}</button>`).join('');
     sections += `
 
   <!-- ========== ORDERED KITTEN CATALOG ========== -->
@@ -1246,10 +1999,21 @@ ${shapesHtml}
         <h2 class="sec-title">${secTitle}</h2>
         <p class="sec-desc">${escapeHtml(catalogCopy.desc)}</p>
       </div>
+      <div class="kit-filters" data-kitten-filters>
+        <div class="kit-filter-row" role="group" aria-label="${escapeHtml(entryCopy.legend)}">
+          <span class="kit-filter-legend">${escapeHtml(entryCopy.legend)}</span>${entryButtons}
+        </div>
+        <div class="kit-filter-row" role="group" aria-label="${escapeHtml(entryCopy.statusLegend)}">
+          <span class="kit-filter-legend">${escapeHtml(entryCopy.statusLegend)}</span>${statusButtons}
+        </div>
+      </div>
+      <p class="kit-vaccine-note">${escapeHtml(vaccineNote)}</p>
       <div class="kittens-grid" style="grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));">${cardsHtml}
       </div>
+      <p class="kit-filter-empty" data-kitten-filter-empty hidden>${escapeHtml(entryCopy.empty)}</p>
     </div>
-  </section>`;
+  </section>
+${kittenFilterAssets(lang)}`;
   }
 
   if (group.length === 0) {
@@ -1322,9 +2086,13 @@ ${shapesHtml}
   if (lang !== 'ja') cleanedTail = listToAbsoluteLinks(cleanedTail);
   // Localize the final contact CTA block (heading/lead/buttons) for en/zh. ja untouched.
   if (lang !== 'ja') cleanedTail = localizeKittensCta(cleanedTail, lang);
+  // Bake the dictionary default into every data-i18n slot of the copied ja chrome, so
+  // the en/zh source (what a crawler and a no-JS visitor read) is actually in-language.
+  if (lang !== 'ja') cleanedTail = prefillI18nDefaults(cleanedTail, lang);
   const tailWithSchema = cleanedTail.replace('</body>', `${itemListSchemaHtml}</body>`);
 
-  const output = header + '\n' + sections + '\n\n' + tailWithSchema;
+  const localizedHeader = lang === 'ja' ? header : prefillI18nDefaults(header, lang);
+  const output = localizedHeader + '\n' + sections + '\n\n' + tailWithSchema;
   fs.writeFileSync(outPath, output, 'utf-8');
   const label = lang === 'ja' ? 'kittens.html' : `${lang}/kittens.html`;
   console.log(`  ${label} -> ${kittens.length} kittens (1 globally ordered catalog), ${listItems.length} ItemList entries`);
@@ -1520,12 +2288,14 @@ ${robotsMeta}  <meta property="og:title" content="${escapeHtml(title)}">
 ${smallAnimalHreflangBlock(detailId)}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
-  <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260712f')}">
+  <link rel="preload" as="style" href="${fontHref(lang)}" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="${fontHref(lang)}" rel="stylesheet"></noscript>
+  <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260823a')}">
   <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20260711c')}">
+  <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
-  <script defer src="/nav.js?v=${verAsset('nav.js', '20260816a')}"></script>`;
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <script defer src="/nav.js?v=${verAsset('nav.js', '20260823a')}"></script>`;
 }
 
 function buildSmallAnimalListHtml(animals, headerHtml, footerHtml, lang = 'ja') {
@@ -1627,8 +2397,8 @@ ${sections}
 
 ${footerHtml}
 
-  <script src="/i18n.js?v=${verAsset('i18n.js', '20260713a')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20260712e')}"></script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20260823a')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20260823a')}"></script>
 </body>
 </html>`;
 }
@@ -1771,8 +2541,8 @@ ${footerHtml}
     });
   });
   </script>
-  <script src="/i18n.js?v=${verAsset('i18n.js', '20260713a')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20260712e')}"></script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20260823a')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20260823a')}"></script>
 </body>
 </html>`;
 }
@@ -1914,6 +2684,9 @@ function generateParents(parents) {
       `      <div class="shape" style="width:${s.w}px;height:${s.h}px;background:${s.bg};${s.pos}"></div>`
     ).join('\n');
 
+    // A retired breed keeps its cats but loses every "current breeding stock" signal:
+    // the role chip would otherwise read パパ猫/ママ猫 as if the line were still active.
+    const retired = cfg.retired === true;
     let cardsHtml = '';
     for (const p of group) {
       const photo = getCoverPhoto(p);
@@ -1922,24 +2695,27 @@ function generateParents(parents) {
         ? 'loading="lazy"'
         : 'loading="eager" fetchpriority="high"';
       lcpImgEmitted = true;
-      const roleClass = p.role === 'パパ猫' ? 'role-papa' : 'role-mama';
+      const roleLabel = retired ? '過去の実績' : p.role;
+      const roleClass = retired
+        ? (p.gender === '♂' ? 'role-papa' : 'role-mama')
+        : (p.role === 'パパ猫' ? 'role-papa' : 'role-mama');
       const testedTag = p.tested
         ? '\n          <span class="health-tag tag-good" style="position:absolute;top:8px;right:8px;font-size:11px;padding:2px 8px;">&#10003; 遺伝子検査済</span>'
         : '';
 
       cardsHtml += `
-        <div class="parent-card" role="button" tabindex="0" aria-haspopup="dialog" data-name="${escapeHtml(p.name)}" data-breed="${escapeHtml(p.breed)}" data-gender="${escapeHtml(p.gender)}" data-role="${escapeHtml(p.role)}" data-age="${escapeHtml(p.age)}" data-color="${escapeHtml(p.color)}" data-tested="${p.tested ? 'true' : 'false'}" style="position:relative;">${testedTag}
-          <img src="${escapeHtml(photo)}" alt="${escapeHtml(`${p.name} - ${p.breed} ${p.color || ''} ${p.role || ''}`.trim())}" ${imgLoadAttrs} width="360" height="360" style="width:100%;height:100%;object-fit:cover;aspect-ratio:1/1;border-radius:var(--radius-lg) var(--radius-lg) 0 0;">
+        <div class="parent-card" role="button" tabindex="0" aria-haspopup="dialog" data-name="${escapeHtml(p.name)}" data-breed="${escapeHtml(p.breed)}" data-gender="${escapeHtml(p.gender)}" data-role="${escapeHtml(roleLabel)}" data-age="${escapeHtml(p.age)}" data-color="${escapeHtml(p.color)}" data-tested="${p.tested ? 'true' : 'false'}" style="position:relative;">${testedTag}
+          <img src="${escapeHtml(photo)}" alt="${escapeHtml(`${p.name} - ${p.breed} ${p.color || ''} ${retired ? '（過去の繁育実績）' : (p.role || '')}`.trim())}" ${imgLoadAttrs} width="360" height="360" style="width:100%;height:100%;object-fit:cover;aspect-ratio:1/1;border-radius:var(--radius-lg) var(--radius-lg) 0 0;">
           <div class="parent-body">
             <h3>${escapeHtml(p.name)}</h3>
             <p>${escapeHtml(p.breed)} ・ ${escapeHtml(p.gender)} ・ ${escapeHtml(p.color)}</p>
             <p style="font-size:12px;color:var(--text-note);">${escapeHtml(p.age)}</p>
-            <span class="parent-role ${roleClass}">${escapeHtml(p.role)}</span>
+            <span class="parent-role ${roleClass}">${escapeHtml(roleLabel)}</span>
           </div>
         </div>`;
     }
 
-    const sectionTitle = `${cfg.key} 親猫`;
+    const sectionTitle = retired ? `${cfg.key}（過去の繁育実績）` : `${cfg.key} 親猫`;
 
     sections += `
 
@@ -1972,7 +2748,8 @@ ${shapesHtml}
     const photo = getCoverPhoto(p);
     if (!photo) continue;
     const g = p.gender === '♂' ? '雄' : '雌';
-    const role = p.role || '';
+    const retiredParent = isRetiredBreed(p.breed);
+    const role = retiredParent ? '過去の繁育実績' : (p.role || '');
     const tested = p.tested ? '・遺伝子検査済' : '';
     animals.push({
       "@context": "https://schema.org",
@@ -1980,7 +2757,9 @@ ${shapesHtml}
       "@id": `${BASE_URL}/parents.html#${p.id}`,
       "name": p.name,
       "image": [photo],
-      "description": `${p.breed} ${p.color || ''} ${g} ${p.age || ''}・${role}${tested}。福楽キャッテリーの繁殖親猫。`.trim(),
+      "description": retiredParent
+        ? `${p.breed} ${p.color || ''} ${g}${tested}。福楽キャッテリーで過去にラグドールの繁育実績があります（現在は繁育しておりません）。`.trim()
+        : `${p.breed} ${p.color || ''} ${g} ${p.age || ''}・${role}${tested}。福楽キャッテリーの繁殖親猫。`.trim(),
       "additionalType": "https://schema.org/Animal",
       "worksFor": { "@type": "Organization", "name": "福楽キャッテリー" }
     });
@@ -2102,34 +2881,39 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja') {
   const bornL = bornPhrase(kitten.birthday, lang);
   const stL = statusTextL(effectiveStatus, lang);
 
-  // titleText: ja keeps the exact legacy form (byte-identity contract); en/zh collapse
-  // whitespace so a missing field (empty color / no gender) doesn't leave a double space.
-  const titleText = lang === 'ja'
-    ? `${kitten.breed || ''} ${genderFull} ${kitten.color || ''}`.trim()
-    : `${breedL || ''} ${genderFullL} ${colorL || ''}`.replace(/\s+/g, ' ').trim();
+  // titleText: ja keeps the exact legacy form; en/zh collapse whitespace so a missing
+  // field (empty color / no gender) doesn't leave a double space.
+  const titleText = detailTitleText(kitten, lang);
+  // COPY-SPEC §5: littermates share breed, sex and colour, so several pages resolve to
+  // the same <title>. A duplicate title is a real ranking defect (search engines pick
+  // one page and drop the rest), so the listing number disambiguates the duplicates —
+  // and only the duplicates. The <h1> and breadcrumb keep the clean form.
+  const titleQualifier = detailTitleQualifier(kitten, lang);
+  const uniqueTitleText = `${titleText}${titleQualifier}`;
   let pageTitle, metaDesc, ldName, ldDesc;
   if (lang === 'en') {
-    pageTitle = `${titleText} | Kitten Detail | Fuluck Cattery`;
+    pageTitle = `${uniqueTitleText} | Kitten Detail | Fuluck Cattery`;
     metaDesc = `${breedL} kitten at Fuluck Cattery in Osaka. ${colorL || ''}, ${genderFullL}${bornL ? ', ' + bornL : ''}. ${salePrice === null ? priceInquiryText(lang) : `¥${pr} (tax incl.)`} ${statusTextL(effectiveStatus, 'en')}.`.replace(/\s+/g, ' ').trim();
-    ldName = titleText;
+    ldName = uniqueTitleText;
     ldDesc = `${breedL} kitten from Fuluck Cattery (breeder: Ra Hoen) in Osaka. ${colorL || ''}, ${genderFullL}${bornL ? ', ' + bornL : ''}.`.replace(/\s+/g, ' ').trim();
+    if (salePrice !== null) ldDesc += ' (excludes ¥10,000 vaccination fee)';
   } else if (lang === 'zh') {
-    pageTitle = `${titleText}｜幼猫详情｜福楽キャッテリー`;
+    pageTitle = `${uniqueTitleText}｜幼猫详情｜福楽キャッテリー`;
     metaDesc = `大阪福楽キャッテリー的${breedL}幼猫。${colorL || ''}、${genderFullL}${bornL ? '、' + bornL : ''}。${salePrice === null ? priceInquiryText(lang) : `¥${pr}（含税）`}${statusTextL(effectiveStatus, 'zh')}。`;
-    ldName = titleText;
+    ldName = uniqueTitleText;
     ldDesc = `大阪福楽キャッテリー（繁育者：罗方远）的${breedL}幼猫。${colorL || ''}、${genderFullL}${bornL ? '、' + bornL : ''}。`;
+    if (salePrice !== null) ldDesc += '（另收疫苗费 10,000 日元）';
   } else {
-    pageTitle = `${titleText}｜子猫詳細｜福楽キャッテリー`;
+    pageTitle = `${uniqueTitleText}｜子猫詳細｜福楽キャッテリー`;
     metaDesc = `大阪の福楽キャッテリーの${kitten.breed || ''}の子猫。${kitten.color || ''}、${genderFull}、${bd ? bd + '生まれ' : ''}。${salePrice === null ? priceInquiryText(lang) : `¥${pr}（税込）`}${st}。`;
-    ldName = titleText;
+    ldName = uniqueTitleText;
     ldDesc = `大阪の福楽キャッテリー（ブリーダー：羅方遠）の${kitten.breed || ''}の子猫。${kitten.color || ''}、${genderFull}、${bd ? bd + '生まれ' : ''}。掲載ID ${fileId}。`;
+    if (salePrice !== null) ldDesc += '（別途ワクチン代10,000円）';
   }
   const homeLabel = HOME_LABEL[lang] || HOME_LABEL.ja;
   const kittensLabel = KITTENS_LABEL[lang] || KITTENS_LABEL.ja;
   const htmlLang = lang;
-  const detailFontHref = lang === 'zh'
-    ? 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap'
-    : 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap';
+  const detailFontHref = fontHref(lang);
 
   // Schema availability
   const schemaAvailability = effectiveStatus === 'available'
@@ -2225,11 +3009,16 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja') {
     </div>`;
   }
 
-  // Note row
-  const noteDetailL = noteFor(kitten, lang);
+  // Note row. Campaign clauses and the retired spellings never reach the table (§1).
+  const noteDetailL = sanitizeOwnerCopy(noteFor(kitten, lang));
   const noteRow = noteDetailL
     ? `<tr><th data-i18n="kitten.note">備考</th><td>${escapeHtml(noteDetailL)}</td></tr>`
     : '';
+
+  // §3 — the listing number is how the owner, Koneko and the customer all refer to a
+  // specific kitten, so the page has to show it instead of hiding it in the URL.
+  const listingLabel = lang === 'en' ? 'Listing ID' : (lang === 'zh' ? '刊登编号' : '掲載番号');
+  const listingRow = `<tr><th>${escapeHtml(listingLabel)}</th><td>${escapeHtml(fileId)}</td></tr>`;
 
   // A reviewed promotion is the current merchandising state and takes precedence over
   // a stale legacy NEW flag. The production data update also clears isNew, but this
@@ -2239,6 +3028,86 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja') {
     ? ` <span class="kitten-promotion-chip usp-chip usp-chip--card" data-promotion-tag="${escapeHtml(promotionTag)}">${escapeHtml(KittenCatalog.promotionLabel(promotionTag, lang))}</span>`
     : '';
   const newBadge = kitten.isNew && !promotionTag ? ' <span class="kit-badge-new">NEW</span>' : '';
+
+  // §9 — a reserved kitten must not offer "book a visit": the visit would be for a cat
+  // that is no longer available, and the customer only finds out on arrival. Send them
+  // to what they can still buy, and to a LINE thread about the same parents instead.
+  const reservedCopy = RESERVED_CTA_COPY[lang] || RESERVED_CTA_COPY.ja;
+  const lineUrl = 'https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true';
+  const ctaHtml = effectiveStatus === 'reserved'
+    ? `
+      <p class="kitten-detail-reserved-note">${escapeHtml(reservedCopy.notice)}</p>
+      <div class="kitten-detail-cta">
+        <a href="/${langDir(lang)}kittens.html" class="btn btn-secondary">
+          ${escapeHtml(reservedCopy.list)}
+        </a>
+        <a href="${lineUrl}" class="btn btn-line" target="_blank" rel="noopener">
+          ${escapeHtml(reservedCopy.line)}
+        </a>
+        <a href="/${langDir(lang)}kittens.html" class="btn btn-outline" data-i18n="kitten.backToList">
+          ← 子猫一覧に戻る
+        </a>
+      </div>`
+    : `
+      <div class="kitten-detail-cta">
+        <a href="${lineUrl}" class="btn btn-line" target="_blank" rel="noopener" data-i18n="kitten.lineChat">
+          LINEでこの子について相談
+        </a>
+        <a href="/booking.html?kitten=${encodeURIComponent(fileId)}" class="btn btn-secondary" data-i18n="kitten.bookVisit">
+          見学を予約する
+        </a>
+        <a href="/${langDir(lang)}kittens.html" class="btn btn-outline" data-i18n="kitten.backToList">
+          ← 子猫一覧に戻る
+        </a>
+      </div>`;
+
+  // The list page carries a sticky mobile CTA and the detail page did not, so the one
+  // screen where a visitor decides had no thumb-reachable way to act. Same markup, same
+  // shared height contract, with the booking link pre-filled with this kitten.
+  const mobileCtaLabels = {
+    ja: { nav: 'クイック連絡', line: 'LINEで相談する', booking: '見学を予約する' },
+    en: { nav: 'Quick contact', line: 'Chat on LINE', booking: 'Book a visit' },
+    zh: { nav: '快速联系', line: '通过LINE咨询', booking: '预约参观' },
+  }[lang] || { nav: 'クイック連絡', line: 'LINEで相談する', booking: '見学を予約する' };
+  // §9 applies to the sticky bar too: never offer a visit booking for a kitten that is
+  // already under negotiation — send that tap to what is still available instead.
+  const mobileBookingHref = effectiveStatus === 'reserved'
+    ? `/${langDir(lang)}kittens.html`
+    : `/booking.html?kitten=${encodeURIComponent(fileId)}`;
+  const mobileBookingLabel = effectiveStatus === 'reserved' ? reservedCopy.list : mobileCtaLabels.booking;
+  const mobileBookingText = effectiveStatus === 'reserved'
+    ? escapeHtml(reservedCopy.list)
+    : '<span data-i18n="cta.booking">見学予約</span>';
+  const mobileCtaHtml = `
+  <!-- ========== MOBILE STICKY CTA BAR ========== -->
+  <div class="mobile-cta-bar" role="navigation" aria-label="${escapeHtml(mobileCtaLabels.nav)}">
+    <div class="mobile-cta-bar-inner">
+      <a class="cta-line" href="${lineUrl}" target="_blank" rel="noopener" data-cta="line" aria-label="${escapeHtml(mobileCtaLabels.line)}">
+        <span class="cta-icon"><i class="ico ico-message-circle" aria-hidden="true"></i></span>
+        <span data-i18n="cta.line">LINEで相談</span>
+      </a>
+      <a class="cta-booking" href="${mobileBookingHref}" data-cta="booking" aria-label="${escapeHtml(mobileBookingLabel)}">
+        <span class="cta-icon"><i class="ico ico-calendar-check" aria-hidden="true"></i></span>
+        ${mobileBookingText}
+      </a>
+    </div>
+  </div>`;
+
+  // GA4 view_item for this exact kitten. analytics.js only fires list-level events, so
+  // without this the detail page — the highest-intent page on the site — reported nothing.
+  const viewItemPayload = {
+    event: 'view_item',
+    items: [{
+      item_id: fileId,
+      item_name: titleText,
+      item_category: kitten.breed || '',
+      ...(salePrice === null ? {} : { price: salePrice, currency: 'JPY' }),
+    }],
+  };
+  const viewItemScript = `  <script>
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push(${jsonForHtmlScript(viewItemPayload)});
+  </script>`;
 
   return `<!DOCTYPE html>
 <html lang="${htmlLang}">
@@ -2260,10 +3129,12 @@ ${hreflangBlock(`kittens/${fileId}.html`)}
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="${detailFontHref}" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="${detailFontHref}" rel="stylesheet"></noscript>
-  <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260712f')}">
+  <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260823a')}">
   <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20260711c')}">
+  <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
-  <script defer src="/nav.js?v=${verAsset('nav.js', '20260816a')}"></script>
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <script defer src="/nav.js?v=${verAsset('nav.js', '20260823a')}"></script>
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
@@ -2369,6 +3240,76 @@ ${productSchemaHtml}  <script type="application/ld+json">
     color: var(--text-note);
     font-weight: 500;
     white-space: nowrap;
+  }
+  .kitten-detail-feenote,
+  .kitten-detail-deposit {
+    margin: -14px 0 10px;
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: var(--text-note);
+  }
+  .kitten-detail-deposit {
+    margin: 0 0 22px;
+  }
+  .kitten-detail-usp {
+    margin: 0 0 28px;
+    padding: 20px 22px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md, 14px);
+    background: var(--bg-cream);
+  }
+  .kitten-detail-usp h2 {
+    margin: 0 0 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+  .kitten-detail-usp p {
+    margin: 0 0 12px;
+    line-height: 1.85;
+  }
+  .kitten-detail-usp ul {
+    margin: 0;
+    padding-left: 1.15em;
+  }
+  .kitten-detail-usp li {
+    margin: 4px 0;
+    line-height: 1.7;
+  }
+  .kitten-detail-shared {
+    margin: 32px 0;
+    padding: 22px 24px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md, 14px);
+  }
+  .kitten-detail-shared h2 {
+    margin: 0 0 16px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+  .kitten-detail-shared-item {
+    margin: 0 0 14px;
+  }
+  .kitten-detail-shared-item h3 {
+    margin: 0 0 4px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+  .kitten-detail-shared-item p {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.8;
+    color: var(--text-note-strong, var(--text-main));
+  }
+  .kitten-detail-reserved-note {
+    margin: 24px 0 12px;
+    padding: 14px 16px;
+    border-radius: var(--radius-sm, 10px);
+    background: var(--bg-cream);
+    color: var(--text-main);
+    line-height: 1.8;
   }
   .kitten-detail-introduction {
     margin: 0 0 32px;
@@ -2511,7 +3452,7 @@ ${productSchemaHtml}  <script type="application/ld+json">
   }
   </style>
 </head>
-<body>
+<body class="has-mobile-cta">
 
   <a class="skip-link" href="#main" data-i18n="a11y.skipToMain">${skipLabel}</a>
 
@@ -2553,6 +3494,8 @@ ${headerHtml}
 
       <!-- Price -->
       <p class="kitten-detail-price">${salePrice === null ? escapeHtml(priceInquiryText(lang)) : `&yen;${pr} <span class="tax" data-i18n="kitten.taxIncl">${taxIncl(lang)}</span>`}</p>
+      ${vaccineFeeHtml(lang)}
+      ${depositHtml(lang)}
 
       <!-- Detail table -->
       <table class="kitten-detail-table">
@@ -2561,10 +3504,15 @@ ${headerHtml}
         <tr><th data-i18n="kitten.color">毛色</th><td>${escapeHtml(colorL || '')}</td></tr>
         <tr><th data-i18n="kitten.birthday">誕生日</th><td${kitten.birthday ? ` data-i18n-birthday="${escapeHtml(kitten.birthday)}"` : ''}>${escapeHtml(bornL)}</td></tr>
         <tr><th data-i18n="kitten.status">状態</th><td${statusI18nKey(effectiveStatus) ? ` data-i18n="${statusI18nKey(effectiveStatus)}"` : ''}>${escapeHtml(stL)}</td></tr>
+        ${listingRow}
         ${noteRow}
       </table>
 
       ${featuredDetailHtml(kitten, lang)}
+
+      ${mixSectionHtml(kitten, lang)}
+
+      ${adultSectionHtml(kitten, lang)}
 
       ${descriptionHtml(kitten, lang)}
 
@@ -2572,18 +3520,10 @@ ${headerHtml}
 
       ${videoHtml}
 
+      ${sharedVisitBlockHtml(lang)}
+
       <!-- CTA buttons -->
-      <div class="kitten-detail-cta">
-        <a href="https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true" class="btn btn-line" target="_blank" rel="noopener" data-i18n="kitten.lineChat">
-          LINEでこの子について相談
-        </a>
-        <a href="/booking.html?kitten=${encodeURIComponent(fileId)}" class="btn btn-secondary" data-i18n="kitten.bookVisit">
-          見学を予約する
-        </a>
-        <a href="/${langDir(lang)}kittens.html" class="btn btn-outline" data-i18n="kitten.backToList">
-          ← 子猫一覧に戻る
-        </a>
-      </div>
+      ${ctaHtml}
     </div>
   </section>
 
@@ -2614,12 +3554,17 @@ ${footerHtml}
     });
   });
   </script>
+${mobileCtaHtml}
+
+${viewItemScript}
   <script src="/kitten-catalog.js?v=${verAsset('kitten-catalog.js', '20260711b')}"></script>
-  <script src="/i18n.js?v=${verAsset('i18n.js', '20260713a')}"></script>
-  <script src="/catalog-i18n.js?v=${verAsset('catalog-i18n.js', '20260710b')}"></script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20260823a')}"></script>
+  <script src="/catalog-i18n.js?v=${verAsset('catalog-i18n.js', '20260823a')}"></script>
   <script src="/kitten-carousel.js?v=${verAsset('kitten-carousel.js', '20260714g')}"></script>
-  <script src="/cta-widget.js?v=${verAsset('cta-widget.js', '20260711b')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20260712e')}"></script>
+  <script src="/cta-widget.js?v=${verAsset('cta-widget.js', '20260823a')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20260823a')}"></script>
+  <script defer src="/mobile-cta.js?v=${verAsset('mobile-cta.js', '20260823a')}"></script>
+  <script defer src="/analytics.js?v=${verAsset('analytics.js', '20260823a')}"></script>
 </body>
 </html>`;
 }
@@ -2790,6 +3735,12 @@ function generateKittenDetailPages(kittens, parents, lang = 'ja') {
 
   // The full snapshot was already deduped and ordered before eligibility filtering.
   const detailKittens = eligible;
+  // Title collisions can only be seen across the whole set, so resolve them once per
+  // language before any page is written.
+  prepareDetailTitles(detailKittens, lang);
+  // Boilerplate alarm runs on the ja pass only: it is a data-level observation and
+  // identical across languages.
+  if (lang === 'ja') warnOnDuplicateOwnerCopy(detailKittens);
   let generatedCount = 0;
   for (const k of detailKittens) {
     const fileId = k.breederId || k.id;
@@ -2797,8 +3748,12 @@ function generateKittenDetailPages(kittens, parents, lang = 'ja') {
     // Optional template fragments intentionally carry indentation around their
     // interpolation slots. Strip line-end spaces at the final write boundary so
     // every generated locale is byte-stable and passes repository diff hygiene.
-    const html = buildKittenDetailHtml(k, headerHtml, footerHtml, lang)
-      .replace(/[ \t]+$/gm, '');
+    const html = prefillI18nDefaults(buildKittenDetailHtml(k, headerHtml, footerHtml, lang), lang)
+      .replace(/[ \t]+$/gm, '')
+      // Optional sections (mix / adult / featured) leave their slot empty for the kittens
+      // they do not apply to. Collapse the resulting blank runs so the emitted page does
+      // not vary in whitespace with which sections happened to apply.
+      .replace(/\n{3,}/g, '\n\n');
     fs.writeFileSync(outputPath, html, 'utf-8');
     generatedCount++;
   }
@@ -3126,7 +4081,7 @@ function generateFeed(articles) {
     items.push({
       slug: a.slug,
       title,
-      description: pickText(a.excerpt).trim(),
+      description: publishViewingAddress(pickText(a.excerpt)),
       link: `${BASE_URL}/blog/${a.slug}.html`,
       pubDate: pub,
       sortKey,

@@ -42,21 +42,24 @@ function setupSite(t) {
   return { siteDir, generator: loadGenerator(t, siteDir) };
 }
 
+// A card with a detail page is an anchor; a sold card (no detail page) stays a div and
+// opens the modal. Both shapes are real output, so the parser reads both.
 function kittenCards(html) {
   const cards = [];
-  const opening = /<div class="kitten-card"([^>]*)>/g;
+  const opening = /<(a|div) class="kitten-card"([^>]*)>/g;
   let match;
   while ((match = opening.exec(html))) {
-    const tags = /<div\b[^>]*>|<\/div>/gi;
+    const name = match[1].toLowerCase();
+    const tags = new RegExp(`<${name}\\b[^>]*>|</${name}>`, 'gi');
     tags.lastIndex = match.index;
     let depth = 0;
     let tag;
     while ((tag = tags.exec(html))) {
-      if (/^<div\b/i.test(tag[0])) depth += 1;
+      if (new RegExp(`^<${name}\\b`, 'i').test(tag[0])) depth += 1;
       else depth -= 1;
       if (depth === 0) {
         const attrs = Object.create(null);
-        for (const attribute of match[1].matchAll(/\b(data-[a-z-]+)="([^"]*)"/g)) {
+        for (const attribute of match[2].matchAll(/\b(data-[a-z-]+)="([^"]*)"/g)) {
           attrs[attribute[1]] = attribute[2];
         }
         cards.push({ attrs, html: html.slice(match.index, tags.lastIndex) });
