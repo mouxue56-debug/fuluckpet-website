@@ -539,6 +539,17 @@ function konekoDescription(context) {
     { optional: true },
   );
   if (!region) return '';
+  const modernCandidates = descendants(
+    context,
+    region,
+    node => isHtmlElement(node) && attr(node, 'itemprop') === 'description',
+  );
+  if (modernCandidates.length) {
+    for (const node of modernCandidates) assertEvidencePath(context, node, region, 'introduction description');
+    const visibleModern = modernCandidates.filter(node => !excludedByVisibility(node));
+    if (visibleModern.length !== 1) throw new Error('Koneko introduction description must be unique and visible');
+    return nodeText(visibleModern[0], { preserveBreaks: true, skipHeadings: true });
+  }
   const content = descendantEvidence(
     context,
     region,
@@ -613,6 +624,13 @@ function cardStatus(context, card) {
     if (unique.length !== 1) throw new Error('conflicting status markup');
     return unique[0];
   }
+
+  const descendantElements = descendants(context, state, node => isHtmlElement(node));
+  for (const node of descendantElements) assertEvidencePath(context, node, state, 'list status');
+  const hasVisibleDescendantText = descendantElements
+    .filter(node => !excludedByVisibility(node))
+    .some(node => nodeText(node) !== '');
+  if (stateText === '' && !hasVisibleDescendantText) return 'available';
 
   const newCandidates = descendants(context, state, node => isHtmlElement(node) && hasClass(node, 'new'));
   for (const marker of newCandidates) assertEvidencePath(context, marker, state, 'live-list marker');

@@ -280,12 +280,19 @@ test('requires an exact whitespace-delimited list status container class', () =>
   assert.equal(page.cards[0].status, 'sold');
 });
 
+test('treats the live empty status container as available after the NEW badge expires', () => {
+  const card = listCard('2608-00001')
+    .replace(/<div class="listLmtInfStt">[\s\S]*?<\/div>/, '<div class="listLmtInfStt"></div>');
+  const page = parseKonekoListPage(listPage([card], { total: 1, end: 1 }), LIST_OPTIONS);
+  assert.equal(page.cards[0].status, 'available');
+});
+
 test('fails closed for out-of-contract, repeated, or unmarked list states', () => {
   assert.throws(() => parseKonekoListPage(listPage([listCard('2608-00001', '成約済み（引き渡し前）')], { total: 1, end: 1 }), LIST_OPTIONS), /unknown status/i);
-  const unmarked = listCard('2608-00001').replace(/<div class="listLmtInfStt">[\s\S]*?<\/div>/, '<div class="listLmtInfStt"></div>');
-  assert.throws(() => parseKonekoListPage(listPage([unmarked], { total: 1, end: 1 }), LIST_OPTIONS), /live|marker|status/i);
   const bareNew = listCard('2608-00001').replace(/<div class="listLmtInfStt">[\s\S]*?<\/div>/, '<div class="listLmtInfStt">NEW</div>');
   assert.throws(() => parseKonekoListPage(listPage([bareNew], { total: 1, end: 1 }), LIST_OPTIONS), /live|marker|status/i);
+  const unknownDescendant = listCard('2608-00001').replace(/<div class="listLmtInfStt">[\s\S]*?<\/div>/, '<div class="listLmtInfStt"><span>掲載停止</span></div>');
+  assert.throws(() => parseKonekoListPage(listPage([unknownDescendant], { total: 1, end: 1 }), LIST_OPTIONS), /live|marker|status/i);
   const unknownDirect = directStateCard('2608-00001', '掲載停止');
   assert.throws(() => parseKonekoListPage(listPage([unknownDirect], { total: 1, end: 1 }), LIST_OPTIONS), /unknown status/i);
   const misleadingNew = directStateCard('2608-00001', '<span class="new status">NEW</span>');
@@ -313,9 +320,9 @@ test('list status evidence is scoped only to the unique listLmtInfStt container'
     parseKonekoListPage(listPage([outsideConflict], { total: 1, end: 1 }), LIST_OPTIONS).cards[0].status,
     'sold',
   );
-  assert.throws(
-    () => parseKonekoListPage(listPage([outsideNew], { total: 1, end: 1 }), LIST_OPTIONS),
-    /live|marker|status/i,
+  assert.equal(
+    parseKonekoListPage(listPage([outsideNew], { total: 1, end: 1 }), LIST_OPTIONS).cards[0].status,
+    'available',
   );
 });
 
@@ -492,6 +499,33 @@ test('normalizes live-shaped Koneko Product facts, parents, note, introduction, 
     description: '一段落\n続き\n\n二段落\n続き',
     detailUrl: KONEKO_DETAIL_OPTIONS.pageUrl,
   });
+});
+
+test('extracts only the live itemprop description and excludes the breeder rating sibling', () => {
+  const introduction = `<div class="petDtlInt"><div class="gnrCnt">
+    <div class="breederRating">ブリーダー評価 5.00（113件）</div>
+    <div itemprop="description"><p>子猫の紹介<br>続き</p><p>二段落</p></div>
+  </div></div>`;
+  assert.equal(
+    parseKonekoDetailPage(konekoDetail({ introduction }), KONEKO_DETAIL_OPTIONS).description,
+    '子猫の紹介\n続き\n\n二段落',
+  );
+});
+
+test('does not fall back when modern description evidence is present but ambiguous', () => {
+  const duplicate = `<div class="petDtlInt"><div class="gnrCnt">旧紹介
+    <div itemprop="description">紹介A</div><div itemprop="description">紹介B</div>
+  </div></div>`;
+  const hidden = `<div class="petDtlInt"><div class="gnrCnt">旧紹介
+    <div itemprop="description" hidden>隠し紹介</div>
+  </div></div>`;
+  assert.throws(() => parseKonekoDetailPage(konekoDetail({ introduction: duplicate }), KONEKO_DETAIL_OPTIONS), /introduction|description|unique|visible/i);
+  assert.throws(() => parseKonekoDetailPage(konekoDetail({ introduction: hidden }), KONEKO_DETAIL_OPTIONS), /introduction|description|visible/i);
+});
+
+test('retains one exact visible legacy gnrCnt description only when modern evidence is absent', () => {
+  const legacy = '<div class="petDtlInt"><div class="gnrCnt"><p>旧形式<br>続き</p></div></div>';
+  assert.equal(parseKonekoDetailPage(konekoDetail({ introduction: legacy }), KONEKO_DETAIL_OPTIONS).description, '旧形式\n続き');
 });
 
 test('maps exact Product offer availability and blocks missing, unknown, or conflicting detail evidence', () => {
