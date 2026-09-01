@@ -510,7 +510,7 @@ test('normalizes live-shaped Koneko Product facts, parents, note, introduction, 
 
 test('extracts only the live itemprop description and excludes the breeder rating sibling', () => {
   const introduction = `<div class="petDtlInt"><div class="gnrCnt">
-    <div class="breederRating">ブリーダー評価 5.00（113件）</div>
+    <div class="breederRating">ブリーダー評価 5.00（100件以上）</div>
     <div itemprop="description"><p>子猫の紹介<br>続き</p><p>二段落</p></div>
   </div></div>`;
   assert.equal(
