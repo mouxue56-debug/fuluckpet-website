@@ -8,15 +8,30 @@ const indexSource = readFileSync(new URL('../index.html', import.meta.url), 'utf
 const i18nSource = readFileSync(new URL('../i18n.js', import.meta.url), 'utf8');
 const cssSource = readFileSync(new URL('../style.css', import.meta.url), 'utf8');
 const about = parse(aboutSource);
-const ids = ['21451','22853','24331','25811','26387','26084','27240','27837','27519','28727','29332','29003','30144','30753'];
-const periods = ['2023-h1','2023-h2','2024-h1','2024-h2','2025-h1','2025-h2','2026-h1'];
-const exactEmbedFacts = [
-  ['21451','2023年上半期'], ['22853','2023年下半期'], ['24331','2024年上半期'],
-  ['25811','2024年下半期'], ['26387','2024年下半期'], ['26084','2024年下半期'],
-  ['27240','2025年上半期'], ['27837','2025年上半期'], ['27519','2025年上半期'],
-  ['28727','2025年下半期'], ['29332','2025年下半期'], ['29003','2025年下半期'],
-  ['30144','2026年上半期'], ['30753','2026年上半期'],
+const index = parse(indexSource);
+const verifiedAwards = [
+  { id: '21451', period: '2023-h1', scope: 'awards.timeline.scope.osaka', rank: 'awards.timeline.rank.1', jsonLdText: '2023年上半期 みんなの子猫ブリーダー サイベリアンブリーダー お客様評価 大阪府1位' },
+  { id: '22853', period: '2023-h2', scope: 'awards.timeline.scope.osaka', rank: 'awards.timeline.rank.3', jsonLdText: '2023年下半期 みんなの子猫ブリーダー サイベリアンブリーダー お客様評価 大阪府3位' },
+  { id: '24331', period: '2024-h1', scope: 'awards.timeline.scope.osaka', rank: 'awards.timeline.rank.2', jsonLdText: '2024年上半期 みんなの子猫ブリーダー サイベリアンブリーダー お客様評価 大阪府2位' },
+  { id: '25811', period: '2024-h2', scope: 'awards.timeline.scope.osaka', rank: 'awards.timeline.rank.1', jsonLdText: '2024年下半期 みんなの子猫ブリーダー サイベリアンブリーダー お客様評価 大阪府1位' },
+  { id: '26387', period: '2024-h2', scope: 'awards.timeline.scope.kansai', rank: 'awards.timeline.rank.1', jsonLdText: '2024年下半期 みんなの子猫ブリーダー サイベリアンブリーダー お客様評価 関西・近畿地域1位' },
+  { id: '26084', period: '2024-h2', scope: 'awards.timeline.scope.national', rank: 'awards.timeline.rank.2', jsonLdText: '2024年下半期 みんなの子猫ブリーダー サイベリアンブリーダー お客様評価 全国2位' },
+  { id: '27240', period: '2025-h1', scope: 'awards.timeline.scope.osaka', rank: 'awards.timeline.rank.1', jsonLdText: '2025年上半期 みんなの子猫ブリーダー サイベリアンブリーダー お客様評価 大阪府1位' },
+  { id: '27837', period: '2025-h1', scope: 'awards.timeline.scope.kansai', rank: 'awards.timeline.rank.1', jsonLdText: '2025年上半期 みんなの子猫ブリーダー サイベリアンブリーダー お客様評価 関西・近畿地域1位' },
+  { id: '27519', period: '2025-h1', scope: 'awards.timeline.scope.national', rank: 'awards.timeline.rank.1', jsonLdText: '2025年上半期 みんなの子猫ブリーダー サイベリアンブリーダー お客様評価 全国1位' },
+  { id: '28727', period: '2025-h2', scope: 'awards.timeline.scope.osaka', rank: 'awards.timeline.rank.1', jsonLdText: '2025年下半期 みんなの子猫ブリーダー サイベリアンブリーダー お客様評価 大阪府1位' },
+  { id: '29332', period: '2025-h2', scope: 'awards.timeline.scope.kansai', rank: 'awards.timeline.rank.1', jsonLdText: '2025年下半期 みんなの子猫ブリーダー サイベリアンブリーダー お客様評価 関西・近畿地域1位' },
+  { id: '29003', period: '2025-h2', scope: 'awards.timeline.scope.national', rank: 'awards.timeline.rank.2', jsonLdText: '2025年下半期 みんなの子猫ブリーダー サイベリアンブリーダー お客様評価 全国2位' },
+  { id: '30144', period: '2026-h1', scope: 'awards.timeline.scope.osaka', rank: 'awards.timeline.rank.1', jsonLdText: '2026年上半期 みんなの子猫ブリーダー サイベリアンブリーダー お客様評価 大阪府1位' },
+  { id: '30753', period: '2026-h1', scope: 'awards.timeline.scope.kansai', rank: 'awards.timeline.rank.2', jsonLdText: '2026年上半期 みんなの子猫ブリーダー サイベリアンブリーダー お客様評価 関西・近畿地域2位' },
 ];
+const periods = ['2023-h1','2023-h2','2024-h1','2024-h2','2025-h1','2025-h2','2026-h1'];
+const periodAltText = {
+  '2023-h1': '2023年上半期', '2023-h2': '2023年下半期',
+  '2024-h1': '2024年上半期', '2024-h2': '2024年下半期',
+  '2025-h1': '2025年上半期', '2025-h2': '2025年下半期',
+  '2026-h1': '2026年上半期',
+};
 const requiredKeys = [
   'awards.timeline.title','awards.timeline.summary','awards.timeline.method','awards.timeline.category',
   'awards.timeline.scope.osaka','awards.timeline.scope.kansai','awards.timeline.scope.national',
@@ -34,6 +49,26 @@ function attr(node, name) {
   return (node.attrs || []).find(item => item.name === name)?.value;
 }
 
+function hasClass(node, className) {
+  return (attr(node, 'class') || '').split(/\s+/).includes(className);
+}
+
+function descendants(node, predicate) {
+  const matches = [];
+  walk(node, child => {
+    if (predicate(child)) matches.push(child);
+  });
+  return matches;
+}
+
+function closestAttr(node, name) {
+  for (let current = node; current; current = current.parentNode) {
+    const value = attr(current, name);
+    if (value !== undefined) return value;
+  }
+  return undefined;
+}
+
 test('publishes every verified Koneko plate once in chronological period groups', () => {
   const images = [];
   const periodNodes = [];
@@ -41,9 +76,33 @@ test('publishes every verified Koneko plate once in chronological period groups'
     if (node.tagName === 'img' && /\/certificate\/(\d+)-L\.png$/.test(attr(node, 'src') || '')) images.push(node);
     if ((attr(node, 'data-award-period') || '').length) periodNodes.push(attr(node, 'data-award-period'));
   });
-  assert.deepEqual(images.map(node => /\/(\d+)-L\.png$/.exec(attr(node, 'src'))[1]), ids);
+  assert.deepEqual(images.map(node => /\/(\d+)-L\.png$/.exec(attr(node, 'src'))[1]), verifiedAwards.map(award => award.id));
   assert.deepEqual(periodNodes, periods);
   assert.equal(new Set(images.map(node => attr(node, 'src'))).size, 14);
+});
+
+test('each award card and LocalBusiness JSON-LD match the complete verified inventory', () => {
+  const cards = descendants(about, node => node.tagName === 'article' && hasClass(node, 'award-evidence-card'));
+  const visibleFacts = cards.map(card => {
+    const image = descendants(card, node => node.tagName === 'img' && /\/certificate\/(\d+)-L\.png$/.test(attr(node, 'src') || ''))[0];
+    const scope = descendants(card, node => node.tagName === 'p' && hasClass(node, 'award-scope'))[0];
+    const rank = descendants(card, node => node.tagName === 'h5')[0];
+    return {
+      id: /\/(\d+)-L\.png$/.exec(attr(image, 'src'))[1],
+      period: closestAttr(card, 'data-award-period'),
+      scope: attr(scope, 'data-i18n'),
+      rank: attr(rank, 'data-i18n'),
+    };
+  });
+  assert.deepEqual(visibleFacts, verifiedAwards.map(({ id, period, scope, rank }) => ({ id, period, scope, rank })));
+
+  const documents = Array.from(
+    aboutSource.matchAll(/<script\s+type=["']application\/ld\+json["'][^>]*>\s*([\s\S]*?)\s*<\/script>/g),
+    match => JSON.parse(match[1]),
+  );
+  const localBusiness = documents.find(document => document['@type'] === 'LocalBusiness');
+  assert.ok(localBusiness, 'about page keeps its LocalBusiness JSON-LD');
+  assert.deepEqual(localBusiness.award, verifiedAwards.map(award => award.jsonLdText));
 });
 
 test('official embeds keep the platform link, dimensions, border, and supplied Japanese alt contract', () => {
@@ -62,9 +121,9 @@ test('official embeds keep the platform link, dimensions, border, and supplied J
 });
 
 test('keeps every platform-supplied link tag byte-for-byte unchanged', () => {
-  for (const [id, period] of exactEmbedFacts) {
-    const exact = `<a href="https://www.koneko-breeder.com/"><img src="https://www.koneko-breeder.com/breeder/images/certificate/${id}-L.png" border="0" alt="みんなの子猫ブリーダー サイベリアン部門 ${period}" style="width:162px; height:256px;"></a>`;
-    assert.equal(aboutSource.split(exact).length - 1, 1, id);
+  for (const { id, period } of verifiedAwards) {
+    const officialEmbed = `<a href="https://www.koneko-breeder.com/"><img src="https://www.koneko-breeder.com/breeder/images/certificate/${id}-L.png" border="0" alt="みんなの子猫ブリーダー サイベリアン部門 ${periodAltText[period]}" style="width:162px; height:256px;"></a>`;
+    assert.equal(aboutSource.split(officialEmbed).length - 1, 1, id);
   }
 });
 
@@ -105,8 +164,10 @@ test('legacy settings code cannot replace official award plates', () => {
 });
 
 test('homepage presents one prominent, localized award proof card without duplicated hero claims', () => {
-  assert.equal((indexSource.match(/class="hero-award-proof"/g) || []).length, 1);
-  assert.equal((indexSource.match(/href="\/about\.html#awards-timeline"/g) || []).length >= 1, true);
+  const proofAnchors = descendants(index, node => node.tagName === 'a' && hasClass(node, 'hero-award-proof'));
+  assert.equal(proofAnchors.length, 1);
+  assert.equal(attr(proofAnchors[0], 'href'), '/about.html#awards-timeline');
+  assert.equal(attr(proofAnchors[0], 'aria-label'), undefined);
   assert.doesNotMatch(indexSource, /2025年上半期 全国第一 \/ 下半期 全国第二/);
   assert.match(indexSource, /data-i18n="hero\.awardProof\.title"/);
   assert.match(indexSource, /data-i18n="hero\.awardProof\.detail"/);

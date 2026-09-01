@@ -743,7 +743,7 @@ const translations = {
 
     // Voice
     'voice.title': 'Customer Reviews',
-    'voice.total': '/ 113 Reviews',
+    'voice.total': '/ 100+ Reviews',
     'voice.r1.text': 'They answered all my questions thoroughly and even prepared the kitten with nail trimming and shampoo before handover. Very reassuring adoption experience.',
     'voice.r1.author': '— L.A from Osaka',
     'voice.r2.text': 'The explanations were very clear and thorough. A wonderful breeder! We received great advice on diet and care for our lovely new kitten.',

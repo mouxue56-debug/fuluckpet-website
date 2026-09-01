@@ -50,6 +50,18 @@ test('award timeline translations load with copy and preserve the verified award
   assert.match(translations.zh['awards.timeline.summary'], /连续 7 个半年度获得 14 枚官方奖牌/);
 });
 
+test('English and Chinese review-count translations never restore the stale exact 113 count', () => {
+  const translations = loadTranslations();
+  const reviewCountKeys = ['obi.reviews', 'voice.total', 'trust.rating'];
+  for (const lang of ['en', 'zh']) {
+    for (const key of reviewCountKeys) {
+      assert.doesNotMatch(translations[lang][key], /113/i, `${lang}.${key}`);
+    }
+  }
+  assert.equal(translations.en['voice.total'], '/ 100+ Reviews');
+  assert.equal(translations.zh['voice.total'], '/ 100条以上评价');
+});
+
 test('home allergy FAQ does not promise an unsupported trial period', () => {
   const translations = loadTranslations();
   assert.doesNotMatch(translations.ja['faq.a1'], /トライアル/);

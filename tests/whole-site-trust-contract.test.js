@@ -63,7 +63,7 @@ test('public review proof stays truthful without a volatile exact count', () => 
 
   for (const file of trackedPublic) {
     const source = read(file);
-    assert.doesNotMatch(source, /113(?:件|\s+reviews|条评价)/, file);
+    assert.doesNotMatch(source, /113(?:件|\s+reviews|条评价)/i, file);
     assert.doesNotMatch(source, /["']reviewCount["']\s*:\s*["']113["']/, file);
   }
   assert.match(read('index.html'), /data-i18n="obi\.reviews">レビュー100件以上<\/span>/);
@@ -266,7 +266,10 @@ test('Osaka breeder pages use per-kitten current pricing in visible copy and par
 test('homepage award evidence links to the verified chronological timeline', () => {
   const home = read('index.html');
   assert.ok(home.includes(`data-i18n="hero.awardProof.title">${HOMEPAGE_AWARD_PROOF_COPY.ja}</strong>`), 'visible hero fallback carries the chronological evidence title');
-  assert.ok(home.includes('href="/about.html#awards-timeline"'), 'homepage evidence card links to the timeline');
+  const proofOpeningTags = Array.from(home.matchAll(/<a\b[^>]*\bclass=["'][^"']*\bhero-award-proof\b[^"']*["'][^>]*>/gi), match => match[0]);
+  assert.equal(proofOpeningTags.length, 1, 'homepage has one award evidence anchor');
+  assert.equal(/\bhref=["']([^"']+)["']/i.exec(proofOpeningTags[0])?.[1], '/about.html#awards-timeline');
+  assert.doesNotMatch(proofOpeningTags[0], /\baria-label\s*=/i, 'translated visible copy supplies the accessible name');
 
   const i18n = read('i18n.js');
   for (const copy of Object.values(HOMEPAGE_AWARD_PROOF_COPY)) assert.ok(i18n.includes(copy), copy);
