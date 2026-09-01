@@ -90,6 +90,14 @@ test('timeline has desktop and mobile trunk layouts without required motion', ()
   assert.match(cssSource, /prefers-reduced-motion/);
 });
 
+test('desktop timeline keeps even years in the physical right column', () => {
+  const desktopCss = cssSource.split('@media (max-width: 767px)')[0];
+  assert.doesNotMatch(desktopCss, /\.award-year:nth-child\(even\) \.award-year-branches\s*\{\s*direction:\s*rtl/);
+  assert.match(desktopCss, /\.award-year:nth-child\(even\) \.award-period\s*\{\s*grid-column:\s*3/);
+  assert.match(desktopCss, /\.award-year:nth-child\(odd\) \.award-period::after\s*\{\s*right:\s*-48px/);
+  assert.match(desktopCss, /\.award-year:nth-child\(even\) \.award-period::after\s*\{\s*left:\s*-48px/);
+});
+
 test('legacy settings code cannot replace official award plates', () => {
   assert.doesNotMatch(aboutSource, /querySelectorAll\(['"]\.award-badge-img img/);
   assert.doesNotMatch(aboutSource, /images\[['"]award-[123]['"]\]/);

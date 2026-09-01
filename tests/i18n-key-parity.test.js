@@ -7,6 +7,13 @@ const test = require('node:test');
 const vm = require('node:vm');
 
 const source = fs.readFileSync(path.resolve(__dirname, '../i18n.js'), 'utf8');
+const awardTimelineKeys = [
+  'awards.timeline.title', 'awards.timeline.summary', 'awards.timeline.method', 'awards.timeline.category',
+  'awards.timeline.scope.osaka', 'awards.timeline.scope.kansai', 'awards.timeline.scope.national',
+  'awards.timeline.rank.1', 'awards.timeline.rank.2', 'awards.timeline.rank.3',
+  'awards.timeline.2023.h1', 'awards.timeline.2023.h2', 'awards.timeline.2024.h1', 'awards.timeline.2024.h2',
+  'awards.timeline.2025.h1', 'awards.timeline.2025.h2', 'awards.timeline.2026.h1',
+];
 
 function loadTranslations() {
   const context = vm.createContext({
@@ -29,6 +36,18 @@ test('Japanese, English, and Chinese dictionaries have exact key parity', () => 
   assert.deepEqual(en, ja, 'English keys drifted from the Japanese source dictionary');
   assert.deepEqual(zh, ja, 'Chinese keys drifted from the Japanese source dictionary');
   assert.ok(ja.length > 400, `unexpectedly small dictionary: ${ja.length} keys`);
+});
+
+test('award timeline translations load with copy and preserve the verified award boundary', () => {
+  const translations = loadTranslations();
+  for (const lang of ['ja', 'en', 'zh']) {
+    for (const key of awardTimelineKeys) {
+      assert.match(translations[lang][key], /\S/, `${lang}.${key} must not be blank`);
+    }
+  }
+  assert.match(translations.ja['awards.timeline.summary'], /7期連続、公式プレート14件/);
+  assert.match(translations.en['awards.timeline.summary'], /Fourteen official plates across seven consecutive half-year periods/);
+  assert.match(translations.zh['awards.timeline.summary'], /连续 7 个半年度获得 14 枚官方奖牌/);
 });
 
 test('home allergy FAQ does not promise an unsupported trial period', () => {
