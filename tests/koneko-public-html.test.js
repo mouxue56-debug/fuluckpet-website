@@ -311,6 +311,9 @@ test('list status evidence is scoped only to the unique listLmtInfStt container'
   const outsideNew = listCard('2608-00001')
     .replace(/<div class="listLmtInfStt">[\s\S]*?<\/div>/, '<div class="listLmtInfStt"></div>')
     .replace('</li>', '<span class="new">NEW</span></li>');
+  const outsidePlainNew = listCard('2608-00001')
+    .replace(/<div class="listLmtInfStt">[\s\S]*?<\/div>/, '<div class="listLmtInfStt"></div>')
+    .replace('</li>', '<span>NEW</span></li>');
 
   assert.equal(
     parseKonekoListPage(listPage([outsideUnknown], { total: 1, end: 1 }), LIST_OPTIONS).cards[0].status,
@@ -320,8 +323,12 @@ test('list status evidence is scoped only to the unique listLmtInfStt container'
     parseKonekoListPage(listPage([outsideConflict], { total: 1, end: 1 }), LIST_OPTIONS).cards[0].status,
     'sold',
   );
+  assert.throws(
+    () => parseKonekoListPage(listPage([outsideNew], { total: 1, end: 1 }), LIST_OPTIONS),
+    /live|marker|status/i,
+  );
   assert.equal(
-    parseKonekoListPage(listPage([outsideNew], { total: 1, end: 1 }), LIST_OPTIONS).cards[0].status,
+    parseKonekoListPage(listPage([outsidePlainNew], { total: 1, end: 1 }), LIST_OPTIONS).cards[0].status,
     'available',
   );
 });
@@ -519,8 +526,12 @@ test('does not fall back when modern description evidence is present but ambiguo
   const hidden = `<div class="petDtlInt"><div class="gnrCnt">旧紹介
     <div itemprop="description" hidden>隠し紹介</div>
   </div></div>`;
+  const visibleAndHidden = `<div class="petDtlInt"><div class="gnrCnt">旧紹介
+    <div itemprop="description">表示紹介</div><div itemprop="description" hidden>隠し紹介</div>
+  </div></div>`;
   assert.throws(() => parseKonekoDetailPage(konekoDetail({ introduction: duplicate }), KONEKO_DETAIL_OPTIONS), /introduction|description|unique|visible/i);
   assert.throws(() => parseKonekoDetailPage(konekoDetail({ introduction: hidden }), KONEKO_DETAIL_OPTIONS), /introduction|description|visible/i);
+  assert.throws(() => parseKonekoDetailPage(konekoDetail({ introduction: visibleAndHidden }), KONEKO_DETAIL_OPTIONS), /introduction|description|unique|visible/i);
 });
 
 test('retains one exact visible legacy gnrCnt description only when modern evidence is absent', () => {

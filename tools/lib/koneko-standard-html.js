@@ -546,6 +546,7 @@ function konekoDescription(context) {
   );
   if (modernCandidates.length) {
     for (const node of modernCandidates) assertEvidencePath(context, node, region, 'introduction description');
+    if (modernCandidates.length !== 1) throw new Error('Koneko introduction description must be unique and visible');
     const visibleModern = modernCandidates.filter(node => !excludedByVisibility(node));
     if (visibleModern.length !== 1) throw new Error('Koneko introduction description must be unique and visible');
     return nodeText(visibleModern[0], { preserveBreaks: true, skipHeadings: true });
@@ -630,7 +631,20 @@ function cardStatus(context, card) {
   const hasVisibleDescendantText = descendantElements
     .filter(node => !excludedByVisibility(node))
     .some(node => nodeText(node) !== '');
-  if (stateText === '' && !hasVisibleDescendantText) return 'available';
+  if (stateText === '' && !hasVisibleDescendantText) {
+    const outsideStatusCandidates = descendants(context, card, (node) => {
+      if (!isHtmlElement(node) || !['new', 'business', 'closed', 'sold', 'status', 'cls'].some(className => hasClass(node, className))) {
+        return false;
+      }
+      for (let current = node.parentNode; current && current !== card; current = current.parentNode) {
+        if (current === state) return false;
+      }
+      return true;
+    });
+    for (const node of outsideStatusCandidates) assertEvidencePath(context, node, card, 'card status evidence');
+    if (outsideStatusCandidates.length) throw new Error('card status evidence is outside the status container');
+    return 'available';
+  }
 
   const newCandidates = descendants(context, state, node => isHtmlElement(node) && hasClass(node, 'new'));
   for (const marker of newCandidates) assertEvidencePath(context, marker, state, 'live-list marker');
