@@ -238,6 +238,10 @@ function assertBackupDirectoryIdentity(backupDirectory) {
     || opened.ino !== backupDirectory.ino) {
     throw new Error('バックアップディレクトリの同一性が変わりました。遠端への書き込みを中止します。');
   }
+  const ownerUid = typeof process.getuid === 'function' ? process.getuid() : null;
+  if ((opened.mode & 0o777) !== 0o700 || (ownerUid !== null && opened.uid !== ownerUid)) {
+    throw new Error('バックアップディレクトリは実行中のユーザーが所有する 0700 のままでなければなりません。遠端への書き込みを中止します。');
+  }
 }
 
 function writeDurableBackup(backupDirectory, live) {

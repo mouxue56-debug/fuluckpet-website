@@ -311,6 +311,52 @@ test('apply creates one durable mode-0600 backup before its first write request 
   assert.equal(existsSync(join(ROOT, '_backups')), false, 'apply must not create a repository backup directory');
 });
 
+test('apply revalidates backup directory privacy after remote reads and before opening a backup file', async (t) => {
+  const fixture = newFixture(t, 'fuluck-backup-mode-race-');
+  const snapshotPath = join(fixture.fixtureDir, 'snapshot.json');
+  const backupDir = join(fixture.fixtureDir, 'private-backups');
+  writeSnapshot(snapshotPath);
+  mkdirSync(backupDir, { mode: 0o700 });
+  chmodSync(backupDir, 0o700);
+
+  const requests = [];
+  const live = [liveKitten('live-1', 170000)];
+  const server = createServer((request, response) => {
+    const method = request.method || 'GET';
+    requests.push({ method, pathname: request.url });
+    request.resume();
+    request.on('end', () => {
+      response.setHeader('Content-Type', 'application/json');
+      if (method === 'GET' && request.url === '/api/admin/kittens') {
+        response.end(JSON.stringify(live));
+      } else if (method === 'GET' && request.url === '/api/parents') {
+        chmodSync(backupDir, 0o770);
+        response.end('[]');
+      } else {
+        response.end('{}');
+      }
+    });
+  });
+  await new Promise((resolve, reject) => {
+    server.once('error', reject);
+    server.listen(0, '127.0.0.1', resolve);
+  });
+  t.after(() => new Promise((resolve) => server.close(resolve)));
+  const address = server.address();
+
+  const result = await runSync(['--apply', '--snapshot', snapshotPath], {
+    ...fixture,
+    trapUrl: `http://127.0.0.1:${address.port}`,
+    backupDir,
+  });
+
+  assert.equal(result.status, 1, result.stderr);
+  assert.match(result.stderr, /バックアップディレクトリ.*0700|バックアップディレクトリ.*権限|バックアップディレクトリ.*所有/);
+  assert.equal(requests.some(({ method }) => method === 'POST' || method === 'PUT'), false);
+  assert.deepEqual(readdirSync(backupDir), [], 'privacy change must be caught before backup-file creation');
+  assert.equal(existsSync(fixture.repoWriteAudit), false);
+});
+
 test('a backup durability failure aborts before any POST or PUT', async (t) => {
   const fixture = newFixture(t, 'fuluck-zero-delete-fsync-failure-');
   const snapshotPath = join(fixture.fixtureDir, 'snapshot.json');
