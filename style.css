@@ -1568,32 +1568,109 @@ button { font-family: inherit; cursor: pointer; }
 /* ========================================
    AWARDS
    ======================================== */
-.awards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-.award-card {
-  background: var(--bg-cream);
-  border-radius: var(--radius-lg);
-  padding: 36px 28px;
-  text-align: center;
-  box-shadow: var(--shadow-soft);
-  transition: all 0.4s var(--ease-out);
-  border: 1px solid rgba(125, 211, 192, 0.06);
+.awards-timeline {
   position: relative;
-  overflow: hidden;
+  list-style: none;
+  margin: 56px auto 0;
+  padding: 0;
+  max-width: 1120px;
 }
-.award-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-hover); }
-.award-icon { font-size: 48px; margin-bottom: 16px; line-height: 1; }
-.award-card h3 {
-  font-family: 'Noto Sans JP', sans-serif;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-heading);
-  margin-bottom: 10px;
+.awards-timeline::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 3px;
+  transform: translateX(-50%);
+  background: linear-gradient(var(--mint), var(--mango));
+  border-radius: 999px;
 }
-.award-card p { font-size: 14.5px; color: var(--text-note); line-height: 2.0; margin-bottom: 16px; }
-.award-ph {
-  background: linear-gradient(135deg, var(--mango-milk), var(--peach-milk));
-  aspect-ratio: 3/2;
-  border-radius: var(--radius-sm);
+.award-year {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 96px 1fr;
+  margin-bottom: 72px;
+}
+.award-year-label {
+  grid-column: 2;
+  align-self: start;
+  justify-self: center;
+  position: sticky;
+  top: 96px;
+  z-index: 2;
+  min-width: 76px;
+  padding: 12px 8px;
+  text-align: center;
+  border-radius: 999px;
+  background: var(--mint-deep);
+  color: #fff;
+}
+.award-year-branches {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 96px 1fr;
+}
+.award-year:nth-child(odd) .award-year-branches { direction: ltr; }
+.award-year:nth-child(even) .award-year-branches { direction: rtl; }
+.award-period {
+  direction: ltr;
+  grid-column: 1;
+  position: relative;
+  margin: 44px 0 0;
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  background: #fff;
+  box-shadow: var(--shadow-card);
+}
+.award-year:nth-child(even) .award-period { grid-column: 3; }
+.award-period::after {
+  content: "";
+  position: absolute;
+  top: 36px;
+  width: 48px;
+  height: 2px;
+  background: var(--mint-deep);
+}
+.award-year:nth-child(odd) .award-period::after { right: -48px; }
+.award-year:nth-child(even) .award-period::after { left: -48px; }
+.award-period-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 18px;
+}
+.award-evidence-card {
+  min-width: 0;
+  padding: 18px;
+  text-align: center;
+  border: 1px solid rgba(91, 196, 168, .25);
+  border-radius: var(--radius-md);
+  background: var(--bg-cream);
+}
+.official-award-embed {
+  min-height: 256px;
+  display: grid;
+  place-items: center;
+}
+.official-award-embed a {
+  display: inline-flex;
+  border-radius: 8px;
+  outline-offset: 5px;
+}
+.official-award-embed a:focus-visible { outline: 3px solid var(--mint-deep); }
+
+@media (max-width: 767px) {
+  .awards-timeline { padding-left: 42px; }
+  .awards-timeline::before { left: 15px; transform: none; }
+  .award-year, .award-year-branches { display: block; }
+  .award-year-label { position: relative; top: auto; margin: 0 0 18px -42px; width: 72px; }
+  .award-period, .award-year:nth-child(even) .award-period { margin: 22px 0 0; padding: 18px; }
+  .award-period::after, .award-year:nth-child(odd) .award-period::after, .award-year:nth-child(even) .award-period::after { left: -27px; right: auto; width: 27px; }
+  .award-period-cards { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .award-evidence-card, .official-award-embed a { animation: none; transition: none; }
 }
 
 
@@ -2296,7 +2373,6 @@ button { font-family: inherit; cursor: pointer; }
     height: 36px;
     font-size: 20px;
   }
-  .awards-grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; }
   .instagram-grid { grid-template-columns: repeat(3, 1fr); }
   .gallery-page-grid { grid-template-columns: repeat(2, 1fr); }
   .reviews-page-grid { grid-template-columns: 1fr; max-width: 520px; margin: 0 auto; }

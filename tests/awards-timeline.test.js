@@ -4,6 +4,8 @@ import test from 'node:test';
 import { parse } from 'parse5';
 
 const aboutSource = readFileSync(new URL('../about.html', import.meta.url), 'utf8');
+const i18nSource = readFileSync(new URL('../i18n.js', import.meta.url), 'utf8');
+const cssSource = readFileSync(new URL('../style.css', import.meta.url), 'utf8');
 const about = parse(aboutSource);
 const ids = ['21451','22853','24331','25811','26387','26084','27240','27837','27519','28727','29332','29003','30144','30753'];
 const periods = ['2023-h1','2023-h2','2024-h1','2024-h2','2025-h1','2025-h2','2026-h1'];
@@ -13,6 +15,13 @@ const exactEmbedFacts = [
   ['27240','2025年上半期'], ['27837','2025年上半期'], ['27519','2025年上半期'],
   ['28727','2025年下半期'], ['29332','2025年下半期'], ['29003','2025年下半期'],
   ['30144','2026年上半期'], ['30753','2026年上半期'],
+];
+const requiredKeys = [
+  'awards.timeline.title','awards.timeline.summary','awards.timeline.method','awards.timeline.category',
+  'awards.timeline.scope.osaka','awards.timeline.scope.kansai','awards.timeline.scope.national',
+  'awards.timeline.rank.1','awards.timeline.rank.2','awards.timeline.rank.3',
+  'awards.timeline.2023.h1','awards.timeline.2023.h2','awards.timeline.2024.h1','awards.timeline.2024.h2',
+  'awards.timeline.2025.h1','awards.timeline.2025.h2','awards.timeline.2026.h1'
 ];
 
 function walk(node, visit) {
@@ -66,6 +75,19 @@ test('the page exposes semantic year, period, and award-card structure', () => {
   assert.ok(tags.some(node => node.tag === 'section' && node.id === 'awards-timeline'));
   assert.ok(tags.some(node => node.tag === 'ol' && node.className.split(/\s+/).includes('awards-timeline')));
   assert.equal(tags.filter(node => node.tag === 'article' && node.className.split(/\s+/).includes('award-evidence-card')).length, 14);
+});
+
+test('timeline copy exists in all three locale dictionaries', () => {
+  for (const key of requiredKeys) {
+    assert.equal((i18nSource.match(new RegExp(`['"]${key.replaceAll('.', '\\.')}['"]\\s*:`, 'g')) || []).length, 3, key);
+  }
+});
+
+test('timeline has desktop and mobile trunk layouts without required motion', () => {
+  assert.match(cssSource, /\.awards-timeline\s*\{[\s\S]*position:\s*relative/);
+  assert.match(cssSource, /\.awards-timeline::before/);
+  assert.match(cssSource, /@media\s*\(max-width:\s*767px\)[\s\S]*\.awards-timeline::before/);
+  assert.match(cssSource, /prefers-reduced-motion/);
 });
 
 test('legacy settings code cannot replace official award plates', () => {
