@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { execFileSync, spawnSync } = require('node:child_process');
+const { readFileSync } = require('node:fs');
 const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..');
@@ -52,4 +53,22 @@ test('public repository tracks no local superpowers review artifacts', () => {
     [],
     `local .superpowers artifacts would be published by Pages: ${tracked.join(', ')}`,
   );
+});
+
+test('future Koneko snapshots and backups are ignored while sync has no tracked-snapshot default', () => {
+  const snapshot = spawnSync(
+    'git',
+    ['check-ignore', '--no-index', '--quiet', 'tools/koneko-snapshot.json'],
+    { cwd: ROOT },
+  );
+  const backup = spawnSync(
+    'git',
+    ['check-ignore', '--no-index', '--quiet', '_backups/kittens-test.json'],
+    { cwd: ROOT },
+  );
+  const syncSource = readFileSync(path.join(ROOT, 'tools/sync-koneko.js'), 'utf8');
+
+  assert.equal(snapshot.status, 0, 'future private snapshots must be ignored even while the current file stays tracked');
+  assert.equal(backup.status, 0, 'repository-local backups must be ignored');
+  assert.doesNotMatch(syncSource, /koneko-snapshot\.json/, 'sync must require an explicit external snapshot');
 });

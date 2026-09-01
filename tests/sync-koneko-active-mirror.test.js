@@ -224,7 +224,7 @@ test('--mirror-active emit uses strict new-record YouTube canonicalization', (t)
         group: 'd696506',
       },
     ],
-  }));
+  }), { mode: 0o600 });
   writeFileSync(fetchStubPath, `
 globalThis.fetch = async (input) => {
   const pathname = new URL(String(input)).pathname;
@@ -269,7 +269,7 @@ test('--mirror-active validates every active source before credentials or a remo
     accounts: { c995680: 'account one', d696506: 'account two' },
     reservedIds: [],
     kittens: [broken, completeSecondAccount],
-  }));
+  }), { mode: 0o600 });
 
   const syncPath = fileURLToPath(new URL('../tools/sync-koneko.js', import.meta.url));
   const result = spawnSync(process.execPath, [syncPath, '--mirror-active', '--snapshot', snapshotPath], {
@@ -295,7 +295,7 @@ test('--mirror-active requires active coverage from both configured account grou
       { ...source(), group: 'c995680' },
       { ...source(), breederId: '2608-00003', group: 'd696506', status: 'sold' },
     ],
-  }));
+  }), { mode: 0o600 });
 
   const syncPath = fileURLToPath(new URL('../tools/sync-koneko.js', import.meta.url));
   const result = spawnSync(process.execPath, [syncPath, '--mirror-active', '--snapshot', snapshotPath], {

@@ -25,6 +25,8 @@ tools/tmp/
 
 # Private rollback snapshots from production data tools
 tools/backups/
+/_backups/
+/tools/koneko-snapshot.json
 
 # Temp plans
 PLAN.md

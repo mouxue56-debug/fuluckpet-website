@@ -5,16 +5,17 @@
  * 真実の源は koneko（日本の掲載プラットフォーム）。本ツールは koneko のスナップショットを
  * 正として、サイト側 KV の子猫目録を突き合わせる。
  *
- *   node tools/sync-koneko.js                     # 差分だけ表示（デフォルト・安全）
- *   node tools/sync-koneko.js --snapshot <path>   # 検証するスナップショットを明示
- *   node tools/sync-koneko.js --apply             # 実際に書き込む
- *   node tools/sync-koneko.js --apply --refresh-photos   # 人手で編集済みの photos も上書き
- *   node tools/sync-koneko.js --apply --force     # available→sold 大量発生ガードを外す
- *   node tools/sync-koneko.js --mirror-active     # 在庫中の Koneko 項目を完全ミラー（削除なし）
+ *   node tools/sync-koneko.js --snapshot <private-path>  # 差分だけ表示（デフォルト・安全）
+ *   node tools/sync-koneko.js --snapshot <private-path> --apply
+ *   node tools/sync-koneko.js --snapshot <private-path> --apply --refresh-photos
+ *   node tools/sync-koneko.js --snapshot <private-path> --apply --force
+ *   node tools/sync-koneko.js --snapshot <private-path> --mirror-active
  *
- * 必要な環境変数: FULUCK_ADMIN_PASS（~/.secrets/yuki/fuluck-admin.env）
+ * 必要な環境変数:
+ *   FULUCK_ADMIN_PASS（~/.secrets/yuki/fuluck-admin.env）
+ *   FULUCK_KONEKO_BACKUP_DIR（--apply 時。公開リポジトリ外に事前作成した 0700 専用ディレクトリ）
  *
- * 書き込みは 1 頭ずつの POST / PUT / DELETE のみ。/bulk は絶対に使わない
+ * 書き込みは 1 頭ずつの POST / PUT のみ。DELETE と /bulk はこの同期ツールでは禁止
  * （runbooks/fuluckpet-admin新浏览器覆盖线上数据-P0.md：一括 REPLACE の事故）。
  *
  * 同期しないもの（意図的）:
@@ -25,8 +26,21 @@
  *   - Drive フォルダを持つ breederId の photos … generate-site.js:3035 が構築時に丸ごと差し替える
  */
 
-import { readFileSync, writeFileSync, mkdirSync } from 'fs';
-import { resolve, dirname } from 'path';
+import {
+  closeSync,
+  constants,
+  fchmodSync,
+  fstatSync,
+  fsyncSync,
+  lstatSync,
+  openSync,
+  readFileSync,
+  realpathSync,
+  writeFileSync,
+  writeSync,
+} from 'fs';
+import { randomBytes } from 'node:crypto';
+import { dirname, isAbsolute, relative, resolve, sep } from 'path';
 
 import { assertFreshKonekoSnapshot } from './lib/koneko-snapshot-freshness.js';
 import {
@@ -43,20 +57,242 @@ const REFRESH_PHOTOS = process.argv.includes('--refresh-photos');
 const FORCE = process.argv.includes('--force');
 const MIRROR_ACTIVE = process.argv.includes('--mirror-active');
 const SOLD_GUARD = 8;
+const REPO_ROOT = resolve(import.meta.dirname, '..');
+const die = (m) => { console.error(`\n✗ ${m}`); process.exit(1); };
 
 const SNAPSHOT_ARG_INDEX = process.argv.indexOf('--snapshot');
 const SNAPSHOT_ARG_VALUE = process.argv[SNAPSHOT_ARG_INDEX + 1];
-if (SNAPSHOT_ARG_INDEX > -1 && (!SNAPSHOT_ARG_VALUE || SNAPSHOT_ARG_VALUE.startsWith('--'))) {
-  console.error('\n✗ --snapshot の後に JSON ファイルを指定してください。');
-  process.exit(1);
+if (SNAPSHOT_ARG_INDEX === -1) {
+  die('--snapshot は必須です。リポジトリ外の新しい Koneko スナップショットを明示してください。');
 }
-const SNAPSHOT_PATH = SNAPSHOT_ARG_INDEX > -1
-  ? resolve(SNAPSHOT_ARG_VALUE)
-  : resolve(import.meta.dirname, 'koneko-snapshot.json');
-const SNAP = JSON.parse(readFileSync(SNAPSHOT_PATH, 'utf-8'));
+if (SNAPSHOT_ARG_INDEX > -1 && (!SNAPSHOT_ARG_VALUE || SNAPSHOT_ARG_VALUE.startsWith('--'))) {
+  die('--snapshot の後に JSON ファイルを指定してください。');
+}
+if (!isAbsolute(SNAPSHOT_ARG_VALUE)) {
+  die('--snapshot にはリポジトリ外の絶対パスを指定してください。');
+}
+
+function pathIsInside(parent, candidate) {
+  const rel = relative(parent, candidate);
+  return rel === '' || (rel !== '..' && !rel.startsWith(`..${sep}`) && !isAbsolute(rel));
+}
+
+function sameFileIdentity(left, right) {
+  return left.dev === right.dev && left.ino === right.ino;
+}
+
+function readPrivateSnapshot(snapshotPath) {
+  const lexicalPath = resolve(snapshotPath);
+  if (pathIsInside(REPO_ROOT, lexicalPath)) {
+    throw new Error('--snapshot にはリポジトリ外の絶対パスを指定してください。');
+  }
+
+  let initial;
+  try {
+    initial = lstatSync(lexicalPath);
+  } catch {
+    throw new Error('--snapshot に読み取り可能な JSON ファイルを指定してください。');
+  }
+  if (initial.isSymbolicLink()) {
+    throw new Error('--snapshot にシンボリックリンクは使用できません。');
+  }
+  if (!initial.isFile()) {
+    throw new Error('--snapshot には通常の JSON ファイルを指定してください。');
+  }
+
+  let fd;
+  try {
+    fd = openSync(lexicalPath, constants.O_RDONLY | constants.O_NOFOLLOW);
+    const openedBefore = fstatSync(fd);
+    if (!openedBefore.isFile() || !sameFileIdentity(initial, openedBefore)) {
+      throw new Error('--snapshot が検証中に置き換えられました。取得し直してください。');
+    }
+    if ((openedBefore.mode & 0o777) !== 0o600) {
+      throw new Error('--snapshot の権限を 0600（所有者だけが読み書き可能）にしてください。');
+    }
+    if (typeof process.getuid === 'function' && openedBefore.uid !== process.getuid()) {
+      throw new Error('--snapshot は実行中のユーザーが所有するファイルを指定してください。');
+    }
+
+    const canonicalPath = realpathSync(lexicalPath);
+    const pathAfterOpen = lstatSync(lexicalPath);
+    if (pathAfterOpen.isSymbolicLink() || !sameFileIdentity(openedBefore, pathAfterOpen)) {
+      throw new Error('--snapshot が検証中に置き換えられました。取得し直してください。');
+    }
+    const canonicalRepo = realpathSync(REPO_ROOT);
+    if (pathIsInside(canonicalRepo, canonicalPath)) {
+      throw new Error('--snapshot の実体はリポジトリ外でなければなりません。');
+    }
+
+    const raw = readFileSync(fd, 'utf8');
+    const openedAfter = fstatSync(fd);
+    if (!sameFileIdentity(openedBefore, openedAfter)
+      || openedBefore.size !== openedAfter.size
+      || openedBefore.mtimeMs !== openedAfter.mtimeMs
+      || openedBefore.ctimeMs !== openedAfter.ctimeMs) {
+      throw new Error('--snapshot が読み取り中に変更されました。取得し直してください。');
+    }
+    return raw;
+  } finally {
+    if (fd !== undefined) closeSync(fd);
+  }
+}
+
+let SNAP;
+try {
+  SNAP = JSON.parse(readPrivateSnapshot(SNAPSHOT_ARG_VALUE));
+} catch (error) {
+  if (error && String(error.message || '').startsWith('--snapshot')) die(error.message);
+  die('--snapshot の JSON を読み取れません。新しく取得し直してください。');
+}
 const H = { Origin: ORIGIN, Authorization: `Bearer ${PASS}`, 'Content-Type': 'application/json' };
 
-const die = (m) => { console.error(`\n✗ ${m}`); process.exit(1); };
+function assertSafeBackupDirectory() {
+  const configured = process.env.FULUCK_KONEKO_BACKUP_DIR || '';
+  if (!configured) {
+    die('--apply にはリポジトリ外の FULUCK_KONEKO_BACKUP_DIR が必要です。');
+  }
+  if (!isAbsolute(configured)) {
+    die('FULUCK_KONEKO_BACKUP_DIR にはリポジトリ外の絶対パスを指定してください。');
+  }
+
+  const lexicalPath = resolve(configured);
+  if (pathIsInside(REPO_ROOT, lexicalPath)) {
+    die('FULUCK_KONEKO_BACKUP_DIR にはリポジトリ外の専用ディレクトリを指定してください。');
+  }
+
+  let lexicalState;
+  try {
+    lexicalState = lstatSync(lexicalPath);
+  } catch {
+    die('FULUCK_KONEKO_BACKUP_DIR は既存の 0700 ディレクトリを指定してください。');
+  }
+  if (lexicalState.isSymbolicLink()) {
+    die('FULUCK_KONEKO_BACKUP_DIR にシンボリックリンクは使用できません。');
+  }
+
+  const ownerUid = typeof process.getuid === 'function' ? process.getuid() : null;
+  let ancestor = lexicalPath;
+  while (true) {
+    const state = lstatSync(ancestor);
+    const trustedOwner = ownerUid === null || state.uid === ownerUid || state.uid === 0;
+    if (!state.isDirectory() || state.isSymbolicLink() || !trustedOwner) {
+      die('FULUCK_KONEKO_BACKUP_DIR の経路に安全でないシンボリックリンクまたは所有者があります。');
+    }
+    if (ancestor === lexicalPath) {
+      if ((state.mode & 0o777) !== 0o700 || (ownerUid !== null && state.uid !== ownerUid)) {
+        die('FULUCK_KONEKO_BACKUP_DIR は実行中のユーザーが所有する 0700 の専用ディレクトリにしてください。');
+      }
+    } else if (ancestor === dirname(lexicalPath)) {
+      if ((state.mode & 0o777) !== 0o700 || (ownerUid !== null && state.uid !== ownerUid)) {
+        die('FULUCK_KONEKO_BACKUP_DIR の直接の親も、実行中のユーザーが所有する 0700 の専用ディレクトリにしてください。');
+      }
+    } else if ((state.mode & 0o022) !== 0) {
+      die('FULUCK_KONEKO_BACKUP_DIR の上位経路に他ユーザーが書き込めるディレクトリは使用できません。');
+    }
+    const next = dirname(ancestor);
+    if (next === ancestor) break;
+    ancestor = next;
+  }
+
+  let canonicalPath;
+  try {
+    canonicalPath = realpathSync(lexicalPath);
+  } catch {
+    die('FULUCK_KONEKO_BACKUP_DIR は既存の 0700 ディレクトリを指定してください。');
+  }
+  const canonicalRepo = realpathSync(REPO_ROOT);
+  if (pathIsInside(canonicalRepo, canonicalPath)) {
+    die('FULUCK_KONEKO_BACKUP_DIR の実体はリポジトリ外でなければなりません。');
+  }
+
+  let fd;
+  try {
+    fd = openSync(canonicalPath, constants.O_RDONLY | constants.O_DIRECTORY | constants.O_NOFOLLOW);
+    const opened = fstatSync(fd);
+    if (!opened.isDirectory() || !sameFileIdentity(lexicalState, opened)) {
+      throw new Error('バックアップディレクトリの同一性を確認できません。');
+    }
+    if ((opened.mode & 0o777) !== 0o700 || (ownerUid !== null && opened.uid !== ownerUid)) {
+      throw new Error('バックアップディレクトリは実行中のユーザーが所有する 0700 の専用ディレクトリにしてください。');
+    }
+    return { path: canonicalPath, fd, dev: opened.dev, ino: opened.ino };
+  } catch (error) {
+    if (fd !== undefined) closeSync(fd);
+    die(error && error.message ? error.message : 'バックアップディレクトリを安全に開けません。');
+  }
+}
+
+function assertBackupDirectoryIdentity(backupDirectory) {
+  let pathState;
+  try {
+    pathState = lstatSync(backupDirectory.path);
+  } catch {
+    throw new Error('バックアップディレクトリが検証後に置き換えられました。遠端への書き込みを中止します。');
+  }
+  const opened = fstatSync(backupDirectory.fd);
+  if (pathState.isSymbolicLink()
+    || !pathState.isDirectory()
+    || !sameFileIdentity(pathState, opened)
+    || opened.dev !== backupDirectory.dev
+    || opened.ino !== backupDirectory.ino) {
+    throw new Error('バックアップディレクトリの同一性が変わりました。遠端への書き込みを中止します。');
+  }
+}
+
+function writeDurableBackup(backupDirectory, live) {
+  assertBackupDirectoryIdentity(backupDirectory);
+  const stamp = new Date().toISOString().slice(0, 23).replace(/[:T.]/g, '-');
+  const payload = Buffer.from(JSON.stringify(live, null, 2), 'utf8');
+  let backupPath;
+  let backupFd;
+
+  try {
+    for (let attempt = 0; attempt < 8; attempt++) {
+      backupPath = resolve(
+        backupDirectory.path,
+        `kittens-${stamp}-${randomBytes(8).toString('hex')}-同期前.json`,
+      );
+      try {
+        backupFd = openSync(
+          backupPath,
+          constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW,
+          0o600,
+        );
+        break;
+      } catch (error) {
+        if (error && error.code === 'EEXIST') continue;
+        throw error;
+      }
+    }
+    if (backupFd === undefined) {
+      throw new Error('重複しないバックアップファイル名を確保できません。');
+    }
+
+    fchmodSync(backupFd, 0o600);
+    const opened = fstatSync(backupFd);
+    if (!opened.isFile() || (opened.mode & 0o777) !== 0o600) {
+      throw new Error('バックアップファイルを 0600 の通常ファイルとして作成できません。');
+    }
+    assertBackupDirectoryIdentity(backupDirectory);
+
+    let offset = 0;
+    while (offset < payload.length) {
+      const written = writeSync(backupFd, payload, offset, payload.length - offset, null);
+      if (written <= 0) throw new Error('バックアップファイルを完全に書き込めません。');
+      offset += written;
+    }
+    fsyncSync(backupFd);
+    closeSync(backupFd);
+    backupFd = undefined;
+    fsyncSync(backupDirectory.fd);
+    assertBackupDirectoryIdentity(backupDirectory);
+    return backupPath;
+  } finally {
+    if (backupFd !== undefined) closeSync(backupFd);
+    closeSync(backupDirectory.fd);
+  }
+}
 
 /** 生成器も実行時も最終的に embed 形へ正規化するので、保存も embed 形に統一する。 */
 function normalizeVideo(v) {
@@ -114,6 +350,11 @@ async function main() {
   const K = SNAP.kittens || [];
   if (!K.length) die('スナップショットが空。');
   if (!Array.isArray(SNAP.reservedIds)) die('reservedIds 欠落。空なら明示的に [] を書くこと。');
+  const requestedDeletes = SNAP.deleteRecordIds || [];
+  if (!Array.isArray(requestedDeletes)) die('deleteRecordIds は配列で指定してください。');
+  if (requestedDeletes.length) {
+    die('deleteRecordIds による物理削除は禁止です。重複整理は別の人工承認手順で実施してください。');
+  }
   const covered = new Set(K.map(k => k.group));
   for (const acc of Object.keys(SNAP.accounts || {})) {
     if (!covered.has(acc)) die(`スナップショットに ${acc} の掲載が1件も無い。取得漏れの疑い。`);
@@ -135,6 +376,8 @@ async function main() {
     }
   }
 
+  const backupDirectory = APPLY ? assertSafeBackupDirectory() : null;
+
   if (!PASS) die('FULUCK_ADMIN_PASS 未設定。~/.secrets/yuki/fuluck-admin.env を source すること。');
 
   const res = await fetch(`${WORKER}/api/admin/kittens`, { headers: H }).catch(e => ({ ok: false, e }));
@@ -147,16 +390,7 @@ async function main() {
     if (!byBid.has(k.breederId)) byBid.set(k.breederId, []);
     byBid.get(k.breederId).push(k);
   }
-  const liveById = new Map(live.map(k => [k.id, k]));
   const snapByBid = new Map(K.map(k => [k.breederId, k]));
-
-  // ---- 削除対象（重複登録の掃除）。id ではなく「その id が本当にその猫か」まで検証する ----
-  const deletes = MIRROR_ACTIVE ? [] : (SNAP.deleteRecordIds || []).filter(d => liveById.has(d.id));
-  for (const d of deletes) {
-    const actual = liveById.get(d.id).breederId;
-    if (actual !== d.breederId) die(`削除中止: ${d.id} は ${d.breederId} のはずが実際は ${actual}`);
-  }
-  const doomed = new Set(deletes.map(d => d.id));
 
   // ---- 追加 ----
   const adds = K.filter(k => k.status !== 'sold' && !byBid.has(k.breederId));
@@ -165,7 +399,6 @@ async function main() {
   const updates = [];
   const notes = [];
   for (const rec of live) {
-    if (doomed.has(rec.id)) continue;
     const s = snapByBid.get(rec.breederId);
     let patch;
 
@@ -249,8 +482,7 @@ async function main() {
     console.log(`   ~ ${rec.breederId}  ${bits.join(' | ')}`);
   }
 
-  console.log(`\n【重複削除】${deletes.length} 件`);
-  for (const d of deletes) console.log(`   - ${d.breederId} (${d.id})  ${d.reason}`);
+  console.log(`\n【物理削除】0 件（自動同期では禁止）`);
 
   // 親猫。papa/mama は parents の name と厳密一致でしか繋がらない（script.js:537）。
   // koneko 側にいるのにサイトに未登録の親は、先に作らないと子の血統欄が空のままになる。
@@ -267,7 +499,7 @@ async function main() {
     for (const a of noPhoto) console.log(`   ! ${a.breederId}`);
   }
   for (const [bid, recs] of byBid) {
-    if (recs.length > 1 && !recs.some(r => doomed.has(r.id))) {
+    if (recs.length > 1) {
       console.warn(`\n   ! 未登記の重複: ${bid} → ${recs.map(r => r.id).join(', ')}`);
     }
   }
@@ -277,7 +509,6 @@ async function main() {
   const emitIdx = process.argv.indexOf('--emit');
   if (emitIdx > -1 && process.argv[emitIdx + 1]) {
     const patched = live
-      .filter(r => !doomed.has(r.id))
       .map(r => {
         const u = updates.find(x => x.rec.id === r.id);
         return u ? { ...r, ...u.patch } : r;
@@ -289,12 +520,9 @@ async function main() {
 
   if (!APPLY) { console.log(`\n(ドライラン。実行するには --apply)\n`); return; }
 
-  // ---- バックアップ（削除・上書きの前に必ず）----
-  const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
-  const bpath = resolve(import.meta.dirname, `../_backups/kittens-${stamp}-同期前.json`);
-  mkdirSync(dirname(bpath), { recursive: true });
-  writeFileSync(bpath, JSON.stringify(live, null, 2));
-  console.log(`\nバックアップ: ${bpath}`);
+  // ---- バックアップ（最初の POST / PUT より前に必ず耐久化）----
+  const backupPath = writeDurableBackup(backupDirectory, live);
+  console.log(`\nバックアップ: ${backupPath}`);
 
   console.log(`--- 書き込み開始 ---`);
   let ok = 0, fail = 0;
@@ -319,16 +547,6 @@ async function main() {
     const r = await req('POST', '/api/admin/kittens', buildNewKittenRecord(a));
     if (r.ok) { console.log(`   ✓ 追加 ${a.breederId}`); ok++; }
     else { console.error(`   ✗ 追加失敗 ${a.breederId}: ${r.why}`); fail++; }
-  }
-
-  // 削除は最後。追加・更新に失敗が出た回では消さない
-  if (deletes.length) {
-    if (fail) console.error(`\n   ! 失敗があるため重複削除をスキップ（データを消す前に止める）`);
-    else for (const d of deletes) {
-      const r = await req('DELETE', `/api/admin/kittens/${encodeURIComponent(d.id)}`);
-      if (r.ok) { console.log(`   ✓ 削除 ${d.breederId} (${d.id})`); ok++; }
-      else { console.error(`   ✗ 削除失敗 ${d.id}: ${r.why}`); fail++; }
-    }
   }
 
   console.log(`\n完了: 成功 ${ok} / 失敗 ${fail}`);
