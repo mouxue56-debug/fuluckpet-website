@@ -32,8 +32,8 @@ const nodeVersion = fs.readFileSync(
   'utf8',
 ).trim();
 
-const CHECKOUT = 'actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5';
-const SETUP_NODE = 'actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020';
+const CHECKOUT = 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1';
+const SETUP_NODE = 'actions/setup-node@820762786026740c76f36085b0efc47a31fe5020';
 const UPLOAD = 'actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02';
 const NPM_CI = 'npm ci --ignore-scripts --no-audit --no-fund';
 const KONEKO_TEST_COMMAND = 'node --test tests/koneko-public-html.test.js tests/koneko-public-crawl.test.js tests/koneko-catalog-audit.test.js tests/koneko-audit-cli.test.js tests/workflow-integrity.test.js';
@@ -283,8 +283,8 @@ function assertKonekoWorkflowPolicy(source) {
   assert.match(source, /node-version-file:\s*['"]?\.node-version['"]?/);
   assert.match(source, /cache:\s*npm/);
   assert.match(source, /cache-dependency-path:\s*package-lock\.json/);
-  assert.match(source, new RegExp(`${CHECKOUT.replace('/', '\\/')}\\s+#\\s+v4`));
-  assert.match(source, new RegExp(`${SETUP_NODE.replace('/', '\\/')}\\s+#\\s+v4`));
+  assert.match(source, new RegExp(`${CHECKOUT.replace('/', '\\/')}\\s+#\\s+v7\\.0\\.1`));
+  assert.match(source, new RegExp(`${SETUP_NODE.replace('/', '\\/')}\\s+#\\s+v7\\.0\\.0`));
   assert.match(source, new RegExp(`${UPLOAD.replace('/', '\\/')}\\s+#\\s+v4\\.6\\.2`));
   assert.match(source, new RegExp(escapeRegExp(KONEKO_TEST_COMMAND)));
   assert.match(source, /retention-days:\s*14/);
@@ -451,8 +451,8 @@ test('GitHub-maintained actions use the exact reviewed immutable SHAs', () => {
       assert.equal(match[0], approvedActions.get(action));
     }
 
-    assert.match(source, new RegExp(`${CHECKOUT.replace('/', '\\/')}\\s+#\\s+v4`));
-    assert.match(source, new RegExp(`${SETUP_NODE.replace('/', '\\/')}\\s+#\\s+v4`));
+    assert.match(source, new RegExp(`${CHECKOUT.replace('/', '\\/')}\\s+#\\s+v7\\.0\\.1`));
+    assert.match(source, new RegExp(`${SETUP_NODE.replace('/', '\\/')}\\s+#\\s+v7\\.0\\.0`));
   }
 });
 
