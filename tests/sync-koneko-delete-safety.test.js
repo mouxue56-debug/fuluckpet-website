@@ -14,7 +14,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { createServer } from 'node:http';
-import { tmpdir } from 'node:os';
+import { homedir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -192,7 +192,8 @@ function runSync(args, options) {
 }
 
 function newFixture(t, prefix) {
-  const fixtureDir = realpathSync(mkdtempSync(join(tmpdir(), prefix)));
+  const fixtureDir = realpathSync(mkdtempSync(join(homedir(), `.${prefix}`)));
+  chmodSync(fixtureDir, 0o700);
   t.after(() => rmSync(fixtureDir, { recursive: true, force: true }));
   const guardPath = join(fixtureDir, 'network-guard.mjs');
   const repoWriteAudit = join(fixtureDir, 'repo-write-audit.txt');
