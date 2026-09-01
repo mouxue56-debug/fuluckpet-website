@@ -48,10 +48,10 @@ const BREEDER_VISIT_COPY = {
   zh: '请先通过 LINE 或预约表单咨询。LINE 视频通话仅用于前期咨询和线上看猫；签约前仍须到登记营业场所现场确认幼猫实物并接受面对面说明。',
 };
 
-const HOMEPAGE_AWARD_COPY = {
-  ja: '2025年上半期 全国サイベリアンブリーダー お客様評価第1位',
-  en: 'H1 2025: No. 1 nationwide for customer ratings among Siberian breeders',
-  zh: '2025年上半年 全国西伯利亚猫繁育者 客户评价第1名',
+const HOMEPAGE_AWARD_PROOF_COPY = {
+  ja: '2023年から7期連続受賞',
+  en: 'Recognized for 7 consecutive periods since 2023',
+  zh: '自 2023 年起连续 7 个半年度获奖',
 };
 
 test('public review proof stays truthful without a volatile exact count', () => {
@@ -66,7 +66,7 @@ test('public review proof stays truthful without a volatile exact count', () => 
     assert.doesNotMatch(source, /113(?:件|\s+reviews|条评价)/, file);
     assert.doesNotMatch(source, /["']reviewCount["']\s*:\s*["']113["']/, file);
   }
-  assert.match(read('index.html'), /口コミ評価 5\.00 \/ 100件以上/);
+  assert.match(read('index.html'), /data-i18n="obi\.reviews">レビュー100件以上<\/span>/);
   assert.match(read('i18n.js'), /100\+ reviews/);
   assert.match(read('i18n.js'), /100条以上评价/);
 });
@@ -263,14 +263,13 @@ test('Osaka breeder pages use per-kitten current pricing in visible copy and par
   );
 });
 
-test('homepage satisfaction claim is bounded to the H1 2025 nationwide Siberian customer-rating award', () => {
+test('homepage award evidence links to the verified chronological timeline', () => {
   const home = read('index.html');
-  const description = home.match(/<meta\s+name=["']description["']\s+content=["']([^"']+)["']/)[1];
-  assert.ok(description.includes(HOMEPAGE_AWARD_COPY.ja), 'homepage metadata carries the bounded award claim');
-  assert.ok(home.includes(`data-i18n="hero.no1">${HOMEPAGE_AWARD_COPY.ja}</span>`), 'visible hero fallback carries the bounded award claim');
+  assert.ok(home.includes(`data-i18n="hero.awardProof.title">${HOMEPAGE_AWARD_PROOF_COPY.ja}</strong>`), 'visible hero fallback carries the chronological evidence title');
+  assert.ok(home.includes('href="/about.html#awards-timeline"'), 'homepage evidence card links to the timeline');
 
   const i18n = read('i18n.js');
-  for (const copy of Object.values(HOMEPAGE_AWARD_COPY)) assert.ok(i18n.includes(copy), copy);
+  for (const copy of Object.values(HOMEPAGE_AWARD_PROOF_COPY)) assert.ok(i18n.includes(copy), copy);
   assert.doesNotMatch(`${home}\n${i18n}`, /全国満足度\s*No\.1|No\.1 Customer Satisfaction Nationwide|全国客户满意度\s*No\.1/);
 });
 

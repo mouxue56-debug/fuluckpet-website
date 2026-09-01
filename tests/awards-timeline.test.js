@@ -4,6 +4,7 @@ import test from 'node:test';
 import { parse } from 'parse5';
 
 const aboutSource = readFileSync(new URL('../about.html', import.meta.url), 'utf8');
+const indexSource = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const i18nSource = readFileSync(new URL('../i18n.js', import.meta.url), 'utf8');
 const cssSource = readFileSync(new URL('../style.css', import.meta.url), 'utf8');
 const about = parse(aboutSource);
@@ -101,4 +102,15 @@ test('desktop timeline keeps even years in the physical right column', () => {
 test('legacy settings code cannot replace official award plates', () => {
   assert.doesNotMatch(aboutSource, /querySelectorAll\(['"]\.award-badge-img img/);
   assert.doesNotMatch(aboutSource, /images\[['"]award-[123]['"]\]/);
+});
+
+test('homepage presents one prominent, localized award proof card without duplicated hero claims', () => {
+  assert.equal((indexSource.match(/class="hero-award-proof"/g) || []).length, 1);
+  assert.equal((indexSource.match(/href="\/about\.html#awards-timeline"/g) || []).length >= 1, true);
+  assert.doesNotMatch(indexSource, /2025年上半期 全国第一 \/ 下半期 全国第二/);
+  assert.match(indexSource, /data-i18n="hero\.awardProof\.title"/);
+  assert.match(indexSource, /data-i18n="hero\.awardProof\.detail"/);
+  assert.match(indexSource, /data-i18n="hero\.awardProof\.cta"/);
+  const hero = indexSource.match(/<section class="hero">[\s\S]*?<\/section>/)?.[0] || '';
+  assert.doesNotMatch(hero, /koneko-breeder\.com/);
 });
