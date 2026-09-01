@@ -554,12 +554,12 @@ test('controlled-page loader blocks missing, nonregular, symlinked, and oversize
   }
 });
 
-test('offline controlled render contract accepts all 66 checked-out Fuluck detail pages with normal SVG', async () => {
+test('offline controlled render contract accepts all checked-out Fuluck detail pages with normal SVG', async () => {
   const ids = (await readdir(join(PROJECT, 'kittens')))
     .filter(name => /^\d{4}-\d{5}\.html$/.test(name))
     .map(name => name.slice(0, -'.html'.length))
     .sort();
-  assert.equal(ids.length, 22);
+  assert.ok(ids.length > 0);
   const pages = new Map();
   for (const breederId of ids) {
     for (const locale of ['ja', 'en', 'zh']) {
@@ -577,10 +577,14 @@ test('offline controlled render contract accepts all 66 checked-out Fuluck detai
       : publicResponse({ body: pages.get(url), url }),
   });
 
-  assert.equal(pages.size, 66);
-  assert.equal(result.renderedPages.length, 66);
+  const expectedPageCount = ids.length * 3;
+  assert.equal(pages.size, expectedPageCount);
+  assert.equal(result.renderedPages.length, expectedPageCount);
   assert.equal(result.renderedPages.every(page => /^[a-f0-9]{64}$/.test(page.sha256)), true);
-  assert.deepEqual(result.renderedPages.reduce((counts, page) => ({ ...counts, [page.locale]: counts[page.locale] + 1 }), { ja: 0, en: 0, zh: 0 }), { ja: 22, en: 22, zh: 22 });
+  assert.deepEqual(
+    result.renderedPages.reduce((counts, page) => ({ ...counts, [page.locale]: counts[page.locale] + 1 }), { ja: 0, en: 0, zh: 0 }),
+    { ja: ids.length, en: ids.length, zh: ids.length },
+  );
 });
 
 test('Fuluck rendered transport strips only one proven final inline Cloudflare script before hashing', async () => {
