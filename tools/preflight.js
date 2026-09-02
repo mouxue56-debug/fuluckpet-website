@@ -7,7 +7,7 @@
  */
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, lstatSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -41,14 +41,21 @@ export function classifyReleaseState({ branch, originAvailable, behind, ahead, d
 export function classifyNode(expected, actual) {
   const wanted = String(expected).trim().match(/^v?(\d+)$/)?.[1];
   const running = String(actual).trim().match(/^v?(\d+)(?:\.\d+){0,2}$/)?.[1];
-  if (!wanted) return { status: 'RED', detail: '.node-version must contain one Node major' };
-  if (!running) return { status: 'RED', detail: 'running Node version is invalid' };
+  if (!wanted || Number(wanted) < 1) return { status: 'RED', detail: '.node-version must contain one positive Node major' };
+  if (!running || Number(running) < 1) return { status: 'RED', detail: 'running Node version is invalid' };
   if (wanted !== running) return { status: 'RED', detail: `.node-version wants ${wanted}, running ${running}` };
   return { status: 'GREEN', detail: `Node major ${running} matches .node-version` };
 }
 
 export function missingRequiredPaths(requiredPaths, presentPaths) {
   return requiredPaths.filter((path) => !presentPaths.has(path));
+}
+
+export function classifyRequiredPathEntry({ exists, isFile, isSymbolicLink, headMode }) {
+  if (!exists) return { status: 'RED', detail: 'missing from working tree' };
+  if (isSymbolicLink || !isFile) return { status: 'RED', detail: 'working tree entry is not a non-symlink regular file' };
+  if (headMode !== '100644' && headMode !== '100755') return { status: 'RED', detail: 'HEAD entry is not a tracked regular blob' };
+  return { status: 'GREEN', detail: 'tracked non-symlink regular file' };
 }
 
 export function classifyBackupsIgnored(ignored) {
@@ -93,12 +100,21 @@ function checkNode() {
 }
 
 function checkRequiredPaths() {
-  const present = new Set(REQUIRED_PATHS.filter((path) => existsSync(resolve(ROOT, path))));
-  const missing = missingRequiredPaths(REQUIRED_PATHS, present);
+  const invalid = REQUIRED_PATHS.filter((path) => {
+    const full = resolve(ROOT, path);
+    let entry = { exists: false, isFile: false, isSymbolicLink: false };
+    try {
+      const stat = lstatSync(full);
+      entry = { exists: true, isFile: stat.isFile(), isSymbolicLink: stat.isSymbolicLink() };
+    } catch {}
+    const head = tryGit(['ls-tree', 'HEAD', '--', path]);
+    const headMode = head.ok ? head.out.match(/^(\d+)\s+blob\s+\S+\t/)?.[1] ?? '' : '';
+    return classifyRequiredPathEntry({ ...entry, headMode }).status === 'RED';
+  });
   return result(
     'required-files',
-    missing.length === 0 ? 'GREEN' : 'RED',
-    missing.length === 0 ? 'required workflows and safety modules are present' : `missing: ${missing.join(', ')}`,
+    invalid.length === 0 ? 'GREEN' : 'RED',
+    invalid.length === 0 ? 'required workflows and safety modules are present' : `missing or insecure: ${invalid.join(', ')}`,
   );
 }
 

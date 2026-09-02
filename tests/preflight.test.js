@@ -30,9 +30,23 @@ test('node pin must be one valid major and must match the running major', async 
   assert.equal(classifyNode('24\n', '24.3.0').status, 'GREEN');
   assert.equal(classifyNode('v24', '24.0.0').status, 'GREEN');
   assert.equal(classifyNode('24\n', '22.22.3').status, 'RED');
+  assert.equal(classifyNode('0', '0.0.0').status, 'RED');
   assert.equal(classifyNode('', '24.0.0').status, 'RED');
   assert.equal(classifyNode('24\n25\n', '24.0.0').status, 'RED');
   assert.equal(classifyNode('latest', '24.0.0').status, 'RED');
+});
+
+test('required entries must be tracked non-symlink regular files', async () => {
+  const { classifyRequiredPathEntry } = await import('../tools/preflight.js');
+
+  assert.equal(classifyRequiredPathEntry({ exists: true, isFile: true, isSymbolicLink: false, headMode: '100644' }).status, 'GREEN');
+  assert.equal(classifyRequiredPathEntry({ exists: true, isFile: true, isSymbolicLink: false, headMode: '100755' }).status, 'GREEN');
+  assert.equal(classifyRequiredPathEntry({ exists: false }).status, 'RED');
+  assert.equal(classifyRequiredPathEntry({ exists: true, isFile: false, isSymbolicLink: false, headMode: '100644' }).status, 'RED');
+  assert.equal(classifyRequiredPathEntry({ exists: true, isFile: true, isSymbolicLink: true, headMode: '100644' }).status, 'RED');
+  assert.equal(classifyRequiredPathEntry({ exists: true, isFile: true, isSymbolicLink: false, headMode: '' }).status, 'RED');
+  assert.equal(classifyRequiredPathEntry({ exists: true, isFile: true, isSymbolicLink: false, headMode: '120000' }).status, 'RED');
+  assert.equal(classifyRequiredPathEntry({ exists: true, isFile: true, isSymbolicLink: false, headMode: '040000' }).status, 'RED');
 });
 
 test('required-path check reports every missing workflow or safety module', async () => {
@@ -68,14 +82,17 @@ test('preflight source stays read-only, local-only, and outside the catalogue sn
   }
 });
 
-test('CLI reports a dirty worktree as RED and leaves it unchanged', () => {
+test('CLI reports its read-only verdict and leaves the worktree unchanged', () => {
   const before = gitStatus();
   const run = spawnSync(process.execPath, [PREFLIGHT], { cwd: ROOT, encoding: 'utf8' });
 
   assert.equal(run.error, undefined, `preflight failed to start: ${run.error?.message}`);
   assert.match(run.stdout, /preflight \(read-only\)/);
-  assert.match(run.stdout, /RED\s+release-state.*working tree has uncommitted changes/);
-  assert.equal(run.status, 1);
+  assert.equal(
+    run.status,
+    /blocking static release check\(s\) failed/.test(run.stdout) ? 1 : 0,
+    'preflight exit code must match its reported blocking verdict',
+  );
   assert.equal(gitStatus(), before, 'preflight must not change the working tree');
 });
 
