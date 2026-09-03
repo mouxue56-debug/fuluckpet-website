@@ -214,6 +214,10 @@ test('award visuals use one isolated, cache-busted stylesheet on only the two aw
   assert.match(awardsCssSource, /var\(--bg-cream\)/);
   assert.match(awardsCssSource, /var\(--text-heading\)/);
   assert.doesNotMatch(awardsCssSource, /font-family|#[0-9a-f]{3,8}/i);
+
+  const proofRule = awardsCssSource.match(/\.hero-award-proof\s*\{([^}]*)\}/)?.[1] || '';
+  assert.match(proofRule, /display:\s*grid/);
+  assert.match(proofRule, /align-items:\s*center/);
 });
 
 test('the latest timeline branch and Osaka plate are explicitly identifiable', () => {

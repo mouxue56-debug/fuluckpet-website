@@ -1,7 +1,9 @@
 /* Award surfaces only: integrates official proof into the existing ice-cream design. */
 
 .hero-award-proof {
+  display: grid;
   grid-template-columns: 72px minmax(0, 1fr) auto;
+  align-items: center;
   gap: 16px;
   width: min(100%, 560px);
   min-height: 124px;
@@ -12,6 +14,7 @@
   border: 1px solid var(--mint);
   border-radius: 20px;
   box-shadow: var(--shadow-card);
+  text-decoration: none;
   transition: border-color 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out), transform 0.25s var(--ease-out);
 }
 
