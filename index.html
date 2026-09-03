@@ -26,11 +26,11 @@
   <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="style.css?v=20260823a">
   <link rel="stylesheet" href="/nav.css?v=20260711c">
-  <link rel="stylesheet" href="/awards.css?v=20260903b">
+  <link rel="stylesheet" href="/awards.css?v=20260903c">
   <!-- LCP: warm up the hero image and the image-proxy origin the kitten cards hit -->
   <link rel="preload" as="image" href="images/hero-main.webp" fetchpriority="high">
   <link rel="preconnect" href="https://fuluck-api.mouxue56.workers.dev" crossorigin>
-  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon.ico?v=20260903a" sizes="any">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%235BC4A8'/><g fill='%23ffffff'><ellipse cx='11' cy='12' rx='2.3' ry='2.7'/><ellipse cx='21' cy='12' rx='2.3' ry='2.7'/><ellipse cx='7.5' cy='17.5' rx='2.1' ry='2.4'/><ellipse cx='24.5' cy='17.5' rx='2.1' ry='2.4'/><path d='M16 16.5c3.1 0 5.6 2.2 5.6 4.9 0 2.2-1.9 3.1-5.6 3.1s-5.6-.9-5.6-3.1c0-2.7 2.5-4.9 5.6-4.9z'/></g></svg>">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="canonical" href="https://fuluckpet.com/">
@@ -267,15 +267,25 @@
   <section class="hero">
     <div class="hero-content">
       <div class="hero-badges">
-        <a class="hero-award-proof" href="/about.html#awards-timeline">
-          <span class="hero-award-proof-plate">
-            <img src="https://www.koneko-breeder.com/breeder/images/certificate/30144-L.png" alt="みんなの子猫ブリーダー サイベリアン部門 2026年上半期 大阪府 お客様評価 第1位" width="162" height="256">
-          </span>
+        <a class="hero-award-proof" href="/about.html#awards-timeline" aria-labelledby="hero-award-current hero-award-streak hero-award-national hero-award-osaka" aria-describedby="hero-award-detail">
           <span class="hero-award-proof-copy">
-            <strong data-i18n="hero.awardProof.title">2026年上半期 大阪府 第1位</strong>
-            <span data-i18n="hero.awardProof.detail">サイベリアンブリーダー・お客様評価</span>
+            <span class="hero-award-proof-current" id="hero-award-current" data-i18n="hero.awardProof.current">2026年上半期 大阪府 第1位</span>
+            <strong id="hero-award-streak" data-i18n="hero.awardProof.title">7期連続受賞</strong>
+            <span class="hero-award-proof-highlights">
+              <span id="hero-award-national" data-i18n="hero.awardProof.national">全国 第1位 1期</span>
+              <span id="hero-award-osaka" data-i18n="hero.awardProof.osaka">大阪府 第1位 5期</span>
+            </span>
+            <span class="hero-award-proof-detail" id="hero-award-detail" data-i18n="hero.awardProof.detail">公式プレート14件｜サイベリアンブリーダー・お客様評価</span>
           </span>
           <span class="hero-award-proof-cta" data-i18n="hero.awardProof.cta">受賞歴を見る</span>
+          <span class="hero-award-proof-plates">
+            <span class="hero-award-proof-plate is-current"><img src="https://www.koneko-breeder.com/breeder/images/certificate/30144-L.png" alt="みんなの子猫ブリーダー サイベリアン部門 2026年上半期 大阪府 お客様評価 第1位" width="162" height="256" fetchpriority="high"></span>
+            <span class="hero-award-proof-plate"><img src="https://www.koneko-breeder.com/breeder/images/certificate/21451-L.png" alt="みんなの子猫ブリーダー サイベリアン部門 2023年上半期 大阪府 お客様評価 第1位" width="162" height="256"></span>
+            <span class="hero-award-proof-plate"><img src="https://www.koneko-breeder.com/breeder/images/certificate/25811-L.png" alt="みんなの子猫ブリーダー サイベリアン部門 2024年下半期 大阪府 お客様評価 第1位" width="162" height="256"></span>
+            <span class="hero-award-proof-plate"><img src="https://www.koneko-breeder.com/breeder/images/certificate/27240-L.png" alt="みんなの子猫ブリーダー サイベリアン部門 2025年上半期 大阪府 お客様評価 第1位" width="162" height="256"></span>
+            <span class="hero-award-proof-plate is-national"><img src="https://www.koneko-breeder.com/breeder/images/certificate/27519-L.png" alt="みんなの子猫ブリーダー サイベリアン部門 2025年上半期 全国 お客様評価 第1位" width="162" height="256"></span>
+            <span class="hero-award-proof-plate"><img src="https://www.koneko-breeder.com/breeder/images/certificate/28727-L.png" alt="みんなの子猫ブリーダー サイベリアン部門 2025年下半期 大阪府 お客様評価 第1位" width="162" height="256"></span>
+          </span>
         </a>
       </div>
       <h1 class="hero-title">
@@ -1191,7 +1201,7 @@
   <!-- These 4 are now deferred: ~157KB of JS (incl. 92KB i18n) stops blocking the
  parser, lowering TBT/INP. defer preserves document order, and the inline
  globals below run at parse time so the deferred loaders still see them. -->
-  <script defer src="i18n.js?v=20260823a"></script>
+  <script defer src="i18n.js?v=20260903a"></script>
   <!-- Google Drive 自動画像同期 -->
   <script>
     window.FULUCK_API_BASE = 'https://fuluck-api.mouxue56.workers.dev';

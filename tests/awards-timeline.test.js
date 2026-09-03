@@ -28,6 +28,7 @@ const verifiedAwards = [
   { id: '30753', period: '2026-h1', scope: 'awards.timeline.scope.kansai', rank: 'awards.timeline.rank.2', jsonLdText: '2026年上半期 みんなの子猫ブリーダー サイベリアンブリーダー お客様評価 関西・近畿地域2位' },
 ];
 const periods = ['2023-h1','2023-h2','2024-h1','2024-h2','2025-h1','2025-h2','2026-h1'];
+const homepageFirstPlaceIds = ['30144', '21451', '25811', '27240', '27519', '28727'];
 const periodAltText = {
   '2023-h1': '2023年上半期', '2023-h2': '2023年下半期',
   '2024-h1': '2024年上半期', '2024-h2': '2024年下半期',
@@ -40,6 +41,10 @@ const requiredKeys = [
   'awards.timeline.rank.1','awards.timeline.rank.2','awards.timeline.rank.3',
   'awards.timeline.2023.h1','awards.timeline.2023.h2','awards.timeline.2024.h1','awards.timeline.2024.h2',
   'awards.timeline.2025.h1','awards.timeline.2025.h2','awards.timeline.2026.h1'
+];
+const heroAwardKeys = [
+  'hero.awardProof.current', 'hero.awardProof.title', 'hero.awardProof.national',
+  'hero.awardProof.osaka', 'hero.awardProof.detail', 'hero.awardProof.cta'
 ];
 
 function walk(node, visit) {
@@ -153,6 +158,12 @@ test('timeline copy exists in all three locale dictionaries', () => {
   }
 });
 
+test('homepage award impact copy exists in all three locale dictionaries', () => {
+  for (const key of heroAwardKeys) {
+    assert.equal((i18nSource.match(new RegExp(`['"]${key.replaceAll('.', '\\.')}['"]\\s*:`, 'g')) || []).length, 3, key);
+  }
+});
+
 test('timeline has desktop and mobile trunk layouts without required motion', () => {
   assert.match(awardsCssSource, /\.awards-timeline\s*\{[\s\S]*position:\s*relative/);
   assert.match(awardsCssSource, /\.awards-timeline::before/);
@@ -174,22 +185,33 @@ test('legacy settings code cannot replace official award plates', () => {
   assert.doesNotMatch(aboutSource, /images\[['"]award-[123]['"]\]/);
 });
 
-test('homepage integrates the latest Osaka No. 1 plate without replacing the family hero', () => {
+test('homepage presents all six Osaka and national No. 1 plates without replacing the family hero', () => {
   const proofAnchors = descendants(index, node => node.tagName === 'a' && hasClass(node, 'hero-award-proof'));
   assert.equal(proofAnchors.length, 1);
   assert.equal(attr(proofAnchors[0], 'href'), '/about.html#awards-timeline');
-  assert.equal(attr(proofAnchors[0], 'aria-label'), undefined);
+  assert.equal(attr(proofAnchors[0], 'aria-labelledby'), 'hero-award-current hero-award-streak hero-award-national hero-award-osaka');
+  assert.equal(attr(proofAnchors[0], 'aria-describedby'), 'hero-award-detail');
   const plateImages = descendants(proofAnchors[0], node => node.tagName === 'img');
-  assert.equal(plateImages.length, 1);
-  assert.equal(attr(plateImages[0], 'src'), 'https://www.koneko-breeder.com/breeder/images/certificate/30144-L.png');
-  assert.equal(attr(plateImages[0], 'width'), '162');
-  assert.equal(attr(plateImages[0], 'height'), '256');
-  assert.match(attr(plateImages[0], 'alt'), /2026年上半期.*大阪府.*第1位/);
+  assert.deepEqual(
+    plateImages.map(image => /\/(\d+)-L\.png$/.exec(attr(image, 'src'))?.[1]),
+    homepageFirstPlaceIds,
+  );
+  for (const image of plateImages) {
+    assert.equal(attr(image, 'width'), '162');
+    assert.equal(attr(image, 'height'), '256');
+    assert.match(attr(image, 'alt'), /みんなの子猫ブリーダー.*サイベリアン.*第1位/);
+  }
 
+  const current = descendants(proofAnchors[0], node => attr(node, 'data-i18n') === 'hero.awardProof.current')[0];
   const title = descendants(proofAnchors[0], node => attr(node, 'data-i18n') === 'hero.awardProof.title')[0];
+  const national = descendants(proofAnchors[0], node => attr(node, 'data-i18n') === 'hero.awardProof.national')[0];
+  const osaka = descendants(proofAnchors[0], node => attr(node, 'data-i18n') === 'hero.awardProof.osaka')[0];
   const detail = descendants(proofAnchors[0], node => attr(node, 'data-i18n') === 'hero.awardProof.detail')[0];
-  assert.equal(text(title), '2026年上半期 大阪府 第1位');
-  assert.equal(text(detail), 'サイベリアンブリーダー・お客様評価');
+  assert.equal(text(current), '2026年上半期 大阪府 第1位');
+  assert.equal(text(title), '7期連続受賞');
+  assert.equal(text(national), '全国 第1位 1期');
+  assert.equal(text(osaka), '大阪府 第1位 5期');
+  assert.equal(text(detail), '公式プレート14件｜サイベリアンブリーダー・お客様評価');
   assert.ok(descendants(proofAnchors[0], node => attr(node, 'data-i18n') === 'hero.awardProof.cta').length);
 
   const hero = descendants(index, node => node.tagName === 'section' && hasClass(node, 'hero'))[0];
@@ -199,7 +221,7 @@ test('homepage integrates the latest Osaka No. 1 plate without replacing the fam
 });
 
 test('award visuals use one isolated, cache-busted stylesheet on only the two award surfaces', () => {
-  const awardStylesheet = '/awards.css?v=20260903b';
+  const awardStylesheet = '/awards.css?v=20260903c';
   const trackedHtml = execFileSync('git', ['ls-files', '*.html'], {
     cwd: new URL('../', import.meta.url),
     encoding: 'utf8',
@@ -218,6 +240,16 @@ test('award visuals use one isolated, cache-busted stylesheet on only the two aw
   const proofRule = awardsCssSource.match(/\.hero-award-proof\s*\{([^}]*)\}/)?.[1] || '';
   assert.match(proofRule, /display:\s*grid/);
   assert.match(proofRule, /align-items:\s*center/);
+  assert.match(proofRule, /width:\s*min\(100%,\s*640px\)/);
+  assert.match(proofRule, /min-height:\s*260px/);
+  assert.match(awardsCssSource, /\.hero-award-proof-plates\s*\{[\s\S]*grid-template-columns:\s*repeat\(6,\s*minmax\(0,\s*1fr\)\)/);
+});
+
+test('award pages use fresh translation and favicon cache keys', () => {
+  for (const source of [indexSource, aboutSource]) {
+    assert.match(source, /i18n\.js\?v=20260903a/);
+    assert.match(source, /href=["']\/favicon\.ico\?v=20260903a["']/);
+  }
 });
 
 test('the latest timeline branch and Osaka plate are explicitly identifiable', () => {

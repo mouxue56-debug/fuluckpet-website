@@ -49,9 +49,9 @@ const BREEDER_VISIT_COPY = {
 };
 
 const HOMEPAGE_AWARD_PROOF_COPY = {
-  ja: '2026年上半期 大阪府 第1位',
-  en: 'H1 2026: No. 1 in Osaka Prefecture',
-  zh: '2026年上半年 大阪府第1名',
+  ja: ['2026年上半期 大阪府 第1位', '7期連続受賞', '全国 第1位 1期', '大阪府 第1位 5期'],
+  en: ['H1 2026 · No. 1 in Osaka Prefecture', 'Awarded 7 consecutive periods', 'Japan No. 1 · 1 period', 'Osaka No. 1 · 5 periods'],
+  zh: ['2026年上半年 大阪府第1名', '连续7期获奖', '日本全国第1名・1期', '大阪府第1名・5期'],
 };
 
 test('public review proof stays truthful without a volatile exact count', () => {
@@ -265,14 +265,19 @@ test('Osaka breeder pages use per-kitten current pricing in visible copy and par
 
 test('homepage award evidence links to the verified chronological timeline', () => {
   const home = read('index.html');
-  assert.ok(home.includes(`data-i18n="hero.awardProof.title">${HOMEPAGE_AWARD_PROOF_COPY.ja}</strong>`), 'visible hero fallback carries the chronological evidence title');
+  assert.ok(home.includes(`data-i18n="hero.awardProof.current">${HOMEPAGE_AWARD_PROOF_COPY.ja[0]}</span>`), 'visible hero fallback carries the latest Osaka evidence');
+  assert.ok(home.includes(`data-i18n="hero.awardProof.title">${HOMEPAGE_AWARD_PROOF_COPY.ja[1]}</strong>`), 'visible hero fallback carries the seven-period streak');
+  assert.ok(home.includes(`data-i18n="hero.awardProof.national">${HOMEPAGE_AWARD_PROOF_COPY.ja[2]}</span>`), 'visible hero fallback carries the nationwide No. 1 count');
+  assert.ok(home.includes(`data-i18n="hero.awardProof.osaka">${HOMEPAGE_AWARD_PROOF_COPY.ja[3]}</span>`), 'visible hero fallback carries the Osaka No. 1 count');
   const proofOpeningTags = Array.from(home.matchAll(/<a\b[^>]*\bclass=["'][^"']*\bhero-award-proof\b[^"']*["'][^>]*>/gi), match => match[0]);
   assert.equal(proofOpeningTags.length, 1, 'homepage has one award evidence anchor');
   assert.equal(/\bhref=["']([^"']+)["']/i.exec(proofOpeningTags[0])?.[1], '/about.html#awards-timeline');
   assert.doesNotMatch(proofOpeningTags[0], /\baria-label\s*=/i, 'translated visible copy supplies the accessible name');
 
   const i18n = read('i18n.js');
-  for (const copy of Object.values(HOMEPAGE_AWARD_PROOF_COPY)) assert.ok(i18n.includes(copy), copy);
+  for (const localizedCopies of Object.values(HOMEPAGE_AWARD_PROOF_COPY)) {
+    for (const copy of localizedCopies) assert.ok(i18n.includes(copy), copy);
+  }
   assert.doesNotMatch(`${home}\n${i18n}`, /全国満足度\s*No\.1|No\.1 Customer Satisfaction Nationwide|全国客户满意度\s*No\.1/);
 });
 

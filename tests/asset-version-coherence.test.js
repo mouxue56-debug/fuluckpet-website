@@ -60,6 +60,10 @@ const PUBLIC_ASSETS = {
   'dog-services-public-ui.js': DOG_UI_RELEASE,
   'boarding/boarding-public-estimate.js': ESTIMATE_RELEASE,
 };
+const PAGE_ASSET_RELEASE_OVERRIDES = {
+  'about.html': { 'i18n.js': '20260903a' },
+  'index.html': { 'i18n.js': '20260903a' },
+};
 
 function trackedFiles(glob) {
   return childProcess.execFileSync('git', ['ls-files', glob], {
@@ -71,7 +75,8 @@ function trackedFiles(glob) {
 test('tracked pages use the current release stamp for changed public JavaScript', () => {
   for (const relative of trackedFiles('*.html')) {
     const html = fs.readFileSync(path.join(ROOT, relative), 'utf8');
-    for (const [asset, expected] of Object.entries(PUBLIC_ASSETS)) {
+    for (const [asset, defaultRelease] of Object.entries(PUBLIC_ASSETS)) {
+      const expected = PAGE_ASSET_RELEASE_OVERRIDES[relative]?.[asset] || defaultRelease;
       const escaped = asset.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const references = [...html.matchAll(new RegExp(`(?:src|href)=["'][^"']*?(?<![A-Za-z0-9._-])${escaped}(?:\\?v=([^"']+))?["']`, 'g'))];
       for (const reference of references) {
