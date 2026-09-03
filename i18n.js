@@ -47,8 +47,8 @@ const translations = {
     // Hero
     'hero.award': '2025年 ブリーダーアワード受賞',
     'hero.no1': '2025年上半期 全国サイベリアンブリーダー お客様評価第1位',
-    'hero.awardProof.title': '2023年から7期連続受賞',
-    'hero.awardProof.detail': '公式プレート14件を時系列で公開',
+    'hero.awardProof.title': '2026年上半期 大阪府 第1位',
+    'hero.awardProof.detail': 'サイベリアンブリーダー・お客様評価',
     'hero.awardProof.cta': '受賞歴を見る',
     'hero.title1': '家族になる、',
     'hero.title2': 'しあわせな出会い。',
@@ -641,8 +641,8 @@ const translations = {
     // Hero
     'hero.award': '2025 Breeder Award Winner',
     'hero.no1': 'H1 2025: No. 1 nationwide for customer ratings among Siberian breeders',
-    'hero.awardProof.title': 'Recognized for 7 consecutive periods since 2023',
-    'hero.awardProof.detail': 'See all 14 official plates in chronological order',
+    'hero.awardProof.title': 'H1 2026: No. 1 in Osaka Prefecture',
+    'hero.awardProof.detail': 'Siberian breeder · customer reviews',
     'hero.awardProof.cta': 'View award history',
     'hero.title1': 'Becoming Family,',
     'hero.title2': 'A Joyful Encounter.',
@@ -1235,8 +1235,8 @@ const translations = {
     // Hero
     'hero.award': '2025年 繁殖人大奖获得者',
     'hero.no1': '2025年上半年 全国西伯利亚猫繁育者 客户评价第1名',
-    'hero.awardProof.title': '自 2023 年起连续 7 个半年度获奖',
-    'hero.awardProof.detail': '按时间公开全部 14 枚官方奖牌',
+    'hero.awardProof.title': '2026年上半年 大阪府第1名',
+    'hero.awardProof.detail': '西伯利亚猫繁育者・客户评价',
     'hero.awardProof.cta': '查看获奖历程',
     'hero.title1': '成为家人，',
     'hero.title2': '幸福的相遇。',

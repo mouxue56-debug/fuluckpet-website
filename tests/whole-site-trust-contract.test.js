@@ -49,9 +49,9 @@ const BREEDER_VISIT_COPY = {
 };
 
 const HOMEPAGE_AWARD_PROOF_COPY = {
-  ja: '2023年から7期連続受賞',
-  en: 'Recognized for 7 consecutive periods since 2023',
-  zh: '自 2023 年起连续 7 个半年度获奖',
+  ja: '2026年上半期 大阪府 第1位',
+  en: 'H1 2026: No. 1 in Osaka Prefecture',
+  zh: '2026年上半年 大阪府第1名',
 };
 
 test('public review proof stays truthful without a volatile exact count', () => {

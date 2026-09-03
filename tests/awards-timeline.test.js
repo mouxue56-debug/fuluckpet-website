@@ -1,12 +1,14 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { existsSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 import { parse } from 'parse5';
 
 const aboutSource = readFileSync(new URL('../about.html', import.meta.url), 'utf8');
 const indexSource = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const i18nSource = readFileSync(new URL('../i18n.js', import.meta.url), 'utf8');
-const cssSource = readFileSync(new URL('../style.css', import.meta.url), 'utf8');
+const awardsCssUrl = new URL('../awards.css', import.meta.url);
+const awardsCssSource = existsSync(awardsCssUrl) ? readFileSync(awardsCssUrl, 'utf8') : '';
 const about = parse(aboutSource);
 const index = parse(indexSource);
 const verifiedAwards = [
@@ -59,6 +61,14 @@ function descendants(node, predicate) {
     if (predicate(child)) matches.push(child);
   });
   return matches;
+}
+
+function text(node) {
+  let value = '';
+  walk(node, child => {
+    if (child.nodeName === '#text') value += child.value;
+  });
+  return value.replace(/\s+/g, ' ').trim();
 }
 
 function closestAttr(node, name) {
@@ -144,18 +154,19 @@ test('timeline copy exists in all three locale dictionaries', () => {
 });
 
 test('timeline has desktop and mobile trunk layouts without required motion', () => {
-  assert.match(cssSource, /\.awards-timeline\s*\{[\s\S]*position:\s*relative/);
-  assert.match(cssSource, /\.awards-timeline::before/);
-  assert.match(cssSource, /@media\s*\(max-width:\s*767px\)[\s\S]*\.awards-timeline::before/);
-  assert.match(cssSource, /prefers-reduced-motion/);
+  assert.match(awardsCssSource, /\.awards-timeline\s*\{[\s\S]*position:\s*relative/);
+  assert.match(awardsCssSource, /\.awards-timeline::before/);
+  assert.match(awardsCssSource, /@media\s*\(max-width:\s*767px\)[\s\S]*\.awards-timeline::before/);
+  assert.match(awardsCssSource, /prefers-reduced-motion/);
 });
 
-test('desktop timeline keeps even years in the physical right column', () => {
-  const desktopCss = cssSource.split('@media (max-width: 767px)')[0];
-  assert.doesNotMatch(desktopCss, /\.award-year:nth-child\(even\) \.award-year-branches\s*\{\s*direction:\s*rtl/);
-  assert.match(desktopCss, /\.award-year:nth-child\(even\) \.award-period\s*\{\s*grid-column:\s*3/);
-  assert.match(desktopCss, /\.award-year:nth-child\(odd\) \.award-period::after\s*\{\s*right:\s*-48px/);
-  assert.match(desktopCss, /\.award-year:nth-child\(even\) \.award-period::after\s*\{\s*left:\s*-48px/);
+test('desktop timeline keeps every year on one trunk with compact period branches', () => {
+  const desktopCss = awardsCssSource.split('@media (max-width: 980px)')[0];
+  assert.match(desktopCss, /\.award-year\s*\{[\s\S]*grid-template-columns:\s*86px minmax\(0,\s*1fr\)/);
+  assert.match(desktopCss, /\.award-year-branches\s*\{[\s\S]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/);
+  assert.match(desktopCss, /\.award-year-branches > \.award-period:only-child\s*\{[\s\S]*grid-column:\s*1\s*\/\s*-1/);
+  assert.match(desktopCss, /\.award-year-branches > \.award-period:only-child \.award-period-cards\s*\{[\s\S]*justify-content:\s*center/);
+  assert.doesNotMatch(desktopCss, /grid-column:\s*3/);
 });
 
 test('legacy settings code cannot replace official award plates', () => {
@@ -163,15 +174,54 @@ test('legacy settings code cannot replace official award plates', () => {
   assert.doesNotMatch(aboutSource, /images\[['"]award-[123]['"]\]/);
 });
 
-test('homepage presents one prominent, localized award proof card without duplicated hero claims', () => {
+test('homepage integrates the latest Osaka No. 1 plate without replacing the family hero', () => {
   const proofAnchors = descendants(index, node => node.tagName === 'a' && hasClass(node, 'hero-award-proof'));
   assert.equal(proofAnchors.length, 1);
   assert.equal(attr(proofAnchors[0], 'href'), '/about.html#awards-timeline');
   assert.equal(attr(proofAnchors[0], 'aria-label'), undefined);
-  assert.doesNotMatch(indexSource, /2025年上半期 全国第一 \/ 下半期 全国第二/);
-  assert.match(indexSource, /data-i18n="hero\.awardProof\.title"/);
-  assert.match(indexSource, /data-i18n="hero\.awardProof\.detail"/);
-  assert.match(indexSource, /data-i18n="hero\.awardProof\.cta"/);
-  const hero = indexSource.match(/<section class="hero">[\s\S]*?<\/section>/)?.[0] || '';
-  assert.doesNotMatch(hero, /koneko-breeder\.com/);
+  const plateImages = descendants(proofAnchors[0], node => node.tagName === 'img');
+  assert.equal(plateImages.length, 1);
+  assert.equal(attr(plateImages[0], 'src'), 'https://www.koneko-breeder.com/breeder/images/certificate/30144-L.png');
+  assert.equal(attr(plateImages[0], 'width'), '162');
+  assert.equal(attr(plateImages[0], 'height'), '256');
+  assert.match(attr(plateImages[0], 'alt'), /2026年上半期.*大阪府.*第1位/);
+
+  const title = descendants(proofAnchors[0], node => attr(node, 'data-i18n') === 'hero.awardProof.title')[0];
+  const detail = descendants(proofAnchors[0], node => attr(node, 'data-i18n') === 'hero.awardProof.detail')[0];
+  assert.equal(text(title), '2026年上半期 大阪府 第1位');
+  assert.equal(text(detail), 'サイベリアンブリーダー・お客様評価');
+  assert.ok(descendants(proofAnchors[0], node => attr(node, 'data-i18n') === 'hero.awardProof.cta').length);
+
+  const hero = descendants(index, node => node.tagName === 'section' && hasClass(node, 'hero'))[0];
+  const heroImages = descendants(hero, node => node.tagName === 'img');
+  assert.ok(heroImages.some(image => attr(image, 'src') === 'images/hero-main.webp'));
+  assert.equal(heroImages.some(image => /images\/ai\//.test(attr(image, 'src') || '')), false);
+});
+
+test('award visuals use one isolated, cache-busted stylesheet on only the two award surfaces', () => {
+  const awardStylesheet = '/awards.css?v=20260903a';
+  const trackedHtml = execFileSync('git', ['ls-files', '*.html'], {
+    cwd: new URL('../', import.meta.url),
+    encoding: 'utf8',
+  }).trim().split('\n').filter(Boolean);
+  const consumers = trackedHtml.filter(relative => readFileSync(new URL(`../${relative}`, import.meta.url), 'utf8').includes(awardStylesheet));
+
+  assert.deepEqual(consumers.sort(), ['about.html', 'index.html']);
+  assert.match(awardsCssSource, /\.hero-award-proof-plate/);
+  assert.match(awardsCssSource, /\.awards-timeline::before/);
+  assert.match(awardsCssSource, /@media\s*\(max-width:\s*767px\)/);
+  assert.match(awardsCssSource, /var\(--mint/);
+  assert.match(awardsCssSource, /var\(--bg-cream\)/);
+  assert.match(awardsCssSource, /var\(--text-heading\)/);
+  assert.doesNotMatch(awardsCssSource, /font-family|#[0-9a-f]{3,8}/i);
+});
+
+test('the latest timeline branch and Osaka plate are explicitly identifiable', () => {
+  const currentPeriod = descendants(about, node => attr(node, 'data-award-current') === 'true');
+  const featured = descendants(about, node => attr(node, 'data-award-featured') === 'osaka-2026-h1');
+  assert.equal(currentPeriod.length, 1);
+  assert.equal(attr(currentPeriod[0], 'data-award-period'), '2026-h1');
+  assert.equal(featured.length, 1);
+  const image = descendants(featured[0], node => node.tagName === 'img')[0];
+  assert.equal(attr(image, 'src'), 'https://www.koneko-breeder.com/breeder/images/certificate/30144-L.png');
 });
