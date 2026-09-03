@@ -5,7 +5,7 @@
   <!-- メインページ -->
   <url>
     <loc>https://fuluckpet.com/</loc>
-    <lastmod>2026-09-01</lastmod>
+    <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -81,7 +81,7 @@
   <!-- 受賞歴・認定 -->
   <url>
     <loc>https://fuluckpet.com/about.html</loc>
-    <lastmod>2026-09-01</lastmod>
+    <lastmod>2026-09-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
