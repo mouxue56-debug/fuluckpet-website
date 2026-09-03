@@ -199,7 +199,7 @@ test('homepage integrates the latest Osaka No. 1 plate without replacing the fam
 });
 
 test('award visuals use one isolated, cache-busted stylesheet on only the two award surfaces', () => {
-  const awardStylesheet = '/awards.css?v=20260903a';
+  const awardStylesheet = '/awards.css?v=20260903b';
   const trackedHtml = execFileSync('git', ['ls-files', '*.html'], {
     cwd: new URL('../', import.meta.url),
     encoding: 'utf8',
