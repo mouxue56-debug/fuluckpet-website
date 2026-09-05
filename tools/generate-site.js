@@ -1645,6 +1645,28 @@ function listToAbsoluteLinks(html) {
     .replace(/src="(?!\/|https?:|data:)([^"]+)"/g, 'src="/$1"');
 }
 
+// These static pages have hand-maintained en/zh siblings. Keep localized visitors in
+// their active language when copied ja chrome (header/footer/CTA) links to a root page.
+const LOCALIZED_STATIC_SIBLING_PATHS = new Set([
+  '/kittens.html',
+  '/siberian-allergy.html',
+  '/siberian-breeder-osaka.html',
+  '/waitlist.html',
+  '/blog/breeder-visit-flow-osaka.html',
+  '/blog/choose-healthy-kitten-checklist.html',
+  '/blog/siberian-coat-color-guide.html',
+  '/blog/siberian-kitten-feeding-guide.html',
+  '/blog/siberian-vs-bsh-vs-ragdoll.html',
+]);
+
+function localizeStaticSiblingHrefs(html, lang) {
+  if (lang !== 'en' && lang !== 'zh') return html;
+  return String(html).replace(/\bhref="(\/[^"?#]+)([?#][^"]*)?"/g, (match, pathname, suffix = '') => {
+    if (!LOCALIZED_STATIC_SIBLING_PATHS.has(pathname)) return match;
+    return `href="/${lang}${pathname}${suffix}"`;
+  });
+}
+
 // Localize the final "気になる子がいたら…" contact CTA block that lives in the ja
 // tail (heading + lead paragraph + the two button labels). The ja tail is otherwise
 // reused verbatim for en/zh, so without this the block ships as raw Japanese.
@@ -2126,9 +2148,12 @@ ${kittenFilterAssets(lang)}`;
   // Bake the dictionary default into every data-i18n slot of the copied ja chrome, so
   // the en/zh source (what a crawler and a no-JS visitor read) is actually in-language.
   if (lang !== 'ja') cleanedTail = prefillI18nDefaults(cleanedTail, lang);
+  if (lang !== 'ja') cleanedTail = localizeStaticSiblingHrefs(cleanedTail, lang);
   const tailWithSchema = cleanedTail.replace('</body>', `${itemListSchemaHtml}</body>`);
 
-  const localizedHeader = lang === 'ja' ? header : prefillI18nDefaults(header, lang);
+  const localizedHeader = lang === 'ja'
+    ? header
+    : localizeStaticSiblingHrefs(prefillI18nDefaults(header, lang), lang);
   const output = localizedHeader + '\n' + sections + '\n\n' + tailWithSchema;
   fs.writeFileSync(outPath, output, 'utf-8');
   const label = lang === 'ja' ? 'kittens.html' : `${lang}/kittens.html`;
@@ -3797,7 +3822,10 @@ function generateKittenDetailPages(kittens, parents, lang = 'ja') {
     // Optional template fragments intentionally carry indentation around their
     // interpolation slots. Strip line-end spaces at the final write boundary so
     // every generated locale is byte-stable and passes repository diff hygiene.
-    const html = prefillI18nDefaults(buildKittenDetailHtml(k, headerHtml, footerHtml, lang, listedParentNames), lang)
+    const html = localizeStaticSiblingHrefs(
+      prefillI18nDefaults(buildKittenDetailHtml(k, headerHtml, footerHtml, lang, listedParentNames), lang),
+      lang,
+    )
       .replace(/[ \t]+$/gm, '')
       // Optional sections (mix / adult / featured) leave their slot empty for the kittens
       // they do not apply to. Collapse the resulting blank runs so the emitted page does
