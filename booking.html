@@ -1159,13 +1159,13 @@
         body: JSON.stringify(payload),
         signal: abortCtl ? abortCtl.signal : undefined
       }).then(function(res) {
-        if (abortTimer) clearTimeout(abortTimer);
         return res.json().then(
           function(body) { return { status: res.status, body: body }; },
           // Non-JSON response (e.g. 502 HTML from an edge outage): still surface status.
           function() { return { status: res.status, body: null }; }
         );
       }).then(function(r) {
+        if (abortTimer) clearTimeout(abortTimer);
         // Success = HTTP 200 + ok:true. A body.warning ('saved_but_email_failed')
         // still means the booking was SAVED, so we treat it as success too.
         if (r.status === 200 && r.body && r.body.ok) {
