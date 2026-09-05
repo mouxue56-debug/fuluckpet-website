@@ -578,6 +578,34 @@ test('generated kitten details have one main landmark, a working skip link, and 
   }
 });
 
+test('generated kitten video iframe names use the page language', (t) => {
+  const siteDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fuluck-detail-video-name-'));
+  copyFile(path.join(ROOT, 'kittens.html'), path.join(siteDir, 'kittens.html'));
+  const generator = loadGeneratorForSite(t, siteDir);
+  const kittens = [{
+    id: 'row-detail-video-name',
+    breederId: 'detail-video-name',
+    breed: 'サイベリアン',
+    color: 'ブルー',
+    gender: '♂',
+    birthday: '2026-05-01',
+    price: 180000,
+    status: 'available',
+    photos: ['https://images.example.test/cat.jpg'],
+    video: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+  }];
+  const expectedWord = { ja: '動画', en: 'video', zh: '视频' };
+
+  for (const lang of ['ja', 'en', 'zh']) {
+    generator.generateKittenDetailPages(kittens, [], lang);
+    const prefix = lang === 'ja' ? '' : `${lang}/`;
+    const detail = fs.readFileSync(path.join(siteDir, prefix, 'kittens/detail-video-name.html'), 'utf8');
+    const iframe = detail.match(/<iframe[^>]+youtube\.com\/embed\/dQw4w9WgXcQ[^>]*>/)?.[0] || '';
+    assert.match(iframe, new RegExp(`title="[^"]+ ${expectedWord[lang]}"`), `${lang} iframe has a localized accessible name`);
+    if (lang !== 'ja') assert.doesNotMatch(iframe, /動画/, `${lang} iframe must not expose Japanese to assistive technology`);
+  }
+});
+
 test('kitten detail introductions are localized, escaped, paragraph-preserving, and excluded from cards', (t) => {
   const siteDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fuluck-detail-introductions-'));
   copyFile(path.join(ROOT, 'kittens.html'), path.join(siteDir, 'kittens.html'));

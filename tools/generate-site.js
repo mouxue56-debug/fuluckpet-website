@@ -3008,6 +3008,7 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja', list
   // Alt-text word for "photo N": ja "写真" / en "photo" / zh "照片".
   const photoWord = lang === 'en' ? 'photo' : (lang === 'zh' ? '照片' : '写真');
   const showPhoto = lang === 'en' ? 'Show photo' : (lang === 'zh' ? '显示照片' : '写真を表示');
+  const videoWord = lang === 'en' ? 'video' : (lang === 'zh' ? '视频' : '動画');
   const skipLabel = lang === 'en' ? 'Skip to main content' : (lang === 'zh' ? '跳至主要内容' : 'メインコンテンツへスキップ');
   // Thumbnails HTML
   let thumbsHtml = '';
@@ -3027,7 +3028,7 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja', list
     <div class="kitten-detail-video">
       <h2 data-i18n="kitten.video">動画</h2>
       <div class="kitten-detail-video-wrap">
-        <iframe src="https://www.youtube.com/embed/${ytId}" title="${escapeHtml(titleText)} 動画" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        <iframe src="https://www.youtube.com/embed/${ytId}" title="${escapeHtml(titleText)} ${videoWord}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
       </div>
     </div>`;
   }
