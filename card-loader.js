@@ -31,6 +31,23 @@
     } catch(e) { return 'ja'; }
   }
 
+  function renderParentAge(ageStr, lang) {
+    var s = String(ageStr || '');
+    var mt = s.match(/^(\d+)歳(?:(\d+)ヶ月)?$/);
+    if (!mt) return s;
+    var n = Number(mt[1]);
+    var m = mt[2] === undefined ? null : Number(mt[2]);
+    if (lang === 'ja') return m == null ? (n + '歳') : (n + '歳' + m + 'ヶ月');
+    if (lang === 'zh') {
+      if (n === 0) return m + '个月';
+      return m == null ? (n + '岁') : (n + '岁' + m + '个月');
+    }
+    var y = n + ' year' + (n === 1 ? '' : 's');
+    var mo = m == null ? '' : (m + ' month' + (m === 1 ? '' : 's'));
+    if (n === 0) return mo;
+    return mo ? (y + ' ' + mo) : y;
+  }
+
   var CARD_I18N = {
     ja: {
       available: '販売中', reserved: 'ご予約済', sold: 'ご家族決定',
@@ -490,7 +507,7 @@
       '<div class="parent-body">' +
         '<h3>' + escAttr(name) + '</h3>' +
         '<p>' + escAttr(ctBreed(breed)) + ' ・ ' + escAttr(safeGender(p.gender)) + ' ・ ' + escAttr(ctColor(color)) + '</p>' +
-        '<p style="font-size:12px;color:var(--text-note);">' + escAttr(age) + '</p>' +
+        '<p style="font-size:12px;color:var(--text-note);">' + escAttr(renderParentAge(age, getLang())) + '</p>' +
         '<span class="parent-role ' + roleClass + '">' + escAttr(ctRole(role)) + '</span>' +
       '</div>' +
     '</div>';
