@@ -3,6 +3,11 @@
 
   var LINE_URL = 'https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true';
   var LANGS = ['ja', 'en', 'zh'];
+  var MOBILE_MENU_LABELS = {
+    ja: { menu: 'メニュー', close: 'メニューを閉じる' },
+    en: { menu: 'MENU', close: 'Close menu' },
+    zh: { menu: '菜单', close: '关闭菜单' }
+  };
   var dogProjectionApi = (typeof module !== 'undefined' && module.exports && typeof require !== 'undefined')
     ? require('./dog-services-projection.js')
     : null;
@@ -430,6 +435,7 @@
   }
 
   function renderMobileNav(route) {
+    var menuLabels = MOBILE_MENU_LABELS[currentLang()] || MOBILE_MENU_LABELS.ja;
     var sections = visibleNavGroups().map(function (group) {
       var active = groupIsActive(group, route);
       var items = visibleItems(group).map(function (item) {
@@ -458,7 +464,7 @@
       '<div class="nav-mobile-shell">' +
         '<div class="nav-mobile-top">' +
           langSwitchMarkup('mobile-lang') +
-          '<button class="nav-mobile-close" type="button" aria-label="メニューを閉じる / Close navigation">' +
+          '<button class="nav-mobile-close" type="button" aria-label="' + menuLabels.close + '">' +
             icon('x') +
           '</button>' +
         '</div>' +
@@ -472,7 +478,7 @@
             '<span data-i18n="visit.bookBtn"></span>' +
           '</a>' +
         '</div>' +
-        '<nav class="nav-mobile-sections" aria-label="Mobile navigation">' + sections + '</nav>' +
+        '<nav class="nav-mobile-sections" aria-label="' + menuLabels.menu + '">' + sections + '</nav>' +
       '</div>'
     );
   }
@@ -699,6 +705,7 @@
   function syncMobileOpenState(mobileNav) {
     var open = mobileNav.classList.contains('active');
     var wasOpen = mobileNav.__fuluckWasOpen === true;
+    syncMobileAccessibleNames(mobileNav, open);
     document.body.classList.toggle('mobile-nav-open', open);
     document.body.style.overflow = open ? 'hidden' : '';
     mobileNav.setAttribute('aria-hidden', open ? 'false' : 'true');
@@ -714,6 +721,19 @@
     mobileNav.__fuluckWasOpen = open;
   }
 
+  function syncMobileAccessibleNames(mobileNav, open, lang) {
+    var labels = MOBILE_MENU_LABELS[lang || currentLang()] || MOBILE_MENU_LABELS.ja;
+    var hamburger = document.getElementById('hamburger');
+    var navFab = document.getElementById('mobileNavFab');
+    var close = mobileNav.querySelector('.nav-mobile-close');
+    var sections = mobileNav.querySelector('.nav-mobile-sections');
+    if (hamburger) hamburger.setAttribute('aria-label', open ? labels.close : labels.menu);
+    if (navFab) navFab.setAttribute('aria-label', open ? labels.close : labels.menu);
+    if (close) close.setAttribute('aria-label', labels.close);
+    mobileNav.setAttribute('aria-label', labels.menu);
+    if (sections) sections.setAttribute('aria-label', labels.menu);
+  }
+
   function setMobileOpen(mobileNav, open) {
     var hamburger = document.getElementById('hamburger');
     var navFab = document.getElementById('mobileNavFab');
@@ -722,7 +742,6 @@
     if (hamburger) {
       hamburger.classList.toggle('active', open);
       hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
-      hamburger.setAttribute('aria-label', open ? 'メニューを閉じる / Close navigation' : 'メニュー / Navigation');
     }
     if (navFab) {
       navFab.classList.toggle('active', open);
@@ -759,7 +778,6 @@
   function bindMobile(mobileNav) {
     mobileNav.setAttribute('role', 'dialog');
     mobileNav.setAttribute('aria-modal', 'true');
-    mobileNav.setAttribute('aria-label', 'メニュー / Navigation');
     if (mobileNav.__fuluckMobileBound) {
       syncMobileOpenState(mobileNav);
       return;
@@ -833,7 +851,9 @@
         document.__fuluckNavLangBound = true;
         document.addEventListener('click', handleLanguageClick);
         window.addEventListener('langChanged', function (e) {
-          syncLangButtons(e && e.detail && e.detail.lang ? e.detail.lang : currentLang());
+          var lang = e && e.detail && e.detail.lang ? e.detail.lang : currentLang();
+          syncLangButtons(lang);
+          syncMobileAccessibleNames(mobileNav, mobileNav.classList.contains('active'), lang);
         });
       }
 

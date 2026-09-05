@@ -106,7 +106,6 @@ test('mobile navigation keeps modal focus inside, inerts the page and restores t
   assert.match(source, /setAttribute\('inert'/);
   assert.match(source, /nav-mobile-close/);
   assert.match(source, /closest\('\.nav-mobile-close'\)/);
-  assert.match(source, /メニューを閉じる \/ Close navigation/);
   assert.doesNotMatch(source, /controls\.unshift\(hamburger\)/);
 
   const legacySource = fs.readFileSync(path.join(__dirname, '..', 'script.js'), 'utf8');

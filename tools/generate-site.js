@@ -1496,6 +1496,15 @@ function i18nTextValue(value) {
   return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+function prefillMobileMenuAccessibleNames(html, lang, table) {
+  const label = table && table['nav.menu'];
+  if ((lang !== 'en' && lang !== 'zh') || typeof label !== 'string' || !label.trim()) return html;
+  return String(html).replace(
+    /(<button\b(?=[^>]*\bid="(?:hamburger|mobileNavFab)")[^>]*\baria-label=")[^"]*(")/g,
+    `$1${i18nTextValue(label)}$2`,
+  );
+}
+
 function prefillI18nDefaults(html, lang) {
   if (lang !== 'en' && lang !== 'zh') return html;
   const table = i18nTables()[lang];
@@ -1514,7 +1523,7 @@ function prefillI18nDefaults(html, lang) {
   // bare text node. That is exactly how nav.more / header.telLabel / footer.lawTitleShort
   // stayed Japanese on every generated en/zh page. Mirror i18n.js setLanguage: keep the
   // markup, rewrite only the first non-empty text node, preserving its edge whitespace.
-  return baked.replace(
+  const withNestedText = baked.replace(
     /(<([a-zA-Z][\w:-]*)\b[^>]*\bdata-i18n="([^"]+)"[^>]*>)([\s\S]*?)(<\/\2\s*>)/g,
     (match, open, tag, key, inner, close) => {
       if (I18N_PREFILL_SKIP.has(key)) return match;
@@ -1535,6 +1544,7 @@ function prefillI18nDefaults(html, lang) {
       return replaced ? `${open}${parts.join('')}${close}` : match;
     },
   );
+  return prefillMobileMenuAccessibleNames(withNestedText, lang, table);
 }
 
 // ── Template Extraction ───────────────────────────────────────
