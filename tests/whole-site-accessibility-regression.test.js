@@ -202,6 +202,40 @@ test('header LINE call links derive their accessible name from localized visible
   assert.ok(linkCount > 0, 'public pages expose at least one header LINE call link');
 });
 
+test('fixed LINE consultation widgets keep visible and accessible text in the page language', () => {
+  let widgetCount = 0;
+  for (const relative of trackedFiles('*.html').filter((file) => !file.startsWith('admin/'))) {
+    const html = read(relative);
+    const widgets = [...html.matchAll(/<a\b(?=[^>]*\bclass=["'][^"']*\bfixed-line\b[^"']*["'])[^>]*>[\s\S]*?<\/a>/gi)];
+    for (const match of widgets) {
+      widgetCount += 1;
+      const widget = match[0];
+      const openTag = widget.match(/^<a\b[^>]*>/i)?.[0] || '';
+      assert.match(openTag, /\bdata-cta=["']line["']/i, `${relative}: runtime keeps the accessible name synchronized after language switches`);
+      assert.match(widget, /class=["']fixed-line-label["'][^>]*\bdata-i18n=["']header\.telLabel["']/i, `${relative}: fixed label uses the shared localized consultation copy`);
+      assert.match(widget, /class=["']fixed-line-cta["'][^>]*\bdata-i18n=["']cta\.line["']/i, `${relative}: fixed CTA uses the shared localized LINE copy`);
+      if (relative.startsWith('en/')) {
+        assert.match(openTag, /aria-label=["']Contact us on LINE["']/i, `${relative}: English static accessible name`);
+        assert.match(widget, /Visit booking and consultation/i, `${relative}: English static label`);
+        assert.match(widget, /Chat on LINE/i, `${relative}: English static CTA`);
+        assert.doesNotMatch(widget, /[\u3041-\u3096\u30a1-\u30fa\u30fc]/, `${relative}: English fixed widget contains no Japanese kana letters`);
+      } else if (relative.startsWith('zh/')) {
+        assert.match(openTag, /aria-label=["']通过 LINE 联系我们["']/i, `${relative}: Chinese static accessible name`);
+        assert.match(widget, /预约参观・咨询/, `${relative}: Chinese static label`);
+        assert.match(widget, /LINE 咨询/, `${relative}: Chinese static CTA`);
+        assert.doesNotMatch(widget, /[\u3041-\u3096\u30a1-\u30fa\u30fc]/, `${relative}: Chinese fixed widget contains no Japanese kana letters`);
+      }
+    }
+  }
+  assert.ok(widgetCount > 0, 'public pages expose at least one fixed LINE consultation widget');
+  for (const relative of ['tools/gen-blog-static-pages.mjs', 'tools/gen-blog-edu-pages.mjs']) {
+    const source = read(relative);
+    assert.match(source, /class="fixed-line" data-cta="line"/, `${relative}: future pages keep runtime accessible-name synchronization`);
+    assert.match(source, /class="fixed-line-label" data-i18n="header\.telLabel"/, `${relative}: future pages keep the localized fixed label`);
+    assert.match(source, /class="fixed-line-cta" data-i18n="cta\.line"/, `${relative}: future pages keep the localized fixed CTA`);
+  }
+});
+
 test('white-text LINE controls share the accessible dark green token', () => {
   const style = read('style.css');
   const chat = read('assets/chat/widget.css');
