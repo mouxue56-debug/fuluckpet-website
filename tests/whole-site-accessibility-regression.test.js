@@ -178,6 +178,30 @@ test('booking CTA accessible name follows its visible label in Japanese, English
   assert.equal(bookingCta.getAttribute('aria-label'), bookingLabel.textContent.trim(), 'Chinese accessible name follows visible text');
 });
 
+test('header LINE call links derive their accessible name from localized visible text', () => {
+  let linkCount = 0;
+  for (const relative of trackedFiles('*.html').filter((file) => !file.startsWith('admin/'))) {
+    const html = read(relative);
+    const links = [...html.matchAll(/<a\b(?=[^>]*\bclass=["'][^"']*\bheader-tel\b[^"']*["'])[^>]*>[\s\S]*?<\/a>/gi)];
+    for (const match of links) {
+      linkCount += 1;
+      const link = match[0];
+      const openTag = link.match(/^<a\b[^>]*>/i)?.[0] || '';
+      assert.doesNotMatch(openTag, /\baria-label\s*=/i, `${relative}: visible consultation text must not be overridden by a stale accessible name`);
+      assert.doesNotMatch(openTag, /\bdata-i18n-aria\s*=/i, `${relative}: inactive aria translation hook must not remain`);
+      assert.match(openTag, /\bdata-i18n=["']header\.telLabel["']/i, `${relative}: visible consultation text keeps its active translation hook`);
+      if (relative.startsWith('en/')) {
+        assert.match(link, /Call\s*\/\s*LINE/, `${relative}: static English fallback is localized`);
+        assert.doesNotMatch(link, /お電話|電話相談/, `${relative}: English fallback contains no Japanese consultation text`);
+      } else if (relative.startsWith('zh/')) {
+        assert.match(link, /电话\s*\/\s*LINE/, `${relative}: static Chinese fallback is localized`);
+        assert.doesNotMatch(link, /お電話|電話相談/, `${relative}: Chinese fallback contains no Japanese consultation text`);
+      }
+    }
+  }
+  assert.ok(linkCount > 0, 'public pages expose at least one header LINE call link');
+});
+
 test('white-text LINE controls share the accessible dark green token', () => {
   const style = read('style.css');
   const chat = read('assets/chat/widget.css');
