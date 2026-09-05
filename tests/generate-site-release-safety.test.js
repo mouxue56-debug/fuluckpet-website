@@ -638,6 +638,35 @@ test('kitten detail introductions are localized, escaped, paragraph-preserving, 
   assert.doesNotMatch(blankDetail, /<section class="kitten-detail-introduction">/);
 });
 
+test('kitten detail parent names link only when the parent catalogue has a matching record', (t) => {
+  const siteDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fuluck-detail-parent-links-'));
+  copyFile(path.join(ROOT, 'kittens.html'), path.join(siteDir, 'kittens.html'));
+  const generator = loadGeneratorForSite(t, siteDir);
+  const kitten = {
+    id: 'row-parent-links',
+    breederId: 'detail-parent-links',
+    breed: 'ブリティッシュロングヘア',
+    color: 'ゴールデン',
+    gender: '♂',
+    birthday: '2026-05-01',
+    price: 240000,
+    status: 'available',
+    photos: ['https://images.example.test/golden.jpg'],
+    papa: '四十五くん',
+    mama: 'Listed Mama',
+  };
+  const parents = [{ id: 'listed-mama-id', name: 'Listed Mama' }];
+
+  for (const lang of ['ja', 'en', 'zh']) {
+    generator.generateKittenDetailPages([kitten], parents, lang);
+    const prefix = lang === 'ja' ? '' : `${lang}/`;
+    const detail = fs.readFileSync(path.join(siteDir, prefix, 'kittens/detail-parent-links.html'), 'utf8');
+    assert.match(detail, /<a href="\/parents\.html">Listed Mama<\/a>/, `${lang} links a listed parent`);
+    assert.match(detail, /<span class="kitten-detail-parent-name">四十五くん<\/span>/, `${lang} keeps an unlisted name visible`);
+    assert.doesNotMatch(detail, /<a href="\/parents\.html">四十五くん<\/a>/, `${lang} does not publish a dead parent link`);
+  }
+});
+
 // The featured block argues "an older kitten is easier to read", which is the same pitch
 // the §6 成猫・若猫 section makes in full. So it is emitted only while the cat is still
 // under 12 months; the birthday is computed from today, or this fixture would silently

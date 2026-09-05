@@ -2893,7 +2893,7 @@ function extractYouTubeId(video) {
 /**
  * Build the full HTML for a kitten detail page
  */
-function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja') {
+function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja', listedParentNames = new Set()) {
   headerHtml = injectSmallAnimalNavigation(headerHtml, lang);
   const fileId = kitten.breederId || kitten.id;
   const effectiveStatus = KittenCatalog.normalizeStatus(kitten.status);
@@ -3034,9 +3034,15 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja') {
   // Parents info
   let parentsHtml = '';
   if (kitten.papa || kitten.mama) {
+    const parentNameHtml = (name) => {
+      const escapedName = escapeHtml(name);
+      return listedParentNames.has(String(name).trim())
+        ? `<a href="/parents.html">${escapedName}</a>`
+        : `<span class="kitten-detail-parent-name">${escapedName}</span>`;
+    };
     let parentsInner = '';
-    if (kitten.papa) parentsInner += `<p><span data-i18n="parents.papa">パパ猫</span>: <a href="/parents.html">${escapeHtml(kitten.papa)}</a></p>`;
-    if (kitten.mama) parentsInner += `<p><span data-i18n="parents.mama">ママ猫</span>: <a href="/parents.html">${escapeHtml(kitten.mama)}</a></p>`;
+    if (kitten.papa) parentsInner += `<p><span data-i18n="parents.papa">パパ猫</span>: ${parentNameHtml(kitten.papa)}</p>`;
+    if (kitten.mama) parentsInner += `<p><span data-i18n="parents.mama">ママ猫</span>: ${parentNameHtml(kitten.mama)}</p>`;
     parentsHtml = `
     <!-- Parents -->
     <div class="kitten-detail-parents">
@@ -3749,6 +3755,11 @@ function generateKittenDetailPages(kittens, parents, lang = 'ja') {
 
   // 5. Extract header/footer template from kittens.html
   const { headerHtml, footerHtml } = extractDetailTemplate();
+  const listedParentNames = new Set(
+    (Array.isArray(parents) ? parents : [])
+      .map(parent => parent && typeof parent.name === 'string' ? parent.name.trim() : '')
+      .filter(Boolean)
+  );
 
   // 6. Generate each detail page
   // Detect duplicate breederId collisions (data error): two distinct kittens sharing a
@@ -3784,7 +3795,7 @@ function generateKittenDetailPages(kittens, parents, lang = 'ja') {
     // Optional template fragments intentionally carry indentation around their
     // interpolation slots. Strip line-end spaces at the final write boundary so
     // every generated locale is byte-stable and passes repository diff hygiene.
-    const html = prefillI18nDefaults(buildKittenDetailHtml(k, headerHtml, footerHtml, lang), lang)
+    const html = prefillI18nDefaults(buildKittenDetailHtml(k, headerHtml, footerHtml, lang, listedParentNames), lang)
       .replace(/[ \t]+$/gm, '')
       // Optional sections (mix / adult / featured) leave their slot empty for the kittens
       // they do not apply to. Collapse the resulting blank runs so the emitted page does
