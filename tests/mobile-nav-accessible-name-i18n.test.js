@@ -55,8 +55,9 @@ function element(initialAttributes = {}) {
   };
 }
 
-function menuRuntime(pathname, initialLang) {
-  const hamburger = element({ 'aria-label': 'メニュー' });
+function menuRuntime(pathname, initialLang, options = {}) {
+  const hasMobileNav = options.hasMobileNav !== false;
+  const hamburger = element({ 'aria-label': options.hamburgerLabel || 'メニュー' });
   const navFab = element({ 'aria-label': 'メニューを開く' });
   const close = element();
   const sections = element();
@@ -82,7 +83,7 @@ function menuRuntime(pathname, initialLang) {
 
   const bodyAttributes = new Map([['data-nav-language', initialLang]]);
   const body = element();
-  body.children = [mobileNav];
+  body.children = hasMobileNav ? [mobileNav] : [];
   body.getAttribute = (name) => bodyAttributes.get(name) || null;
   body.setAttribute = (name, value) => bodyAttributes.set(name, String(value));
 
@@ -93,13 +94,13 @@ function menuRuntime(pathname, initialLang) {
     documentElement: element({ lang: initialLang }),
     querySelector(selector) {
       if (selector === '.nav') return desktopNav;
-      if (selector === '.mobile-nav') return mobileNav;
+      if (selector === '.mobile-nav') return hasMobileNav ? mobileNav : null;
       return null;
     },
     querySelectorAll() { return []; },
     getElementById(id) {
       if (id === 'hamburger') return hamburger;
-      if (id === 'mobileNav') return mobileNav;
+      if (id === 'mobileNav') return hasMobileNav ? mobileNav : null;
       if (id === 'mobileNavFab') return navFab;
       return null;
     },
@@ -326,6 +327,38 @@ test('tracked localized pages enhanced by shared navigation ship a locale-correc
       }
     }
   }
-  assert.equal(checked, 54, 'all currently enhanced EN/ZH pages stay in scope');
+  assert.equal(checked, 64, 'all enhanced EN/ZH pages, including ten localized blogs, stay in scope');
   assert.equal(floatingTriggers, 8, 'every existing EN/ZH floating trigger stays in scope');
+});
+
+test('all ten localized blog shells open the real shared mobile navigation', () => {
+  let checked = 0;
+  for (const item of [
+    { lang: 'en', label: 'MENU' },
+    { lang: 'zh', label: '菜单' },
+  ]) {
+    const directory = path.join(ROOT, item.lang, 'blog');
+    for (const entry of fs.readdirSync(directory).filter((name) => name.endsWith('.html')).sort()) {
+      const relative = `${item.lang}/blog/${entry}`;
+      const html = fs.readFileSync(path.join(ROOT, relative), 'utf8');
+      const triggerLabels = [...html.matchAll(/<button\b[^>]*\bid="hamburger"[^>]*\baria-label="([^"]+)"[^>]*>/g)];
+      const mobileTargets = [...html.matchAll(/<div\b(?=[^>]*\bclass="[^"]*\bmobile-nav\b[^"]*")(?=[^>]*\bid="mobileNav")[^>]*>/g)];
+      assert.equal(triggerLabels.length, 1, `${relative}: one hamburger trigger`);
+      assert.equal(mobileTargets.length, 1, `${relative}: one shared mobile-nav target`);
+      assert.equal(triggerLabels[0][1], item.label, `${relative}: localized static trigger`);
+
+      const runtime = menuRuntime(`/${relative}`, item.lang, {
+        hasMobileNav: mobileTargets.length === 1,
+        hamburgerLabel: triggerLabels[0][1],
+      });
+      runtime.nav.enhanceNav();
+      assert.equal(runtime.nav.claimMobileTrigger(), true, `${relative}: shared runtime claims trigger`);
+      runtime.hamburger.dispatch('click', { preventDefault() {} });
+      assert.equal(runtime.mobileNav.classList.contains('active'), true, `${relative}: menu opens`);
+      assert.equal(runtime.hamburger.getAttribute('aria-expanded'), 'true', `${relative}: trigger expands`);
+      assert.equal(runtime.mobileNav.getAttribute('aria-hidden'), 'false', `${relative}: dialog is exposed`);
+      checked += 1;
+    }
+  }
+  assert.equal(checked, 10);
 });
