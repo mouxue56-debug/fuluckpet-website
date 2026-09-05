@@ -791,6 +791,7 @@ function breedLabel(breed, lang) {
 // Missing key → passthrough raw ja + console.warn (so a new color can't silently ship untranslated).
 const COLOR_MAP = {
   'ホワイト': { en: 'White', zh: '白色' },
+  'ブラウンタビー': { en: 'Brown Tabby', zh: '棕虎斑' },
   'ブラウンタビー&ホワイト（トリプルコート）': { en: 'Brown Tabby & White (Triple Coat)', zh: '棕虎斑加白（三层被毛）' },
   'ブルーリンクスポイント ネヴァマスカレード': { en: 'Blue Lynx Point Neva Masquerade', zh: '蓝色山猫重点色 涅瓦假面' },
   'ゴールデンシェーデッド': { en: 'Golden Shaded', zh: '金渐层' },

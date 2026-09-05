@@ -667,6 +667,41 @@ test('kitten detail parent names link only when the parent catalogue has a match
   }
 });
 
+test('plain Brown Tabby is localized across English and Chinese kitten detail surfaces', (t) => {
+  const siteDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fuluck-detail-brown-tabby-'));
+  copyFile(path.join(ROOT, 'kittens.html'), path.join(siteDir, 'kittens.html'));
+  const generator = loadGeneratorForSite(t, siteDir);
+  const kitten = {
+    id: 'row-brown-tabby',
+    breederId: 'detail-brown-tabby',
+    breed: 'サイベリアン',
+    color: 'ブラウンタビー',
+    gender: '♂',
+    birthday: '2026-07-01',
+    price: 270000,
+    status: 'available',
+    photos: ['https://images.example.test/brown-tabby.jpg'],
+  };
+  const expected = { en: 'Brown Tabby', zh: '棕虎斑' };
+
+  for (const lang of ['en', 'zh']) {
+    generator.generateKittenDetailPages([kitten], [], lang);
+    const detail = fs.readFileSync(path.join(siteDir, lang, 'kittens/detail-brown-tabby.html'), 'utf8');
+    const visibleAndMetadata = [
+      detail.match(/<title>([^<]+)<\/title>/)[1],
+      detail.match(/<meta name="description" content="([^"]+)"/)[1],
+      detail.match(/<h1>([^<]+)<\/h1>/)[1],
+      detail.match(/data-i18n="kitten.color">[^<]+<\/th><td>([^<]+)<\/td>/)[1],
+      detailProduct(detail).name,
+      detailProduct(detail).description,
+    ];
+    for (const surface of visibleAndMetadata) {
+      assert.match(surface, new RegExp(expected[lang]), `${lang} uses its localized color`);
+      assert.doesNotMatch(surface, /ブラウンタビー/, `${lang} does not leak the Japanese color`);
+    }
+  }
+});
+
 // The featured block argues "an older kitten is easier to read", which is the same pitch
 // the §6 成猫・若猫 section makes in full. So it is emitted only while the cat is still
 // under 12 months; the birthday is computed from today, or this fixture would silently

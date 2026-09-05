@@ -13,6 +13,7 @@ const catalog = JSON.parse(JSON.stringify(context.window.FULUCK_CATALOG_I18N));
 
 test('current live color variants have English and Chinese catalogue labels', () => {
   const expected = {
+    'ブラウンタビー': ['Brown Tabby', '棕虎斑'],
     'ブルーパッチドタビー&ホワイト': ['Blue Patched Tabby & White', '蓝玳瑁虎斑加白'],
     'ブルーパッチドタビー&ホワイト（トリプルコート）': ['Blue Patched Tabby & White (Triple Coat)', '蓝玳瑁虎斑加白（三层被毛）'],
     'レッドリンクスポイント（トリプルコート）': ['Red Lynx Point (Triple Coat)', '红色山猫重点色（三层被毛）'],
