@@ -563,16 +563,14 @@
       var panel = groupEl.querySelector('.nav-dropdown-panel');
       if (!btn || !panel) return;
 
-      groupEl.addEventListener('mouseenter', function () {
+      groupEl.addEventListener('pointerenter', function (e) {
+        if (e.pointerType === 'touch') return;
         setDesktopGroupOpen(groupEl, true);
       });
 
-      groupEl.addEventListener('mouseleave', function () {
+      groupEl.addEventListener('pointerleave', function (e) {
+        if (e.pointerType === 'touch' || groupEl.contains(document.activeElement)) return;
         setDesktopGroupOpen(groupEl, false);
-      });
-
-      groupEl.addEventListener('focusin', function () {
-        setDesktopGroupOpen(groupEl, true);
       });
 
       groupEl.addEventListener('focusout', function () {
