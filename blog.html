@@ -1199,14 +1199,17 @@
     var params=new URLSearchParams(window.location.search);
     function esc(s){return String(s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
     function load(cb){
-      if(idx){cb();return;}
+      if(idx){cb(idx);return;}
       var version=searchVersion;
-      fetch('/blog-search-index.json').then(function(r){return r.json();}).then(function(d){
+      fetch('/blog-search-index.json').then(function(r){
+        if(!r.ok) throw new Error('Search index unavailable');
+        return r.json();
+      }).then(function(d){
         if(version!==searchVersion) return;
-        idx=d;cb();
+        idx=d;cb(idx);
       }).catch(function(){
         if(version!==searchVersion) return;
-        idx=[];cb();
+        cb([]);
       });
     }
     function syncUrl(q){
@@ -1219,8 +1222,8 @@
       var q=input.value.trim().toLowerCase();
       syncUrl(input.value.trim());
       if(!q){ out.hidden=true; out.innerHTML=''; sections.forEach(function(s){s.style.display='';}); return; }
-      load(function(){
-        var hits=idx.filter(function(p){return (p.t+' '+(p.d||'')+' '+(p.c||'')).toLowerCase().indexOf(q)>=0;}).slice(0,40);
+      load(function(data){
+        var hits=data.filter(function(p){return (p.t+' '+(p.d||'')+' '+(p.c||'')).toLowerCase().indexOf(q)>=0;}).slice(0,40);
         sections.forEach(function(s){s.style.display='none';});
         out.hidden=false;
         out.innerHTML='<p style="color:#7a8a87;font-size:.9rem;margin:0 0 12px;text-align:center">「'+esc(input.value.trim())+'」: '+hits.length+' 件</p>'+

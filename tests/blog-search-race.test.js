@@ -49,14 +49,16 @@ function harness(search = '') {
     fetch(url) {
       assert.equal(url, '/blog-search-index.json');
       return new Promise((resolve, reject) => requests.push({
-        resolve: () => resolve({ json: () => Promise.resolve(index) }), reject,
+        resolve: (data = index, ok = true) => resolve({ ok, json: () => Promise.resolve(data) }), reject,
       }));
     },
   });
   return {
     input, out, sections, window,
     search(value) { input.value = value; input.dispatch('input'); },
-    resolve(i) { assert.ok(requests[i], 'pending search index request'); requests[i].resolve(); },
+    resolve(i, data = index, ok = true) { assert.ok(requests[i], 'pending search index request'); requests[i].resolve(data, ok); },
+    submit() { form.dispatch('submit'); },
+    requestCount() { return requests.length; },
     reject(i) { assert.ok(requests[i], 'pending search index request'); requests[i].reject(new Error('synthetic network failure')); },
   };
 }
@@ -126,4 +128,53 @@ test('a stale failed index request cannot poison the cache used by the next sear
   h.search('kitten');
   assert.equal(h.out.hidden, false);
   assert.match(h.out.innerHTML, /synthetic-kitten\.html/);
+});
+
+
+test('a failed search retries only when the user starts another search', async () => {
+  const h = harness();
+  h.search('kitten');
+  h.reject(0);
+  await flush();
+  assert.equal(h.requestCount(), 1, 'no automatic retry');
+  h.search('health');
+  assert.equal(h.requestCount(), 2, 'a new search retries the unavailable index');
+  h.resolve(1);
+  await flush();
+  assert.match(h.out.innerHTML, /synthetic-health\.html/);
+});
+
+test('resubmitting the same search recovers after a transient failure', async () => {
+  const h = harness();
+  h.search('kitten');
+  h.reject(0);
+  await flush();
+  h.submit();
+  assert.equal(h.requestCount(), 2);
+  h.resolve(1);
+  await flush();
+  assert.match(h.out.innerHTML, /synthetic-kitten\.html/);
+});
+
+test('a successfully loaded empty index stays cached and shows no matches', async () => {
+  const h = harness();
+  h.search('kitten');
+  h.resolve(0, []);
+  await flush();
+  h.search('health');
+  assert.equal(h.requestCount(), 1, 'a valid empty array is a successful cache');
+  assert.equal(h.out.hidden, false);
+  assert.doesNotMatch(h.out.innerHTML, /class="blog-card"/);
+});
+
+test('an HTTP failure with an empty JSON body does not become a successful empty cache', async () => {
+  const h = harness();
+  h.search('kitten');
+  h.resolve(0, [], false);
+  await flush();
+  h.search('health');
+  assert.equal(h.requestCount(), 2);
+  h.resolve(1);
+  await flush();
+  assert.match(h.out.innerHTML, /synthetic-health\.html/);
 });
