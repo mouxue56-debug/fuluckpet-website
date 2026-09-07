@@ -62,6 +62,7 @@ class FakeElement {
     this.listeners = new Map();
     this.scrollCount = 0;
     this.focusCount = 0;
+    this.validity = { badInput: false };
   }
 
   addEventListener(type, callback) {
@@ -76,6 +77,12 @@ class FakeElement {
   }
 
   setAttribute(name, value) {
+    // Chromium date controls clear unfinished keyboard input when min is set,
+    // even to its current value (independently reproduced in browser review).
+    if (name === 'min' && this.validity.badInput) {
+      this.value = '';
+      this.validity.badInput = false;
+    }
     this.attributes.set(name, String(value));
   }
 
@@ -104,7 +111,12 @@ async function flushMicrotasks(rounds = 12) {
   for (let index = 0; index < rounds; index += 1) await Promise.resolve();
 }
 
-function createHarness(responseModes) {
+function createHarness(responseModes, options = {}) {
+  let now = Date.parse(options.now || '2026-09-07T01:00:00Z');
+  class ClockDate extends Date {
+    constructor(...args) { super(...(args.length ? args : [now])); }
+    static now() { return now; }
+  }
   const timers = new FakeTimers();
   const elements = new Map();
   const add = (id, value = '') => {
@@ -141,7 +153,7 @@ function createHarness(responseModes) {
   add('bk-method', 'onsite');
   add('bk-kitten', '');
   add('bk-message', 'synthetic non-customer fixture');
-  for (const id of ['name', 'email', 'phone', 'date', 'method', 'message']) {
+  for (const id of ['name', 'email', 'phone', 'date', 'date2', 'method', 'message']) {
     add(`bk-${id}-err`).hidden = true;
   }
 
@@ -190,9 +202,10 @@ function createHarness(responseModes) {
     });
   }
 
-  const localStorage = { getItem() { return 'ja'; } };
+  const localStorage = { getItem() { return options.lang || 'ja'; } };
   const sessionStorage = { getItem() { return null; } };
   const context = {
+    Date: ClockDate,
     AbortController,
     AbortSignal,
     DOMException,
@@ -216,8 +229,15 @@ function createHarness(responseModes) {
 
   vm.createContext(context);
   vm.runInContext(bookingScript, context, { filename: 'booking.html#submit' });
+  // Execute any later inline date initializer as the browser does; after the
+  // date logic moves into submission scope this list is simply empty.
+  for (const match of html.slice(scriptEnd + '</script>'.length).matchAll(/<script>([\s\S]*?)<\/script>/g)) {
+    vm.runInContext(match[1], context, { filename: 'booking.html#later-inline' });
+  }
 
   return {
+    elements,
+    setNow(value) { now = Date.parse(value); },
     error,
     errorHeading,
     form,
@@ -305,3 +325,93 @@ test('invalid JSON normalizes to existing recovery and clears its timeout', asyn
   assert.equal(harness.requests[0].signal.aborted, false);
   assert.equal(harness.errorHeading.focusCount, 1);
 });
+
+for (const field of ['bk-date', 'bk-date2']) {
+  for (const value of ['2000-01-01', '2026-09-07', '2027-02-30']) {
+    test(`${field} rejects ${value} without submitting and focuses its inline error`, async () => {
+      const h = createHarness(['success']);
+      const input = h.elements.get(field);
+      input.value = value;
+      h.submitForm();
+      await flushMicrotasks();
+      assert.equal(h.requests.length, 0);
+      assert.equal(input.getAttribute('aria-invalid'), 'true');
+      assert.equal(input.focusCount, 1);
+      assert.equal(h.elements.get(`${field}-err`).hidden, false);
+    });
+  }
+}
+
+for (const [now, tomorrow] of [
+  ['2026-09-07T14:59:59Z', '2026-09-08'],
+  ['2026-09-07T15:00:00Z', '2026-09-09'],
+  ['2026-12-31T15:00:00Z', '2027-01-02'],
+  ['2028-02-28T15:00:00Z', '2028-03-01'],
+]) {
+  test(`JST tomorrow ${tomorrow} stays bookable at ${now}`, async () => {
+    const h = createHarness(['success'], { now });
+    for (const id of ['bk-date', 'bk-date2']) {
+      assert.equal(h.elements.get(id).getAttribute('min'), tomorrow);
+      h.elements.get(id).value = tomorrow;
+    }
+    h.submitForm();
+    await flushMicrotasks();
+    assert.equal(h.requests.length, 1);
+    assert.equal(h.success.className, 'booking-result success');
+  });
+}
+
+test('an open page refreshes the JST bound when midnight passes before submit', async () => {
+  const h = createHarness(['success'], { now: '2026-09-07T14:59:59Z' });
+  h.elements.get('bk-date').value = '2026-09-08';
+  h.setNow('2026-09-07T15:00:00Z');
+  h.submitForm();
+  await flushMicrotasks();
+  assert.equal(h.requests.length, 0);
+  assert.equal(h.elements.get('bk-date').getAttribute('min'), '2026-09-09');
+});
+
+for (const lang of ['ja', 'en', 'zh']) {
+  test(`${lang} second-date change shows localized error and valid correction clears it`, () => {
+    const h = createHarness(['success'], { lang });
+    const input = h.elements.get('bk-date2');
+    const error = h.elements.get('bk-date2-err');
+    input.value = '2026-09-07';
+    input.dispatch('change');
+    assert.equal(error.hidden, false);
+    assert.match(error.textContent, {ja: /日本時間/, en: /Japan time/, zh: /日本时间/}[lang]);
+    input.value = '';
+    input.dispatch('change');
+    assert.equal(error.hidden, true);
+    assert.equal(input.getAttribute('aria-invalid'), null);
+  });
+}
+
+for (const crossesMidnight of [false, true]) {
+  test(`unfinished optional date survives validation and blocks submit (midnight=${crossesMidnight})`, async () => {
+    const h = createHarness(['success'], { now: '2026-09-07T14:59:59Z' });
+    const second = h.elements.get('bk-date2');
+    second.value = '';
+    second.validity.badInput = true;
+    if (crossesMidnight) h.setNow('2026-09-07T15:00:00Z');
+    // A first-date blur also refreshes the shared minimum: it must not erase
+    // unfinished input in the second field before that field is validated.
+    h.elements.get('bk-date').dispatch('blur');
+    second.dispatch('blur');
+    assert.equal(second.validity.badInput, true);
+    assert.equal(second.getAttribute('aria-invalid'), 'true');
+    h.submitForm();
+    await flushMicrotasks();
+    assert.equal(h.requests.length, 0);
+    assert.equal(h.elements.get('bk-date2-err').hidden, false);
+
+    // Explicitly clearing the native partial input restores optional semantics.
+    second.validity.badInput = false;
+    second.dispatch('change');
+    assert.equal(second.getAttribute('min'), crossesMidnight ? '2026-09-09' : '2026-09-08');
+    h.submitForm();
+    await flushMicrotasks();
+    assert.equal(h.requests.length, 1);
+    assert.equal(h.requests[0].payload.preferred_date2, '');
+  });
+}
