@@ -23,7 +23,7 @@ const ADMIN_DIARY_RELEASE = '20260711a';
 const ADMIN_FAQ_RELEASE = TRUTH_RELEASE;
 const ADMIN_CALENDAR_RELEASE = '20260714c';
 const NAV_RELEASE = '20260918a';
-const I18N_RELEASE = COPY_RELEASE;
+const I18N_RELEASE = '20260918b';
 const NAV_STYLE_RELEASE = '20260918a';
 const CHAT_STYLE_RELEASE = '20260712e';
 const CHAT_RELEASE = '20260714g';
@@ -62,8 +62,8 @@ const PUBLIC_ASSETS = {
   'boarding/boarding-public-estimate.js': ESTIMATE_RELEASE,
 };
 const PAGE_ASSET_RELEASE_OVERRIDES = {
-  'about.html': { 'i18n.js': '20260903a' },
-  'index.html': { 'i18n.js': '20260903a' },
+  'about.html': { 'i18n.js': I18N_RELEASE },
+  'index.html': { 'i18n.js': I18N_RELEASE },
 };
 
 function trackedFiles(glob) {
