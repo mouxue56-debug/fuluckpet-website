@@ -71,6 +71,13 @@ class FakeElement {
   }
 
   appendChild(child) {
+    // Real DOM appendChild moves an existing node; a push-only fake would
+    // duplicate cards during catalogue sort and hide the snapshot bug.
+    if (child.parentNode && Array.isArray(child.parentNode.children)) {
+      const siblings = child.parentNode.children;
+      const index = siblings.indexOf(child);
+      if (index !== -1) siblings.splice(index, 1);
+    }
     child.parentNode = this;
     child.parentElement = this;
     this.children.push(child);
@@ -256,6 +263,36 @@ function runKittenCarousel(items) {
   return { mount, htmlWrites, listeners };
 }
 
+function makeCatalogCard(htmlWrites, data) {
+  const card = element('article', htmlWrites, 'kitten-card');
+  card.dataset = {
+    images: '',
+    video: '',
+    driveFolder: '',
+    name: data.breederId,
+    status: data.status || 'available',
+    new: 'false',
+    promotionTag: data.promotionTag || '',
+    promotionPriority: data.promotionPriority == null ? '' : String(data.promotionPriority),
+    papa: '',
+    mama: '',
+    breederId: data.breederId,
+    detailUrl: '',
+    price: String(data.price),
+    birthday: data.birthday || '2026-06',
+  };
+  card.appendChild(element('h3', htmlWrites, '', 'サイベリアン'));
+  card.appendChild(element('p', htmlWrites, 'kit-meta', '男の子 ・ ブルー'));
+  card.appendChild(element('p', htmlWrites, 'kit-price', '¥' + data.price + '（税込）'));
+  return card;
+}
+
+function catalogIds(grid) {
+  return grid.children
+    .filter((child) => child.classList.contains('kitten-card'))
+    .map((child) => child.dataset.breederId);
+}
+
 function makeModal(htmlWrites, id) {
   const modal = element('div', htmlWrites, 'modal-overlay');
   modal.id = id;
@@ -276,32 +313,53 @@ function runMainScript(options = {}) {
   const htmlWrites = [];
   const kittenModal = makeModal(htmlWrites, 'kittenModal');
   const parentModal = makeModal(htmlWrites, 'parentModal');
-  const kittenCard = element('article', htmlWrites, 'kitten-card');
-  kittenCard.dataset = {
-    images: options.kittenImages || '',
-    video: options.kittenVideo || '',
-    driveFolder: '',
-    name: options.kittenName || '',
-    status: options.kittenStatus || 'available',
-    new: options.isNew === false ? 'false' : 'true',
-    promotionTag: options.promotionTag || '',
-    papa: options.papa || '',
-    mama: options.mama || '',
-    breederId: options.breederId || '',
-    detailUrl: options.detailUrl || '',
-    price: options.priceData === undefined ? '220000' : options.priceData,
-  };
-  kittenCard.appendChild(element('h3', htmlWrites, '', options.breed || 'サイベリアン'));
-  kittenCard.appendChild(element('p', htmlWrites, 'kit-meta', options.meta || '男の子 ・ ブルー'));
-  kittenCard.appendChild(element('p', htmlWrites, 'kit-meta', options.birthday || '2026年5月'));
-  kittenCard.appendChild(element('p', htmlWrites, 'kit-price', options.price || '¥220,000（税込）'));
+  const catalogCards = options.catalogCards
+    ? options.catalogCards.map((data) => makeCatalogCard(htmlWrites, data))
+    : null;
+  const kittenCard = catalogCards ? catalogCards[0] : element('article', htmlWrites, 'kitten-card');
+  if (!catalogCards) {
+    kittenCard.dataset = {
+      images: options.kittenImages || '',
+      video: options.kittenVideo || '',
+      driveFolder: '',
+      name: options.kittenName || '',
+      status: options.kittenStatus || 'available',
+      new: options.isNew === false ? 'false' : 'true',
+      promotionTag: options.promotionTag || '',
+      papa: options.papa || '',
+      mama: options.mama || '',
+      breederId: options.breederId || '',
+      detailUrl: options.detailUrl || '',
+      price: options.priceData === undefined ? '220000' : options.priceData,
+    };
+    kittenCard.appendChild(element('h3', htmlWrites, '', options.breed || 'サイベリアン'));
+    kittenCard.appendChild(element('p', htmlWrites, 'kit-meta', options.meta || '男の子 ・ ブルー'));
+    kittenCard.appendChild(element('p', htmlWrites, 'kit-meta', options.birthday || '2026年5月'));
+    kittenCard.appendChild(element('p', htmlWrites, 'kit-price', options.price || '¥220,000（税込）'));
+  }
+
+  const kittensGrid = element('div', htmlWrites);
+  kittensGrid.id = 'kittensGrid';
+  (catalogCards || [kittenCard]).forEach((card) => kittensGrid.appendChild(card));
+
+  const sortDefault = element('button', htmlWrites, 'sort-btn active');
+  sortDefault.dataset.sort = 'default';
+  const sortPriceAsc = element('button', htmlWrites, 'sort-btn');
+  sortPriceAsc.dataset.sort = 'price-asc';
+  const sortButtons = catalogCards ? [sortDefault, sortPriceAsc] : [];
+
+  const filterAll = element('button', htmlWrites, 'filter-btn active');
+  filterAll.dataset.filter = 'all';
+  const filterAvailable = element('button', htmlWrites, 'filter-btn');
+  filterAvailable.dataset.filter = 'available';
+  const filterButtons = catalogCards ? [filterAll, filterAvailable] : [];
 
   const parentCard = element('article', htmlWrites, 'parent-card');
   parentCard.dataset = {
     name: options.parentName || 'しろくん',
     breed: options.parentBreed || 'サイベリアン',
-    gender: options.parentGender || '♂',
-    role: options.parentRole || 'パパ猫',
+    gender: Object.prototype.hasOwnProperty.call(options, 'parentGender') ? options.parentGender : '♂',
+    role: Object.prototype.hasOwnProperty.call(options, 'parentRole') ? options.parentRole : 'パパ猫',
     age: options.parentAge || '3歳',
     color: options.parentColor || 'ホワイト',
     tested: 'true',
@@ -334,6 +392,7 @@ function runMainScript(options = {}) {
       if (id === 'parentModal') return parentModal;
       if (id === 'modalClose') return kittenModal.querySelector('.modal-close');
       if (id === 'parentModalClose') return parentModal.querySelector('.modal-close');
+      if (id === 'kittensGrid') return catalogCards ? kittensGrid : null;
       return null;
     },
     querySelector(selector) {
@@ -343,9 +402,21 @@ function runMainScript(options = {}) {
       return null;
     },
     querySelectorAll(selector) {
-      if (selector === '.kitten-card' || selector === '.kitten-card:not(.hidden)') return [kittenCard];
+      if (selector === '.kitten-card' || selector === '.kitten-card:not(.hidden)') {
+        const cards = catalogCards
+          ? kittensGrid.querySelectorAll('.kitten-card')
+          : [kittenCard];
+        if (selector.endsWith(':not(.hidden)')) {
+          return cards.filter((card) => !card.classList.contains('hidden'));
+        }
+        return cards;
+      }
+      if (selector === '.sort-btn') return sortButtons;
+      if (selector === '.filter-btn') return filterButtons;
       if (selector === '.parent-card') return [parentCard];
-      if (selector.startsWith('.kitten-card[data-')) return [kittenCard];
+      if (selector.startsWith('.kitten-card[data-')) {
+        return catalogCards ? kittensGrid.querySelectorAll('.kitten-card') : [kittenCard];
+      }
       return [];
     },
     addEventListener(type, listener) {
@@ -353,7 +424,9 @@ function runMainScript(options = {}) {
       events[type].push(listener);
     },
   };
+  const windowEvents = Object.create(null);
   const window = {
+    DriveLoader: options.driveLoader,
     FULUCK_API_BASE: 'https://api.example.test',
     FuluckKittenCatalog: KittenCatalog,
     FuluckPublicData: {
@@ -365,7 +438,14 @@ function runMainScript(options = {}) {
     scrollY: 0,
     innerWidth: 1024,
     innerHeight: 768,
-    addEventListener() {},
+    addEventListener(type, listener) {
+      if (!windowEvents[type]) windowEvents[type] = [];
+      windowEvents[type].push(listener);
+    },
+    dispatchEvent(event) {
+      const type = event && event.type;
+      (windowEvents[type] || []).forEach((listener) => listener.call(window, event));
+    },
     scrollTo() {},
   };
   class FakeObserver {
@@ -389,7 +469,19 @@ function runMainScript(options = {}) {
   vm.runInContext(SCRIPT_SOURCE, context, { filename: 'script.js' });
   assert.ok(events.DOMContentLoaded && events.DOMContentLoaded.length === 1, 'main script must register once');
   events.DOMContentLoaded[0]();
-  return { htmlWrites, kittenCard, parentCard, kittenModal, parentModal, window, querySelectors };
+  return {
+    htmlWrites,
+    kittenCard,
+    kittenCards: catalogCards || [kittenCard],
+    kittensGrid,
+    sortPriceAsc,
+    filterAvailable,
+    parentCard,
+    kittenModal,
+    parentModal,
+    window,
+    querySelectors,
+  };
 }
 
 test('kitten carousel renders hostile API text literally and rejects unsafe photo and id URLs', async () => {
@@ -654,4 +746,215 @@ test('rebindCards is idempotent for keyboard and pointer activation handlers', (
 
   result.parentCard.dispatch('keydown', { key: 'Enter' });
   assert.equal(parentOpens, 2, 'one keyboard activation fires exactly once after repeated rebinds');
+});
+
+const PRICE_ASC_CARDS = [
+  { breederId: '2604-02563', price: 100000, birthday: '2026-07' },
+  { breederId: '2605-02526', price: 100000, birthday: '2026-06' },
+  { breederId: '2608-52935', price: 270000, birthday: '2026-05' },
+  { breederId: '2603-02736', price: 200000, birthday: '2026-04' },
+];
+
+function openThenStep(result, startCard, direction, count) {
+  startCard.click();
+  const button = result.kittenModal.querySelector(direction === 'next' ? '.modal-kitten-next' : '.modal-kitten-prev');
+  const names = [result.kittenModal.querySelector('.modal-name').textContent];
+  for (let step = 0; step < count; step += 1) {
+    button.dispatch('click', { stopPropagation() {} });
+    names.push(result.kittenModal.querySelector('.modal-name').textContent);
+  }
+  return names;
+}
+
+test('price-asc sort handler then Next/Prev follow the live DOM, not the bind snapshot', () => {
+  const result = runMainScript({ catalogCards: PRICE_ASC_CARDS });
+  assert.deepEqual(catalogIds(result.kittensGrid), ['2604-02563', '2605-02526', '2608-52935', '2603-02736']);
+
+  result.sortPriceAsc.click();
+  assert.deepEqual(
+    catalogIds(result.kittensGrid),
+    ['2604-02563', '2605-02526', '2603-02736', '2608-52935'],
+    'price-asc is not the original neighbour order',
+  );
+
+  const names = openThenStep(result, result.kittenCards[0], 'next', 2);
+  assert.deepEqual(names, ['2604-02563', '2605-02526', '2603-02736']);
+  assert.notEqual(names[2], '2608-52935');
+
+  const lastAfterSort = result.kittenCards.find((card) => card.dataset.breederId === '2608-52935');
+  const back = openThenStep(result, lastAfterSort, 'prev', 2);
+  assert.deepEqual(back, ['2608-52935', '2603-02736', '2605-02526']);
+});
+
+test('cardsLoaded re-sorts then Next follows the post-refresh DOM order', () => {
+  const result = runMainScript({ catalogCards: PRICE_ASC_CARDS });
+  result.sortPriceAsc.click();
+  result.kittensGrid.children
+    .filter((child) => child.classList.contains('kitten-card'))
+    .slice()
+    .reverse()
+    .forEach((card) => result.kittensGrid.appendChild(card));
+  result.window.bindKittenCards();
+
+  result.window.dispatchEvent({ type: 'cardsLoaded' });
+  assert.deepEqual(catalogIds(result.kittensGrid), ['2604-02563', '2605-02526', '2603-02736', '2608-52935']);
+
+  const names = openThenStep(result, result.kittenCards[0], 'next', 2);
+  assert.deepEqual(names, ['2604-02563', '2605-02526', '2603-02736']);
+});
+
+test('modal Next skips filtered hidden cards after a live reorder', () => {
+  const result = runMainScript({
+    catalogCards: [
+      { breederId: '2604-02563', price: 100000, status: 'available', birthday: '2026-07' },
+      { breederId: '2605-02526', price: 100000, status: 'reserved', birthday: '2026-06' },
+      { breederId: '2608-52935', price: 270000, status: 'available', birthday: '2026-05' },
+      { breederId: '2603-02736', price: 200000, status: 'available', birthday: '2026-04' },
+    ],
+  });
+  result.sortPriceAsc.click();
+  result.filterAvailable.click();
+  assert.equal(result.kittenCards[1].classList.contains('hidden'), true);
+
+  const names = openThenStep(result, result.kittenCards[0], 'next', 1);
+  assert.deepEqual(names, ['2604-02563', '2603-02736']);
+});
+
+test('repeated bindKittenCards after sort keeps a single click and keydown handler', () => {
+  const result = runMainScript({ catalogCards: PRICE_ASC_CARDS });
+  result.sortPriceAsc.click();
+  result.window.bindKittenCards();
+  result.window.bindKittenCards();
+  const card = result.kittenCards[0];
+  assert.equal((card.listeners.click || []).length, 1);
+  assert.equal((card.listeners.keydown || []).length, 1);
+  card.click();
+  card.click();
+  assert.equal(result.kittenModal.classList.contains('active'), true);
+});
+
+test('parent modal uses standard role when gender is missing and does not impersonate mother', async () => {
+  const cases = [
+    { lang: 'ja', role: 'パパ猫', text: 'パパ猫', tone: 'role-papa' },
+    { lang: 'en', role: 'パパ猫', text: 'Father', tone: 'role-papa' },
+    { lang: 'zh', role: 'パパ猫', text: '父猫', tone: 'role-papa' },
+    { lang: 'ja', role: 'ママ猫', text: 'ママ猫', tone: 'role-mama' },
+    { lang: 'en', role: 'ママ猫', text: 'Mother', tone: 'role-mama' },
+    { lang: 'zh', role: 'ママ猫', text: '母猫', tone: 'role-mama' },
+  ];
+  for (const entry of cases) {
+    const result = runMainScript({
+      lang: entry.lang,
+      parentGender: '',
+      parentRole: entry.role,
+      parentName: 'Parent-01',
+    });
+    await result.window.openParentModal(result.parentCard);
+    const roleEl = result.parentModal.querySelector('.parent-role');
+    assert.equal(roleEl.textContent, entry.text, `${entry.lang} ${entry.role} label`);
+    assert.equal(roleEl.classList.contains(entry.tone), true, `${entry.lang} ${entry.role} class`);
+    assert.equal(roleEl.classList.contains(entry.tone === 'role-papa' ? 'role-mama' : 'role-papa'), false);
+    await result.window.openParentModal(result.parentCard);
+    assert.equal(roleEl.textContent, entry.text, `${entry.lang} reopen`);
+    assert.equal(roleEl.classList.contains(entry.tone), true);
+  }
+});
+
+test('unknown or retired roles stay neutral without gender, and valid gender wins over role', async () => {
+  const unknown = runMainScript({ lang: 'en', parentGender: '', parentRole: 'スタッフ', parentName: 'Staff-01' });
+  await unknown.window.openParentModal(unknown.parentCard);
+  const unknownRole = unknown.parentModal.querySelector('.parent-role');
+  assert.equal(unknownRole.textContent, 'スタッフ');
+  assert.equal(unknownRole.classList.contains('role-neutral'), true);
+  assert.equal(unknownRole.classList.contains('role-mama'), false);
+  assert.equal(unknownRole.classList.contains('role-papa'), false);
+
+  const retired = runMainScript({ lang: 'en', parentGender: '', parentRole: '過去の実績', parentName: 'Retired-01' });
+  await retired.window.openParentModal(retired.parentCard);
+  const retiredRole = retired.parentModal.querySelector('.parent-role');
+  assert.equal(retiredRole.textContent, 'Past breeding record');
+  assert.equal(retiredRole.classList.contains('role-neutral'), true);
+  assert.equal(retiredRole.classList.contains('role-mama'), false);
+
+  const fatherWins = runMainScript({ lang: 'zh', parentGender: '♂', parentRole: 'ママ猫', parentName: 'Dad-01' });
+  await fatherWins.window.openParentModal(fatherWins.parentCard);
+  const fatherRole = fatherWins.parentModal.querySelector('.parent-role');
+  assert.equal(fatherRole.textContent, '父猫');
+  assert.equal(fatherRole.classList.contains('role-papa'), true);
+
+  const motherWins = runMainScript({ lang: 'en', parentGender: '♀', parentRole: 'パパ猫', parentName: 'Mom-01' });
+  await motherWins.window.openParentModal(motherWins.parentCard);
+  const motherRole = motherWins.parentModal.querySelector('.parent-role');
+  assert.equal(motherRole.textContent, 'Mother');
+  assert.equal(motherRole.classList.contains('role-mama'), true);
+
+  const retiredFather = runMainScript({ lang: 'ja', parentGender: '♂', parentRole: '過去の実績', parentName: 'Retired-Dad' });
+  await retiredFather.window.openParentModal(retiredFather.parentCard);
+  const retiredFatherRole = retiredFather.parentModal.querySelector('.parent-role');
+  assert.equal(retiredFatherRole.textContent, '過去の実績');
+  assert.equal(retiredFatherRole.classList.contains('role-papa'), true);
+});
+
+
+test('late Drive photos cannot replace the currently opened kitten gallery', async () => {
+  let resolveA;
+  const aPhotos = new Promise(resolve => { resolveA = resolve; });
+  const harness = runMainScript({
+    catalogCards: [{ breederId: 'A', price: 100 }, { breederId: 'B', price: 200 }],
+    driveLoader: { loadCardImages() { return aPhotos; } },
+  });
+  const [a, b] = harness.kittenCards;
+  a.dataset.driveFolder = 'folderA';
+  b.dataset.images = '/images/kitten-b.jpg';
+  a.dispatch('click');
+  b.dispatch('click');
+  resolveA('/images/kitten-a.jpg');
+  await flushAsyncWork();
+  const images = harness.kittenModal.querySelector('.modal-gallery').querySelectorAll('img');
+  assert.ok(images.length > 0);
+  assert.ok(images.every(img => img.getAttribute('src') === '/images/kitten-b.jpg'));
+});
+
+test('a rejected Drive photo load exits loading state without an unhandled rejection', async () => {
+  const harness = runMainScript({ driveLoader: { loadCardImages() { return Promise.reject(new Error('offline')); } } });
+  harness.kittenCard.dataset.driveFolder = 'folderA';
+  harness.kittenCard.dispatch('click');
+  await flushAsyncWork();
+  const gallery = harness.kittenModal.querySelector('.modal-gallery');
+  assert.doesNotMatch(gallery.textContent, /読み込み中/);
+  assert.ok(gallery.querySelector('.carousel-slide'));
+});
+
+test('reordering while a kitten is open preserves that kitten as the navigation anchor', () => {
+  const result = runMainScript({ catalogCards: PRICE_ASC_CARDS });
+  result.kittenCards.find(card => card.dataset.breederId === '2603-02736').click();
+  result.sortPriceAsc.click();
+  result.kittenModal.querySelector('.modal-kitten-next').click();
+  assert.equal(result.kittenModal.querySelector('.modal-name').textContent, '2608-52935');
+});
+
+test('late parent photos cannot overwrite a newer parent or its details', async () => {
+  let finish;
+  const photos = new Promise(resolve => { finish = resolve; });
+  const result = runMainScript({ driveLoader: { loadCardImages() { return photos; } } });
+  const a = result.parentCard;
+  a.dataset.driveFolder = 'folderA';
+  const first = result.window.openParentModal(a);
+  const b = element('article', result.htmlWrites, 'parent-card');
+  b.dataset = { ...a.dataset, name: 'Parent B', driveFolder: '', images: '/images/parent-b.jpg' };
+  await result.window.openParentModal(b);
+  finish('/images/parent-a.jpg');
+  await first;
+  assert.equal(result.parentModal.querySelector('.modal-name').textContent, 'Parent B');
+  const images = result.parentModal.querySelector('.modal-gallery').querySelectorAll('img');
+  assert.ok(images.length > 0);
+  assert.ok(images.every(img => img.getAttribute('src') === '/images/parent-b.jpg'));
+});
+
+test('parent modal remains usable when Drive photo loading fails', async () => {
+  const result = runMainScript({ driveLoader: { loadCardImages() { return Promise.reject(new Error('offline')); } } });
+  result.parentCard.dataset.driveFolder = 'folderA';
+  await result.window.openParentModal(result.parentCard);
+  assert.ok(result.parentModal.classList.contains('active'));
+  assert.doesNotMatch(result.parentModal.querySelector('.modal-gallery').textContent, /読み込み中/);
 });

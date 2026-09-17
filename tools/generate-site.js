@@ -1729,8 +1729,8 @@ function buildListHeader(jaHeader, lang) {
   const chrome = listToAbsoluteLinks(jaHeader.substring(headerIdx, heroIdx).replace(/\s*$/, ''));
 
   const styleV = verAsset('style.css', '20260823a');
-  const navCssV = verAsset('nav.css', '20260711c');
-  const navJsV = verAsset('nav.js', '20260823a');
+  const navCssV = verAsset('nav.css', '20260918a');
+  const navJsV = verAsset('nav.js', '20260918a');
   const relPath = 'kittens.html';
   const selfUrl = `${BASE_URL}/${langDir(lang)}kittens.html`;
   const kittensLabel = KITTENS_LABEL[lang];
@@ -2349,11 +2349,11 @@ ${smallAnimalHreflangBlock(detailId)}
   <link rel="preload" as="style" href="${fontHref(lang)}" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="${fontHref(lang)}" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260823a')}">
-  <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20260711c')}">
+  <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20260918a')}">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <script defer src="/nav.js?v=${verAsset('nav.js', '20260823a')}"></script>`;
+  <script defer src="/nav.js?v=${verAsset('nav.js', '20260918a')}"></script>`;
 }
 
 function buildSmallAnimalListHtml(animals, headerHtml, footerHtml, lang = 'ja') {
@@ -2456,7 +2456,7 @@ ${sections}
 ${footerHtml}
 
   <script src="/i18n.js?v=${verAsset('i18n.js', '20260823a')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20260823a')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20260918a')}"></script>
 </body>
 </html>`;
 }
@@ -2600,7 +2600,7 @@ ${footerHtml}
   });
   </script>
   <script src="/i18n.js?v=${verAsset('i18n.js', '20260823a')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20260823a')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20260918a')}"></script>
 </body>
 </html>`;
 }
@@ -3188,11 +3188,11 @@ ${hreflangBlock(`kittens/${fileId}.html`)}
   <link rel="preload" as="style" href="${detailFontHref}" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="${detailFontHref}" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260823a')}">
-  <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20260711c')}">
+  <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20260918a')}">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <script defer src="/nav.js?v=${verAsset('nav.js', '20260823a')}"></script>
+  <script defer src="/nav.js?v=${verAsset('nav.js', '20260918a')}"></script>
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
@@ -3620,7 +3620,7 @@ ${viewItemScript}
   <script src="/catalog-i18n.js?v=${verAsset('catalog-i18n.js', '20260823a')}"></script>
   <script src="/kitten-carousel.js?v=${verAsset('kitten-carousel.js', '20260917a')}"></script>
   <script src="/cta-widget.js?v=${verAsset('cta-widget.js', '20260823a')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20260823a')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20260918a')}"></script>
   <script defer src="/mobile-cta.js?v=${verAsset('mobile-cta.js', '20260823a')}"></script>
   <script defer src="/analytics.js?v=${verAsset('analytics.js', '20260823a')}"></script>
 </body>

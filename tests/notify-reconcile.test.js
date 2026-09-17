@@ -203,7 +203,8 @@ test('sent and dead-letter notification items are never delivered again', async 
   const sentIntent = await createNotifyIntent(bindings, sentSpec, nowMs);
   await markNotifySent(bindings, sentIntent.itemKey, { providerMessageId: 'already-sent' }, nowMs);
 
-  const deadSpec = notificationSpec({ entityId: 'dead-1' });
+  const deadSpec = notificationSpec({ entityId: 'dead-1', template: 'unsupported_template' });
+  await putJson(DATA, deadSpec.sourceKey, bookingSource());
   const deadIntent = await createNotifyIntent(bindings, deadSpec, nowMs);
   await attemptNotifyIntent(bindings, deadIntent.itemKey, nowMs, {});
   await putJson(DATA, deadSpec.sourceKey, bookingSource());
@@ -219,7 +220,9 @@ test('sent and dead-letter notification items are never delivered again', async 
 test('a late retryable failure cannot resurrect a dead-letter item', async () => {
   const { bindings, DATA } = createEnv();
   const nowMs = Date.parse('2026-08-16T00:00:30.000Z');
-  const intent = await createNotifyIntent(bindings, notificationSpec(), nowMs);
+  const spec = notificationSpec({ template: 'unsupported_template' });
+  await putJson(DATA, spec.sourceKey, bookingSource());
+  const intent = await createNotifyIntent(bindings, spec, nowMs);
   await attemptNotifyIntent(bindings, intent.itemKey, nowMs, {});
 
   const result = await markNotifyFailure(
@@ -230,7 +233,7 @@ test('a late retryable failure cannot resurrect a dead-letter item', async () =>
   );
 
   assert.equal(result.status, 'dead_letter');
-  assert.equal(result.last_error_code, 'source_missing');
+  assert.equal(result.last_error_code, 'template_unsupported');
   assert.equal(result.due_key, null);
   assert.equal([...DATA.store.keys()].some((key) => key.startsWith('notify:due:')), false);
 });
@@ -309,19 +312,51 @@ test('authoritative reads, attempts, and reconciliation preserve sent over stale
   assert.equal(emailCalls.length, 0);
 });
 
-test('a missing source dead-letters the item with source_missing and removes its due key', async () => {
-  const { bindings, DATA } = createEnv();
+test('a missing source retries without transport or source writes, then sends once when visible', async () => {
+  const { bindings, DATA, emailCalls } = createEnv();
   const nowMs = Date.parse('2026-08-16T00:01:00.000Z');
-  const intent = await createNotifyIntent(bindings, notificationSpec(), nowMs);
-
+  const spec = notificationSpec();
+  const intent = await createNotifyIntent(bindings, spec, nowMs);
   const result = await attemptNotifyIntent(bindings, intent.itemKey, nowMs, {});
-
-  assert.equal(result.status, 'dead_letter');
+  assert.equal(result.status, 'retry');
   assert.equal(result.last_error_code, 'source_missing');
   assert.deepEqual(result.last_error, { code: 'source_missing', detail: null });
-  assert.equal(result.attempt_count, 0);
-  assert.equal(result.due_key, null);
+  assert.equal(result.attempt_count, 1);
+  assert.equal(result.next_attempt_ms, nowMs + 300_000);
   assert.equal(DATA.store.has(intent.dueKey), false);
+  assert.equal(DATA.store.get(result.due_key), intent.itemKey);
+  assert.equal(DATA.store.has(spec.sourceKey), false);
+  assert.equal(emailCalls.length, 0);
+  await putJson(DATA, spec.sourceKey, bookingSource());
+  await attemptNotifyIntent(bindings, intent.itemKey, result.next_attempt_ms - 1, {});
+  assert.equal(emailCalls.length, 0, 'the existing retry deadline is respected');
+  const sent = await attemptNotifyIntent(bindings, intent.itemKey, result.next_attempt_ms, {});
+  assert.equal(sent.status, 'sent');
+  assert.equal(DATA.store.has(result.due_key), false);
+  await attemptNotifyIntent(bindings, intent.itemKey, result.next_attempt_ms + 1, {});
+  assert.equal(emailCalls.length, 1);
+});
+
+test('a permanently missing source exhausts bounded retries without any transport calls', async () => {
+  const { bindings, DATA, emailCalls } = createEnv();
+  let nowMs = Date.parse('2026-08-16T00:01:00.000Z');
+  const intent = await createNotifyIntent(bindings, notificationSpec(), nowMs);
+  for (const [index, delay] of [300_000, 1_800_000, 21_600_000, 86_400_000].entries()) {
+    const retry = await attemptNotifyIntent(bindings, intent.itemKey, nowMs, {});
+    assert.equal(retry.status, 'retry');
+    assert.equal(retry.attempt_count, index + 1);
+    assert.equal(retry.next_attempt_ms, nowMs + delay);
+    assert.equal(emailCalls.length, 0);
+    nowMs = retry.next_attempt_ms;
+  }
+  const failed = await attemptNotifyIntent(bindings, intent.itemKey, nowMs, {});
+  assert.equal(failed.status, 'failed');
+  assert.equal(failed.last_error_code, 'source_missing');
+  assert.equal(failed.attempt_count, 5);
+  assert.equal(failed.due_key, null);
+  assert.equal([...DATA.store.keys()].some(key => key.startsWith('notify:due:')), false);
+  assert.deepEqual(await attemptNotifyIntent(bindings, intent.itemKey, nowMs + 1, {}), failed);
+  assert.equal(emailCalls.length, 0);
 });
 
 test('the first retryable failure schedules attempt one exactly five minutes later', async () => {

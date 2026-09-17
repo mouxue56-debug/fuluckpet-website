@@ -72,8 +72,6 @@ body.nav-enhanced .nav-caret {
   transition: transform 0.22s var(--ease-out);
 }
 
-body.nav-enhanced .nav-group:hover .nav-caret,
-body.nav-enhanced .nav-group:focus-within .nav-caret,
 body.nav-enhanced .nav-group.is-open .nav-caret {
   transform: rotate(180deg);
 }
@@ -91,7 +89,7 @@ body.nav-enhanced .nav-dropdown-panel {
   opacity: 0;
   visibility: hidden;
   transform: translate(-50%, -6px);
-  transition: opacity 0.22s var(--ease-out), transform 0.22s var(--ease-out), visibility 0.22s;
+  transition: opacity 0.22s var(--ease-out), transform 0.22s var(--ease-out);
   z-index: 1200;
 }
 
@@ -109,8 +107,16 @@ body.nav-enhanced .nav-dropdown-panel::before {
   transform: translateX(-50%) rotate(45deg);
 }
 
-body.nav-enhanced .nav-group:hover .nav-dropdown-panel,
-body.nav-enhanced .nav-group:focus-within .nav-dropdown-panel,
+/* Keep pointer travel across the visual gap inside the disclosure group. */
+body.nav-enhanced .nav-dropdown-panel::after {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 0;
+  right: 0;
+  height: 8px;
+}
+
 body.nav-enhanced .nav-group.is-open .nav-dropdown-panel {
   opacity: 1;
   visibility: visible;
@@ -130,6 +136,9 @@ body.nav-enhanced .nav-dropdown-link {
   font-size: 14px;
   font-weight: 650;
   line-height: 1.35;
+  /* Do not inherit the global anchor transition for visibility: closed links
+     must leave the tab order immediately, and ArrowDown must focus on open. */
+  transition: color 0.3s var(--ease-out), background-color 0.3s var(--ease-out);
 }
 
 body.nav-enhanced .nav-dropdown-link:hover,

@@ -261,12 +261,19 @@ document.addEventListener('DOMContentLoaded', () => {
       return active?.dataset[dataKey] || fallback;
     }
 
+    function syncKittenCardSnapshot() {
+      // bindKittenCards is assigned later in this DOMContentLoaded callback.
+      if (typeof window.bindKittenCards === 'function') window.bindKittenCards();
+    }
+
     function refreshKittenCatalogControls() {
       renderSortedCards(activeControlValue(sortBtns, 'sort', 'default'), false);
       applyKittenFilter(activeControlValue(filterBtns, 'filter', 'all'), false);
+      syncKittenCardSnapshot();
     }
 
     // Keep the static fallback in the same default order as generated/runtime data.
+    // Do not bind here: the kitten-card binder is declared below.
     renderSortedCards('default', false);
 
     sortBtns.forEach(btn => {
@@ -275,6 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.classList.add('active');
         const sortType = btn.dataset.sort;
         renderSortedCards(sortType, true);
+        syncKittenCardSnapshot();
       });
     });
 
@@ -506,7 +514,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initCarousel(gallery);
   }
 
+  let kittenCarouselVersion = 0;
   async function buildCarousel(card) {
+    const version = ++kittenCarouselVersion;
     if (!kittenModal) return;
     let images = safeModalMediaList(card.dataset.images || '');
     const videoEmbedUrl = safeYouTubeEmbedUrl(card.dataset.video || '');
@@ -521,16 +531,20 @@ document.addEventListener('DOMContentLoaded', () => {
       loading.appendChild(createModalNode('p', '', '読み込み中...'));
       loadingSlide.appendChild(loading);
       gallery.replaceChildren(loadingSlide);
-      const driveUrls = await window.DriveLoader.loadCardImages(card);
-      if (driveUrls) {
-        images = safeModalMediaList(driveUrls);
+      try {
+        const driveUrls = await window.DriveLoader.loadCardImages(card);
+        if (driveUrls) images = safeModalMediaList(driveUrls);
+      } catch (error) {
+        // Keep the current kitten usable even if its optional photo source fails.
+        images = [];
       }
     }
 
+    if (version !== kittenCarouselVersion) return;
     buildMediaCarousel(gallery, images, videoEmbedUrl, '子猫の写真', {
       alwaysShowThumbs: true,
       placeholderClass: 'kit-modal-ph',
-      emptyMessage: '写真を読み込み中...'
+      emptyMessage: getKittenModalCopy().photosPreparing
     });
   }
 
@@ -982,8 +996,10 @@ document.addEventListener('DOMContentLoaded', () => {
     container.appendChild(row);
   }
 
+  let parentGalleryVersion = 0;
   window.openParentModal = async function(card) {
     if (!parentModal) return;
+    const galleryVersion = ++parentGalleryVersion;
     const name = card.dataset.name || '';
     const breed = card.dataset.breed || '';
     const gender = card.dataset.gender || '';
@@ -1001,12 +1017,29 @@ document.addEventListener('DOMContentLoaded', () => {
       // A data-role that is not one of the two standard parent labels is a deliberate
       // override — parents.html marks the retired Ragdoll cats as 過去の実績 — and the
       // gender-derived label would silently contradict the card the visitor clicked.
-      const genderLabel = gender === '♂' ? copy.parentFather : gender === '♀' ? copy.parentMother : role;
-      const overridden = role && role !== 'パパ猫' && role !== 'ママ猫';
-      roleEl.textContent = overridden
-        ? (role === '過去の実績' ? copy.parentRetired : role)
-        : genderLabel;
-      roleEl.className = 'parent-role ' + (gender === '♂' ? 'role-papa' : 'role-mama');
+      // Valid ♂/♀ wins over role for the papa/mama tone. When gender is missing,
+      // fall back to the standard パパ猫/ママ猫 role so a father card is not styled
+      // as role-mama. Unknown roles stay neutral instead of impersonating mother.
+      const validGender = gender === '♂' || gender === '♀';
+      const standardFather = role === 'パパ猫';
+      const standardMother = role === 'ママ猫';
+      const overridden = Boolean(role) && !standardFather && !standardMother;
+      let tone = '';
+      if (validGender) tone = gender === '♂' ? 'papa' : 'mama';
+      else if (standardFather) tone = 'papa';
+      else if (standardMother) tone = 'mama';
+      let roleLabel;
+      if (overridden) {
+        roleLabel = role === '過去の実績' ? copy.parentRetired : role;
+      } else if (tone === 'papa') {
+        roleLabel = copy.parentFather;
+      } else if (tone === 'mama') {
+        roleLabel = copy.parentMother;
+      } else {
+        roleLabel = role || copy.parentFallback;
+      }
+      roleEl.textContent = roleLabel;
+      roleEl.className = tone ? 'parent-role role-' + tone : 'parent-role role-neutral';
     }
 
     // Build photo carousel for parent modal
@@ -1020,12 +1053,15 @@ document.addEventListener('DOMContentLoaded', () => {
           placeholderClass: 'parent-modal-ph',
           emptyMessage: copy.photosLoading
         });
-        const driveUrls = await window.DriveLoader.loadCardImages(card);
-        if (driveUrls) {
-          images = safeModalMediaList(driveUrls);
+        try {
+          const driveUrls = await window.DriveLoader.loadCardImages(card);
+          if (driveUrls) images = safeModalMediaList(driveUrls);
+        } catch (error) {
+          images = [];
         }
       }
 
+      if (galleryVersion !== parentGalleryVersion) return;
       buildMediaCarousel(gallery, images, '', name || copy.parentFallback, {
         placeholderClass: 'parent-modal-ph',
         emptyMessage: copy.photosPreparing
@@ -1328,7 +1364,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // On kittens.html (has .page-hero): navigate to detail page if available
   // On index.html: open modal as before
   window.bindKittenCards = function() {
+    const activeCard = allKittenCards[currentKittenIndex];
     allKittenCards = Array.from(document.querySelectorAll('.kitten-card'));
+    if (activeCard) {
+      currentKittenIndex = allKittenCards.indexOf(activeCard);
+      if (currentKittenIndex < 0 && activeCard.dataset.breederId) {
+        currentKittenIndex = allKittenCards.findIndex(card => card.dataset.breederId === activeCard.dataset.breederId);
+      }
+      updateKittenNavButtons();
+    }
     allKittenCards.forEach((card) => {
       const detailUrl = card.dataset.detailUrl || card.getAttribute('data-detail-url') || '';
       // Small-animal cards share the visual class but own native links and no cat modal.
