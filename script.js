@@ -982,6 +982,34 @@ document.addEventListener('DOMContentLoaded', () => {
     container.appendChild(row);
   }
 
+  function parentModalLang() {
+    const l = String((document.documentElement && document.documentElement.lang) || 'ja').toLowerCase();
+    return l.startsWith('en') ? 'en' : l.startsWith('zh') ? 'zh' : 'ja';
+  }
+  function translateCatalog(kind, value, lang) {
+    if (!value || lang === 'ja') return value || '';
+    const cat = window.FULUCK_CATALOG_I18N;
+    const table = cat && cat[kind] && cat[kind][lang];
+    return (table && table[value]) || value;   // 查不到 passthrough，绝不臆造
+  }
+  // 年龄本地化（Fable 裁定，逐字照抄，不得改）
+  function renderParentAge(ageStr, lang) {
+    const s = String(ageStr || '');
+    const mt = s.match(/^(\d+)歳(?:(\d+)ヶ月)?$/);
+    if (!mt) return s;                          // 非预期格式 passthrough
+    const n = Number(mt[1]);
+    const m = mt[2] === undefined ? null : Number(mt[2]);
+    if (lang === 'ja') return m == null ? `${n}歳` : `${n}歳${m}ヶ月`;
+    if (lang === 'zh') {
+      if (n === 0) return `${m}个月`;
+      return m == null ? `${n}岁` : `${n}岁${m}个月`;
+    }
+    const y = `${n} year${n === 1 ? '' : 's'}`;
+    const mo = m == null ? '' : `${m} month${m === 1 ? '' : 's'}`;
+    if (n === 0) return mo;
+    return mo ? `${y} ${mo}` : y;
+  }
+
   window.openParentModal = async function(card) {
     if (!parentModal) return;
     const name = card.dataset.name || '';
@@ -1036,10 +1064,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const details = parentModal.querySelector('.modal-details');
     if (details) {
       details.replaceChildren();
-      appendModalDetail(details, copy.breed, breed);
+      const pmLang = parentModalLang();
+      appendModalDetail(details, copy.breed, translateCatalog('breeds', breed, pmLang));
       appendModalDetail(details, copy.sex, gender === '♂' ? copy.male : gender === '♀' ? copy.female : '');
-      if (color) appendModalDetail(details, copy.color, color);
-      if (age) appendModalDetail(details, copy.age, age);
+      if (color) appendModalDetail(details, copy.color, translateCatalog('colors', color, pmLang));
+      if (age) appendModalDetail(details, copy.age, renderParentAge(age, pmLang));
       appendModalDetail(details, copy.testInfo, tested ? copy.testRecorded : copy.testMissing, tested ? { icon: 'ico-circle-check' } : {});
     }
 
