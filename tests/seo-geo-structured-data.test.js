@@ -59,3 +59,13 @@ test('priced trilingual details publish stable Product identities and local Offe
     }
   }
 });
+
+
+test('reviews retain business identity and visible testimonials without self-serving review schema', () => {
+  const business = jsonLd('reviews.html').find((item) => item['@type'] === 'LocalBusiness');
+  assert.equal(business['@id'], 'https://fuluckpet.com/#cattery');
+  assert.equal('review' in business, false);
+  assert.equal('aggregateRating' in business, false);
+  const html = fs.readFileSync(path.join(ROOT, 'reviews.html'), 'utf8');
+  assert.ok(html.includes('class="review-card"'));
+});

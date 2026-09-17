@@ -627,6 +627,7 @@ function checkDefinitions(errors) {
       'EXACT_REVIEW_COUNT', 'LLMS_INTERNAL_URL_MISSING', 'LLMS_VOLATILE_ID',
     ]],
     ['MERCHANT_POLICY', ['MERCHANT_POLICY_UNVERIFIED']],
+    ['SELF_SERVING_REVIEW', ['SELF_SERVING_REVIEW']],
     ['SEARCH_ACTION', ['SEARCH_ACTION_OBSOLETE', 'SEARCH_TERM_TEMPLATE_OBSOLETE']],
   ];
   const errorCodes = new Set(errors.map((error) => error.code));
@@ -707,6 +708,19 @@ function auditSite(options = {}) {
         input.path,
         `${metadata.rawDuplicateBrandProducts} Product object(s) repeat the raw brand key.`,
       );
+    }
+    // Reviews about this business on its own site are ineligible for review
+    // rich results, including testimonials imported from another platform.
+    const businesses = [
+      ...collectSchemaNodes(entities, 'LocalBusiness'),
+      ...collectSchemaNodes(entities, 'Organization'),
+    ];
+    for (const business of businesses) {
+      if (business['@id'] === `${ORIGIN}/#cattery` &&
+          ('review' in business || 'aggregateRating' in business)) {
+        addFinding(errors, 'SELF_SERVING_REVIEW', input.path,
+          'Keep visible testimonials, but omit own-business review and aggregateRating markup.');
+      }
     }
     validateParsedBrandCardinality(input.path, products, errors);
     validateAvailability(input.path, offers, errors);

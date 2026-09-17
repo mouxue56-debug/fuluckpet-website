@@ -9,10 +9,13 @@
 - 専門: サイベリアン (低アレルゲン・Fel d1 少なめ)
 - 取扱猫種: サイベリアン / ブリティッシュショートヘア / ブリティッシュロングヘア
 - 料金: 子猫ごとに異なる。各子猫ページの最新情報を確認し、不明点はLINEで相談
-- 受賞: みんなの子猫ブリーダー 2025上半期全国第一位 / 2025下半期大阪府第一位 / 2025下半期全国第二位
+- 受賞: みんなの子猫ブリーダー「サイベリアンブリーダー お客様評価」で2025年上半期 全国1位、2025年下半期 大阪府1位・全国2位。部門・地域・期間別の資料: https://fuluckpet.com/about.html
 
 ## Important pages
-- About / 猫舎について — https://fuluckpet.com/about.html
+- About / 猫舎・登録情報・受賞資料 — https://fuluckpet.com/about.html
+- Allergy guide / 猫アレルギー — https://fuluckpet.com/siberian-allergy.html
+- Osaka guide / 大阪・関西でのお迎え — https://fuluckpet.com/siberian-breeder-osaka.html
+- Cattery journal / 猫舎日記 — https://fuluckpet.com/diary/
 - Available kittens / 子猫一覧 — https://fuluckpet.com/kittens.html
 - Parents / 親猫紹介 — https://fuluckpet.com/parents.html
 - Siberian breed / サイベリアンの魅力 — https://fuluckpet.com/siberian.html
@@ -41,7 +44,7 @@
 https://fuluckpet.com/sitemap.xml
 
 ## Languages
-ja (default), en, zh — pages support a `?lang=en` or `?lang=zh` query string for translation.
+ja (default), en, zh — dedicated English and Chinese pages use /en/ and /zh/ where available. Shared pages also support `?lang=en` or `?lang=zh`. Follow each page's canonical URL and language links.
 
 ---
 
@@ -55,7 +58,7 @@ ja (default), en, zh — pages support a `?lang=en` or `?lang=zh` query string f
 
 ## Knowledge base — Visit policy (kb:visit)
 
-見学は完全予約制です。ご希望の日時は予約ページ（https://fuluckpet.com/booking.html）またはLINEからお知らせください。平日・土日いずれも対応可能で、見学時間は約30分〜1時間です。現地見学に加え、LINEビデオ通話は事前相談・オンライン見学として利用できます。見学場所は大阪市城東区東中浜2-6-23（最寄り：Osaka Metro 緑橋駅）です。契約前には登録事業所で子猫の現物確認と対面説明が必要で、ビデオ通話だけでは売買契約を成立させられません。お届け方法は3つ：空輸（全国対応）、陸送（関西圏）、直接お迎え（猫舎へ来場）。
+見学は完全予約制です。ご希望の日時は予約ページ（https://fuluckpet.com/booking.html）またはLINEからお知らせください。平日・土日いずれも対応可能で、見学時間は約30分〜1時間です。現地見学に加え、LINEビデオ通話は事前相談・オンライン見学として利用できます。見学・契約時の来場先は予約時にご確認ください。登録事業所別の所在地は https://fuluckpet.com/about.html に掲載しています。契約前には登録事業所で子猫の現物確認と対面説明が必要で、ビデオ通話だけでは売買契約を成立させられません。お届け方法は3つ：空輸（全国対応）、陸送（関西圏）、直接お迎え（猫舎へ来場）。
 
 ## Knowledge base — Pricing (kb:pricing)
 
@@ -89,7 +92,7 @@ A: サイベリアンはアレルゲン（Fel d1）の分泌量が他の猫種�
 A: 見学は完全予約制です。ご希望の日時は予約ページまたはLINEからお知らせください。平日・土日いずれも対応可能です。見学時間は約30分〜1時間を目安にしてください。
 
 ### Q: 遠方に住んでいますが、お迎えは可能ですか？
-A: はい、全国へのお届けが可能です。動物愛護管理法により、ご契約は当キャッテリーの登録事業所（大阪市城東区東中浜2-6-23）で子猫の現物確認と対面説明を一度行ったうえで成立します。ご契約後は、空輸・陸送（空港お届けなど）でお届けできます。遠方の方は、LINEビデオ通話での事前相談・オンライン見学をご利用のうえ、ご契約時に一度ご来舎ください。配送費用は料金ガイドをご覧ください。
+A: はい、全国へのお届けが可能です。動物愛護管理法により、ご契約は登録事業所で子猫の現物確認と対面説明を一度行ったうえで成立します。ご契約後は、空輸・陸送（空港お届けなど）でお届けできます。遠方の方は、LINEビデオ通話での事前相談・オンライン見学をご利用のうえ、ご契約時に一度ご来舎ください。配送費用は料金ガイドをご覧ください。
 
 ### Q: 子猫の料金はどこで確認できますか？
 A: 料金は子猫ごとに異なります。各子猫ページの最新情報をご確認いただくか、LINEでお問い合わせください。
@@ -160,7 +163,7 @@ A: 2週間に1回程度の爪切りをおすすめします。子猫のうちか
 - Real-time list: https://fuluckpet.com/kittens.html
 - Pricing: varies by kitten; check the latest details on each kitten page or contact us on LINE
 - Currency: JPY
-- Payment: 銀行振込 (bank transfer) only
+- Payment: 現金払い・銀行振込 (cash or bank transfer)。詳細・その他の方法: https://fuluckpet.com/faq.html
 - Reservation deposit: ¥50,000
 - Each kitten has its own detail page under /kittens/{slug}.html with photos, parents, status (Available / Reserved / Adopted)
 - See live API response shape at https://fuluck-api.mouxue56.workers.dev/api/kittens (read-only public)
@@ -179,6 +182,7 @@ A: 2週間に1回程度の爪切りをおすすめします。子猫のうちか
   - 登録年月日: 2022-04-27 / 有効期限: 2027-04-26
 - 第一種動物取扱業 登録 — Fulluck Kitty
   - 氏名: 刘暁棉
+  - 事業所所在地: 大阪市城東区東中浜2丁目6番23号
   - 登録番号: 240051A
   - 有効期限: 2029-07-16
 - 動物愛護管理法に基づき、契約前に登録事業所で現物確認・対面説明を実施。LINE ビデオ通話は事前相談・オンライン見学に限る

@@ -1209,3 +1209,21 @@ test('normalizes HTML entities and line breaks without executing markup', () => 
   assert.equal(decodeHtmlText(' A&nbsp;&amp; B<br> C <p>D</p>', { preserveBreaks: true }), 'A & B\nC\n\nD');
   assert.equal(decodeHtmlText('<script>bad()</script>A\r\n B', { preserveBreaks: false }), 'A B');
 });
+
+
+test('recognizes Chinese table labels used by generated kitten pages', () => {
+  const html = fuluckDetail('zh').replace('<th>品種</th>', '<th>品种</th>').replace('<th>性別</th>', '<th>性别</th>');
+  const parsed = publicHtml.parseVerifiedFuluckDetailPage(html, { expectedBreederId: FULUCK_BREEDER_ID, locale: 'zh', pageUrl: fuluckPageUrl('zh') });
+  assert.equal(parsed.breed, 'Siberian');
+  assert.equal(parsed.gender, '♂');
+  const missing = publicHtml.parseVerifiedFuluckDetailPage(html.replace('<td>Siberian</td>', '<td></td>'), { expectedBreederId: FULUCK_BREEDER_ID, locale: 'zh', pageUrl: fuluckPageUrl('zh') });
+  assert.equal(missing.breed, '', 'missing evidence must remain missing');
+});
+
+test('normalizes female without matching the male substring', () => {
+  for (const [label, expected] of [['Female', '♀'], ['female', '♀'], ['Male', '♂'], ['女の子', '♀'], ['男の子', '♂']]) {
+    const html = fuluckDetail('en').replace('<td>Male</td>', `<td>${label}</td>`);
+    const parsed = publicHtml.parseVerifiedFuluckDetailPage(html, { expectedBreederId: FULUCK_BREEDER_ID, locale: 'en', pageUrl: fuluckPageUrl('en') });
+    assert.equal(parsed.gender, expected, label);
+  }
+});

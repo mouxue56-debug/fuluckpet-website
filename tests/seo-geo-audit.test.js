@@ -729,3 +729,13 @@ test('CLI report-write errors do not emit absolute or temporary paths', (t) => {
   assert.equal(result.status, 2);
   assert.doesNotMatch(result.stderr, new RegExp(temporary.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 });
+
+
+test('own-business review rich-result markup is rejected while business identity is valid', (t) => {
+  const root = createValidFixture(t);
+  appendJsonLd(root, 'index.html', {
+    '@type': 'LocalBusiness', '@id': `${ORIGIN}/#cattery`, name: 'Fuluck',
+    review: [{ '@type': 'Review', reviewRating: { '@type': 'Rating', ratingValue: 5 } }],
+  });
+  assertHasOnlyCode(audit(root), 'SELF_SERVING_REVIEW');
+});

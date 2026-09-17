@@ -274,6 +274,7 @@ test('chat repair persists opaque pagination progress and a bad or deleted sourc
   await repairChatNotificationSources(bindings, NOW_MS + 1);
   const third = await repairChatNotificationSources(bindings, NOW_MS + 2);
   assert.equal(third.ready, 1);
+  assert.equal(DATA.store.has(cursorKey), false, 'completed pagination must reset the saved cursor');
   assert.equal(DATA.store.has(`notify:ready:chat:${roundId}:owner_chat_round_v1`), true);
   assert.equal(
     [...DATA.store.keys()].some((key) => key.startsWith(`notify:item:chat:${mismatchedRoundId}:`)),
@@ -488,4 +489,12 @@ test('sent_unknown is terminal through ensure, repair, attempt, failure, due rec
   assert.equal(summarySource.counts.sent_unknown, 2);
   assert.equal(summarySource.counts.sent, 0);
   assert.deepEqual(summarySource.notes, ['email: sent_unknown', 'telegram: sent_unknown']);
+});
+
+
+test('idle source repair does not delete absent pagination cursors', async () => {
+  const { bindings: env, DATA } = createEnv();
+  await repairChatNotificationSources(env, NOW_MS);
+  await repairBookingNotificationSources(env, NOW_MS);
+  assert.equal(DATA.operations.filter(({ operation }) => operation === 'delete').length, 0);
 });
