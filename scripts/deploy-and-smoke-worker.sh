@@ -266,29 +266,51 @@ echo "== SMOKE TESTS against $API_BASE =="
 # 2. Read-only notification health: HTTP 200, all bindings/contracts present,
 #    and notification health release must equal RELEASE_SHA in deploy mode.
 # ---------------------------------------------------------------------------
-health_body="$(curl -s -w $'\n%{http_code}' "$API_BASE/api/notification-health")"
-health_code="$(printf '%s' "$health_body" | tail -n1)"
-health_json="$(printf '%s' "$health_body" | sed '$d')"
-health_headers="$(curl -s -D - -o /dev/null "$API_BASE/api/notification-health")"
-health_release="$(printf '%s' "$health_headers" | tr -d '\r' | awk -F': ' 'tolower($1)=="x-fuluck-release"{print $2}')"
-health_contract="$(printf '%s' "$health_json" | node -e '
-  let text = "";
-  process.stdin.on("data", chunk => { text += chunk; });
-  process.stdin.on("end", () => {
-    try {
-      const value = JSON.parse(text);
-      const keys = Object.keys(value).sort();
-      const expected = ["cron_version", "email_binding", "release", "telegram_config"];
-      if (JSON.stringify(keys) !== JSON.stringify(expected)
-        || value.email_binding !== true
-        || value.telegram_config !== true
-        || value.cron_version !== true
-        || typeof value.release !== "string"
-        || value.release.length === 0) process.exit(2);
-      process.stdout.write(value.release);
-    } catch { process.exit(3); }
-  });
-' 2>/dev/null || echo invalid)"
+# Keep headers and JSON from the same response. Separate requests may reach
+# different versions during propagation and create a false mixed-version failure.
+read_notification_health() {
+  local health_headers_file
+  health_code=000; health_release=''; health_contract=invalid
+  health_headers_file="$(mktemp)" || return 1
+  health_body="$(curl -s -D "$health_headers_file" -w $'\n%{http_code}' "$API_BASE/api/notification-health")"
+  health_code="$(printf '%s' "$health_body" | tail -n1)"
+  health_json="$(printf '%s' "$health_body" | sed '$d')"
+  health_headers="$(cat "$health_headers_file")"
+  rm -f -- "$health_headers_file"
+  health_release="$(printf '%s' "$health_headers" | tr -d '\r' | awk -F': ' 'tolower($1)=="x-fuluck-release"{print $2}')"
+  health_contract="$(printf '%s' "$health_json" | node -e '
+    let text = "";
+    process.stdin.on("data", chunk => { text += chunk; });
+    process.stdin.on("end", () => {
+      try {
+        const value = JSON.parse(text);
+        const keys = Object.keys(value).sort();
+        const expected = ["cron_version", "email_binding", "release", "telegram_config"];
+        if (JSON.stringify(keys) !== JSON.stringify(expected)
+          || value.email_binding !== true
+          || value.telegram_config !== true
+          || value.cron_version !== true
+          || typeof value.release !== "string"
+          || value.release.length === 0) process.exit(2);
+        process.stdout.write(value.release);
+      } catch { process.exit(3); }
+    });
+  ' 2>/dev/null || echo invalid)"
+}
+
+# Only repeat this side-effect-free GET. A stale version or broken configuration
+# still fails the unchanged smoke assertions after the bounded readiness window.
+for health_attempt in 1 2 3 4 5 6 7 8 9 10; do
+  read_notification_health
+  if [ "$MODE" != "deploy" ] || { [ "$health_code" = "200" ] \
+    && [ "$health_release" = "$RELEASE_SHA" ] && [ "$health_contract" = "$RELEASE_SHA" ]; }; then
+    break
+  fi
+  if [ "$health_attempt" != "10" ]; then
+    echo "   notification health not yet on the expected release/config; retrying in 2s..."
+    sleep 2
+  fi
+done
 if [ "$health_code" = "200" ] && [ "$health_contract" != "invalid" ]; then
   pass "notification health -> HTTP 200 with email_binding, telegram_config, cron_version true"
 else
