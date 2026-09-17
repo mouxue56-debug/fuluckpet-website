@@ -1810,6 +1810,22 @@ function syncCtaAccessibleNames() {
   });
 }
 
+// The kitten list owns static /en/ and /zh/ pages. Its Japanese root deliberately
+// ignores a saved locale, so footer links must target the chosen sibling explicitly.
+// Keep this independent of nav.js: article pages may use only the i18n fallback.
+function syncFooterKittenLinks(lang) {
+  document.querySelectorAll('.footer a[href]').forEach(function (link) {
+    if (link.hasAttribute('hreflang') || link.hasAttribute('lang')) return;
+    var href = link.getAttribute('href') || '';
+    var match = href.match(/^\/(?:en\/|zh\/)?kittens\.html([?#].*)?$/);
+    if (!match) return;
+    var target = new URL('/kittens.html' + (match[1] || ''), 'https://fuluckpet.com');
+    // A stale ?lang=en on the Japanese root would redirect back to English.
+    target.searchParams.delete('lang');
+    link.setAttribute('href', (lang === 'ja' ? '' : '/' + lang) + target.pathname + target.search + target.hash);
+  });
+}
+
 /**
  * Apply translations to all elements with data-i18n attribute
  */
@@ -1882,6 +1898,7 @@ function setLanguage(lang) {
   document.documentElement.lang = lang;
 
   syncCtaAccessibleNames();
+  syncFooterKittenLinks(lang);
 
   try {
     localStorage.setItem('fuluckpet-lang', lang);
