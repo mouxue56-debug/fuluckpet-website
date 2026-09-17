@@ -280,6 +280,7 @@
     return path;
   }
 
+  var activeLanguage = null;
   function currentLang() {
     if (typeof document !== 'undefined' && document.body) {
       var forced = document.body.getAttribute('data-nav-language');
@@ -296,6 +297,7 @@
     // in two languages. Stay in Japanese; the switcher navigates to the real sibling.
     if (hasStaticSibling(normalizePath(path))) return 'ja';
 
+    if (LANGS.indexOf(activeLanguage) !== -1) return activeLanguage;
     var params = new URLSearchParams(window.location.search || '');
     var urlLang = params.get('lang');
     if (LANGS.indexOf(urlLang) !== -1) return urlLang;
@@ -478,12 +480,24 @@
   }
 
   function syncLangButtons(lang) {
+    if (LANGS.indexOf(lang) === -1) return;
+    activeLanguage = lang;
     document.querySelectorAll('.lang-btn').forEach(function (btn) {
       var on = btn.getAttribute('data-lang') === lang;
       btn.classList.toggle('active', on);
       btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
-
+    // In-place translation changes labels without rebuilding the menu. Keep its
+    // destinations on the same selected language as those labels.
+    document.querySelectorAll('.nav-dropdown-link, .nav-mobile-link').forEach(function (link) {
+      var label = link.querySelector('[data-i18n]');
+      var key = label && label.getAttribute('data-i18n');
+      NAV_GROUPS.forEach(function (group) {
+        group.items.forEach(function (item) {
+          if (item.key === key) link.setAttribute('href', localizedItemHref(item, lang));
+        });
+      });
+    });
   }
 
   function applyCurrentLanguage() {
@@ -557,16 +571,14 @@
       var panel = groupEl.querySelector('.nav-dropdown-panel');
       if (!btn || !panel) return;
 
-      groupEl.addEventListener('mouseenter', function () {
+      groupEl.addEventListener('pointerenter', function (e) {
+        if (e.pointerType === 'touch') return;
         setDesktopGroupOpen(groupEl, true);
       });
 
-      groupEl.addEventListener('mouseleave', function () {
+      groupEl.addEventListener('pointerleave', function (e) {
+        if (e.pointerType === 'touch' || groupEl.contains(document.activeElement)) return;
         setDesktopGroupOpen(groupEl, false);
-      });
-
-      groupEl.addEventListener('focusin', function () {
-        setDesktopGroupOpen(groupEl, true);
       });
 
       groupEl.addEventListener('focusout', function () {
@@ -702,6 +714,8 @@
     document.body.classList.toggle('mobile-nav-open', open);
     document.body.style.overflow = open ? 'hidden' : '';
     mobileNav.setAttribute('aria-hidden', open ? 'false' : 'true');
+    if (open) mobileNav.removeAttribute('inert');
+    else mobileNav.setAttribute('inert', '');
 
     if (open && !wasOpen) {
       mobileNav.__fuluckPreviousFocus = document.activeElement;

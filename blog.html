@@ -26,7 +26,7 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="/style.css?v=20260823a">
-  <link rel="stylesheet" href="/nav.css?v=20260711c">
+  <link rel="stylesheet" href="/nav.css?v=20260918a">
   <link rel="stylesheet" href="/guide/guide.css?v=20260706a">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%235BC4A8'/><g fill='%23ffffff'><ellipse cx='11' cy='12' rx='2.3' ry='2.7'/><ellipse cx='21' cy='12' rx='2.3' ry='2.7'/><ellipse cx='7.5' cy='17.5' rx='2.1' ry='2.4'/><ellipse cx='24.5' cy='17.5' rx='2.1' ry='2.4'/><path d='M16 16.5c3.1 0 5.6 2.2 5.6 4.9 0 2.2-1.9 3.1-5.6 3.1s-5.6-.9-5.6-3.1c0-2.7 2.5-4.9 5.6-4.9z'/></g></svg>">
@@ -56,7 +56,7 @@
   <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"CollectionPage","@id":"https://fuluckpet.com/blog.html#collection","url":"https://fuluckpet.com/blog.html","name":"猫の知識ライブラリ","description":"サイベリアンの特徴、猫の健康管理、子猫の育て方など、猫に関する知識を専門ブリーダーが解説。","inLanguage":"ja","isPartOf":{"@id":"https://fuluckpet.com/#website"},"about":[{"@id":"https://fuluckpet.com/#cattery"},{"@type":"Thing","name":"サイベリアン"},{"@type":"Thing","name":"猫の健康管理"},{"@type":"Thing","name":"子猫の育て方"}],"publisher":{"@id":"https://fuluckpet.com/#cattery"}}
   </script>
-  <script defer src="/nav.js?v=20260823a"></script>
+  <script defer src="/nav.js?v=20260918a"></script>
 </head>
 <body class="has-mobile-cta">
   <a class="skip-link" href="#main" data-i18n="a11y.skipToMain">メインコンテンツへスキップ</a>
@@ -1160,9 +1160,9 @@
 
   <script src="/i18n.js?v=20260823a"></script>
   <script src="/blog-listing-i18n.js?v=20260710b" defer></script>
-  <script src="/blog-listing-i18n-apply.js?v=20260624" defer></script>
+  <script src="/blog-listing-i18n-apply.js?v=20260918a" defer></script>
   <!-- legacy cta-widget.js removed — superseded by mobile-cta.js below -->
-  <script src="/script.js?v=20260823a"></script>
+  <script src="/script.js?v=20260918a"></script>
 
   <!-- ========== FLOATING MOBILE NAV BUTTON (always-visible nav, mobile only) ========== -->
   <button class="mobile-nav-fab" id="mobileNavFab" aria-label="メニューを開く" aria-controls="mobileNav" aria-expanded="false" type="button">
@@ -1194,31 +1194,261 @@
   (function(){
     var form=document.querySelector('.blog-search'), input=document.getElementById('blogSearch'), out=document.getElementById('blogSearchResults');
     if(!input||!out) return;
-    var idx=null, sections=document.querySelectorAll('.blog-cat-nav, .blog-cat-heading, .blog-grid, .blog-related, .blog-cta-box');
-    var params=new URLSearchParams(window.location.search);
-    function esc(s){return String(s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
-    function load(cb){ if(idx){cb();return;} fetch('/blog-search-index.json').then(function(r){return r.json();}).then(function(d){idx=d;cb();}).catch(function(){idx=[];cb();}); }
+    var idx=null, pending=null, searchVersion=0;
+    var sections=document.querySelectorAll('.blog-cat-nav, .blog-cat-heading, .blog-grid, .blog-related, .blog-cta-box');
+    var BLOG_SIBLING_PATHS={
+      '/blog/breeder-visit-flow-osaka.html':true,
+      '/blog/choose-healthy-kitten-checklist.html':true,
+      '/blog/siberian-coat-color-guide.html':true,
+      '/blog/siberian-kitten-feeding-guide.html':true,
+      '/blog/siberian-vs-bsh-vs-ragdoll.html':true
+    };
+    var JA_CAT_MAP={
+      '猫種知識':'breed','品種紹介':'breed',
+      '健康管理':'health','健康・医療':'health',
+      '飲食栄養':'nutrition','食事・栄養':'nutrition',
+      '日常ケア':'grooming',
+      '行動・しつけ':'behavior','行動訓練':'behavior',
+      '子猫育て':'kitten','子猫':'kitten',
+      'ブリーダー選び':'breeder','ブリーダー':'breeder',
+      'アレルギー':'allergy',
+      '猫ライフ':'lifestyle','シニア猫':'senior'
+    };
+    var NEUTRAL_CAT={en:'Article',zh:'文章'};
+    var UI={
+      ja:{label:'記事を検索',placeholder:'記事を検索（例：アレルギー、爪切り、食事）',submit:'検索する',loading:'検索インデックスを読み込み中…',error:'検索インデックスを読み込めませんでした。もう一度検索してください。',empty:'該当する記事が見つかりませんでした。別のキーワードでお試しください。',count:'「{q}」: {n} 件'},
+      en:{label:'Search articles',placeholder:'Search articles (e.g. allergy, nail trim, food)',submit:'Search',loading:'Loading search index…',error:'Could not load the search index. Please search again.',empty:'No matching articles. Try a different keyword.',count:'"{q}": {n} result(s)'},
+      zh:{label:'搜索文章',placeholder:'搜索文章（例如：过敏、剪指甲、饮食）',submit:'搜索',loading:'正在加载搜索索引…',error:'搜索索引加载失败，请再试一次。',empty:'没有找到相关文章，请换个关键词试试。',count:'「{q}」: {n} 条'}
+    };
+    var activeLanguage=null;
+    function listingData(){return window._blogListingI18n;}
+    function isLang(lang){return lang==='ja'||lang==='en'||lang==='zh';}
+    function readDocLang(){
+      try{
+        var root=document.documentElement;
+        var htmlLang=((root&&(root.lang||(root.getAttribute&&root.getAttribute('lang'))))||'').toLowerCase();
+        if(isLang(htmlLang)) return htmlLang;
+      }catch(e){}
+      return '';
+    }
+    function readUrlLang(){
+      try{
+        var urlLang=new URLSearchParams(window.location.search||'').get('lang');
+        if(isLang(urlLang)) return urlLang;
+      }catch(e){}
+      return '';
+    }
+    function readStoredLang(){
+      try{
+        var store=(window&&window.localStorage)||(typeof localStorage!=='undefined'?localStorage:null);
+        var saved=store&&store.getItem('fuluckpet-lang');
+        if(isLang(saved)) return saved;
+      }catch(e){}
+      return '';
+    }
+    function commitLang(lang){
+      if(isLang(lang)) activeLanguage=lang;
+      return activeLanguage;
+    }
+    function getLang(detailLang){
+      if(isLang(detailLang)) return commitLang(detailLang);
+      if(isLang(activeLanguage)) return activeLanguage;
+      return readUrlLang()||readStoredLang()||readDocLang()||'ja';
+    }
+    function ui(lang){return UI[lang]||UI.ja;}
+    function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+    function applyChrome(lang){
+      var copy=ui(lang);
+      if(input.setAttribute){
+        input.setAttribute('placeholder',copy.placeholder);
+        input.setAttribute('aria-label',copy.label);
+      }
+      var label=form&&form.querySelector&&form.querySelector('label[for="blogSearch"]');
+      if(label) label.textContent=copy.label;
+      var btn=form&&form.querySelector&&form.querySelector('button[type="submit"]');
+      if(btn&&btn.setAttribute) btn.setAttribute('aria-label',copy.submit);
+    }
+    function rootBlogPath(pathname){return String(pathname||'').replace(/^\/(en|zh)(?=\/)/,'');}
+    function isCanonicalBlogPath(pathname){return /^\/blog\/[a-z0-9-]+\.html$/.test(pathname);}
+    function canonicalBlogPath(raw){
+      if(typeof raw!=='string'||!raw) return null;
+      var trimmed=raw.trim();
+      if(/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)&&!/^https?:/i.test(trimmed)) return null;
+      var parsed;
+      try{parsed=new URL(trimmed,'https://fuluckpet.com');}catch(e){return null;}
+      if(parsed.origin!=='https://fuluckpet.com') return null;
+      if(parsed.username||parsed.password) return null;
+      var path=rootBlogPath(parsed.pathname);
+      if(!isCanonicalBlogPath(path)) return null;
+      if(trimmed.charAt(0)!=='/'||trimmed.charAt(1)==='/'){
+        if(!/^https?:\/\/fuluckpet\.com\//i.test(trimmed)) return null;
+      }
+      return {path:path, search:parsed.search, hash:parsed.hash||''};
+    }
+    function localizeBlogHref(raw, lang){
+      var canon=canonicalBlogPath(raw);
+      if(!canon) return null;
+      var dest=canon.path;
+      var params=new URLSearchParams(canon.search.replace(/^\?/,''));
+      if(lang==='en'||lang==='zh'){
+        if(BLOG_SIBLING_PATHS[canon.path]){
+          dest='/'+lang+canon.path;
+          params.delete('lang');
+        }else{
+          params.set('lang',lang);
+        }
+      }else{
+        params.delete('lang');
+      }
+      var search=params.toString();
+      return dest+(search?'?'+search:'')+canon.hash;
+    }
+    function slugFromPath(path){
+      var match=String(path||'').match(/^\/blog\/([a-z0-9-]+)\.html$/);
+      return match?match[1]:'';
+    }
+    function translatedArticle(slug, lang){
+      var data=listingData();
+      var article=data&&data.articles&&data.articles[slug];
+      if(lang!=='ja'&&article&&article[lang]) return article[lang];
+      return null;
+    }
+    function translatedCategory(jaCat, lang){
+      if(lang==='ja') return jaCat||'記事';
+      var key=JA_CAT_MAP[jaCat];
+      var cats=listingData()&&listingData().categories;
+      if(key&&cats&&cats[key]&&cats[key][lang]) return cats[key][lang];
+      if(!jaCat||jaCat==='記事') return NEUTRAL_CAT[lang]||NEUTRAL_CAT.en;
+      return jaCat;
+    }
+    function haystack(entry, lang){
+      var parts=[entry.t, entry.d, entry.c];
+      var canon=canonicalBlogPath(entry.u);
+      var slug=canon?slugFromPath(canon.path):'';
+      var tr=translatedArticle(slug, lang);
+      if(tr){
+        if(tr.title) parts.push(tr.title);
+        if(tr.excerpt) parts.push(tr.excerpt);
+      }
+      return parts.join(' ').toLowerCase();
+    }
+    function showSections(){
+      sections.forEach(function(s){s.style.display='';});
+    }
+    function hideSections(){
+      sections.forEach(function(s){s.style.display='none';});
+    }
+    function renderStatus(html, hideList){
+      out.hidden=false;
+      out.innerHTML=html;
+      if(hideList) hideSections(); else showSections();
+    }
+    function renderError(lang){
+      renderStatus('<p data-blog-search-status="error" style="text-align:center;color:#7a8a87;padding:30px 0">'+esc(ui(lang).error)+'</p>', true);
+    }
+    function renderLoading(lang){
+      renderStatus('<p data-blog-search-status="loading" style="text-align:center;color:#7a8a87;padding:20px 0">'+esc(ui(lang).loading)+'</p>', true);
+    }
+    function renderHits(data, rawQuery, lang){
+      var q=rawQuery.toLowerCase();
+      var hits=[];
+      for(var i=0;i<data.length && hits.length<40;i++){
+        var entry=data[i];
+        if(!entry||haystack(entry, lang).indexOf(q)<0) continue;
+        var href=localizeBlogHref(entry.u, lang);
+        if(!href) continue;
+        var canon=canonicalBlogPath(entry.u);
+        var slug=canon?slugFromPath(canon.path):'';
+        var tr=translatedArticle(slug, lang);
+        hits.push({
+          href:href,
+          title:tr&&tr.title?tr.title:entry.t,
+          desc:tr&&tr.excerpt?tr.excerpt:(entry.d||''),
+          cat:translatedCategory(entry.c, lang)
+        });
+      }
+      var copy=ui(lang);
+      var count=copy.count.replace('{q}',esc(rawQuery)).replace('{n}',String(hits.length));
+      if(!hits.length){
+        renderStatus('<p data-blog-search-status="empty" style="color:#7a8a87;font-size:.9rem;margin:0 0 12px;text-align:center">'+count+'</p>'+
+          '<p style="text-align:center;color:#7a8a87;padding:30px 0">'+esc(copy.empty)+'</p>', true);
+        return;
+      }
+      var cards=hits.map(function(hit){
+        return '<a href="'+esc(hit.href)+'" class="blog-card"><span class="blog-card-cat">'+esc(hit.cat)+'</span><span class="blog-card-title">'+esc(hit.title)+'</span><span class="blog-card-desc">'+esc(hit.desc)+'</span></a>';
+      }).join('');
+      renderStatus('<p data-blog-search-status="results" style="color:#7a8a87;font-size:.9rem;margin:0 0 12px;text-align:center">'+count+'</p>'+
+        '<div class="blog-grid" style="display:grid">'+cards+'</div>', true);
+    }
+    function load(cb, errCb){
+      if(idx){cb(idx);return;}
+      var version=searchVersion;
+      if(!pending){
+        pending=fetch('/blog-search-index.json').then(function(r){
+          if(!r.ok) throw new Error('Search index unavailable');
+          return r.json();
+        }).then(function(d){
+          if(!Array.isArray(d)) throw new Error('Search index unavailable');
+          idx=d;
+          return d;
+        }).then(function(d){
+          pending=null;
+          return d;
+        }, function(err){
+          pending=null;
+          throw err;
+        });
+      }
+      pending.then(function(d){
+        if(version!==searchVersion) return;
+        cb(d);
+      }, function(){
+        if(version!==searchVersion) return;
+        errCb();
+      });
+    }
     function syncUrl(q){
       var u=new URL(window.location.href);
       if(q){u.searchParams.set('q',q);}else{u.searchParams.delete('q');}
       window.history.replaceState(null,'',u.pathname+u.search+u.hash);
     }
     function run(){
-      var q=input.value.trim().toLowerCase();
-      syncUrl(input.value.trim());
-      if(!q){ out.hidden=true; out.innerHTML=''; sections.forEach(function(s){s.style.display='';}); return; }
-      load(function(){
-        var hits=idx.filter(function(p){return (p.t+' '+(p.d||'')+' '+(p.c||'')).toLowerCase().indexOf(q)>=0;}).slice(0,40);
-        sections.forEach(function(s){s.style.display='none';});
-        out.hidden=false;
-        out.innerHTML='<p style="color:#7a8a87;font-size:.9rem;margin:0 0 12px;text-align:center">「'+esc(input.value.trim())+'」: '+hits.length+' 件</p>'+
-          (hits.length? '<div class="blog-grid" style="display:grid">'+hits.map(function(p){return '<a href="'+p.u+'" class="blog-card"><span class="blog-card-cat">'+esc(p.c||'記事')+'</span><span class="blog-card-title">'+esc(p.t)+'</span><span class="blog-card-desc">'+esc(p.d)+'</span></a>';}).join('')+'</div>'
-            : '<p style="text-align:center;color:#7a8a87;padding:30px 0">該当する記事が見つかりませんでした。別のキーワードでお試しください。</p>');
+      searchVersion+=1;
+      var raw=input.value.trim();
+      var q=raw.toLowerCase();
+      var lang=getLang();
+      applyChrome(lang);
+      syncUrl(raw);
+      if(!q){ out.hidden=true; out.innerHTML=''; showSections(); return; }
+      if(!idx&&!pending) renderLoading(lang);
+      load(function(data){
+        renderHits(data, raw, getLang());
+      }, function(){
+        renderError(getLang());
       });
+    }
+    function redraw(){
+      applyChrome(getLang());
+      if(input.value.trim()) run();
     }
     input.addEventListener('input', run);
     if(form){form.addEventListener('submit',function(e){e.preventDefault();run();});}
-    if(params.get('q')) input.value=params.get('q');
+    if(window.addEventListener){
+      window.addEventListener('langChanged', function(event){
+        var fromEvent=event&&event.detail&&event.detail.lang;
+        commitLang(isLang(fromEvent)?fromEvent:readDocLang());
+        if(input.value.trim()) run();
+        else applyChrome(getLang());
+      });
+    }
+    if(document.readyState==='loading'&&document.addEventListener){
+      document.addEventListener('DOMContentLoaded', redraw);
+    }
+    applyChrome(getLang());
+    try{
+      var params=new URLSearchParams(window.location.search);
+      if(params.get('q')) input.value=params.get('q');
+    }catch(e){}
     if(input.value) run();
   })();
   </script>

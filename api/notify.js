@@ -926,7 +926,9 @@ export async function attemptNotifyIntent(env, itemKey, nowMs, dependencies = {}
 
   const source = await readJson(env, item.source_key);
   if (!source) {
-    return markNotifyDeadLetter(env, itemKey, { code: 'source_missing' }, nowMs);
+    // KV also caches negative reads; one miss does not prove permanent absence.
+    // Reuse the bounded retry ladder without calling a provider until data exists.
+    return markNotifyFailure(env, itemKey, { code: 'source_missing' }, nowMs);
   }
 
   const message = messageForItem(item, source);
