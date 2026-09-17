@@ -1059,7 +1059,9 @@ function isBoundedRepairCursor(value) {
 async function persistRepairCursor(env, kind, page, previousCursor, nowMs) {
   const key = REPAIR_CURSOR_KEYS[kind];
   if (page?.list_complete !== false) {
-    if (typeof env.DATA.delete === 'function') await env.DATA.delete(key);
+    // Completing the first page has no saved cursor to remove. KV counts
+    // deletes even for absent keys, so avoid two idle deletes per cron tick.
+    if (previousCursor && typeof env.DATA.delete === 'function') await env.DATA.delete(key);
     return { listComplete: true, cursorPersisted: false };
   }
   const cursor = page?.cursor;

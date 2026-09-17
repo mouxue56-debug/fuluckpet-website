@@ -60,3 +60,33 @@ test('tracked HTML does not link visitors to missing same-origin pages or assets
 
   assert.deepEqual(broken, [], `broken local references:\n${broken.join('\n')}`);
 });
+
+test('localized pages keep visitors on an existing same-language static sibling', () => {
+  const localeDrops = [];
+
+  for (const relative of trackedHtml().filter((file) => /^(?:en|zh)\//.test(file))) {
+    const locale = relative.slice(0, 2);
+    const html = fs.readFileSync(path.join(ROOT, relative), 'utf8')
+      .replace(/<!--[\s\S]*?-->/g, '');
+    for (const match of html.matchAll(/<a\b[^>]*\bhref\s*=\s*["']([^"']+)["'][^>]*>/gi)) {
+      const raw = match[1].trim();
+      if (!raw || raw.startsWith('#') || raw.includes('${') || raw.includes('{{')) continue;
+      let resolved;
+      try {
+        resolved = new URL(raw, `${ORIGIN}/${relative}`);
+      } catch (_) {
+        continue;
+      }
+      if (resolved.origin !== ORIGIN || resolved.pathname === '/' || /^\/(?:en|zh)\//.test(resolved.pathname)) continue;
+      const rootCandidates = localCandidates(resolved.pathname);
+      const localizedSibling = rootCandidates
+        .map((candidate) => path.join(locale, candidate))
+        .find((candidate) => fs.existsSync(path.join(ROOT, candidate)));
+      if (localizedSibling) {
+        localeDrops.push(`${relative} -> ${resolved.pathname} (use /${localizedSibling.split(path.sep).join('/')})`);
+      }
+    }
+  }
+
+  assert.deepEqual(localeDrops, [], `localized links that drop to a Japanese root despite an existing sibling:\n${localeDrops.join('\n')}`);
+});

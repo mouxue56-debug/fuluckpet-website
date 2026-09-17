@@ -470,8 +470,8 @@ function fact(html, labels) {
 
 function gender(value) {
   const text = value.trim();
-  if (/男の子|male/i.test(text)) return '♂';
-  if (/女の子|female/i.test(text)) return '♀';
+  if (/女の子|\bfemale\b/i.test(text)) return '♀';
+  if (/男の子|\bmale\b/i.test(text)) return '♂';
   return text;
 }
 
@@ -548,9 +548,9 @@ function detailFields(html, product, pageUrl) {
   const imageUrls = productImages(product, pageUrl);
   const parentsValue = parents(html);
   return {
-    breed: fact(html, ['品種', 'Breed']),
+    breed: fact(html, ['品種', '品种', 'Breed']),
     color: fact(html, ['毛色', 'Color']),
-    gender: gender(fact(html, ['性別', 'Sex', 'Gender'])),
+    gender: gender(fact(html, ['性別', '性别', 'Sex', 'Gender'])),
     price: productPrice(product),
     birthday: normalizeDate(html.match(/data-i18n-birthday\s*=\s*["']([^"']+)["']/i)?.[1] || fact(html, ['誕生日', '生年月日', 'Birthday'])),
     photos: imageUrls,

@@ -1644,6 +1644,28 @@ function listToAbsoluteLinks(html) {
     .replace(/src="(?!\/|https?:|data:)([^"]+)"/g, 'src="/$1"');
 }
 
+// These static pages have hand-maintained en/zh siblings. Keep localized visitors in
+// their active language when copied ja chrome (header/footer/CTA) links to a root page.
+const LOCALIZED_STATIC_SIBLING_PATHS = new Set([
+  '/kittens.html',
+  '/siberian-allergy.html',
+  '/siberian-breeder-osaka.html',
+  '/waitlist.html',
+  '/blog/breeder-visit-flow-osaka.html',
+  '/blog/choose-healthy-kitten-checklist.html',
+  '/blog/siberian-coat-color-guide.html',
+  '/blog/siberian-kitten-feeding-guide.html',
+  '/blog/siberian-vs-bsh-vs-ragdoll.html',
+]);
+
+function localizeStaticSiblingHrefs(html, lang) {
+  if (lang !== 'en' && lang !== 'zh') return html;
+  return String(html).replace(/\bhref="(\/[^"?#]+)([?#][^"]*)?"/g, (match, pathname, suffix = '') => {
+    if (!LOCALIZED_STATIC_SIBLING_PATHS.has(pathname)) return match;
+    return `href="/${lang}${pathname}${suffix}"`;
+  });
+}
+
 // Localize the final "気になる子がいたら…" contact CTA block that lives in the ja
 // tail (heading + lead paragraph + the two button labels). The ja tail is otherwise
 // reused verbatim for en/zh, so without this the block ships as raw Japanese.
@@ -2124,10 +2146,10 @@ ${kittenFilterAssets(lang)}`;
   if (lang !== 'ja') cleanedTail = localizeKittensCta(cleanedTail, lang);
   // Bake the dictionary default into every data-i18n slot of the copied ja chrome, so
   // the en/zh source (what a crawler and a no-JS visitor read) is actually in-language.
-  if (lang !== 'ja') cleanedTail = prefillI18nDefaults(cleanedTail, lang);
+  if (lang !== 'ja') cleanedTail = localizeStaticSiblingHrefs(prefillI18nDefaults(cleanedTail, lang), lang);
   const tailWithSchema = cleanedTail.replace('</body>', `${itemListSchemaHtml}</body>`);
 
-  const localizedHeader = lang === 'ja' ? header : prefillI18nDefaults(header, lang);
+  const localizedHeader = lang === 'ja' ? header : localizeStaticSiblingHrefs(prefillI18nDefaults(header, lang), lang);
   const output = localizedHeader + '\n' + sections + '\n\n' + tailWithSchema;
   fs.writeFileSync(outPath, output, 'utf-8');
   const label = lang === 'ja' ? 'kittens.html' : `${lang}/kittens.html`;
@@ -3596,7 +3618,7 @@ ${viewItemScript}
   <script src="/kitten-catalog.js?v=${verAsset('kitten-catalog.js', '20260711b')}"></script>
   <script src="/i18n.js?v=${verAsset('i18n.js', '20260823a')}"></script>
   <script src="/catalog-i18n.js?v=${verAsset('catalog-i18n.js', '20260823a')}"></script>
-  <script src="/kitten-carousel.js?v=${verAsset('kitten-carousel.js', '20260714g')}"></script>
+  <script src="/kitten-carousel.js?v=${verAsset('kitten-carousel.js', '20260917a')}"></script>
   <script src="/cta-widget.js?v=${verAsset('cta-widget.js', '20260823a')}"></script>
   <script src="/script.js?v=${verAsset('script.js', '20260823a')}"></script>
   <script defer src="/mobile-cta.js?v=${verAsset('mobile-cta.js', '20260823a')}"></script>
@@ -3784,7 +3806,7 @@ function generateKittenDetailPages(kittens, parents, lang = 'ja') {
     // Optional template fragments intentionally carry indentation around their
     // interpolation slots. Strip line-end spaces at the final write boundary so
     // every generated locale is byte-stable and passes repository diff hygiene.
-    const html = prefillI18nDefaults(buildKittenDetailHtml(k, headerHtml, footerHtml, lang), lang)
+    const html = localizeStaticSiblingHrefs(prefillI18nDefaults(buildKittenDetailHtml(k, headerHtml, footerHtml, lang), lang), lang)
       .replace(/[ \t]+$/gm, '')
       // Optional sections (mix / adult / featured) leave their slot empty for the kittens
       // they do not apply to. Collapse the resulting blank runs so the emitted page does
@@ -3852,6 +3874,14 @@ function updateSitemap(articles, kittenDetailPages, store, smallAnimalDetailPage
   // leading whitespace grew every run (non-idempotent churn). Collapse trailing
   // whitespace/newlines to exactly one newline.
   staticPart = staticPart.replace(/\s*$/, '') + '\n';
+
+  // The list's handwritten image inventory outlived the listings it described.
+  // Current kitten images are generated with their individual detail URLs below;
+  // keep the list discoverable without carrying an independent stale photo set.
+  staticPart = staticPart.replace(/<url>[\s\S]*?<\/url>/g, (block) => {
+    if (!/<loc>https:\/\/fuluckpet\.com\/(?:en\/|zh\/)?kittens\.html<\/loc>/.test(block)) return block;
+    return block.replace(/\s*<image:image>[\s\S]*?<\/image:image>/g, '');
+  });
 
   // Honest lastmod for EVERY handwritten static entry: rewrite each <url> block's
   // <lastmod> based on the content hash of the file its <loc> maps to. This subsumes
