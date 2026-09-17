@@ -39,13 +39,13 @@
 
 ## Blog topic clusters
 - [猫アレルギー / Allergy](https://fuluckpet.com/blog/siberian-allergy-facts.html) — Fel d1、低アレルゲンの実際、検査・薬・空気清浄・同居の工夫（siberian-allergy-*, cat-allergy-*, allergy-*, osaka-pet-allergy-clinics）。
-- [サイベリアン品種 / Siberian breed](https://fuluckpet.com/blog/siberian-cat-characteristics.html) — 性格・毛色・歴史・寿命・体格・グルーミング・費用（siberian-* 記事群）。
+- [サイベリアン品種 / Siberian breed](https://fuluckpet.com/blog/siberian-character.html) — 性格・毛色・歴史・寿命・体格・グルーミング・費用（siberian-* 記事群）。
 - [品種比較 / Breed comparison](https://fuluckpet.com/blog/siberian-vs-mainecoon.html) — サイベリアン対メインクーン／ノルウェージャン、BSHとの比較（siberian-vs-*, *-character, large/natural-cat-breeds）。
 - [お迎えプロセス / Adoption process](https://fuluckpet.com/blog/breeder-vs-petshop.html) — ブリーダー選び、見学の流れ、初日・初週、健康な子猫の見分け方（breeder-*, choose-*, kitten-day1/week1, first-week-*, bringing-kitten-home）。
 - [大阪・関西ローカル / Osaka & Kansai](https://fuluckpet.com/blog/siberian-osaka-guide.html) — 大阪城東区へのアクセス、関西の動物病院ネットワーク、関西からの輸送（osaka-*, kansai-*, siberian-osaka-guide）。
 - [日常ケア・健康 / Care & health](https://fuluckpet.com/blog/cat-daily-care-checklist.html) — 食事・トイレ・爪切り・歯・被毛・季節ケア、ワクチン・寄生虫・疾患予防（cat-* のケア／健康記事群、common-cat-diseases）。
 - [行動・生態 / Behavior & biology](https://fuluckpet.com/blog/cat-body-language.html) — ボディランゲージ、鳴き声、感覚、狩猟本能、社会性などの行動学（cat-body-language, cat-purring-meaning, cat-communication-sounds ほか）。
-- [子猫の育成 / Kitten raising](https://fuluckpet.com/blog/kitten-socialization.html) — 社会化期、給餌、成長、体重管理、部屋の安全対策（kitten-* 記事群）。
+- [子猫の育成 / Kitten raising](https://fuluckpet.com/blog/kitten-socialization-period.html) — 社会化期、給餌、成長、体重管理、部屋の安全対策（kitten-* 記事群）。
 - [シニア猫 / Senior cats](https://fuluckpet.com/blog/senior-cat-health.html) — 高齢期の健康・食事・認知・終末期ケア（senior-cat-*）。
 - [猫舎ストーリー / Cattery story](https://fuluckpet.com/blog/fuluck-founder-story.html) — 創業ストーリー、200頭以上の卒業猫、アフターケア、受賞の背景（fuluck-* 記事群）。
 

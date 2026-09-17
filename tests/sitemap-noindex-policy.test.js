@@ -103,3 +103,27 @@ test('indexable localized blog siblings are emitted beside the Japanese URL', (t
   assert.match(sitemap, /https:\/\/fuluckpet\.com\/en\/blog\/localized\.html/);
   assert.match(sitemap, /https:\/\/fuluckpet\.com\/zh\/blog\/localized\.html/);
 });
+
+test('kitten list sitemap drops obsolete image inventory and preserves detail images', (t) => {
+  const { siteDir, generator } = loadSiteGeneratorInTempSite(t);
+  write(siteDir, 'sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>
+<urlset>
+  <url><loc>https://fuluckpet.com/kittens.html</loc><lastmod>2026-07-10</lastmod>
+    <image:image><image:loc>https://example.com/obsolete.jpg</image:loc><image:caption>Old listing</image:caption></image:image>
+  </url>
+  <url><loc>https://fuluckpet.com/gallery.html</loc><lastmod>2026-07-10</lastmod>
+    <image:image><image:loc>https://example.com/gallery.jpg</image:loc></image:image>
+  </url>
+  <!-- 子猫詳細ページ -->
+  <!-- ブログ記事 -->
+</urlset>`);
+  const kitten = { id: '2603-02736', breederId: '2603-02736', breed: 'サイベリアン', photos: ['https://example.com/current.jpg'] };
+  generator.updateSitemap([], [kitten]);
+  const first = fs.readFileSync(path.join(siteDir, 'sitemap.xml'), 'utf8');
+  assert.doesNotMatch(first, /obsolete\.jpg|Old listing/);
+  assert.match(first, /current\.jpg/);
+  assert.match(first, /gallery\.jpg/);
+  assert.match(first, /<loc>https:\/\/fuluckpet\.com\/kittens\.html<\/loc>/);
+  generator.updateSitemap([], [kitten]);
+  assert.equal(fs.readFileSync(path.join(siteDir, 'sitemap.xml'), 'utf8'), first);
+});

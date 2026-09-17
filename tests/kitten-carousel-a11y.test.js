@@ -50,6 +50,16 @@ class FakeElement {
     return child;
   }
 
+  replaceChild(next, previous) {
+    const i = this.children.indexOf(previous);
+    this.children[i] = next;
+    next.parentNode = this;
+    next.parentElement = this;
+    previous.parentNode = null;
+    previous.parentElement = null;
+    return previous;
+  }
+
   replaceChildren(...children) {
     this.children.forEach((child) => {
       child.parentNode = null;
@@ -141,16 +151,35 @@ function kitten(overrides = {}) {
   };
 }
 
-function createPage({ lang = 'en', reducedMotion = false, items = [kitten()], catalog = null, pathname = '/en/blog/carousel.html' } = {}) {
+function createPage({
+  lang = 'en',
+  documentLang,
+  reducedMotion = false,
+  items = [kitten()],
+  catalog = null,
+  pathname = '/en/blog/carousel.html',
+  search = '',
+  storageLang,
+  storageThrows = false,
+  category = '',
+  blogCta = false,
+} = {}) {
   const mount = new FakeElement('div');
   mount.className = 'kitten-carousel-mount';
+  const root = new FakeElement('main');
+  root.appendChild(mount);
+  const originalCta = new FakeElement('div');
+  originalCta.className = 'blog-cta-box';
+  originalCta.textContent = 'Book a visit';
+  if (blogCta) root.appendChild(originalCta);
   const windowListeners = Object.create(null);
   const activeIntervals = new Map();
   const clearedIntervals = [];
   let nextIntervalId = 0;
-  let currentLang = lang;
+  let currentLang = storageLang !== undefined ? storageLang : lang;
 
   const document = {
+    documentElement: { lang: documentLang !== undefined ? documentLang : lang },
     head: { appendChild() {} },
     createElement(tag) { return new FakeElement(tag); },
     createTextNode(value) {
@@ -159,11 +188,17 @@ function createPage({ lang = 'en', reducedMotion = false, items = [kitten()], ca
       return node;
     },
     querySelector(selector) {
-      if (selector === '.blog-meta-cat' || selector === '.blog-cta-box') return null;
+      if (selector === '.blog-meta-cat') {
+        if (!category) return null;
+        const node = new FakeElement('span');
+        node.textContent = category;
+        return node;
+      }
+      if (selector === '.blog-cta-box') return root.querySelector(selector);
       return null;
     },
     querySelectorAll(selector) {
-      if (selector === '.kitten-carousel-mount') return [mount];
+      if (selector === '.kitten-carousel-mount') return root.querySelectorAll(selector);
       if (selector === '.kc-section') return mount.querySelectorAll(selector);
       return [];
     },
@@ -173,7 +208,7 @@ function createPage({ lang = 'en', reducedMotion = false, items = [kitten()], ca
     FULUCK_API_BASE: 'https://api.example.test',
     FULUCK_CATALOG_I18N: catalog,
     FuluckKittenCatalog: KittenCatalog,
-    location: { pathname },
+    location: { pathname, search },
     matchMedia(query) {
       assert.equal(query, '(prefers-reduced-motion: reduce)');
       return { matches: reducedMotion };
@@ -187,9 +222,15 @@ function createPage({ lang = 'en', reducedMotion = false, items = [kitten()], ca
   const context = vm.createContext({
     document,
     window,
-    localStorage: { getItem() { return currentLang; } },
+    localStorage: {
+      getItem() {
+        if (storageThrows) throw new Error('storage blocked');
+        return currentLang;
+      },
+    },
     fetch() { return Promise.resolve({ ok: true, json: async () => items }); },
     URL,
+    URLSearchParams,
     console: { warn() {} },
     setInterval(callback, delay) {
       const id = ++nextIntervalId;
@@ -205,13 +246,27 @@ function createPage({ lang = 'en', reducedMotion = false, items = [kitten()], ca
 
   return {
     mount,
+    root,
+    originalCta,
     activeIntervals,
     clearedIntervals,
-    setLang(value) { currentLang = value; },
+    setLang(value) {
+      currentLang = value;
+      document.documentElement.lang = value;
+    },
     dispatchWindow(type) {
-      (windowListeners[type] || []).slice().forEach((listener) => listener());
+      const event = { type, detail: { lang: currentLang } };
+      (windowListeners[type] || []).slice().forEach((listener) => listener(event));
     },
   };
+}
+
+function hrefsOf(mount, selector) {
+  return mount.querySelectorAll(selector).map((node) => node.getAttribute('href'));
+}
+
+function queryOf(href) {
+  return new URL(href, 'https://fuluckpet.com').searchParams;
 }
 
 test('catalog breed translations win, including mixed breeds, with legacy and raw fallbacks', async () => {
@@ -366,4 +421,173 @@ test('carousel uses localized price inquiry for every invalid sale price', async
     await flushAsyncWork();
     assert.equal(valid.mount.querySelector('.kc-price').textContent, '¥220,000');
   }
+});
+
+const LINE_URL = 'https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true';
+const HYPHEN_ID = '2603-02736';
+
+test('dynamic EN/ZH blog first render prefixes hyphen ids and localizes exact CTAs', async () => {
+  for (const [lang, bookingLabel] of [['en', 'Book a Visit'], ['zh', '预约见学']]) {
+    const page = createPage({
+      lang,
+      pathname: '/blog/siberian-weight-size.html',
+      search: `?lang=${lang}`,
+      category: '猫種知識',
+      items: [kitten({ breederId: HYPHEN_ID })],
+    });
+    await flushAsyncWork();
+
+    assert.deepEqual(hrefsOf(page.mount, '.kc-card'), [`/${lang}/kittens/${HYPHEN_ID}.html`]);
+    const ctas = hrefsOf(page.mount, '.kc-btn');
+    assert.equal(ctas[0], `/${lang}/kittens.html`);
+    assert.equal(queryOf(ctas[1]).get('lang'), lang);
+    assert.equal(queryOf(ctas[1]).get('kitten'), null);
+    assert.equal(new URL(ctas[1], 'https://fuluckpet.com').pathname, '/booking.html');
+    assert.match(page.mount.textContent, new RegExp(bookingLabel));
+    assert.ok(!ctas.some((href) => href === LINE_URL));
+  }
+
+  const guide = createPage({
+    lang: 'en',
+    pathname: '/blog/siberian-weight-size.html',
+    search: '?lang=en',
+    category: '子猫育て',
+    items: [kitten({ breederId: HYPHEN_ID })],
+  });
+  await flushAsyncWork();
+  const guideCtas = hrefsOf(guide.mount, '.kc-btn');
+  assert.equal(guideCtas[0], '/guide/?lang=en');
+  assert.equal(guideCtas[1], LINE_URL);
+
+  const defaultCta = createPage({
+    lang: 'en',
+    pathname: '/blog/siberian-weight-size.html',
+    search: '?lang=en',
+    items: [kitten({ breederId: HYPHEN_ID })],
+  });
+  await flushAsyncWork();
+  const fallback = hrefsOf(defaultCta.mount, '.kc-btn');
+  assert.equal(fallback[0], '/en/kittens.html');
+  assert.equal(fallback[1], LINE_URL);
+});
+
+test('langChanged on a dynamic blog rewrites cards and CTAs EN → ZH → JA', async () => {
+  const page = createPage({
+    lang: 'en',
+    pathname: '/blog/siberian-weight-size.html',
+    search: '?lang=en',
+    category: '猫種知識',
+    items: [kitten({ breederId: HYPHEN_ID })],
+  });
+  await flushAsyncWork();
+  assert.equal(hrefsOf(page.mount, '.kc-card')[0], `/en/kittens/${HYPHEN_ID}.html`);
+
+  page.setLang('zh');
+  page.dispatchWindow('langChanged');
+  await flushAsyncWork();
+  assert.equal(hrefsOf(page.mount, '.kc-card')[0], `/zh/kittens/${HYPHEN_ID}.html`);
+  assert.equal(hrefsOf(page.mount, '.kc-btn')[0], '/zh/kittens.html');
+  assert.equal(queryOf(hrefsOf(page.mount, '.kc-btn')[1]).get('lang'), 'zh');
+
+  page.setLang('ja');
+  page.dispatchWindow('langChanged');
+  await flushAsyncWork();
+  assert.equal(hrefsOf(page.mount, '.kc-card')[0], `/kittens/${HYPHEN_ID}.html`);
+  assert.deepEqual(hrefsOf(page.mount, '.kc-btn'), ['/kittens.html', '/booking.html']);
+});
+
+test('storage throw and stale EN keep JA on a Japanese document', async () => {
+  const thrown = createPage({
+    lang: 'ja',
+    documentLang: '',
+    pathname: '/blog/siberian-weight-size.html',
+    storageThrows: true,
+    items: [kitten({ breederId: HYPHEN_ID })],
+  });
+  await flushAsyncWork();
+  assert.equal(hrefsOf(thrown.mount, '.kc-card')[0], `/kittens/${HYPHEN_ID}.html`);
+  assert.equal(hrefsOf(thrown.mount, '.kc-btn')[0], '/kittens.html');
+
+  const stale = createPage({
+    lang: 'ja',
+    documentLang: 'ja',
+    storageLang: 'en',
+    pathname: '/blog/siberian-weight-size.html',
+    items: [kitten({ breederId: HYPHEN_ID })],
+  });
+  await flushAsyncWork();
+  assert.equal(hrefsOf(stale.mount, '.kc-card')[0], `/kittens/${HYPHEN_ID}.html`);
+  assert.equal(hrefsOf(stale.mount, '.kc-btn')[0], '/kittens.html');
+});
+
+test('static /zh route wins over leftover storage EN', async () => {
+  const page = createPage({
+    lang: 'zh',
+    documentLang: 'ja',
+    storageLang: 'en',
+    pathname: '/zh/blog/siberian-weight-size.html',
+    items: [kitten({ breederId: HYPHEN_ID })],
+  });
+  await flushAsyncWork();
+  assert.equal(hrefsOf(page.mount, '.kc-card')[0], `/zh/kittens/${HYPHEN_ID}.html`);
+  assert.equal(hrefsOf(page.mount, '.kc-btn')[0], '/zh/kittens.html');
+});
+
+test('detail booking keeps kitten query on JA and localized pages without adding it on blogs', async () => {
+  const jaDetail = createPage({
+    lang: 'ja',
+    pathname: `/kittens/${HYPHEN_ID}.html`,
+    storageLang: 'en',
+    category: '猫種知識',
+    items: [
+      kitten({ breederId: HYPHEN_ID }),
+      kitten({ breederId: '2605-02526' }),
+    ],
+  });
+  await flushAsyncWork();
+  assert.deepEqual(hrefsOf(jaDetail.mount, '.kc-card'), ['/kittens/2605-02526.html']);
+  const jaBooking = hrefsOf(jaDetail.mount, '.kc-btn')[1];
+  assert.equal(new URL(jaBooking, 'https://fuluckpet.com').pathname, '/booking.html');
+  assert.equal(queryOf(jaBooking).get('kitten'), HYPHEN_ID);
+  assert.equal(queryOf(jaBooking).get('lang'), null);
+
+  const enDetail = createPage({
+    lang: 'en',
+    pathname: `/en/kittens/${HYPHEN_ID}.html`,
+    category: '猫種知識',
+    items: [
+      kitten({ breederId: HYPHEN_ID }),
+      kitten({ breederId: '2605-02526' }),
+    ],
+  });
+  await flushAsyncWork();
+  const enBooking = hrefsOf(enDetail.mount, '.kc-btn')[1];
+  assert.equal(new URL(enBooking, 'https://fuluckpet.com').pathname, '/booking.html');
+  assert.equal(queryOf(enBooking).get('kitten'), HYPHEN_ID);
+  assert.equal(queryOf(enBooking).get('lang'), 'en');
+
+  const blog = createPage({
+    lang: 'en',
+    pathname: '/blog/siberian-weight-size.html',
+    search: '?lang=en',
+    category: '猫種知識',
+    items: [kitten({ breederId: HYPHEN_ID })],
+  });
+  await flushAsyncWork();
+  assert.equal(queryOf(hrefsOf(blog.mount, '.kc-btn')[1]).get('kitten'), null);
+});
+
+for (const items of [[], [kitten({status:'sold'})], [kitten({photos:[]})]]) {
+  test(`empty/unrenderable catalog preserves the original blog CTA (${JSON.stringify(items)})`, async () => {
+    const page = createPage({items, blogCta:true});
+    await flushAsyncWork();
+    assert.equal(page.root.contains(page.originalCta), true);
+    assert.equal(page.originalCta.textContent, 'Book a visit');
+  });
+}
+test('a usable carousel replaces the original CTA without duplicating it', async () => {
+  const page = createPage({blogCta:true});
+  await flushAsyncWork();
+  assert.equal(page.root.contains(page.originalCta), false);
+  assert.equal(page.root.querySelectorAll('.kc-section').length, 2);
 });

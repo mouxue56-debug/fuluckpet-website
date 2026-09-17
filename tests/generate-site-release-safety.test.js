@@ -747,3 +747,41 @@ test('Drive enrichment uses bounded concurrency instead of one serial request pe
   assert.ok(maxActiveImages <= 4, `enrichment must stay bounded, observed ${maxActiveImages}`);
   assert.ok(kittens.every((kitten) => kitten.photos.length === 1));
 });
+
+test('generated localized kitten pages keep static sibling links in the active language', (t) => {
+  const siteDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fuluck-localized-kitten-links-'));
+  copyFile(path.join(ROOT, 'kittens.html'), path.join(siteDir, 'kittens.html'));
+  const generator = loadGeneratorForSite(t, siteDir);
+  const kitten = {
+    id: 'row-localized-links',
+    breederId: 'localized-links',
+    breed: 'サイベリアン',
+    color: 'ブルー',
+    gender: '♂',
+    birthday: '2026-05-01',
+    price: 180000,
+    status: 'available',
+    photos: ['https://images.example.test/cat.jpg'],
+  };
+  const localizedStaticPaths = new Set([
+    '/kittens.html',
+    '/siberian-allergy.html',
+    '/siberian-breeder-osaka.html',
+    '/waitlist.html',
+  ]);
+
+  for (const lang of ['en', 'zh']) {
+    generator.generateKittens([kitten], lang);
+    generator.generateKittenDetailPages([kitten], [], lang);
+    for (const relative of [`${lang}/kittens.html`, `${lang}/kittens/localized-links.html`]) {
+      const html = fs.readFileSync(path.join(siteDir, relative), 'utf8');
+      const localeDrops = [...html.matchAll(/<a\b[^>]*\bhref="([^"]+)"[^>]*>/gi)]
+        .map((match) => match[1])
+        .filter((href) => localizedStaticPaths.has(new URL(href, 'https://www.fuluckpet.com').pathname));
+      assert.deepEqual(localeDrops, [], `${relative} must not link its translated chrome back to Japanese pages`);
+      for (const pathname of localizedStaticPaths) {
+        assert.match(html, new RegExp(`href="/${lang}${pathname.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`));
+      }
+    }
+  }
+});

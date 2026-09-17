@@ -38,18 +38,90 @@
     return requests[url];
   }
 
-  function getLang() {
-    try { return localStorage.getItem('fuluckpet-lang') || 'ja'; } catch(e) { return 'ja'; }
+  var langOverride = '';
+
+  function isLang(value) {
+    return value === 'en' || value === 'zh' || value === 'ja';
   }
 
-  // URL prefix for language-correct BODY links: on a static /en/ or /zh/ page the carousel's
-  // kitten-detail links must stay in-language (that sibling detail page exists). ja → ''.
-  // Derived from the path (not localStorage) so it matches the page the visitor is actually on.
-  function langPathPrefix() {
+  function pathLang() {
     var p = window.location.pathname || '/';
-    if (p.indexOf('/en/') === 0) return '/en';
-    if (p.indexOf('/zh/') === 0) return '/zh';
+    if (p.indexOf('/en/') === 0 || p === '/en') return 'en';
+    if (p.indexOf('/zh/') === 0 || p === '/zh') return 'zh';
     return '';
+  }
+
+  // JA kitten-detail URLs have static /en and /zh siblings. While the visitor is on the
+  // JA file, nav stays Japanese even if storage still holds EN — keep carousel links in
+  // that same JA root instead of prefixing a stale language.
+  function isStaticJaKittenDetailPath() {
+    return /^\/kittens\/[^/]+\.html$/.test(window.location.pathname || '');
+  }
+
+  function documentLang() {
+    try {
+      var lang = document.documentElement && document.documentElement.lang;
+      return isLang(lang) ? lang : '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function urlLang() {
+    try {
+      var lang = new URLSearchParams(window.location.search || '').get('lang');
+      return isLang(lang) ? lang : '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function storedLang() {
+    try {
+      var lang = localStorage.getItem('fuluckpet-lang');
+      return isLang(lang) ? lang : '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  // Copy language: document/event beat storage. A leftover EN in storage must not
+  // override an explicit JA document. Storage throws still resolve to JA.
+  // Static /en|/zh path is NOT used here so in-place langChanged can retitle
+  // chrome on those pages the way it already did.
+  function getLang() {
+    if (isLang(langOverride)) return langOverride;
+    if (isStaticJaKittenDetailPath()) return 'ja';
+    return documentLang() || urlLang() || storedLang() || pathLang() || 'ja';
+  }
+
+  // Link language: /en and /zh path are authoritative; JA kitten-detail files
+  // stay on the JA root to match nav. Dynamic JA-root pages use getLang().
+  function linkLang() {
+    var fromPath = pathLang();
+    if (fromPath) return fromPath;
+    if (isStaticJaKittenDetailPath()) return 'ja';
+    return getLang();
+  }
+
+  function langPathPrefix() {
+    var lang = linkLang();
+    if (lang === 'en' || lang === 'zh') return '/' + lang;
+    return '';
+  }
+
+  function localizeCtaHref(href) {
+    if (href === '/kittens.html') {
+      var prefix = langPathPrefix();
+      return prefix ? prefix + href : href;
+    }
+    if (href === '/guide/' || href === BOOKING_URL) {
+      var lang = linkLang();
+      if (lang === 'en' || lang === 'zh') {
+        return href + (href.indexOf('?') === -1 ? '?' : '&') + 'lang=' + lang;
+      }
+    }
+    return href;
   }
 
   // Kitten-context for booking prefill (B1): when this carousel is mounted on a
@@ -69,7 +141,9 @@
   // Append ?kitten=<id> to a booking URL when we have a kitten context. Only rewrites
   // the booking target (leaves /kittens.html, /guide/, LINE etc. untouched).
   function withKittenContext(href) {
-    if (href !== BOOKING_URL) return href;
+    if (typeof href !== 'string') return href;
+    var isBooking = href === BOOKING_URL || href.indexOf(BOOKING_URL + '?') === 0;
+    if (!isBooking) return href;
     var id = currentKittenId();
     if (!id) return href;
     return href + (href.indexOf('?') === -1 ? '?' : '&') + 'kitten=' + encodeURIComponent(id);
@@ -340,8 +414,10 @@
     }
   }
 
-  function renderCarousel(kittens, container) {
+  function renderCarousel(kittens, container, eventLang) {
     cleanupMountedCarousel(container);
+    var previousOverride = langOverride;
+    if (isLang(eventLang)) langOverride = eventLang;
     var lang = getLang();
     var category = detectCategory();
     var cta = getCTA(category);
@@ -359,7 +435,9 @@
     // before ordering, then slice, so promoted rows outside the old first 12 can win.
     var display = KittenCatalog.orderKittens(eligible).slice(0, 12);
     if (display.length === 0) {
-      container.replaceChildren();
+      if (container.__fuluckOriginalCta) container.replaceChildren(container.__fuluckOriginalCta);
+      else container.replaceChildren();
+      langOverride = previousOverride;
       return;
     }
 
@@ -433,7 +511,9 @@
     });
 
     if (renderedCards === 0) {
-      container.replaceChildren();
+      if (container.__fuluckOriginalCta) container.replaceChildren(container.__fuluckOriginalCta);
+      else container.replaceChildren();
+      langOverride = previousOverride;
       return;
     }
 
@@ -451,14 +531,14 @@
 
     var actions = createNode('div', 'kc-actions');
     var primary = createNode('a', 'kc-btn kc-btn-primary');
-    primary.setAttribute('href', withKittenContext(cta.btn1Link));
+    primary.setAttribute('href', withKittenContext(localizeCtaHref(cta.btn1Link)));
     appendIcon(primary, 'ico-paw-print');
     primary.appendChild(document.createTextNode(' ' + cta.btn1));
     actions.appendChild(primary);
 
     var secondaryIsLine = cta.btn2Link === LINE_URL;
     var secondary = createNode('a', 'kc-btn ' + (secondaryIsLine ? 'kc-btn-line' : 'kc-btn-book'));
-    secondary.setAttribute('href', withKittenContext(cta.btn2Link));
+    secondary.setAttribute('href', withKittenContext(localizeCtaHref(cta.btn2Link)));
     if (secondaryIsLine) {
       secondary.setAttribute('target', '_blank');
       secondary.setAttribute('rel', 'noopener');
@@ -569,6 +649,7 @@
     }
     container.__fuluckKittenCarouselCleanup = cleanup;
     syncAutoScroll();
+    langOverride = previousOverride;
   }
 
   // Find target: .blog-cta-box in blog articles, or .kitten-carousel-mount placeholder
@@ -580,6 +661,9 @@
       var wrap = document.createElement('div');
       wrap.className = 'kitten-carousel-mount';
       ctaBox.parentNode.replaceChild(wrap, ctaBox);
+      // Retain the original consultation links until a usable carousel exists.
+      wrap.__fuluckOriginalCta = ctaBox;
+      wrap.appendChild(ctaBox);
       targets.push(wrap);
     }
     // Explicit placeholder
@@ -604,14 +688,15 @@
     });
 
   // Re-render on language change
-  window.addEventListener('langChanged', function() {
+  window.addEventListener('langChanged', function(ev) {
     var carousels = document.querySelectorAll('.kc-section');
     if (carousels.length === 0) return;
+    var eventLang = ev && ev.detail && ev.detail.lang;
     getSharedKittens()
       .then(function(data) {
         var mounts = document.querySelectorAll('.kitten-carousel-mount');
         for (var i = 0; i < mounts.length; i++) {
-          renderCarousel(data || [], mounts[i]);
+          renderCarousel(data || [], mounts[i], eventLang);
         }
       })
       .catch(function() {});
