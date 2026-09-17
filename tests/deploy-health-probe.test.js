@@ -11,7 +11,7 @@ const end = source.indexOf('# 3. GET /api/kittens', start);
 assert.ok(start > 0 && end > start);
 const probe = source.slice(start, end);
 
-function scenario({ mode = 'deploy', stale = 1, invalid = false } = {}) {
+function scenario({ mode = 'deploy', stale = 1, invalid = false, fault = '' } = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fuluck-health-probe-'));
   const countFile = path.join(dir, 'calls');
   fs.writeFileSync(countFile, '0');
@@ -24,9 +24,11 @@ pass_count=0; fail_count=0
 pass() { pass_count=$((pass_count+1)); }
 fail() { fail_count=$((fail_count+1)); }
 sleep() { :; }
+mktemp() { [ "$TEST_FAULT" != temp ] || return 1; command mktemp; }
 curl() {
   local count header_file='' status_suffix=0
   count=$(cat "$TEST_COUNT"); count=$((count+1)); printf '%s' "$count" > "$TEST_COUNT"
+  [ "$TEST_FAULT" != curl ] || return 7
   local release=new
   if [ "$count" -le "$TEST_STALE" ]; then release=old; fi
   while [ "$#" -gt 0 ]; do
@@ -51,7 +53,7 @@ printf 'RESULT %s %s %s' "$pass_count" "$fail_count" "$(cat "$TEST_COUNT")"
 `;
   const result = spawnSync('bash', ['-c', script], {
     encoding: 'utf8',
-    env: { ...process.env, TEST_MODE: mode, TEST_COUNT: countFile, TEST_STALE: String(stale), TEST_CONFIG: invalid ? 'false' : 'true' },
+    env: { ...process.env, TEST_MODE: mode, TEST_FAULT: fault, TEST_COUNT: countFile, TEST_STALE: String(stale), TEST_CONFIG: invalid ? 'false' : 'true' },
   });
   fs.rmSync(dir, { recursive: true, force: true });
   assert.equal(result.status, 0, result.stderr);
@@ -75,4 +77,11 @@ test('the expected SHA never hides broken notification configuration', () => {
   const result = scenario({ stale: 0, invalid: true });
   assert.equal(result.calls, 10);
   assert.equal(result.fail, 2);
+});
+
+test('a failed curl cannot reuse the previous health result', () => {
+  assert.deepEqual(scenario({ fault: 'curl' }), { pass: 0, fail: 2, calls: 10 });
+});
+test('temporary header-file failure fails closed without network access', () => {
+  assert.deepEqual(scenario({ fault: 'temp' }), { pass: 0, fail: 2, calls: 0 });
 });
