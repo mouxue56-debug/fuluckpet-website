@@ -2470,7 +2470,7 @@ ${sections}
 ${footerHtml}
 
   <script src="/i18n.js?v=${verAsset('i18n.js', '20260918b')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20260918a')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20260920b')}"></script>
 </body>
 </html>`;
 }
@@ -2614,7 +2614,7 @@ ${footerHtml}
   });
   </script>
   <script src="/i18n.js?v=${verAsset('i18n.js', '20260918b')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20260918a')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20260920b')}"></script>
 </body>
 </html>`;
 }
@@ -3634,7 +3634,7 @@ ${viewItemScript}
   <script src="/catalog-i18n.js?v=${verAsset('catalog-i18n.js', '20260823a')}"></script>
   <script src="/kitten-carousel.js?v=${verAsset('kitten-carousel.js', '20260917a')}"></script>
   <script src="/cta-widget.js?v=${verAsset('cta-widget.js', '20260823a')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20260918a')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20260920b')}"></script>
   <script defer src="/mobile-cta.js?v=${verAsset('mobile-cta.js', '20260823a')}"></script>
   <script defer src="/analytics.js?v=${verAsset('analytics.js', '20260920a')}"></script>
 </body>
