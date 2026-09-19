@@ -38,7 +38,7 @@ const PUBLIC_ASSETS = {
   'nav.js': NAV_RELEASE,
   'i18n.js': I18N_RELEASE,
   'blog/blog-i18n.js': RELEASE,
-  'blog-listing-i18n.js': RELEASE,
+  'blog-listing-i18n.js': '20260920a',
   'blog-listing-i18n-apply.js': '20260918a',
   'catalog-i18n.js': COPY_RELEASE,
   'kitten-catalog.js': CATALOG_RELEASE,

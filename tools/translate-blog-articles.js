@@ -193,6 +193,11 @@ function main() {
     let injected = 0;
     for (const tf of translationFiles) {
       const data = JSON.parse(fs.readFileSync(path.join(TRANSLATIONS_DIR, tf), 'utf8'));
+      // Reviewed source revisions may retire translations until they are rechecked.
+      if (data.disabled === true) {
+        console.log(`  − ${data.slug} — translations disabled pending review`);
+        continue;
+      }
       const htmlPath = path.join(BLOG_DIR, data.slug + '.html');
 
       if (!fs.existsSync(htmlPath)) {
