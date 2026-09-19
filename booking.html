@@ -1094,7 +1094,7 @@
           date.getUTCDate() === parts[2] && v >= minimum;
       }
       if (el.id === 'bk-method') return v !== '';
-      if (el.id === 'bk-message')return v.length <= 2000;
+      if (el.id === 'bk-message')return (el.value || '').length <= 2000;
       return true;
     }
 
@@ -1216,15 +1216,18 @@
           successEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
           // GA4 generate_lead (Agent A also wants this — coordinate by JUST emitting it)
-          if (typeof gtag === 'function') {
-            gtag('event', 'generate_lead', {
-              currency: 'JPY',
-              value: 0,
-              event_category: 'booking',
-              event_label: payload.visit_method || 'unknown',
-              request_id: r.body.request_id || ''
-            });
-          }
+          // Analytics is optional: it must never turn a saved booking into an error.
+          try {
+            if (typeof gtag === 'function') {
+              gtag('event', 'generate_lead', {
+                currency: 'JPY',
+                value: 0,
+                event_category: 'booking',
+                event_label: payload.visit_method || 'unknown',
+                request_id: r.body.request_id || ''
+              });
+            }
+          } catch (_analyticsError) { /* booking already saved */ }
         } else {
           throw new Error('booking failed: ' + r.status + ' ' + JSON.stringify(r.body));
         }
@@ -1284,7 +1287,7 @@
   </div>
 
   <script defer src="mobile-cta.js?v=20260823a"></script>
-  <script defer src="analytics.js?v=20260823a"></script>
+  <script defer src="analytics.js?v=20260920a"></script>
   <!-- AI customer service chat widget -->
   <link rel="stylesheet" href="/assets/chat/widget.css?v=20260712e">
   <script defer src="/assets/chat/widget.js?v=20260714g"></script>

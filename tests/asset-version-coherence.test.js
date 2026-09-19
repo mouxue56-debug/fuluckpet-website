@@ -16,7 +16,7 @@ const SCRIPT_RELEASE = '20260918a';
 const TRUTH_RELEASE = '20260711c';
 const CATALOG_RELEASE = '20260711b';
 const KITTEN_CAROUSEL_RELEASE = '20260917a';
-const CARD_LOADER_RELEASE = COPY_RELEASE;
+const CARD_LOADER_RELEASE = '20260920a';
 const ADMIN_RENDER_RELEASE = '20260811a';
 const ADMIN_PHOTOS_RELEASE = '20260811a';
 const ADMIN_DIARY_RELEASE = '20260711a';
@@ -49,7 +49,7 @@ const PUBLIC_ASSETS = {
   'kitten-carousel.js': KITTEN_CAROUSEL_RELEASE,
   'cta-widget.js': COPY_RELEASE,
   'script.js': SCRIPT_RELEASE,
-  'analytics.js': COPY_RELEASE,
+  'analytics.js': '20260920a',
   'guide/i18n-guide-body.js': COPY_RELEASE,
   'mobile-cta.js': COPY_RELEASE,
   'assets/chat/widget.css': CHAT_STYLE_RELEASE,
