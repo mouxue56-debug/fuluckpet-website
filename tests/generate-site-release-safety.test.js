@@ -326,7 +326,10 @@ function loadGeneratorForSite(t, siteDir) {
     "const SITE_DIR = path.resolve(__dirname, '..');",
     `const SITE_DIR = ${JSON.stringify(siteDir)};`,
   );
-  const mainCall = source.lastIndexOf('\nmain().catch(');
+  const mainCall = Math.max(
+    source.lastIndexOf('\nif (require.main === module) {'),
+    source.lastIndexOf('\nmain().catch('),
+  );
   assert.notEqual(mainCall, -1);
   source = source.slice(0, mainCall) + '\nmodule.exports = { enrichKittensWithDrivePhotos, fetchJSON, generateKittens, generateKittenDetailPages };\n';
   const loaded = new Module(GENERATOR, module);

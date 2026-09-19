@@ -26,7 +26,10 @@ function loadGeneratorInternals({ publicLaunch = false, siteDir = null, darkSlug
       `const SITE_DIR = ${JSON.stringify(siteDir)};`,
     );
   }
-  const mainCall = source.lastIndexOf('\nmain().catch(');
+  const mainCall = Math.max(
+    source.lastIndexOf('\nif (require.main === module) {'),
+    source.lastIndexOf('\nmain().catch('),
+  );
   assert.notEqual(mainCall, -1, 'generator main call boundary must remain discoverable');
 
   const instrumented = `${source.slice(0, mainCall)}
