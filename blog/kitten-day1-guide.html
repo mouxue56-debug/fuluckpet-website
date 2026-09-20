@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" data-article-language="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -80,8 +80,11 @@
  .blog-figure { margin:24px 0; }
  .blog-figure img { width:100%; height:auto; border-radius:12px; }
  .blog-article a { overflow-wrap:anywhere; }
+ .article-nav-language.lang-switch { width:174px; flex-wrap:wrap; justify-content:center; border-radius:12px; }
+ .lang-switch-scope { flex:0 0 100%; text-align:center; font-size:11px; line-height:1.4; color:var(--text-body); }
+ @media(max-width:767px) { .header-right > .article-nav-language { display:none; } }
  </style>
-  <script defer src="/nav.js?v=20260918a"></script>
+  <script defer src="/nav.js?v=20260920c"></script>
 </head>
 <body>
 
@@ -118,10 +121,10 @@
       </nav>
 
       <div class="header-right">
-        <div class="lang-switch" role="group" aria-label="言語切替 / Language">
-          <button class="lang-btn active" aria-pressed="true" data-lang="ja">JP</button>
-          <button class="lang-btn" aria-pressed="false" data-lang="en">EN</button>
-          <button class="lang-btn" aria-pressed="false" data-lang="zh">中</button>
+        <div class="lang-switch article-nav-language" role="group" aria-label="ナビのみ / Navigation only / 仅导航"><span class="lang-switch-scope" aria-hidden="true">ナビのみ / Nav only / 仅导航</span>
+          <button class="lang-btn active" aria-pressed="true" data-lang="ja" type="button" lang="ja" aria-label="ナビゲーションを日本語に切替。記事本文は日本語です">JP</button>
+          <button class="lang-btn" aria-pressed="false" data-lang="en" type="button" lang="en" aria-label="English navigation only; this article remains in Japanese">EN</button>
+          <button class="lang-btn" aria-pressed="false" data-lang="zh" type="button" lang="zh" aria-label="仅切换中文导航；本文仍为日文">中</button>
         </div>
         <div class="header-sns">
           <a href="https://www.instagram.com/fuluckpet/" class="sns-icon" aria-label="Instagram" target="_blank" rel="noopener">
@@ -160,10 +163,10 @@
       <a href="https://catnamegive.mouxue56.workers.dev" target="_blank" rel="noopener" class="mobile-nav-link" data-i18n="nav.naming">子猫の名前ツール</a>
     </nav>
     <div class="mobile-nav-bottom">
-      <div class="lang-switch mobile-lang">
-        <button class="lang-btn active" aria-pressed="true" data-lang="ja">JP</button>
-        <button class="lang-btn" aria-pressed="false" data-lang="en">EN</button>
-        <button class="lang-btn" aria-pressed="false" data-lang="zh">中</button>
+      <div class="lang-switch mobile-lang article-nav-language" role="group" aria-label="ナビのみ / Navigation only / 仅导航"><span class="lang-switch-scope" aria-hidden="true">ナビのみ / Nav only / 仅导航</span>
+        <button class="lang-btn active" aria-pressed="true" data-lang="ja" type="button" lang="ja" aria-label="ナビゲーションを日本語に切替。記事本文は日本語です">JP</button>
+        <button class="lang-btn" aria-pressed="false" data-lang="en" type="button" lang="en" aria-label="English navigation only; this article remains in Japanese">EN</button>
+        <button class="lang-btn" aria-pressed="false" data-lang="zh" type="button" lang="zh" aria-label="仅切换中文导航；本文仍为日文">中</button>
       </div>
       <div class="mobile-nav-sns">
         <a href="https://www.instagram.com/fuluckpet/" class="sns-icon" target="_blank" rel="noopener"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg></a>
@@ -181,7 +184,7 @@
 <div class="blog-meta"><span class="blog-meta-cat">子猫育て</span><span>資料確認：2026年9月20日</span></div>
 <h1>猫を迎える最初の日。「仲良くなる」より先に、安心できる一部屋を</h1>
 <aside class="health-notice"><strong>食べないことに気づいたら、すぐに動物病院へ連絡してください。特に子猫では相談を先延ばしにしないでください。</strong><sup><a href="#source-3">[3]</a></sup></aside>
-<p class="article-language">この記事は日本語で掲載しています。<span lang="en">Japanese article.</span> <span lang="zh">本文为日文。</span></p>
+<p class="article-language"><span lang="ja">言語ボタンはナビゲーションのみ切り替えます。記事本文は日本語です。</span> <span lang="en">Language buttons change navigation only. This article remains in Japanese.</span> <span lang="zh">语言按钮仅切换网站导航，本文仍为日文。</span></p>
 <figure class="blog-figure"><img src="/images/blog/quiet-room-ai-illustration.webp" alt="猫の生活用品を分けて配置した静かな部屋のAIイメージ" width="1200" height="800" loading="eager" fetchpriority="high" decoding="async"><figcaption>安心できる一部屋の配置例。AIで作成したイメージであり、実在の猫・販売中の猫・福楽の施設を撮影したものではありません。</figcaption></figure>
 <p>キャリーの扉を開けたのに、猫が出てこない。目が合うと、箱の奥に隠れてしまう。お迎えの日は、うれしさと一緒に「これで大丈夫かな」という気持ちも生まれます。</p>
 <p>まず用意したいのは、家じゅうを探検する機会より、落ち着いて過ごせる小さな生活の拠点です。慣れる速さには個体差があります。「今日中に抱っこできること」を目標にせず、その子の様子を見ながら進めましょう。</p>
