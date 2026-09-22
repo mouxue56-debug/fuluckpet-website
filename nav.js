@@ -369,6 +369,16 @@
   }
 
   function langSwitchMarkup(extraClass) {
+    if (document.documentElement.getAttribute('data-article-language') === 'ja') {
+      return (
+        '<div class="lang-switch article-nav-language ' + (extraClass || '') + '" role="group" aria-label="ナビのみ / Navigation only / 仅导航">' +
+          '<span class="lang-switch-scope" aria-hidden="true">ナビのみ / Nav only / 仅导航</span>' +
+          '<button class="lang-btn" aria-pressed="false" data-lang="ja" type="button" lang="ja" aria-label="ナビゲーションを日本語に切替。記事本文は日本語です">JP</button>' +
+          '<button class="lang-btn" aria-pressed="false" data-lang="en" type="button" lang="en" aria-label="English navigation only; this article remains in Japanese">EN</button>' +
+          '<button class="lang-btn" aria-pressed="false" data-lang="zh" type="button" lang="zh" aria-label="仅切换中文导航；本文仍为日文">中</button>' +
+        '</div>'
+      );
+    }
     return (
       '<div class="lang-switch ' + (extraClass || '') + '" role="group" aria-label="言語切替 / Language">' +
         '<button class="lang-btn" aria-pressed="false" data-lang="ja" type="button">JP</button>' +

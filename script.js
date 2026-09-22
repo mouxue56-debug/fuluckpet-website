@@ -1301,6 +1301,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ===== Smooth Scroll =====
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    // Native skip navigation moves the next keyboard stop into the main content.
+    if (anchor.classList.contains('skip-link')) return;
     anchor.addEventListener('click', function (e) {
       const href = this.getAttribute('href');
       if (href === '#') return;

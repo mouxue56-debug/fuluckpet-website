@@ -68,6 +68,11 @@
   }
 
   // -------- view_item_list (kittens / parents) --------
+  function kittenCategory(card) {
+    var breed = card.getAttribute('data-breed');
+    return breed && breed.trim() ? breed.trim() : 'Unknown';
+  }
+
   function buildKittenItems() {
     var cards = document.querySelectorAll('.kitten-card');
     var items = [];
@@ -79,7 +84,7 @@
         item_id: bid,
         item_name: (name || '').trim() || ('子猫 ' + bid),
         price: price,
-        item_category: 'Siberian',
+        item_category: kittenCategory(card),
         item_list_name: '子猫一覧',
         index: idx + 1
       });
@@ -157,7 +162,7 @@
           item_id: bid,
           item_name: (name || '').toString().trim(),
           price: price,
-          item_category: 'Siberian'
+          item_category: kittenCategory(card)
         }]
       });
     }, { passive: true });

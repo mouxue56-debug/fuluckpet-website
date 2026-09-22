@@ -325,6 +325,20 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
 
+// Card attributes are later read from the DOM by analytics and legacy modals. Keep the
+// canonical formal field rather than a translated label, but neutralize syntax that a
+// second HTML/CSS parsing layer could otherwise reactivate.
+function safeCardAttributeText(value) {
+  return String(value || '')
+    .replace(/</g, '‹')
+    .replace(/>/g, '›')
+    .replace(/"/g, '＂')
+    .replace(/'/g, '’')
+    .replace(/`/g, '｀')
+    .replace(/\\/g, '＼')
+    .replace(/[\u0000-\u001f\u007f]/g, ' ');
+}
+
 function formatPrice(price) {
   return Number(price).toLocaleString('ja-JP');
 }
@@ -623,7 +637,7 @@ function homepageKittenCard(kitten, effectiveStatus, identity, photo) {
   const color = typeof kitten.color === 'string' ? kitten.color : '';
   const detailUrl = `/kittens/${encodeURIComponent(identity)}.html`;
   return `
-        <div class="kitten-card" role="button" tabindex="0" aria-haspopup="dialog" data-status="${effectiveStatus}" data-promotion-tag="${promotionTag}" data-promotion-priority="${promotionPriority}" data-price="${salePrice === null ? '' : salePrice}" data-birthday="${escapeHtml(birthday)}" data-images="" data-video="" data-papa="${escapeHtml(kitten.papa)}" data-mama="${escapeHtml(kitten.mama)}" data-new="${kitten.isNew === true ? 'true' : 'false'}" data-name="" data-breeder-id="${identity}" data-detail-url="${detailUrl}">
+        <div class="kitten-card" role="button" tabindex="0" aria-haspopup="dialog" data-status="${effectiveStatus}" data-promotion-tag="${promotionTag}" data-promotion-priority="${promotionPriority}" data-price="${salePrice === null ? '' : salePrice}" data-breed="${escapeHtml(safeCardAttributeText(breed))}" data-birthday="${escapeHtml(birthday)}" data-images="" data-video="" data-papa="${escapeHtml(kitten.papa)}" data-mama="${escapeHtml(kitten.mama)}" data-new="${kitten.isNew === true ? 'true' : 'false'}" data-name="" data-breeder-id="${identity}" data-detail-url="${detailUrl}">
           <div class="kitten-img">
             <img src="${escapeHtml(photo)}" alt="${escapeHtml(`${breed}の子猫 ${color} ${genderLabel}・個体番号${identity}`.replace(/\s+/g, ' ').trim())}" loading="lazy" style="width:100%;height:100%;object-fit:cover;" width="640" height="480">
             <span class="kit-status st-${effectiveStatus}"${statusI18nKey(effectiveStatus) ? ` data-i18n="${statusI18nKey(effectiveStatus)}"` : ''}>${escapeHtml(statusText(effectiveStatus))}</span>${newBadge}
@@ -1730,7 +1744,7 @@ function buildListHeader(jaHeader, lang) {
 
   const styleV = verAsset('style.css', '20260823a');
   const navCssV = verAsset('nav.css', '20260918a');
-  const navJsV = verAsset('nav.js', '20260918a');
+  const navJsV = verAsset('nav.js', '20260920c');
   const relPath = 'kittens.html';
   const selfUrl = `${BASE_URL}/${langDir(lang)}kittens.html`;
   const kittensLabel = KITTENS_LABEL[lang];
@@ -2010,7 +2024,7 @@ function generateKittens(kittens, lang = 'ja') {
       // JavaScript too — so the initial markup already carries the default state.
       const initialHidden = effectiveStatus === 'available' ? '' : ' hidden';
       cardsHtml += `
-        <${cardTag} class="kitten-card"${cardHref}${initialHidden} role="${cardRole}" tabindex="0"${modalSemantics} data-status="${effectiveStatus}" data-entry-group="${entryGroup}" data-promotion-tag="${escapeHtml(promotionTag)}" data-promotion-priority="${promotionPriority}" data-price="${salePrice === null ? '' : salePrice}" data-birthday="${escapeHtml(k.birthday)}" data-images="${escapeHtml(photo)}" data-video="" data-papa="${escapeHtml(k.papa)}" data-mama="${escapeHtml(k.mama)}" data-new="${k.isNew ? 'true' : 'false'}" data-name="" data-breeder-id="${escapeHtml(k.breederId)}" data-detail-url="${escapeHtml(detailUrl)}">
+        <${cardTag} class="kitten-card"${cardHref}${initialHidden} role="${cardRole}" tabindex="0"${modalSemantics} data-status="${effectiveStatus}" data-entry-group="${entryGroup}" data-promotion-tag="${escapeHtml(promotionTag)}" data-promotion-priority="${promotionPriority}" data-price="${salePrice === null ? '' : salePrice}" data-breed="${escapeHtml(safeCardAttributeText(k.breed))}" data-birthday="${escapeHtml(k.birthday)}" data-images="${escapeHtml(photo)}" data-video="" data-papa="${escapeHtml(k.papa)}" data-mama="${escapeHtml(k.mama)}" data-new="${k.isNew ? 'true' : 'false'}" data-name="" data-breeder-id="${escapeHtml(k.breederId)}" data-detail-url="${escapeHtml(detailUrl)}">
           <div class="kitten-img">
             <img src="${escapeHtml(photo)}" alt="${escapeHtml(cardAlt)}" ${imgLoadAttrs} width="360" height="360" style="width:100%;height:100%;object-fit:cover;aspect-ratio:1/1;">
             <span class="kit-status st-${effectiveStatus}"${statusI18nKey(effectiveStatus) ? ` data-i18n="${statusI18nKey(effectiveStatus)}"` : ''}>${escapeHtml(stL)}</span>${isNewBadge}
@@ -2353,7 +2367,7 @@ ${smallAnimalHreflangBlock(detailId)}
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <script defer src="/nav.js?v=${verAsset('nav.js', '20260918a')}"></script>`;
+  <script defer src="/nav.js?v=${verAsset('nav.js', '20260920c')}"></script>`;
 }
 
 function buildSmallAnimalListHtml(animals, headerHtml, footerHtml, lang = 'ja') {
@@ -2456,7 +2470,7 @@ ${sections}
 ${footerHtml}
 
   <script src="/i18n.js?v=${verAsset('i18n.js', '20260918b')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20260918a')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20260920b')}"></script>
 </body>
 </html>`;
 }
@@ -2600,7 +2614,7 @@ ${footerHtml}
   });
   </script>
   <script src="/i18n.js?v=${verAsset('i18n.js', '20260918b')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20260918a')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20260920b')}"></script>
 </body>
 </html>`;
 }
@@ -3192,7 +3206,7 @@ ${hreflangBlock(`kittens/${fileId}.html`)}
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <script defer src="/nav.js?v=${verAsset('nav.js', '20260918a')}"></script>
+  <script defer src="/nav.js?v=${verAsset('nav.js', '20260920c')}"></script>
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
@@ -3620,9 +3634,9 @@ ${viewItemScript}
   <script src="/catalog-i18n.js?v=${verAsset('catalog-i18n.js', '20260823a')}"></script>
   <script src="/kitten-carousel.js?v=${verAsset('kitten-carousel.js', '20260917a')}"></script>
   <script src="/cta-widget.js?v=${verAsset('cta-widget.js', '20260823a')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20260918a')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20260920b')}"></script>
   <script defer src="/mobile-cta.js?v=${verAsset('mobile-cta.js', '20260823a')}"></script>
-  <script defer src="/analytics.js?v=${verAsset('analytics.js', '20260823a')}"></script>
+  <script defer src="/analytics.js?v=${verAsset('analytics.js', '20260920a')}"></script>
 </body>
 </html>`;
 }

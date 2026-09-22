@@ -727,7 +727,7 @@ function buildHead({ title, description, pageUrl, image, jsonLd, ogType = 'artic
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <script defer src="/nav.js?v=${ver('nav.js', '20260918a')}"></script>
+  <script defer src="/nav.js?v=${ver('nav.js', '20260920c')}"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
 ${jsonLd.join('\n')}
@@ -984,7 +984,7 @@ ${chrome.footerHtml}
   <script src="/i18n.js?v=${ver('i18n.js', '20260918b')}"></script>
   <script>window._diaryArticleI18n = ${safeJsonForHtmlScript(i18n)}; window._blogArticleI18n = window._diaryArticleI18n;</script>
   <script src="/blog/blog-i18n.js?v=${ver('blog/blog-i18n.js', '20260710b')}"></script>
-  <script src="/script.js?v=${ver('script.js', '20260918a')}"></script>
+  <script src="/script.js?v=${ver('script.js', '20260920b')}"></script>
 
   <div class="mobile-cta-bar" role="navigation" aria-label="クイック連絡">
     <div class="mobile-cta-bar-inner">
@@ -1155,7 +1155,7 @@ ${chrome.headerHtml}
 ${chrome.footerHtml}
 
   <script src="/i18n.js?v=${ver('i18n.js', '20260918b')}"></script>
-  <script src="/script.js?v=${ver('script.js', '20260918a')}"></script>
+  <script src="/script.js?v=${ver('script.js', '20260920b')}"></script>
 
   <div class="mobile-cta-bar" role="navigation" aria-label="クイック連絡">
     <div class="mobile-cta-bar-inner">

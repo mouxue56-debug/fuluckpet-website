@@ -207,6 +207,7 @@ function createHarness(responseModes, options = {}) {
   const sessionStorage = { getItem() { return null; } };
   const context = {
     Date: ClockDate,
+    gtag: options.gtag,
     AbortController,
     AbortSignal,
     DOMException,
@@ -423,3 +424,25 @@ for (const lang of ['ja', 'en', 'zh']) {
     assert.equal(h.elements.get('bookingSuccessKittens').getAttribute('href'), lang === 'ja' ? '/kittens.html' : `/${lang}/kittens.html`);
   });
 }
+
+
+test('a saved booking stays successful when optional analytics throws', async () => {
+  const h = createHarness(['success'], { gtag() { throw new Error('analytics unavailable'); } });
+  h.submitForm();
+  await flushMicrotasks();
+  assert.equal(h.requests.length, 1);
+  assert.equal(h.form.style.display, 'none');
+  assert.equal(h.success.className, 'booking-result success');
+  assert.equal(h.error.className, 'booking-result');
+  assert.equal(h.errorHeading.focusCount, 0);
+});
+
+test('raw message length matches server limit including surrounding whitespace', async () => {
+  const h = createHarness(['success']);
+  h.elements.get('bk-message').value = ' '.repeat(2000) + 'x';
+  h.submitForm();
+  await flushMicrotasks();
+  assert.equal(h.requests.length, 0);
+  assert.equal(h.elements.get('bk-message').getAttribute('aria-invalid'), 'true');
+  assert.equal(h.elements.get('bk-message').focusCount, 1);
+});
