@@ -61,6 +61,22 @@ test('priced trilingual details publish stable Product identities and local Offe
 });
 
 
+test('cattery sameAs lists the Fulluck Kitty British-line profile', () => {
+  const profile = 'https://www.koneko-breeder.com/breeder_d696506.html';
+  for (const relative of [
+    'index.html',
+    'about.html',
+    'siberian-breeder-osaka.html',
+    'en/siberian-breeder-osaka.html',
+    'zh/siberian-breeder-osaka.html',
+  ]) {
+    const business = jsonLd(relative).find((item) => item['@type'] === 'LocalBusiness');
+    assert.ok(business, `${relative} must publish LocalBusiness`);
+    assert.ok(Array.isArray(business.sameAs), `${relative} sameAs must stay a list`);
+    assert.ok(business.sameAs.includes(profile), `${relative} sameAs must include ${profile}`);
+  }
+});
+
 test('reviews retain business identity and visible testimonials without self-serving review schema', () => {
   const business = jsonLd('reviews.html').find((item) => item['@type'] === 'LocalBusiness');
   assert.equal(business['@id'], 'https://fuluckpet.com/#cattery');
