@@ -35,6 +35,17 @@ test('llms-full.txt omits an unverifiable article count and live status', () => 
   assert.doesNotMatch(source, /営業中/);
 });
 
+const FULLUCK_BRITISH_PROFILE = 'https://www.koneko-breeder.com/breeder_d696506.html';
+
+for (const relative of ['llms.txt', 'llms-full.txt']) {
+  test(`${relative} links the British line to Fulluck Kitty and d696506`, () => {
+    const source = read(relative);
+    assert.match(source, /Fulluck Kitty（動物取扱責任者 刘 暁棉）/);
+    assert.ok(source.includes(FULLUCK_BRITISH_PROFILE), `${relative} must cite ${FULLUCK_BRITISH_PROFILE}`);
+    assert.match(source, /ブリティッシュショートヘア／ブリティッシュロングヘアは、同一の福楽キャッテリーの登録事業所 Fulluck Kitty/);
+  });
+}
+
 function localPage(url) {
   const pathname = new URL(url).pathname;
   if (pathname === '/') return 'index.html';
