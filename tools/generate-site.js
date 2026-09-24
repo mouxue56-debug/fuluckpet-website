@@ -2926,6 +2926,62 @@ function extractYouTubeId(video) {
   return null;
 }
 
+// Registered breeder credit inside Product JSON-LD. The public listing number is
+// kitten.breederId (掲載番号). The Koneko account that owns the cat is kitten.group
+// (c995680 / d696506 in tools/koneko-snapshot.json). /api/kittens does not project
+// group, so a unique /breeder/data/{account}/ photo path is the public-catalog
+// fallback. Drive enrichment can replace those photos, so the account is remembered
+// first. An unknown or conflicting account keeps the original 羅方遠 credit.
+const KITTEN_BREEDER_CREDIT = Object.freeze({
+  c995680: Object.freeze({ ja: '羅方遠', en: 'Ra Hoen', zh: '罗方远' }),
+  d696506: Object.freeze({
+    ja: 'Fulluck Kitty（刘 暁棉）',
+    en: 'Fulluck Kitty（刘 暁棉）',
+    zh: 'Fulluck Kitty（刘 暁棉）',
+  }),
+});
+const kittenBreederAccountMemo = new WeakMap();
+
+function konekoAccountFromPhotos(kitten) {
+  const photos = Array.isArray(kitten && kitten.photos) ? kitten.photos : [];
+  const found = new Set();
+  for (const photo of photos) {
+    const match = String(photo).match(/\/breeder\/data\/([A-Za-z0-9]+)\//);
+    if (match && Object.prototype.hasOwnProperty.call(KITTEN_BREEDER_CREDIT, match[1])) {
+      found.add(match[1]);
+    }
+  }
+  return found.size === 1 ? [...found][0] : '';
+}
+
+function readKittenBreederAccountId(kitten) {
+  if (!kitten || typeof kitten !== 'object') return '';
+  const group = typeof kitten.group === 'string' ? kitten.group.trim() : '';
+  if (group) return group;
+  const breederId = typeof kitten.breederId === 'string' ? kitten.breederId.trim() : '';
+  if (Object.prototype.hasOwnProperty.call(KITTEN_BREEDER_CREDIT, breederId)) return breederId;
+  return konekoAccountFromPhotos(kitten);
+}
+
+function rememberKittenBreederAccount(kitten) {
+  if (!kitten || typeof kitten !== 'object' || kittenBreederAccountMemo.has(kitten)) return;
+  const accountId = readKittenBreederAccountId(kitten);
+  if (accountId) kittenBreederAccountMemo.set(kitten, accountId);
+}
+
+function kittenBreederAccountId(kitten) {
+  if (kitten && typeof kitten === 'object' && kittenBreederAccountMemo.has(kitten)) {
+    return kittenBreederAccountMemo.get(kitten);
+  }
+  return readKittenBreederAccountId(kitten);
+}
+
+function kittenBreederCredit(kitten, lang) {
+  const accountId = kittenBreederAccountId(kitten);
+  const credit = KITTEN_BREEDER_CREDIT[accountId] || KITTEN_BREEDER_CREDIT.c995680;
+  return credit[lang] || credit.ja;
+}
+
 /**
  * Build the full HTML for a kitten detail page
  */
@@ -2962,24 +3018,25 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja') {
   // and only the duplicates. The <h1> and breadcrumb keep the clean form.
   const titleQualifier = detailTitleQualifier(kitten, lang);
   const uniqueTitleText = `${titleText}${titleQualifier}`;
+  const breederCredit = kittenBreederCredit(kitten, lang);
   let pageTitle, metaDesc, ldName, ldDesc;
   if (lang === 'en') {
     pageTitle = `${uniqueTitleText} | Kitten Detail | Fuluck Cattery`;
     metaDesc = `${breedL} kitten at Fuluck Cattery in Osaka. ${colorL || ''}, ${genderFullL}${bornL ? ', ' + bornL : ''}. ${salePrice === null ? priceInquiryText(lang) : `¥${pr} (tax incl.)`} ${statusTextL(effectiveStatus, 'en')}.`.replace(/\s+/g, ' ').trim();
     ldName = uniqueTitleText;
-    ldDesc = `${breedL} kitten from Fuluck Cattery (breeder: Ra Hoen) in Osaka. ${colorL || ''}, ${genderFullL}${bornL ? ', ' + bornL : ''}.`.replace(/\s+/g, ' ').trim();
+    ldDesc = `${breedL} kitten from Fuluck Cattery (breeder: ${breederCredit}) in Osaka. ${colorL || ''}, ${genderFullL}${bornL ? ', ' + bornL : ''}.`.replace(/\s+/g, ' ').trim();
     if (salePrice !== null) ldDesc += ' (excludes ¥10,000 vaccination fee)';
   } else if (lang === 'zh') {
     pageTitle = `${uniqueTitleText}｜幼猫详情｜福楽キャッテリー`;
     metaDesc = `大阪福楽キャッテリー的${breedL}幼猫。${colorL || ''}、${genderFullL}${bornL ? '、' + bornL : ''}。${salePrice === null ? priceInquiryText(lang) : `¥${pr}（含税）`}${statusTextL(effectiveStatus, 'zh')}。`;
     ldName = uniqueTitleText;
-    ldDesc = `大阪福楽キャッテリー（繁育者：罗方远）的${breedL}幼猫。${colorL || ''}、${genderFullL}${bornL ? '、' + bornL : ''}。`;
+    ldDesc = `大阪福楽キャッテリー（繁育者：${breederCredit}）的${breedL}幼猫。${colorL || ''}、${genderFullL}${bornL ? '、' + bornL : ''}。`;
     if (salePrice !== null) ldDesc += '（另收疫苗费 10,000 日元）';
   } else {
     pageTitle = `${uniqueTitleText}｜子猫詳細｜福楽キャッテリー`;
     metaDesc = `大阪の福楽キャッテリーの${kitten.breed || ''}の子猫。${kitten.color || ''}、${genderFull}、${bd ? bd + '生まれ' : ''}。${salePrice === null ? priceInquiryText(lang) : `¥${pr}（税込）`}${st}。`;
     ldName = uniqueTitleText;
-    ldDesc = `大阪の福楽キャッテリー（ブリーダー：羅方遠）の${kitten.breed || ''}の子猫。${kitten.color || ''}、${genderFull}、${bd ? bd + '生まれ' : ''}。掲載ID ${fileId}。`;
+    ldDesc = `大阪の福楽キャッテリー（ブリーダー：${breederCredit}）の${kitten.breed || ''}の子猫。${kitten.color || ''}、${genderFull}、${bd ? bd + '生まれ' : ''}。掲載ID ${fileId}。`;
     if (salePrice !== null) ldDesc += '（別途ワクチン代10,000円）';
   }
   const homeLabel = HOME_LABEL[lang] || HOME_LABEL.ja;
@@ -4212,6 +4269,9 @@ function generateFeedIfAvailable(articles) {
 // ── Drive Photo Enrichment ────────────────────────────────────
 
 async function enrichKittensWithDrivePhotos(kittens) {
+  if (Array.isArray(kittens)) {
+    for (const kitten of kittens) rememberKittenBreederAccount(kitten);
+  }
   const kittensFolderId = '1bQKvwvfa3jHIuKGzR9nvvZIKB6z5-kF4';
   let folders;
   try {
