@@ -1744,7 +1744,7 @@ function buildListHeader(jaHeader, lang) {
 
   const styleV = verAsset('style.css', '20260823a');
   const navCssV = verAsset('nav.css', '20260918a');
-  const navJsV = verAsset('nav.js', '20260920c');
+  const navJsV = verAsset('nav.js', '20260926a');
   const relPath = 'kittens.html';
   const selfUrl = `${BASE_URL}/${langDir(lang)}kittens.html`;
   const kittensLabel = KITTENS_LABEL[lang];
@@ -2367,7 +2367,7 @@ ${smallAnimalHreflangBlock(detailId)}
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <script defer src="/nav.js?v=${verAsset('nav.js', '20260920c')}"></script>`;
+  <script defer src="/nav.js?v=${verAsset('nav.js', '20260926a')}"></script>`;
 }
 
 function buildSmallAnimalListHtml(animals, headerHtml, footerHtml, lang = 'ja') {
@@ -3263,7 +3263,7 @@ ${hreflangBlock(`kittens/${fileId}.html`)}
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <script defer src="/nav.js?v=${verAsset('nav.js', '20260920c')}"></script>
+  <script defer src="/nav.js?v=${verAsset('nav.js', '20260926a')}"></script>
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
@@ -3690,7 +3690,7 @@ ${viewItemScript}
   <script src="/i18n.js?v=${verAsset('i18n.js', '20260918b')}"></script>
   <script src="/catalog-i18n.js?v=${verAsset('catalog-i18n.js', '20260823a')}"></script>
   <script src="/kitten-carousel.js?v=${verAsset('kitten-carousel.js', '20260917a')}"></script>
-  <script src="/cta-widget.js?v=${verAsset('cta-widget.js', '20260823a')}"></script>
+  <script src="/cta-widget.js?v=${verAsset('cta-widget.js', '20260926a')}"></script>
   <script src="/script.js?v=${verAsset('script.js', '20260920b')}"></script>
   <script defer src="/mobile-cta.js?v=${verAsset('mobile-cta.js', '20260823a')}"></script>
   <script defer src="/analytics.js?v=${verAsset('analytics.js', '20260920a')}"></script>

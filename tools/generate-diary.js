@@ -727,7 +727,7 @@ function buildHead({ title, description, pageUrl, image, jsonLd, ogType = 'artic
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <script defer src="/nav.js?v=${ver('nav.js', '20260920c')}"></script>
+  <script defer src="/nav.js?v=${ver('nav.js', '20260926a')}"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
 ${jsonLd.join('\n')}
