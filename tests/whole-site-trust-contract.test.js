@@ -99,6 +99,10 @@ test('visit guidance uses one reviewed duration and real booking channels on sta
     assert.ok(trust.includes(copy), `trust override includes: ${copy}`);
   }
   const homeFaq = home.slice(home.indexOf('<!-- ========== FAQ ========== -->'), home.indexOf('<!-- ========== FAQ ========== -->') + 9000);
+  const schema = jsonLd('index.html').find((document) => document['@type'] === 'FAQPage');
+  const visitAnswer = schema.mainEntity.find((entry) => entry.name === '見学は予約制ですか？');
+  const visibleAnswer = homeFaq.match(/<p data-i18n="faq\.a2">([^<]+)<\/p>/)[1];
+  assert.equal(visitAnswer.acceptedAnswer.text, visibleAnswer, 'search answer matches the visible reservation answer');
   assert.match(homeFaq, /href=["']\/booking\.html["']/);
   assert.match(homeFaq, /href=["']https:\/\/page\.line\.me\/915hnnlk/);
   assert.doesNotMatch(`${faq}\n${trust}`, /見学時間は約1〜2時間|allow about 1–2 hours|预留约 1〜2 小时/);
@@ -138,9 +142,7 @@ test('video calls stay preliminary and never replace the legally required on-sit
     assert.doesNotMatch(source, substituteVisitCopy, file);
   }
 
-  const homeFaq = jsonLd('index.html').find((document) => document['@type'] === 'FAQPage');
-  const visitAnswer = homeFaq.mainEntity.find((entry) => entry.name === '見学は予約制ですか？');
-  assert.equal(visitAnswer.acceptedAnswer.text, LEGAL_VISIT_COPY.ja);
+  assert.ok(visibleHtml('index.html').includes(LEGAL_VISIT_COPY.ja), 'homepage keeps the pre-contract on-site requirement visible');
   for (const file of ['gallery.html', 'reviews.html', 'siberian-allergy.html', 'waitlist.html']) {
     assert.ok(visibleHtml(file).includes(LEGAL_VISIT_COPY.ja), `${file}: reviewed legal visit copy`);
   }

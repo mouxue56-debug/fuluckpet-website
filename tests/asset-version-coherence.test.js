@@ -22,7 +22,7 @@ const ADMIN_PHOTOS_RELEASE = '20260811a';
 const ADMIN_DIARY_RELEASE = '20260711a';
 const ADMIN_FAQ_RELEASE = TRUTH_RELEASE;
 const ADMIN_CALENDAR_RELEASE = '20260714c';
-const NAV_RELEASE = '20260920c';
+const NAV_RELEASE = '20260926a';
 const I18N_RELEASE = '20260918b';
 const NAV_STYLE_RELEASE = '20260918a';
 const CHAT_STYLE_RELEASE = '20260712e';
@@ -47,7 +47,7 @@ const PUBLIC_ASSETS = {
   'faq-loader.js': TRUST_RELEASE,
   'faq-page-loader.js': TRUST_RELEASE,
   'kitten-carousel.js': KITTEN_CAROUSEL_RELEASE,
-  'cta-widget.js': COPY_RELEASE,
+  'cta-widget.js': '20260926a',
   'script.js': SCRIPT_RELEASE,
   'analytics.js': '20260920a',
   'guide/i18n-guide-body.js': COPY_RELEASE,

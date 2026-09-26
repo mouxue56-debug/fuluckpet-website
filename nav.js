@@ -259,7 +259,18 @@
     });
   }
 
+  function bookingHref() {
+    var path = typeof window !== 'undefined' ? window.location.pathname : '';
+    // Use only a bounded catalogue ID from a detail route, never query input.
+    // booking.html already prefills this field; ordinary pages stay generic.
+    var detail = /^\/(?:en\/|zh\/)?kittens\/([A-Za-z0-9][A-Za-z0-9_-]{0,99})\.html$/.exec(path || '');
+    return detail && detail[1].toLowerCase() !== 'index'
+      ? '/booking.html?kitten=' + detail[1]
+      : '/booking.html';
+  }
+
   function localizedItemHref(item, lang) {
+    if (item && !item.external && item.href === '/booking.html') return bookingHref();
     if (!item || !item.localized || item.external || lang === 'ja') return item.href;
     return '/' + lang + item.href;
   }
@@ -433,7 +444,7 @@
           icon('message-circle') +
           '<span data-i18n="cta.line"></span>' +
         '</a>' +
-        '<a class="nav-action-btn is-primary" href="/booking.html" data-cta="booking">' +
+        '<a class="nav-action-btn is-primary" href="' + bookingHref() + '" data-cta="booking">' +
           icon('calendar-check') +
           '<span data-i18n="visit.bookBtn"></span>' +
         '</a>' +
@@ -479,7 +490,7 @@
             icon('message-circle') +
             '<span data-i18n="cta.line"></span>' +
           '</a>' +
-          '<a class="nav-mobile-cta is-booking" href="/booking.html" data-cta="booking">' +
+          '<a class="nav-mobile-cta is-booking" href="' + bookingHref() + '" data-cta="booking">' +
             icon('calendar-check') +
             '<span data-i18n="visit.bookBtn"></span>' +
           '</a>' +

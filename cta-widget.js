@@ -45,7 +45,14 @@
   var visible = false;
 
   function getLang() {
-    try { return localStorage.getItem('fuluckpet-lang') || 'ja'; } catch(e) { return 'ja'; }
+    var pathLang = /^\/(en|zh)\//.exec(path);
+    if (pathLang) return pathLang[1];
+    var htmlLang = document.documentElement.lang;
+    if (htmlLang === 'ja' || htmlLang === 'en' || htmlLang === 'zh') return htmlLang;
+    try {
+      var saved = localStorage.getItem('fuluckpet-lang');
+      return saved === 'en' || saved === 'zh' ? saved : 'ja';
+    } catch(e) { return 'ja'; }
   }
 
   // Kitten detail pages deep-link the fixed CTA straight to that kitten's booking
@@ -75,10 +82,12 @@
 
     var countText = kittenCount > 0 ? t('count').replace('{n}', kittenCount) : '';
     var availText = t('available') + (countText ? ' ' + countText : '');
+    var lang = getLang();
+    var kittensUrl = (lang === 'ja' ? '' : '/' + lang) + '/kittens.html';
 
     widget.innerHTML =
       '<div class="cta-widget-inner">' +
-        '<a href="/kittens.html" class="cta-widget-kittens">' +
+        '<a href="' + kittensUrl + '" class="cta-widget-kittens">' +
           '<span class="cta-widget-paw"><i class="ico ico-cat" aria-hidden="true"></i></span>' +
           '<span>' + availText + '</span>' +
         '</a>' +
