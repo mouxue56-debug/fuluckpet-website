@@ -421,7 +421,8 @@
     // interactive through the existing modal without sending visitors to a known 404.
     var activeLang = getLang();
     var localePrefix = activeLang === 'en' || activeLang === 'zh' ? '/' + activeLang : '';
-    var detailUrl = detailId && (status === 'available' || status === 'reserved')
+    var hasPhoto = Array.isArray(k.photos) && k.photos.length > 0;
+    var detailUrl = detailId && hasPhoto && (status === 'available' || status === 'reserved')
       ? localePrefix + '/kittens/' + detailId + '.html'
       : '';
     var cardRole = opts && opts.showImages && detailUrl ? 'link' : 'button';
