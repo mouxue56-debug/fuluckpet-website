@@ -28,7 +28,7 @@ guideBodyTranslations.en['guide.body.visit'] = `
   </ol>
   <div class="guide-info">
     <p style="margin-bottom:4px"><strong><i class="ico ico-japanese-yen" aria-hidden="true"></i> About the Deposit</strong></p>
-    <p style="margin-bottom:0">A deposit of <strong>50,000 yen</strong> officially reserves your kitten. After payment, we remove the listing and stop showing the kitten to others. The remaining balance is due before pickup day.</p>
+    <p style="margin-bottom:0">A deposit of <strong>50,000 yen</strong> officially reserves your kitten. After payment, we remove the listing and stop showing the kitten to others. Please pay the remaining balance by bank transfer before pickup where possible. If paying in cash, the full balance must be settled no later than handover day.</p>
   </div>
 </div></div>
 </section>
@@ -86,7 +86,7 @@ guideBodyTranslations.en['guide.body.price'] = `
 <div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="price"><img src="/images/guide-scenes/v2/price-960.webp" srcset="/images/guide-scenes/v2/price-480.webp 480w, /images/guide-scenes/v2/price-960.webp 960w, /images/guide-scenes/v2/price-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="見積もりとオプションの確認欄を照らし合わせる手元のAIイメージ" data-guide-ja="見積もりとオプションの確認欄を照らし合わせる手元のAIイメージ" data-guide-en="AI illustration of comparing quotation and optional-item checklists" data-guide-zh="对照报价与可选项目清单的AI示意图"><figcaption><span data-guide-ja="含まれるものと、追加分を分けて確認" data-guide-en="Separate included items from extras" data-guide-zh="分清包含项目与额外选项">含まれるものと、追加分を分けて確認</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-info">
     <p style="margin-bottom:8px"><strong>Listed price on the website = Base kitten price</strong></p>
-    <p style="margin-bottom:0">Add only the options you need</p>
+    <p style="margin-bottom:0">Mandatory additional fee: ¥10,000 (tax included) for the first FVRCP vaccination, administered before handover. Other services are optional.</p>
   </div>
 </div></div>
 </section>
@@ -103,7 +103,6 @@ guideBodyTranslations.en['guide.body.price'] = `
         <tr><td>Neutering (<i class="ico ico-mars" aria-hidden="true"></i>)</td><td>Includes post-op care</td><td>30,000 yen</td></tr>
         <tr><td>Spaying (<i class="ico ico-venus" aria-hidden="true"></i>)</td><td>Includes post-op care</td><td>35,000 yen</td></tr>
         <tr><td>Pre-Pickup Care</td><td>Shampoo, nail trim, ear cleaning</td><td>4,000 yen</td></tr>
-        <tr><td>FVRCP Vaccination (1st dose, 3-in-1)</td><td>Administered before handover</td><td>10,000 yen</td></tr>
       </tbody>
     </table>
   </div>
@@ -116,7 +115,7 @@ guideBodyTranslations.en['guide.body.price'] = `
 <div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="price-payment"><img src="/images/guide-scenes/v3/price-payment-960.webp" srcset="/images/guide-scenes/v3/price-payment-480.webp 480w, /images/guide-scenes/v3/price-payment-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="予約金と残金の条件を説明時に確認する（AIイメージ）" data-guide-ja="予約金と残金の条件を説明時に確認する（AIイメージ）" data-guide-en="Checking deposit and balance terms during consultation (AI illustration)" data-guide-zh="咨询时核对定金与尾款条件（AI示意图）"><figcaption><span data-guide-ja="予約金と残金の条件を説明時に確認する" data-guide-en="Checking deposit and balance terms during consultation" data-guide-zh="咨询时核对定金与尾款条件">予約金と残金の条件を説明時に確認する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ol class="guide-steps">
     <li><strong>Agreement:</strong> Pay deposit of 50,000 yen → Public listing is stopped and inquiries from others are paused.</li>
-    <li><strong>Preparation:</strong> Pay the remaining balance by pickup day.</li>
+    <li><strong>Preparation:</strong> Please pay the remaining balance by bank transfer before pickup where possible. If paying in cash, the full balance must be settled no later than handover day.</li>
     <li><strong>Pickup Day:</strong> Carrier check → Final health check → Handover.</li>
   </ol>
   <div class="guide-note">
@@ -783,7 +782,7 @@ guideBodyTranslations.zh['guide.body.visit'] = `
   </ol>
   <div class="guide-info">
     <p style="margin-bottom:4px"><strong><i class="ico ico-japanese-yen" aria-hidden="true"></i> 关于定金</strong></p>
-    <p style="margin-bottom:0">支付定金 <strong>50,000日元</strong> 即正式预留。付款后将下架展示并停止向他人推荐。尾款请在接猫日前汇款。</p>
+    <p style="margin-bottom:0">支付定金 <strong>50,000日元</strong> 即正式预留。付款后将下架展示并停止向他人推荐。尾款优先在接猫前通过银行转账支付；如使用现金，最迟须在交付当天结清。</p>
   </div>
 </div></div>
 </section>
@@ -838,7 +837,7 @@ guideBodyTranslations.zh['guide.body.price'] = `
 <div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="price"><img src="/images/guide-scenes/v2/price-960.webp" srcset="/images/guide-scenes/v2/price-480.webp 480w, /images/guide-scenes/v2/price-960.webp 960w, /images/guide-scenes/v2/price-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="見積もりとオプションの確認欄を照らし合わせる手元のAIイメージ" data-guide-ja="見積もりとオプションの確認欄を照らし合わせる手元のAIイメージ" data-guide-en="AI illustration of comparing quotation and optional-item checklists" data-guide-zh="对照报价与可选项目清单的AI示意图"><figcaption><span data-guide-ja="含まれるものと、追加分を分けて確認" data-guide-en="Separate included items from extras" data-guide-zh="分清包含项目与额外选项">含まれるものと、追加分を分けて確認</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-info">
     <p style="margin-bottom:8px"><strong>网站标价 = 幼猫本体价格（基础价）</strong></p>
-    <p style="margin-bottom:0">按需添加选项即可</p>
+    <p style="margin-bottom:0">另加必收费用：首针三联疫苗10,000日元（含税），在交付前接种。其他服务可按需选择。</p>
   </div>
 </div></div>
 </section>
@@ -855,7 +854,6 @@ guideBodyTranslations.zh['guide.body.price'] = `
         <tr><td>去势手术（<i class="ico ico-mars" aria-hidden="true"></i>）</td><td>含术后护理</td><td>30,000日元</td></tr>
         <tr><td>避妊手术（<i class="ico ico-venus" aria-hidden="true"></i>）</td><td>含术后护理</td><td>35,000日元</td></tr>
         <tr><td>接猫前护理</td><td>洗澡·剪指甲·清耳</td><td>4,000日元</td></tr>
-        <tr><td>三联疫苗（第1针）</td><td>交付前接种</td><td>10,000日元</td></tr>
       </tbody>
     </table>
   </div>
@@ -868,7 +866,7 @@ guideBodyTranslations.zh['guide.body.price'] = `
 <div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="price-payment"><img src="/images/guide-scenes/v3/price-payment-960.webp" srcset="/images/guide-scenes/v3/price-payment-480.webp 480w, /images/guide-scenes/v3/price-payment-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="予約金と残金の条件を説明時に確認する（AIイメージ）" data-guide-ja="予約金と残金の条件を説明時に確認する（AIイメージ）" data-guide-en="Checking deposit and balance terms during consultation (AI illustration)" data-guide-zh="咨询时核对定金与尾款条件（AI示意图）"><figcaption><span data-guide-ja="予約金と残金の条件を説明時に確認する" data-guide-en="Checking deposit and balance terms during consultation" data-guide-zh="咨询时核对定金与尾款条件">予約金と残金の条件を説明時に確認する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ol class="guide-steps">
     <li><strong>签约：</strong>支付定金50,000日元 → 停止公开展示，暂停向他人推荐。</li>
-    <li><strong>准备：</strong>尾款请在接猫日前汇款。</li>
+    <li><strong>准备：</strong>尾款优先在接猫前通过银行转账支付；如使用现金，最迟须在交付当天结清。</li>
     <li><strong>接猫当天：</strong>确认猫包 → 最终健康检查 → 交接。</li>
   </ol>
   <div class="guide-note">关于取消，我们会根据具体情况逐一说明。请随时咨询。</div>

@@ -958,3 +958,36 @@ test('parent modal remains usable when Drive photo loading fails', async () => {
   assert.ok(result.parentModal.classList.contains('active'));
   assert.doesNotMatch(result.parentModal.querySelector('.modal-gallery').textContent, /読み込み中/);
 });
+
+test('homepage modal booking preserves the selected kitten and language, including after choosing another kitten', async () => {
+  for (const lang of ['ja', 'en', 'zh']) {
+    const result = runMainScript({ lang, catalogCards: [
+      { breederId: '2608-52935', price: 270000 },
+      { breederId: '2608-52936', price: 250000 },
+    ] });
+    result.kittenCard.click();
+    await flushAsyncWork();
+    const href = result.kittenModal.querySelector('.modal-visit-btn').getAttribute('href');
+    const url = new URL(href, 'https://fuluckpet.com');
+    assert.equal(url.pathname, '/booking.html');
+    assert.equal(url.searchParams.get('kitten'), '2608-52935');
+    assert.equal(url.searchParams.get('lang'), lang);
+    result.kittenCards[1].click();
+    const next = new URL(result.kittenModal.querySelector('.modal-visit-btn').getAttribute('href'), 'https://fuluckpet.com');
+    assert.equal(next.searchParams.get('kitten'), '2608-52936');
+    assert.equal(next.searchParams.get('lang'), lang);
+  }
+  for (const breederId of ['', '../bad', '2608-52935&other=1']) {
+    const result = runMainScript({ breederId, lang: 'en' });
+    result.kittenCard.click();
+    const url = new URL(result.kittenModal.querySelector('.modal-visit-btn').getAttribute('href'), 'https://fuluckpet.com');
+    assert.equal(url.searchParams.has('kitten'), false);
+    assert.equal(url.searchParams.get('lang'), 'en');
+  }
+});
+
+test('homepage booking also accepts bounded legacy catalogue IDs', () => {
+  const result = runMainScript({ breederId: 'c995680-8', lang: 'zh' });
+  result.kittenCard.click();
+  assert.equal(new URL(result.kittenModal.querySelector('.modal-visit-btn').getAttribute('href'), 'https://fuluckpet.com').searchParams.get('kitten'), 'c995680-8');
+});

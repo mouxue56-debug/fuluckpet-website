@@ -17,6 +17,15 @@ const { hasNoindexMeta } = require('./robots-meta');
 const SITE = path.resolve(__dirname, '..');
 const errors = [];
 const BASE_URL = 'https://fuluckpet.com';
+// Guide locales are generated entirely from checked-in source, without fetching listings.
+if (fs.existsSync(path.join(SITE, 'tools/generate-guide-locales.js')) && fs.existsSync(path.join(SITE, 'guide/i18n-guide-body.js'))) {
+  try {
+    for (const [relative, expected] of require('./generate-guide-locales.js').buildGuideLocales(SITE)) {
+      if (read(relative) !== expected) errors.push('[guide-locale] ' + relative + ' is stale; run node tools/generate-guide-locales.js');
+    }
+  } catch (error) { errors.push('[guide-locale] ' + error.message); }
+}
+
 const SHARED_ASSETS = ['style.css', 'i18n.js', 'nav.js', 'nav.css'];
 
 // --- Check 0b: generated pet-transport page freshness ---

@@ -804,6 +804,22 @@ function breedLabel(breed, lang) {
 // Both シェーデット/シェーデッド variants map to the same term. Empty → ''.
 // Missing key → passthrough raw ja + console.warn (so a new color can't silently ship untranslated).
 const COLOR_MAP = {
+  "ブラウンタビー": {"en":"Brown Tabby","zh":"棕虎斑"},
+  "シルバー": {"en":"Silver","zh":"银色"},
+  "ブルー": {"en":"Blue","zh":"蓝色"},
+  "ダイリュートキャリコ": {"en":"Dilute Calico","zh":"淡三花"},
+  "シルバータビー＆ホワイト": {"en":"Silver Tabby & White","zh":"银虎斑加白"},
+  "シルバー＆ホワイト": {"en":"Silver & White","zh":"银色加白"},
+  "ブルーリンクスポイント": {"en":"Blue Lynx Point","zh":"蓝色山猫重点色"},
+  "クリームリンクスポイント": {"en":"Cream Lynx Point","zh":"奶油色山猫重点色"},
+  "タビー": {"en":"Tabby","zh":"虎斑"},
+  "チョコレートゴールデン": {"en":"Chocolate Golden","zh":"巧克力金渐层"},
+  "ゴールデンポイント": {"en":"Golden Point","zh":"金重点色"},
+  "シールポイントバイカラー": {"en":"Seal Point Bicolor","zh":"海豹双色"},
+  "シールリンクスポイント": {"en":"Seal Lynx Point","zh":"海豹山猫重点色"},
+  "ブルー＆ホワイト": {"en":"Blue & White","zh":"蓝色加白"},
+  "ブルータビー": {"en":"Blue Tabby","zh":"蓝虎斑"},
+  "シールポイント": {"en":"Seal Point","zh":"海豹重点色"},
   'ホワイト': { en: 'White', zh: '白色' },
   'ブラウンタビー&ホワイト（トリプルコート）': { en: 'Brown Tabby & White (Triple Coat)', zh: '棕虎斑加白（三层被毛）' },
   'ブルーリンクスポイント ネヴァマスカレード': { en: 'Blue Lynx Point Neva Masquerade', zh: '蓝色山猫重点色 涅瓦假面' },
@@ -990,14 +1006,13 @@ const VACCINE_FEE_LIST = {
   zh: '※标示价格不含首针疫苗费（10,000 日元）',
 };
 
-// §8 — deposit. The master says: use Koneko's amount when Koneko states one. Every
-// snapshot of the breeder's own listings states the same terms — 予約金として５万円 /
-// balance on the handover day / non-refundable on a customer-side cancellation — so the
-// official site publishes that, not a vaguer "ask us" line that would contradict it.
+// §8 — deposit. Owner-confirmed balance policy (2026-10-04):
+// Prefer bank transfer before pickup; cash must be settled by handover day.
+// Deposit amount and existing cancellation terms remain unchanged.
 const DEPOSIT_LINE = {
-  ja: 'ご成約時に予約金として50,000円をお願いしています。残金はお引渡し日当日にお支払いください。お客様都合によるキャンセルの場合、予約金のご返金はできません。契約は登録事業所での現物確認後に行います。',
-  en: 'A deposit of ¥50,000 is due when you decide on a kitten, with the balance paid on the handover day. The deposit is not refundable if you cancel. The contract is concluded at our registered premises after you have seen the kitten in person.',
-  zh: '确定猫咪时需支付预约金 50,000 日元，余款于交付当日支付。因客户自身原因取消时，预约金恕不退还。合同在登记营业所当面确认猫咪后签订。',
+  ja: 'ご成約時に予約金として50,000円をお願いしています。残金は、お迎え前の銀行振込をお願いしています。現金でお支払いの場合は、お引渡し日当日までに全額をお支払いください。お客様都合によるキャンセルの場合、予約金のご返金はできません。契約は登録事業所での現物確認後に行います。',
+  en: 'A deposit of ¥50,000 is due when you decide on a kitten. Please pay the remaining balance by bank transfer before pickup where possible. If paying in cash, the full balance must be settled no later than handover day. The deposit is not refundable if you cancel. The contract is concluded at our registered premises after you have seen the kitten in person.',
+  zh: '确定猫咪时需支付预约金 50,000 日元。尾款优先在接猫前通过银行转账支付；如使用现金，最迟须在交付当天结清。因客户自身原因取消时，预约金恕不退还。合同在登记营业所当面确认猫咪后签订。',
 };
 
 // §10 — public viewing address. Replaces every "詳細な住所はご予約時に" sentence.
@@ -1675,7 +1690,7 @@ const LOCALIZED_STATIC_SIBLING_PATHS = new Set([
 function localizeStaticSiblingHrefs(html, lang) {
   if (lang !== 'en' && lang !== 'zh') return html;
   return String(html).replace(/\bhref="(\/[^"?#]+)([?#][^"]*)?"/g, (match, pathname, suffix = '') => {
-    if (!LOCALIZED_STATIC_SIBLING_PATHS.has(pathname)) return match;
+    if (!LOCALIZED_STATIC_SIBLING_PATHS.has(pathname) && !/^\/guide\/(?:[^/]+\.html)?$/.test(pathname)) return match;
     return `href="/${lang}${pathname}${suffix}"`;
   });
 }
@@ -1744,7 +1759,7 @@ function buildListHeader(jaHeader, lang) {
 
   const styleV = verAsset('style.css', '20260823a');
   const navCssV = verAsset('nav.css', '20260918a');
-  const navJsV = verAsset('nav.js', '20260926a');
+  const navJsV = verAsset('nav.js', '20261004a');
   const relPath = 'kittens.html';
   const selfUrl = `${BASE_URL}/${langDir(lang)}kittens.html`;
   const kittensLabel = KITTENS_LABEL[lang];
@@ -2367,7 +2382,7 @@ ${smallAnimalHreflangBlock(detailId)}
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <script defer src="/nav.js?v=${verAsset('nav.js', '20260926a')}"></script>`;
+  <script defer src="/nav.js?v=${verAsset('nav.js', '20261004a')}"></script>`;
 }
 
 function buildSmallAnimalListHtml(animals, headerHtml, footerHtml, lang = 'ja') {
@@ -2469,8 +2484,8 @@ ${sections}
 
 ${footerHtml}
 
-  <script src="/i18n.js?v=${verAsset('i18n.js', '20260918b')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20260920b')}"></script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20261004a')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20261004a')}"></script>
 </body>
 </html>`;
 }
@@ -2613,8 +2628,8 @@ ${footerHtml}
     });
   });
   </script>
-  <script src="/i18n.js?v=${verAsset('i18n.js', '20260918b')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20260920b')}"></script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20261004a')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20261004a')}"></script>
 </body>
 </html>`;
 }
@@ -3263,7 +3278,7 @@ ${hreflangBlock(`kittens/${fileId}.html`)}
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <script defer src="/nav.js?v=${verAsset('nav.js', '20260926a')}"></script>
+  <script defer src="/nav.js?v=${verAsset('nav.js', '20261004a')}"></script>
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
@@ -3687,11 +3702,11 @@ ${mobileCtaHtml}
 
 ${viewItemScript}
   <script src="/kitten-catalog.js?v=${verAsset('kitten-catalog.js', '20260711b')}"></script>
-  <script src="/i18n.js?v=${verAsset('i18n.js', '20260918b')}"></script>
-  <script src="/catalog-i18n.js?v=${verAsset('catalog-i18n.js', '20260823a')}"></script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20261004a')}"></script>
+  <script src="/catalog-i18n.js?v=${verAsset('catalog-i18n.js', '20261004a')}"></script>
   <script src="/kitten-carousel.js?v=${verAsset('kitten-carousel.js', '20260917a')}"></script>
   <script src="/cta-widget.js?v=${verAsset('cta-widget.js', '20260926a')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20260920b')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20261004a')}"></script>
   <script defer src="/mobile-cta.js?v=${verAsset('mobile-cta.js', '20260823a')}"></script>
   <script defer src="/analytics.js?v=${verAsset('analytics.js', '20260920a')}"></script>
 </body>
@@ -4028,21 +4043,24 @@ function updateSitemap(articles, kittenDetailPages, store, smallAnimalDetailPage
   // on repeated runs.
   let guideEntries = '  <!-- お迎えガイド -->\n';
   let guideCount = 0;
-  const guideDir = path.join(SITE_DIR, 'guide');
+  for (const languagePrefix of ['', 'en/', 'zh/']) {
+  const guideDir = path.join(SITE_DIR, languagePrefix, 'guide');
   if (fs.existsSync(guideDir)) {
     for (const filename of fs.readdirSync(guideDir).filter(name => name.endsWith('.html')).sort()) {
       const html = fs.readFileSync(path.join(guideDir, filename), 'utf8');
-      const relative = filename === 'index.html' ? 'guide/' : `guide/${filename}`;
+      const relative = languagePrefix + (filename === 'index.html' ? 'guide/' : `guide/${filename}`);
       const loc = `${BASE_URL}/${relative}`;
       if (hasNoindexMeta(html) || canonicalHref(html) !== loc) continue;
       guideEntries += `  <url>
     <loc>${loc}</loc>
     <lastmod>${store.lastmodForUrl(loc)}</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>${filename === 'index.html' ? '0.8' : '0.7'}</priority>
+    <priority>${languagePrefix ? '0.6' : filename === 'index.html' ? '0.8' : '0.7'}</priority>
   </url>\n`;
       guideCount++;
     }
+  }
+
   }
 
   // Public service landing pages are kept separate from the editorial guide
@@ -4405,6 +4423,10 @@ async function main() {
 
   generateParents(parents);
   generateReviews(reviews);
+
+  if (fs.existsSync(path.join(SITE_DIR, 'guide/i18n-guide-body.js'))) {
+    require('./generate-guide-locales.js').generateGuideLocales(SITE_DIR, { sitemap: false });
+  }
 
   // Always update sitemap (even with 0 articles, keeps static pages updated).
   // Single shared lastmod-store for the whole run (ja + en + zh URLs coexist).
