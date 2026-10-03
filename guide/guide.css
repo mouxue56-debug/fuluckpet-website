@@ -521,3 +521,31 @@
 @media (prefers-reduced-motion: reduce) {
   .guide-card, .guide-nav a { transition: none; }
 }
+
+/* Each illustration stays beside its topic in all three body translations. */
+.guide-main:has(.guide-section-layout) { max-width: 1080px; }
+.guide-contents { max-width: 1032px; margin: 24px auto 8px; padding: 22px 24px; background: #f1f8f3; border: 1px solid #d8e8df; border-radius: 16px; }
+.guide-contents h2 { margin: 0 0 12px; font-size: 1.05rem; color: #263c30; }
+.guide-contents ol { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 0; padding-left: 24px; }
+.guide-contents li { padding: 4px 0; }
+.guide-contents a { color: #245741; line-height: 1.6; text-underline-offset: 3px; }
+.guide-contents a:focus-visible { outline: 3px solid #267f63; outline-offset: 4px; }
+.guide-image-note { font-size: .75rem; line-height: 1.7; color: #59665c; margin: 14px 0 0; }
+.guide-section { scroll-margin-top: calc(var(--header-height) + 24px); }
+.guide-section-layout { display: grid; grid-template-columns: minmax(0, 280px) minmax(0, 1fr); gap: 28px; align-items: start; }
+.guide-section-copy, .guide-section-media { min-width: 0; }
+.guide-section-copy > :first-child { margin-top: 0; }
+.guide-section-figure { margin: 0 0 20px; }
+.guide-section-figure img { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; border-radius: 12px; background: #f2efe8; }
+.guide-section-figure figcaption { padding: 9px 2px 0; color: #4c554f; font-size: .8rem; line-height: 1.7; }
+.guide-section-figure small { display: block; font-size: .7rem; color: #65645c; margin-top: 3px; }
+.guide-meta { flex-wrap: wrap; }
+@media (max-width: 1100px) { .guide-article > .guide-contents, body > .guide-contents { margin-left: 24px; margin-right: 24px; } }
+@media (max-width: 760px) {
+  .guide-section-layout { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .guide-section-figure { margin-bottom: 0; }
+  .guide-section-media { display: grid; gap: 16px; }
+  .guide-contents { padding: 18px 20px; }
+  .guide-article > .guide-contents, body > .guide-contents { margin-left: 16px; margin-right: 16px; }
+  .guide-contents ol { display: block; }
+}

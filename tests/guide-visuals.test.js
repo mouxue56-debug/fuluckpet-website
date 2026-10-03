@@ -24,7 +24,7 @@ test('every guide has visible illustrative imagery that survives body translatio
     const images = nodes(html).filter(n => n.tag === 'img' && n.attrs.src?.startsWith('/images/guide-scenes/'));
     assert.ok(images.length > 0, name + ' needs guide imagery');
     for (const { attrs, translated } of images) {
-      assert.equal(translated, false, name + ': do not place images in replaced translation blocks');
+      // Body images are mirrored in JA/EN/ZH; coverage is checked separately.
       assert.ok(Number(attrs.width) > 0 && Number(attrs.height) > 0);
       assert.ok(fs.existsSync(path.join(root, attrs.src)));
       assert.ok(attrs.srcset && attrs.sizes, 'responsive image sources required');
@@ -49,9 +49,9 @@ test('guide directory exposes a CollectionPage with all visible article destinat
 test('each article has its own subject-specific image and matching directory thumbnail', () => {
   const articles = fs.readdirSync(path.join(root, 'guide')).filter(n => n.endsWith('.html') && n !== 'index.html');
   const sources = articles.map(name => {
-    const image = nodes(read('guide/' + name)).find(n => n.tag === 'img' && n.attrs.src?.startsWith('/images/guide-scenes/'));
-    assert.ok(image);
     const slug = name.replace('.html', '');
+    const image = nodes(read('guide/' + name)).find(n => n.tag === 'img' && n.attrs.src === '/images/guide-scenes/v2/' + slug + '-960.webp');
+    assert.ok(image);
     assert.match(image.attrs.src, new RegExp('/v2/' + slug + '-960\\.webp$'));
     const directory = read('guide/index.html');
     const card = directory.match(new RegExp('<a href="/guide/' + slug + '\\.html" class="guide-card"[\\s\\S]*?</a>'));
@@ -65,9 +65,10 @@ test('guide captions and alternative text follow rendered language and restore J
   const elements = [
     { tagName: 'IMG', values: { ja: '猫のイメージ', en: 'Illustrative cat', zh: '猫咪示意图' } },
     { tagName: 'SPAN', values: { ja: 'AI生成のイメージ', en: 'AI-generated illustration', zh: 'AI生成示意图' } },
+    { tagName: 'A', target: 'aria-label', values: { ja: 'LINEでお問い合わせ', en: 'Contact us on LINE', zh: '通过LINE联系我们' } },
   ];
   for (const el of elements) {
-    el.getAttribute = key => el.values[key.replace('data-guide-', '')];
+    el.getAttribute = key => key === 'data-guide-target' ? el.target : el.values[key.replace('data-guide-', '')];
     el.setAttribute = (key, value) => { el[key] = value; };
   }
   const events = {};
@@ -76,6 +77,8 @@ test('guide captions and alternative text follow rendered language and restore J
   vm.runInContext(read('guide/guide-visuals.js'), context);
   assert.equal(elements[0].alt, elements[0].values.en);
   assert.equal(elements[1].textContent, elements[1].values.en);
+  assert.equal(elements[2]['aria-label'], elements[2].values.en);
+  assert.equal(elements[2].textContent, undefined, 'do not replace link children when translating its label');
   for (const lang of ['zh', 'ja', 'invalid']) {
     document.documentElement.lang = lang;
     events.langChanged();

@@ -14,8 +14,9 @@ guideBodyTranslations.zh = guideBodyTranslations.zh || {};
 // ==================== 1. VISIT ====================
 guideBodyTranslations.en['guide.body.visit'] = `
 <!-- Section 1 -->
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-visit-1">
   <h2 class="guide-section-title" data-accent="strawberry">Day-of Process (approx. 30-60 min)</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="visit"><img src="/images/guide-scenes/v2/visit-960.webp" srcset="/images/guide-scenes/v2/visit-480.webp 480w, /images/guide-scenes/v2/visit-960.webp 960w, /images/guide-scenes/v2/visit-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="白いサイベリアンが見学者の前で猫じゃらしに反応するAIイメージ" data-guide-ja="白いサイベリアンが見学者の前で猫じゃらしに反応するAIイメージ" data-guide-en="AI illustration of a white Siberian responding to a wand toy during a viewing" data-guide-zh="白色西伯利亚猫在参观者面前回应逗猫棒的AI示意图"><figcaption><span data-guide-ja="見学では、その子の反応を見る" data-guide-en="Observe the individual kitten at a viewing" data-guide-zh="参观时，观察这只猫自己的反应">見学では、その子の反応を見る</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ol class="guide-steps">
     <li><strong>Arrival</strong> — Reservation confirmed & guided in. Please remove your shoes and put on slippers.</li>
     <li><strong>Sanitization</strong> — Hand washing & alcohol sanitization is requested (provided on-site).</li>
@@ -29,22 +30,26 @@ guideBodyTranslations.en['guide.body.visit'] = `
     <p style="margin-bottom:4px"><strong><i class="ico ico-japanese-yen" aria-hidden="true"></i> About the Deposit</strong></p>
     <p style="margin-bottom:0">A deposit of <strong>50,000 yen</strong> officially reserves your kitten. After payment, we remove the listing and stop showing the kitten to others. The remaining balance is due before pickup day.</p>
   </div>
+</div></div>
 </section>
 
 <!-- Section 2 -->
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-visit-2">
   <h2 class="guide-section-title" data-accent="strawberry">Tips for Visit Day</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="visit-tips"><img src="/images/guide-scenes/v3/visit-tips-960.webp" srcset="/images/guide-scenes/v3/visit-tips-480.webp 480w, /images/guide-scenes/v3/visit-tips-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="距離を保ち、フラッシュを使わず撮影する場面（AIイメージ）" data-guide-ja="距離を保ち、フラッシュを使わず撮影する場面（AIイメージ）" data-guide-en="Photographing from a respectful distance without flash (AI illustration)" data-guide-zh="保持距离、关闭闪光灯拍摄的场景（AI示意图）"><figcaption><span data-guide-ja="距離を保ち、フラッシュを使わず撮影する場面" data-guide-en="Photographing from a respectful distance without flash" data-guide-zh="保持距离、关闭闪光灯拍摄的场景">距離を保ち、フラッシュを使わず撮影する場面</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li>Go easy on perfume and strong scents (kittens may get startled)</li>
     <li>Don't force holding — wait for the kitten to come to you</li>
     <li>Photos & videos OK (please turn off flash)</li>
     <li>Shyness is a natural reaction. They warm up with time</li>
   </ul>
+</div></div>
 </section>
 
 <!-- Section 3 -->
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-visit-3">
   <h2 class="guide-section-title" data-accent="strawberry">Hygiene & Sanitization</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="visit-hygiene"><img src="/images/guide-scenes/v3/visit-hygiene-960.webp" srcset="/images/guide-scenes/v3/visit-hygiene-480.webp 480w, /images/guide-scenes/v3/visit-hygiene-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="入室前の手洗いと履き替えの準備（AIイメージ）" data-guide-ja="入室前の手洗いと履き替えの準備（AIイメージ）" data-guide-en="Handwashing and indoor footwear before entering (AI illustration)" data-guide-zh="入室前洗手并准备更换室内拖鞋（AI示意图）"><figcaption><span data-guide-ja="入室前の手洗いと履き替えの準備" data-guide-en="Handwashing and indoor footwear before entering" data-guide-zh="入室前洗手并准备更换室内拖鞋">入室前の手洗いと履き替えの準備</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <p>This is an important measure to protect our kittens and pregnant mother cats from infections. Thank you for your cooperation.</p>
   <ul class="guide-list">
     <li><strong>Upon arrival:</strong> Hand washing & alcohol sanitization (provided), change to slippers, staff will guide you</li>
@@ -53,11 +58,13 @@ guideBodyTranslations.en['guide.body.visit'] = `
   <div class="guide-note">
     Even if you've visited another location (pet shop, etc.), hand washing is sufficient. If you're feeling unwell, please don't hesitate to reschedule.
   </div>
+</div></div>
 </section>
 
 <!-- Section 4 -->
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-visit-4">
   <h2 class="guide-section-title" data-accent="strawberry">Feel Free to Ask</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="visit-questions"><img src="/images/guide-scenes/v3/visit-questions-960.webp" srcset="/images/guide-scenes/v3/visit-questions-480.webp 480w, /images/guide-scenes/v3/visit-questions-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="フードやお世話について質問を整理する（AIイメージ）" data-guide-ja="フードやお世話について質問を整理する（AIイメージ）" data-guide-en="Preparing questions about food and daily care (AI illustration)" data-guide-zh="整理猫粮与日常照护方面的问题（AI示意图）"><figcaption><span data-guide-ja="フードやお世話について質問を整理する" data-guide-en="Preparing questions about food and daily care" data-guide-zh="整理猫粮与日常照护方面的问题">フードやお世話について質問を整理する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li>How to transition food</li>
     <li>Shedding season care</li>
@@ -68,21 +75,25 @@ guideBodyTranslations.en['guide.body.visit'] = `
   <div class="guide-note">
     Even if you think "Is it OK to ask this?" — please go ahead. You can also send questions via LINE in advance.
   </div>
+</div></div>
 </section>
 `;
 
 // ==================== 2. PRICE ====================
 guideBodyTranslations.en['guide.body.price'] = `
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-price-1">
   <h2 class="guide-section-title" data-accent="blueberry">Pricing Structure</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="price"><img src="/images/guide-scenes/v2/price-960.webp" srcset="/images/guide-scenes/v2/price-480.webp 480w, /images/guide-scenes/v2/price-960.webp 960w, /images/guide-scenes/v2/price-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="見積もりとオプションの確認欄を照らし合わせる手元のAIイメージ" data-guide-ja="見積もりとオプションの確認欄を照らし合わせる手元のAIイメージ" data-guide-en="AI illustration of comparing quotation and optional-item checklists" data-guide-zh="对照报价与可选项目清单的AI示意图"><figcaption><span data-guide-ja="含まれるものと、追加分を分けて確認" data-guide-en="Separate included items from extras" data-guide-zh="分清包含项目与额外选项">含まれるものと、追加分を分けて確認</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-info">
     <p style="margin-bottom:8px"><strong>Listed price on the website = Base kitten price</strong></p>
     <p style="margin-bottom:0">Add only the options you need</p>
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-price-2">
   <h2 class="guide-section-title" data-accent="blueberry">Available Options</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="price-options"><img src="/images/guide-scenes/v3/price-options-960.webp" srcset="/images/guide-scenes/v3/price-options-480.webp 480w, /images/guide-scenes/v3/price-options-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="移動用品とお手入れ用品を分けて検討する（AIイメージ）" data-guide-ja="移動用品とお手入れ用品を分けて検討する（AIイメージ）" data-guide-en="Considering travel and grooming supplies separately (AI illustration)" data-guide-zh="分别考虑出行用品与护理用品（AI示意图）"><figcaption><span data-guide-ja="移動用品とお手入れ用品を分けて検討する" data-guide-en="Considering travel and grooming supplies separately" data-guide-zh="分别考虑出行用品与护理用品">移動用品とお手入れ用品を分けて検討する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-table-wrap">
     <table class="guide-table">
       <thead><tr><th>Option</th><th>Details</th><th>Price (tax incl.)</th></tr></thead>
@@ -97,10 +108,12 @@ guideBodyTranslations.en['guide.body.price'] = `
     </table>
   </div>
   <div class="guide-disclaimer">* Please confirm latest prices via LINE. Prices may vary by timing and circumstances.</div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-price-3">
   <h2 class="guide-section-title" data-accent="blueberry">Deposit & Payment Flow</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="price-payment"><img src="/images/guide-scenes/v3/price-payment-960.webp" srcset="/images/guide-scenes/v3/price-payment-480.webp 480w, /images/guide-scenes/v3/price-payment-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="予約金と残金の条件を説明時に確認する（AIイメージ）" data-guide-ja="予約金と残金の条件を説明時に確認する（AIイメージ）" data-guide-en="Checking deposit and balance terms during consultation (AI illustration)" data-guide-zh="咨询时核对定金与尾款条件（AI示意图）"><figcaption><span data-guide-ja="予約金と残金の条件を説明時に確認する" data-guide-en="Checking deposit and balance terms during consultation" data-guide-zh="咨询时核对定金与尾款条件">予約金と残金の条件を説明時に確認する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ol class="guide-steps">
     <li><strong>Agreement:</strong> Pay deposit of 50,000 yen → Public listing is stopped and inquiries from others are paused.</li>
     <li><strong>Preparation:</strong> Pay the remaining balance by pickup day.</li>
@@ -109,13 +122,15 @@ guideBodyTranslations.en['guide.body.price'] = `
   <div class="guide-note">
     For cancellations, we handle each case individually. Please feel free to consult us.
   </div>
+</div></div>
 </section>
 `;
 
 // ==================== 3. PREPARE ====================
 guideBodyTranslations.en['guide.body.prepare'] = `
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-prepare-1">
   <h2 class="guide-section-title">Essentials (Start with Just These)</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="prepare"><img src="/images/guide-scenes/v2/prepare-960.webp" srcset="/images/guide-scenes/v2/prepare-480.webp 480w, /images/guide-scenes/v2/prepare-960.webp 960w, /images/guide-scenes/v2/prepare-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="接猫用品を種類別に並べた俯瞰写真風のAIイメージ" data-guide-ja="接猫用品を種類別に並べた俯瞰写真風のAIイメージ" data-guide-en="Overhead AI illustration of grouped kitten supplies" data-guide-zh="按种类摆放接猫用品的俯拍式AI示意图"><figcaption><span data-guide-ja="まず、必要な物を見える形に" data-guide-en="Lay out the essentials first" data-guide-zh="先把接猫用品摆齐">まず、必要な物を見える形に</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><i class="ico ico-house" aria-hidden="true"></i> <strong>Cage / Playpen</strong> — A safe "home within your home" for the first week. Not too big, not too small.</li>
     <li><i class="ico ico-luggage" aria-hidden="true"></i> <strong>Carrier</strong> — Top-opening type recommended for easy access. Also used for vet visits.</li>
@@ -125,9 +140,11 @@ guideBodyTranslations.en['guide.body.prepare'] = `
     <li><i class="ico ico-droplet" aria-hidden="true"></i> <strong>Water Bowls ×2</strong> — Place in 2 spots for peace of mind. Ceramic or stainless steel stays clean.</li>
     <li><i class="ico ico-package" aria-hidden="true"></i> <strong>Scratching Post</strong> — Vertical or horizontal, one is enough. Set up early to protect furniture.</li>
   </ul>
+</div></div>
 </section>
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-prepare-2">
   <h2 class="guide-section-title">Nice to Have (Ideally Before Pickup)</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="prepare-extra"><img src="/images/guide-scenes/v3/prepare-extra-960.webp" srcset="/images/guide-scenes/v3/prepare-extra-480.webp 480w, /images/guide-scenes/v3/prepare-extra-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="予備のシーツ、寝具、遊びとケアの用品（AIイメージ）" data-guide-ja="予備のシーツ、寝具、遊びとケアの用品（AIイメージ）" data-guide-en="Spare pads, bedding, play and grooming supplies (AI illustration)" data-guide-zh="备用尿垫、寝具、玩耍与护理用品（AI示意图）"><figcaption><span data-guide-ja="予備のシーツ、寝具、遊びとケアの用品" data-guide-en="Spare pads, bedding, play and grooming supplies" data-guide-zh="备用尿垫、寝具、玩耍与护理用品">予備のシーツ、寝具、遊びとケアの用品</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><i class="ico ico-bed" aria-hidden="true"></i> <strong>Bed / Blanket</strong> — We may provide a blanket with the kitten's scent.</li>
     <li><i class="ico ico-utensils" aria-hidden="true"></i> <strong>Wet Food</strong> — Helpful when appetite drops.</li>
@@ -136,6 +153,7 @@ guideBodyTranslations.en['guide.body.prepare'] = `
     <li><i class="ico ico-brush-cleaning" aria-hidden="true"></i> <strong>Sanitizing Supplies</strong> — Pet-safe disinfectant spray is handy.</li>
     <li><i class="ico ico-file-text" aria-hidden="true"></i> <strong>Pee Pads</strong> — Place inside the carrier or under the cage for extra safety.</li>
   </ul>
+</div></div>
 </section>
 <div class="guide-note">
   <i class="ico ico-lightbulb" aria-hidden="true"></i> If you can create a comfortable resting space in the cage for the first week, that's enough. No need to get everything perfect. You can always add items later.
@@ -144,8 +162,9 @@ guideBodyTranslations.en['guide.body.prepare'] = `
 
 // ==================== 4. BRING ====================
 guideBodyTranslations.en['guide.body.bring'] = `
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-bring-1">
   <h2 class="guide-section-title">What to Bring</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="bring"><img src="/images/guide-scenes/v2/bring-960.webp" srcset="/images/guide-scenes/v2/bring-480.webp 480w, /images/guide-scenes/v2/bring-960.webp 960w, /images/guide-scenes/v2/bring-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="上開きキャリーにペットシーツを敷く手元のAIイメージ" data-guide-ja="上開きキャリーにペットシーツを敷く手元のAIイメージ" data-guide-en="AI illustration of hands lining a top-opening carrier" data-guide-zh="双手为顶开式航空箱铺尿垫的AI示意图"><figcaption><span data-guide-ja="出発前に、キャリーの中まで準備" data-guide-en="Prepare the carrier before leaving" data-guide-zh="出门前，先准备好航空箱内部">出発前に、キャリーの中まで準備</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><i class="ico ico-luggage" aria-hidden="true"></i> <strong>Carrier</strong> — Top-opening type recommended for easy access. Hard-shell types are more stable.</li>
     <li><i class="ico ico-file-text" aria-hidden="true"></i> <strong>Pee Pads (1-2)</strong> — Place inside the carrier for accidents during travel.</li>
@@ -154,6 +173,7 @@ guideBodyTranslations.en['guide.body.bring'] = `
     <li><i class="ico ico-utensils" aria-hidden="true"></i> <strong>Their Usual Food (small amount)</strong> — For long trips, so you can feed them right when you get home. *Not needed for short trips.</li>
     <li><i class="ico ico-smartphone" aria-hidden="true"></i> <strong>LINE-Ready Device</strong> — So you can report and consult with us right after getting home.</li>
   </ul>
+</div></div>
 </section>
 <div class="guide-note">
   <i class="ico ico-lightbulb" aria-hidden="true"></i> In the car, secure the carrier with a seatbelt and drape a towel over it to help keep them calm. For trains, cover the carrier with a towel and move quietly.
@@ -162,8 +182,9 @@ guideBodyTranslations.en['guide.body.bring'] = `
 
 // ==================== 5. HOME SAFETY ====================
 guideBodyTranslations.en['guide.body.homeSafety'] = `
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-home-safety-1">
   <h2 class="guide-section-title">Common Safety Points</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="home-safety"><img src="/images/guide-scenes/v2/home-safety-960.webp" srcset="/images/guide-scenes/v2/home-safety-480.webp 480w, /images/guide-scenes/v2/home-safety-960.webp 960w, /images/guide-scenes/v2/home-safety-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="窓のロック、コード収納、戸棚のラッチを示す3分割のAIイメージ" data-guide-ja="窓のロック、コード収納、戸棚のラッチを示す3分割のAIイメージ" data-guide-en="Three-panel AI illustration of a window lock, cable enclosure and cupboard latch" data-guide-zh="展示窗锁、电线收纳和柜门锁扣的三联AI示意图"><figcaption><span data-guide-ja="窓・コード・収納を、手で確認" data-guide-en="Check windows, cables and storage" data-guide-zh="亲手检查门窗、电线和柜门">窓・コード・収納を、手で確認</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure><figure class="guide-section-figure" data-guide-visual="safety-small-items"><img src="/images/guide-scenes/v3/safety-small-items-960.webp" srcset="/images/guide-scenes/v3/safety-small-items-480.webp 480w, /images/guide-scenes/v3/safety-small-items-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="小物の収納、洗濯機の確認、窓や扉の閉鎖（AIイメージ）" data-guide-ja="小物の収納、洗濯機の確認、窓や扉の閉鎖（AIイメージ）" data-guide-en="Storing small objects, checking appliances and closing exits (AI illustration)" data-guide-zh="收好小物件、检查洗衣机并关好门窗（AI示意图）"><figcaption><span data-guide-ja="小物の収納、洗濯機の確認、窓や扉の閉鎖" data-guide-en="Storing small objects, checking appliances and closing exits" data-guide-zh="收好小物件、检查洗衣机并关好门窗">小物の収納、洗濯機の確認、窓や扉の閉鎖</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><i class="ico ico-zap" aria-hidden="true"></i> <strong>Power Cords & Charging Cables</strong> — Chewing can cause electrocution or burns. Bundle and cover, or hide behind furniture.</li>
     <li><i class="ico ico-fish" aria-hidden="true"></i> <strong>String, Yarn & Rubber Bands</strong> — Swallowing can cause intestinal blockage. Clean up immediately when spotted.</li>
@@ -172,6 +193,7 @@ guideBodyTranslations.en['guide.body.homeSafety'] = `
     <li><i class="ico ico-blinds" aria-hidden="true"></i> <strong>Windows & Balconies</strong> — Install fall-prevention nets or window locks. Screen doors alone may not be enough.</li>
     <li><i class="ico ico-leaf" aria-hidden="true"></i> <strong>Houseplants</strong> — Lilies are lethal to cats even in small amounts. If unsure about a plant, send us a photo.</li>
   </ul>
+</div></div>
 </section>
 <div class="guide-note">
   <i class="ico ico-lightbulb" aria-hidden="true"></i> Don't feel like you need to do everything. Just tackle what concerns you, at your own pace. If you're unsure, send us a photo and we'll advise.
@@ -180,8 +202,9 @@ guideBodyTranslations.en['guide.body.homeSafety'] = `
 
 // ==================== 6. DAY 1 ====================
 guideBodyTranslations.en['guide.body.day1'] = `
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-day1-1">
   <h2 class="guide-section-title" data-accent="mint">What to Do Right After Getting Home</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="day1-arrival"><img src="/images/guide-scenes/v3/day1-arrival-960.webp" srcset="/images/guide-scenes/v3/day1-arrival-480.webp 480w, /images/guide-scenes/v3/day1-arrival-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="水・寝床・トイレを用意した小さな生活スペース（AIイメージ）" data-guide-ja="水・寝床・トイレを用意した小さな生活スペース（AIイメージ）" data-guide-en="A starter space with water, bedding and a litter tray (AI illustration)" data-guide-zh="备好饮水、寝具和猫厕所的初期生活区（AI示意图）"><figcaption><span data-guide-ja="水・寝床・トイレを用意した小さな生活スペース" data-guide-en="A starter space with water, bedding and a litter tray" data-guide-zh="备好饮水、寝具和猫厕所的初期生活区">水・寝床・トイレを用意した小さな生活スペース</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ol class="guide-steps">
     <li><strong>Place them in the cage/playpen</strong> (don't force them out)</li>
     <li><strong>Prepare water</strong> (fresh water inside the cage)</li>
@@ -191,10 +214,12 @@ guideBodyTranslations.en['guide.body.day1'] = `
   <div class="guide-note">
     <i class="ico ico-lightbulb" aria-hidden="true"></i> We recommend keeping them mainly in the cage for the first week. You might feel it's "too small and sad," but for kittens it's like a cozy, safe nest.
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-day1-2">
   <h2 class="guide-section-title" data-accent="mint">Common Signs on Day 1-2</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="day1-observe"><img src="/images/guide-scenes/v3/day1-observe-960.webp" srcset="/images/guide-scenes/v3/day1-observe-480.webp 480w, /images/guide-scenes/v3/day1-observe-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="食事と飲水の様子を離れて観察する（AIイメージ）" data-guide-ja="食事と飲水の様子を離れて観察する（AIイメージ）" data-guide-en="Observing eating and drinking from a distance (AI illustration)" data-guide-zh="保持距离观察进食与饮水情况（AI示意图）"><figcaption><span data-guide-ja="食事と飲水の様子を離れて観察する" data-guide-en="Observing eating and drinking from a distance" data-guide-zh="保持距离观察进食与饮水情况">食事と飲水の様子を離れて観察する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-table-wrap">
     <table class="guide-table">
       <thead><tr><th>Symptom</th><th>What to Do</th></tr></thead>
@@ -206,20 +231,24 @@ guideBodyTranslations.en['guide.body.day1'] = `
       </tbody>
     </table>
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-day1-3">
   <h2 class="guide-section-title" data-accent="mint">What to Avoid on Day 1</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="day1"><img src="/images/guide-scenes/v2/day1-960.webp" srcset="/images/guide-scenes/v2/day1-480.webp 480w, /images/guide-scenes/v2/day1-960.webp 960w, /images/guide-scenes/v2/day1-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="薄暗い隠れ箱の中から外を観察するブラウンタビーのAIイメージ" data-guide-ja="薄暗い隠れ箱の中から外を観察するブラウンタビーのAIイメージ" data-guide-en="AI illustration of a brown tabby observing from a sheltered box at dusk" data-guide-zh="黄昏时在躲藏纸箱内观察环境的虎斑猫AI示意图"><figcaption><span data-guide-ja="初日は、隠れて見ていても大丈夫" data-guide-en="A quiet retreat for the first day" data-guide-zh="第一天，先有安静躲藏处">初日は、隠れて見ていても大丈夫</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><strong>Chasing and grabbing</strong> — If they hide, don't force them out. Wait for them to come out on their own.</li>
     <li><strong>Bathing / shampooing</strong> — Please wait 1-2 weeks after pickup.</li>
     <li><strong>Sudden food changes</strong> — Keep feeding what they've been eating.</li>
     <li><strong>Visitors / loud noises</strong> — Keep the environment quiet for the first few days.</li>
   </ul>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-day1-4">
   <h2 class="guide-section-title" data-accent="mint">When to Contact Us</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="day1-contact"><img src="/images/guide-scenes/v3/day1-contact-960.webp" srcset="/images/guide-scenes/v3/day1-contact-480.webp 480w, /images/guide-scenes/v3/day1-contact-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="相談のために普段の様子を動画に残す（AIイメージ）" data-guide-ja="相談のために普段の様子を動画に残す（AIイメージ）" data-guide-en="Recording everyday behaviour to share during consultation (AI illustration)" data-guide-zh="记录日常状态视频，便于咨询时说明（AI示意图）"><figcaption><span data-guide-ja="相談のために普段の様子を動画に残す" data-guide-en="Recording everyday behaviour to share during consultation" data-guide-zh="记录日常状态视频，便于咨询时说明">相談のために普段の様子を動画に残す</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-table-wrap">
     <table class="guide-table">
       <thead><tr><th>Situation</th><th>Action</th></tr></thead>
@@ -232,6 +261,7 @@ guideBodyTranslations.en['guide.body.day1'] = `
   <div class="guide-warning">
     <i class="ico ico-triangle-alert" aria-hidden="true"></i> When in doubt, don't hesitate to contact us on LINE. Send photos or videos and we'll advise you right away.
   </div>
+</div></div>
 </section>
 `;
 
@@ -241,8 +271,9 @@ guideBodyTranslations.en['guide.body.week1'] = `
   <p>These are guidelines after bringing your kitten home. Every kitten is different, so use this as a reference only.</p>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-week1-1">
   <h2 class="guide-section-title">7-Day Overview</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="week1"><img src="/images/guide-scenes/v2/week1-960.webp" srcset="/images/guide-scenes/v2/week1-480.webp 480w, /images/guide-scenes/v2/week1-960.webp 960w, /images/guide-scenes/v2/week1-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="食器とフードを横に、日々の確認表へ記録する手元のAIイメージ" data-guide-ja="食器とフードを横に、日々の確認表へ記録する手元のAIイメージ" data-guide-en="AI illustration of recording daily observations beside food supplies" data-guide-zh="在食物用品旁记录每日观察表的AI示意图"><figcaption><span data-guide-ja="毎日の小さな変化を、記録に残す" data-guide-en="Record the small changes each day" data-guide-zh="把每天的小变化记下来">毎日の小さな変化を、記録に残す</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-table-wrap">
     <table class="guide-table">
       <thead><tr><th>Period</th><th>Water</th><th>Food</th><th>Bowel</th><th>Behavior</th></tr></thead>
@@ -256,20 +287,24 @@ guideBodyTranslations.en['guide.body.week1'] = `
   <div class="guide-info">
     <i class="ico ico-square-pen" aria-hidden="true"></i> The web version only provides general guidelines. A printable tracking sheet is available via LINE.
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-week1-2">
   <h2 class="guide-section-title">Common Changes</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="week1-changes"><img src="/images/guide-scenes/v3/week1-changes-960.webp" srcset="/images/guide-scenes/v3/week1-changes-480.webp 480w, /images/guide-scenes/v3/week1-changes-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="静かな場所で食事や活動の変化を観察する（AIイメージ）" data-guide-ja="静かな場所で食事や活動の変化を観察する（AIイメージ）" data-guide-en="Observing changes in eating and activity in a quiet space (AI illustration)" data-guide-zh="在安静环境中观察进食与活动变化（AI示意图）"><figcaption><span data-guide-ja="静かな場所で食事や活動の変化を観察する" data-guide-en="Observing changes in eating and activity in a quiet space" data-guide-zh="在安静环境中观察进食与活动变化">静かな場所で食事や活動の変化を観察する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><i class="ico ico-utensils" aria-hidden="true"></i> <strong>Eating less</strong> — Temporary appetite loss from environmental change is natural. Wet food can help.</li>
     <li><i class="ico ico-wind" aria-hidden="true"></i> <strong>Mild sneezing / soft stool</strong> — Can occur as a stress response. Usually settles within 2-3 days.</li>
     <li><i class="ico ico-moon" aria-hidden="true"></i> <strong>Nighttime crying</strong> — Due to anxiety in a new environment. They'll adjust in a few days. Covering the cage with a towel helps.</li>
     <li><i class="ico ico-trending-up" aria-hidden="true"></i> <strong>Stabilizing around day 3</strong> — Most kittens see appetite and bowel movements stabilize around day 3.</li>
   </ul>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-week1-3">
   <h2 class="guide-section-title">When to Consult Us Right Away</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="week1-consult"><img src="/images/guide-scenes/v3/week1-consult-960.webp" srcset="/images/guide-scenes/v3/week1-consult-480.webp 480w, /images/guide-scenes/v3/week1-consult-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="相談前に、経過と質問を手元にまとめる（AIイメージ）" data-guide-ja="相談前に、経過と質問を手元にまとめる（AIイメージ）" data-guide-en="Gathering observations and questions before consultation (AI illustration)" data-guide-zh="咨询前整理好情况经过与问题（AI示意图）"><figcaption><span data-guide-ja="相談前に、経過と質問を手元にまとめる" data-guide-en="Gathering observations and questions before consultation" data-guide-zh="咨询前整理好情况经过与问题">相談前に、経過と質問を手元にまとめる</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-warning">
     <p>Please contact us promptly if:</p>
     <ul>
@@ -281,13 +316,15 @@ guideBodyTranslations.en['guide.body.week1'] = `
     <p>Send photos or videos via LINE and we'll advise right away. Even just a photo is fine <i class="ico ico-smile" aria-hidden="true"></i></p>
     <p style="margin-top:8px;">* These are guidelines. If you're worried or symptoms are severe, please consult your veterinarian.</p>
   </div>
+</div></div>
 </section>
 `;
 
 // ==================== 8. FAMILY ====================
 guideBodyTranslations.en['guide.body.family'] = `
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-family-1">
   <h2 class="guide-section-title">If You Have Children</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="family"><img src="/images/guide-scenes/v2/family-960.webp" srcset="/images/guide-scenes/v2/family-480.webp 480w, /images/guide-scenes/v2/family-960.webp 960w, /images/guide-scenes/v2/family-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="大人と子どもが静かに座り、虎斑の子猫が近づくAIイメージ" data-guide-ja="大人と子どもが静かに座り、虎斑の子猫が近づくAIイメージ" data-guide-en="AI illustration of an adult and child waiting as a tabby kitten approaches" data-guide-zh="大人与孩子安静坐着、虎斑小猫主动靠近的AI示意图"><figcaption><span data-guide-ja="子どもも大人も、まずは待つ" data-guide-en="Adults and children can start by waiting" data-guide-zh="大人和孩子都先安静等待">子どもも大人も、まずは待つ</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><i class="ico ico-eye" aria-hidden="true"></i> <strong>First 3 days: "just look"</strong> — Hold back the urge to touch. Wait for the kitten to come to you.</li>
     <li><i class="ico ico-ban" aria-hidden="true"></i> <strong>Don't chase or grab</strong> — Running after them will scare them into hiding.</li>
@@ -297,51 +334,61 @@ guideBodyTranslations.en['guide.body.family'] = `
   <div class="guide-note">
     <i class="ico ico-lightbulb" aria-hidden="true"></i> For young children, explaining "the kitty is like a little baby" helps them understand.
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-family-2">
   <h2 class="guide-section-title">If You Have Dogs or Other Pets</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="family-dog"><img src="/images/guide-scenes/v3/family-dog-960.webp" srcset="/images/guide-scenes/v3/family-dog-480.webp 480w, /images/guide-scenes/v3/family-dog-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="閉じた仕切り越しに、犬はリードで管理する（AIイメージ）" data-guide-ja="閉じた仕切り越しに、犬はリードで管理する（AIイメージ）" data-guide-en="Using a closed barrier with the dog on a lead (AI illustration)" data-guide-zh="使用关闭的隔离门，并用牵引绳控制犬只（AI示意图）"><figcaption><span data-guide-ja="閉じた仕切り越しに、犬はリードで管理する" data-guide-en="Using a closed barrier with the dog on a lead" data-guide-zh="使用关闭的隔离门，并用牵引绳控制犬只">閉じた仕切り越しに、犬はリードで管理する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ol class="guide-steps">
     <li><strong>Scent exchange</strong> — Swap towels/blankets to get used to each other's scent.</li>
     <li><strong>Same room with distance</strong> — Through cage or on leash, in the same room. Hissing means "surprised."</li>
     <li><strong>Gradually extend time</strong> — Slowly increase calm together-time.</li>
   </ol>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-family-3">
   <h2 class="guide-section-title">Rules for Peace of Mind</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="family-rules"><img src="/images/guide-scenes/v3/family-rules-960.webp" srcset="/images/guide-scenes/v3/family-rules-480.webp 480w, /images/guide-scenes/v3/family-rules-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="家族で、休んでいる猫をそっとしておく（AIイメージ）" data-guide-ja="家族で、休んでいる猫をそっとしておく（AIイメージ）" data-guide-en="Giving a resting kitten quiet time as a family (AI illustration)" data-guide-zh="全家共同遵守：让休息中的猫咪安静独处（AI示意图）"><figcaption><span data-guide-ja="家族で、休んでいる猫をそっとしておく" data-guide-en="Giving a resting kitten quiet time as a family" data-guide-zh="全家共同遵守：让休息中的猫咪安静独处">家族で、休んでいる猫をそっとしておく</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><i class="ico ico-house" aria-hidden="true"></i> <strong>Keep visitors to a minimum in the first week</strong></li>
     <li><i class="ico ico-house" aria-hidden="true"></i> <strong>The cage is a safe base (don't force them out)</strong></li>
     <li><i class="ico ico-camera" aria-hidden="true"></i> <strong>When in doubt, send photos/videos for advice</strong></li>
   </ul>
+</div></div>
 </section>
 `;
 
 // ==================== 9. MULTI ====================
 guideBodyTranslations.en['guide.body.multi'] = `
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-multi-cat-1">
   <h2 class="guide-section-title" data-accent="taro">Benefits of Multi-Cat Households</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="multi-benefits"><img src="/images/guide-scenes/v3/multi-benefits-960.webp" srcset="/images/guide-scenes/v3/multi-benefits-480.webp 480w, /images/guide-scenes/v3/multi-benefits-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="それぞれの玩具で遊べる共有スペース（AIイメージ）" data-guide-ja="それぞれの玩具で遊べる共有スペース（AIイメージ）" data-guide-en="A shared space with separate toys for each kitten (AI illustration)" data-guide-zh="提供各自玩具的共享活动空间（AI示意图）"><figcaption><span data-guide-ja="それぞれの玩具で遊べる共有スペース" data-guide-en="A shared space with separate toys for each kitten" data-guide-zh="提供各自玩具的共享活动空间">それぞれの玩具で遊べる共有スペース</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><i class="ico ico-cat" aria-hidden="true"></i> They become playmates, reducing boredom and stress</li>
     <li><i class="ico ico-house" aria-hidden="true"></i> Less loneliness when home alone</li>
     <li><i class="ico ico-brain" aria-hidden="true"></i> Better socialization, leading to calmer personalities</li>
     <li><i class="ico ico-eye" aria-hidden="true"></i> The existing cat serves as a role model for learning habits</li>
   </ul>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-multi-cat-2">
   <h2 class="guide-section-title" data-accent="taro">Siberians Are Great for Multi-Cat Homes</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="multi-individual"><img src="/images/guide-scenes/v3/multi-individual-960.webp" srcset="/images/guide-scenes/v3/multi-individual-480.webp 480w, /images/guide-scenes/v3/multi-individual-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="隠れたい子、探索したい子、それぞれのペース（AIイメージ）" data-guide-ja="隠れたい子、探索したい子、それぞれのペース（AIイメージ）" data-guide-en="Different preferences for sheltering and exploring (AI illustration)" data-guide-zh="尊重不同猫咪躲藏或探索的节奏（AI示意图）"><figcaption><span data-guide-ja="隠れたい子、探索したい子、それぞれのペース" data-guide-en="Different preferences for sheltering and exploring" data-guide-zh="尊重不同猫咪躲藏或探索的节奏">隠れたい子、探索したい子、それぞれのペース</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li>Gentle and sociable personality</li>
     <li>Experience living with siblings and parent cats; skilled at cat-to-cat communication</li>
     <li>High adaptability to new environments</li>
     <li>Less likely to intimidate resident cats</li>
   </ul>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-multi-cat-3">
   <h2 class="guide-section-title" data-accent="taro">Introduction Timeline</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="multi-cat"><img src="/images/guide-scenes/v2/multi-cat-960.webp" srcset="/images/guide-scenes/v2/multi-cat-480.webp 480w, /images/guide-scenes/v2/multi-cat-960.webp 960w, /images/guide-scenes/v2/multi-cat-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="別々の場所で布のにおいを嗅ぐ虎斑と白猫の2分割AIイメージ" data-guide-ja="別々の場所で布のにおいを嗅ぐ虎斑と白猫の2分割AIイメージ" data-guide-en="Two-panel AI illustration of a tabby and white cat sniffing cloths in separate rooms" data-guide-zh="虎斑猫与白猫在各自房间闻布料的双联AI示意图"><figcaption><span data-guide-ja="顔を合わせる前に、においを知る" data-guide-en="Learn the scent before meeting" data-guide-zh="见面之前，先熟悉气味">顔を合わせる前に、においを知る</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ol class="guide-steps">
     <li><strong>Days 1-3</strong>: Separate room or cage only. Let them sense each other's scent.</li>
     <li><strong>Days 4-7</strong>: Swap towels to get used to each other's scent.</li>
@@ -349,10 +396,12 @@ guideBodyTranslations.en['guide.body.multi'] = `
     <li><strong>Getting comfortable</strong>: Short supervised time in the same room.</li>
     <li><strong>Settled</strong>: Let them roam freely.</li>
   </ol>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-multi-cat-4">
   <h2 class="guide-section-title" data-accent="taro">Tips for Success</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="multi-resources"><img src="/images/guide-scenes/v3/multi-resources-960.webp" srcset="/images/guide-scenes/v3/multi-resources-480.webp 480w, /images/guide-scenes/v3/multi-resources-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="トイレ・食器・休憩場所を分散して用意する（AIイメージ）" data-guide-ja="トイレ・食器・休憩場所を分散して用意する（AIイメージ）" data-guide-en="Providing separate litter, feeding and resting areas (AI illustration)" data-guide-zh="分散设置猫厕所、食碗与休息处（AI示意图）"><figcaption><span data-guide-ja="トイレ・食器・休憩場所を分散して用意する" data-guide-en="Providing separate litter, feeding and resting areas" data-guide-zh="分散设置猫厕所、食碗与休息处">トイレ・食器・休憩場所を分散して用意する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li>Litter boxes: "number of cats + 1" is the rule</li>
     <li>Separate food and water for each</li>
@@ -361,16 +410,19 @@ guideBodyTranslations.en['guide.body.multi'] = `
     <li>Prioritize caring for the resident cat (prevents jealousy)</li>
     <li>Continue scent swapping daily</li>
   </ul>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-multi-cat-5">
   <h2 class="guide-section-title" data-accent="taro">Signs Things Are Going Well</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="multi-signs"><img src="/images/guide-scenes/v3/multi-signs-960.webp" srcset="/images/guide-scenes/v3/multi-signs-480.webp 480w, /images/guide-scenes/v3/multi-signs-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="別々の場所で落ち着いて休む様子を観察する（AIイメージ）" data-guide-ja="別々の場所で落ち着いて休む様子を観察する（AIイメージ）" data-guide-en="Observing relaxed rest in separate spots (AI illustration)" data-guide-zh="观察猫咪能否在各自位置安静休息（AI示意图）"><figcaption><span data-guide-ja="別々の場所で落ち着いて休む様子を観察する" data-guide-en="Observing relaxed rest in separate spots" data-guide-zh="观察猫咪能否在各自位置安静休息">別々の場所で落ち着いて休む様子を観察する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li>Relaxing in the same room together</li>
     <li>Mutual grooming</li>
     <li>Playful chasing (non-aggressive)</li>
     <li>Able to ignore each other (surprisingly important)</li>
   </ul>
+</div></div>
 </section>
 `;
 
@@ -378,17 +430,20 @@ guideBodyTranslations.en['guide.body.multi'] = `
 guideBodyTranslations.en['guide.body.neuter'] = `
 <div class="guide-disclaimer">* This page is for general reference only. If you are concerned or symptoms are severe, please consult your veterinarian.</div>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-neuter-1">
   <h2 class="guide-section-title" data-accent="blueberry">Quiet Rest Is Most Important After Surgery</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="neuter"><img src="/images/guide-scenes/v2/neuter-960.webp" srcset="/images/guide-scenes/v2/neuter-480.webp 480w, /images/guide-scenes/v2/neuter-960.webp 960w, /images/guide-scenes/v2/neuter-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="低い寝床と、カラー・術後服・説明書用封筒を準備したAIイメージ" data-guide-ja="低い寝床と、カラー・術後服・説明書用封筒を準備したAIイメージ" data-guide-en="AI illustration of a low rest area with a cone, recovery garment and instruction envelope" data-guide-zh="低位寝床与围脖、术后服、说明资料信封的AI示意图"><figcaption><span data-guide-ja="休む場所と、病院の指示を準備" data-guide-en="Prepare a rest area and the vet’s instructions" data-guide-zh="准备休息区，并核对医院交代">休む場所と、病院の指示を準備</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li>Rest in a quiet place (cage recommended)</li>
     <li>Start with small meals (may vomit after anesthesia)</li>
     <li>Prevent licking the wound (use E-collar or post-op suit)</li>
   </ul>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-neuter-2">
   <h2 class="guide-section-title" data-accent="blueberry">Different Points for Males vs. Females</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="neuter-individual"><img src="/images/guide-scenes/v3/neuter-individual-960.webp" srcset="/images/guide-scenes/v3/neuter-individual-480.webp 480w, /images/guide-scenes/v3/neuter-individual-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="保護具やケア方法は動物病院で確認する（AIイメージ）" data-guide-ja="保護具やケア方法は動物病院で確認する（AIイメージ）" data-guide-en="Checking protective equipment and care with the vet (AI illustration)" data-guide-zh="向动物医院确认防护用品与护理方法（AI示意图）"><figcaption><span data-guide-ja="保護具やケア方法は動物病院で確認する" data-guide-en="Checking protective equipment and care with the vet" data-guide-zh="向动物医院确认防护用品与护理方法">保護具やケア方法は動物病院で確認する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-table-wrap">
     <table class="guide-table">
       <thead>
@@ -402,10 +457,12 @@ guideBodyTranslations.en['guide.body.neuter'] = `
       </tbody>
     </table>
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-neuter-3">
   <h2 class="guide-section-title" data-accent="blueberry">1-Week Overview</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="neuter-week"><img src="/images/guide-scenes/v3/neuter-week-960.webp" srcset="/images/guide-scenes/v3/neuter-week-480.webp 480w, /images/guide-scenes/v3/neuter-week-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="経過と再診予定をカレンダーにまとめる（AIイメージ）" data-guide-ja="経過と再診予定をカレンダーにまとめる（AIイメージ）" data-guide-en="Keeping recovery notes and follow-up appointments together (AI illustration)" data-guide-zh="集中记录恢复情况与复诊安排（AI示意图）"><figcaption><span data-guide-ja="経過と再診予定をカレンダーにまとめる" data-guide-en="Keeping recovery notes and follow-up appointments together" data-guide-zh="集中记录恢复情况与复诊安排">経過と再診予定をカレンダーにまとめる</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-table-wrap">
     <table class="guide-table">
       <thead>
@@ -418,20 +475,24 @@ guideBodyTranslations.en['guide.body.neuter'] = `
       </tbody>
     </table>
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-neuter-4">
   <h2 class="guide-section-title" data-accent="blueberry">Benefits of Spaying/Neutering</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="neuter-benefits"><img src="/images/guide-scenes/v3/neuter-benefits-960.webp" srcset="/images/guide-scenes/v3/neuter-benefits-480.webp 480w, /images/guide-scenes/v3/neuter-benefits-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="手術の利点と注意点を獣医師に相談する（AIイメージ）" data-guide-ja="手術の利点と注意点を獣医師に相談する（AIイメージ）" data-guide-en="Discussing the benefits and considerations with a vet (AI illustration)" data-guide-zh="与兽医讨论手术的益处与注意事项（AI示意图）"><figcaption><span data-guide-ja="手術の利点と注意点を獣医師に相談する" data-guide-en="Discussing the benefits and considerations with a vet" data-guide-zh="与兽医讨论手术的益处与注意事项">手術の利点と注意点を獣医師に相談する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li>Prevents unwanted pregnancy</li>
     <li>Reduces spraying and heat-cycle vocalizations</li>
     <li>Prevents mammary tumors, pyometra, etc.</li>
     <li>Tends to make temperament calmer</li>
   </ul>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-neuter-5">
   <h2 class="guide-section-title" data-accent="blueberry">When to See the Vet</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="neuter-warning"><img src="/images/guide-scenes/v3/neuter-warning-960.webp" srcset="/images/guide-scenes/v3/neuter-warning-480.webp 480w, /images/guide-scenes/v3/neuter-warning-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="気になる変化をメモし、動物病院に連絡する（AIイメージ）" data-guide-ja="気になる変化をメモし、動物病院に連絡する（AIイメージ）" data-guide-en="Noting concerning changes before contacting the vet (AI illustration)" data-guide-zh="记下令人担心的变化并联系动物医院（AI示意图）"><figcaption><span data-guide-ja="気になる変化をメモし、動物病院に連絡する" data-guide-en="Noting concerning changes before contacting the vet" data-guide-zh="记下令人担心的变化并联系动物医院">気になる変化をメモし、動物病院に連絡する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-warning">
     <ul>
       <li>Not eating/drinking for over 24 hours</li>
@@ -441,27 +502,33 @@ guideBodyTranslations.en['guide.body.neuter'] = `
       <li>Fever (ears unusually hot)</li>
     </ul>
   </div>
+</div></div>
 </section>
 `;
 
 // ==================== 11. GROOMING ====================
 guideBodyTranslations.en['guide.body.grooming'] = `
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-grooming-1">
   <h2 class="guide-section-title">What Is Shedding Season?</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="grooming-shed"><img src="/images/guide-scenes/v3/grooming-shed-960.webp" srcset="/images/guide-scenes/v3/grooming-shed-480.webp 480w, /images/guide-scenes/v3/grooming-shed-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="コームとブラシに付いた抜け毛を確認する（AIイメージ）" data-guide-ja="コームとブラシに付いた抜け毛を確認する（AIイメージ）" data-guide-en="Checking loose fur collected by a comb and brush (AI illustration)" data-guide-zh="观察梳子和毛刷收集的浮毛（AI示意图）"><figcaption><span data-guide-ja="コームとブラシに付いた抜け毛を確認する" data-guide-en="Checking loose fur collected by a comb and brush" data-guide-zh="观察梳子和毛刷收集的浮毛">コームとブラシに付いた抜け毛を確認する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <p>Siberians are a double-coated breed. They shed heavily in spring (Mar-May) and fall (Sep-Nov). Increased shedding during these periods is a sign of good health.</p>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-grooming-2">
   <h2 class="guide-section-title">Hairball Care Methods</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="grooming-hairball"><img src="/images/guide-scenes/v3/grooming-hairball-960.webp" srcset="/images/guide-scenes/v3/grooming-hairball-480.webp 480w, /images/guide-scenes/v3/grooming-hairball-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="飲水と食事も含めて日々のケアを考える（AIイメージ）" data-guide-ja="飲水と食事も含めて日々のケアを考える（AIイメージ）" data-guide-en="Including water and food in the daily care routine (AI illustration)" data-guide-zh="将饮水和饮食一并纳入日常护理（AI示意图）"><figcaption><span data-guide-ja="飲水と食事も含めて日々のケアを考える" data-guide-en="Including water and food in the daily care routine" data-guide-zh="将饮水和饮食一并纳入日常护理">飲水と食事も含めて日々のケアを考える</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><i class="ico ico-utensils" aria-hidden="true"></i> <strong>Hairball control food</strong> — Incorporating hairball-prevention food daily provides peace of mind.</li>
     <li><i class="ico ico-spray-can" aria-hidden="true"></i> <strong>Hairball remedy paste (e.g., Laxatone)</strong> — Tube paste 1-2 times per week. Cat grass also helps.</li>
     <li><i class="ico ico-droplet" aria-hidden="true"></i> <strong>Increase water intake</strong> — More wet food and water stations help hairball passage.</li>
   </ul>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-grooming-3">
   <h2 class="guide-section-title">Brushing Tips</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="grooming"><img src="/images/guide-scenes/v2/grooming-960.webp" srcset="/images/guide-scenes/v2/grooming-480.webp 480w, /images/guide-scenes/v2/grooming-960.webp 960w, /images/guide-scenes/v2/grooming-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="白い胸と白い足先のブラウンタビーを部分ごとにコームで梳くAIイメージ" data-guide-ja="白い胸と白い足先のブラウンタビーを部分ごとにコームで梳くAIイメージ" data-guide-en="AI illustration of gently combing a brown tabby with a white bib and paws" data-guide-zh="为白胸白脚虎斑猫局部梳毛的AI示意图"><figcaption><span data-guide-ja="毛の流れと、手の添え方を見る" data-guide-en="Look at the fur and hand placement" data-guide-zh="看清毛发方向与手部动作">毛の流れと、手の添え方を見る</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li>Regular: 2-3 times/week, 3-5 min each</li>
     <li>Shedding season: Daily if possible</li>
@@ -472,18 +539,22 @@ guideBodyTranslations.en['guide.body.grooming'] = `
   <div class="guide-note">
     <i class="ico ico-lightbulb" aria-hidden="true"></i> Giving treats after brushing teaches them "brush = good thing."
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-grooming-4">
   <h2 class="guide-section-title">Summer & Winter Tips</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="grooming-seasons"><img src="/images/guide-scenes/v3/grooming-seasons-960.webp" srcset="/images/guide-scenes/v3/grooming-seasons-480.webp 480w, /images/guide-scenes/v3/grooming-seasons-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="夏の涼しい休憩場所と冬の寝床の例（AIイメージ）" data-guide-ja="夏の涼しい休憩場所と冬の寝床の例（AIイメージ）" data-guide-en="Examples of a cool summer area and winter bedding (AI illustration)" data-guide-zh="夏季凉爽休息区与冬季寝具示例（AI示意图）"><figcaption><span data-guide-ja="夏の涼しい休憩場所と冬の寝床の例" data-guide-en="Examples of a cool summer area and winter bedding" data-guide-zh="夏季凉爽休息区与冬季寝具示例">夏の涼しい休憩場所と冬の寝床の例</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><i class="ico ico-sun" aria-hidden="true"></i> <strong>Summer</strong>: Don't aim AC directly at them. Ensure multiple cool spots and water stations.</li>
     <li><i class="ico ico-snowflake" aria-hidden="true"></i> <strong>Winter</strong>: Watch for dryness (humidifier recommended). Provide warm bedding. Mind static from brushing.</li>
   </ul>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-grooming-5">
   <h2 class="guide-section-title">When to See the Vet</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="grooming-vet"><img src="/images/guide-scenes/v3/grooming-vet-960.webp" srcset="/images/guide-scenes/v3/grooming-vet-480.webp 480w, /images/guide-scenes/v3/grooming-vet-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="受診の準備に、キャリーと観察メモをそろえる（AIイメージ）" data-guide-ja="受診の準備に、キャリーと観察メモをそろえる（AIイメージ）" data-guide-en="Preparing a carrier and observation notes for a vet visit (AI illustration)" data-guide-zh="就诊前准备航空箱与观察记录（AI示意图）"><figcaption><span data-guide-ja="受診の準備に、キャリーと観察メモをそろえる" data-guide-en="Preparing a carrier and observation notes for a vet visit" data-guide-zh="就诊前准备航空箱与观察记录">受診の準備に、キャリーと観察メモをそろえる</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-warning">
     <i class="ico ico-triangle-alert" aria-hidden="true"></i> See a vet promptly if:
     <ul>
@@ -493,18 +564,22 @@ guideBodyTranslations.en['guide.body.grooming'] = `
       <li>Constipation or bloated belly</li>
     </ul>
   </div>
+</div></div>
 </section>
 `;
 
 // ==================== 12. BEHAVIOR ====================
 guideBodyTranslations.en['guide.body.behavior'] = `
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-behavior-1">
   <h2 class="guide-section-title">Basic Approach</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="behavior-redirect"><img src="/images/guide-scenes/v3/behavior-redirect-960.webp" srcset="/images/guide-scenes/v3/behavior-redirect-480.webp 480w, /images/guide-scenes/v3/behavior-redirect-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="使ってよい爪とぎへ自然に誘導する（AIイメージ）" data-guide-ja="使ってよい爪とぎへ自然に誘導する（AIイメージ）" data-guide-en="Offering a suitable scratching surface (AI illustration)" data-guide-zh="引导猫咪使用合适的猫抓板（AI示意图）"><figcaption><span data-guide-ja="使ってよい爪とぎへ自然に誘導する" data-guide-en="Offering a suitable scratching surface" data-guide-zh="引导猫咪使用合适的猫抓板">使ってよい爪とぎへ自然に誘導する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <p>Scratching is nail care and stretching; play-biting is play and dental growth. Don't try to "stop" these — redirect to appropriate places/methods. Praise with alternatives rather than scolding, and good habits form naturally.</p>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-behavior-2">
   <h2 class="guide-section-title">Scratching Solutions</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="behavior"><img src="/images/guide-scenes/v2/behavior-960.webp" srcset="/images/guide-scenes/v2/behavior-480.webp 480w, /images/guide-scenes/v2/behavior-960.webp 960w, /images/guide-scenes/v2/behavior-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="安定した爪とぎ板に前足をかけ、横のソファーに保護板を付けたAIイメージ" data-guide-ja="安定した爪とぎ板に前足をかけ、横のソファーに保護板を付けたAIイメージ" data-guide-en="AI illustration of a kitten using a stable scratcher beside a protected sofa" data-guide-zh="小猫使用稳固抓板、旁边沙发装有保护板的AI示意图"><figcaption><span data-guide-ja="爪とぎの場所を、具体的に用意する" data-guide-en="Give scratching a suitable place" data-guide-zh="给抓挠行为安排具体去处">爪とぎの場所を、具体的に用意する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><i class="ico ico-package" aria-hidden="true"></i> <strong>Set up 2-3 scratching posts</strong> — Near pathways, sleeping areas, windows.</li>
     <li><i class="ico ico-brick-wall" aria-hidden="true"></i> <strong>Try different materials</strong> — Sisal rope, cardboard, carpet, wood. Preferences vary by cat.</li>
@@ -515,10 +590,12 @@ guideBodyTranslations.en['guide.body.behavior'] = `
   <div class="guide-note">
     <i class="ico ico-lightbulb" aria-hidden="true"></i> Siberians are large, so a sturdy, stable scratching post is recommended.
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-behavior-3">
   <h2 class="guide-section-title">Play-Biting Solutions</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="behavior-biting"><img src="/images/guide-scenes/v3/behavior-biting-960.webp" srcset="/images/guide-scenes/v3/behavior-biting-480.webp 480w, /images/guide-scenes/v3/behavior-biting-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="手の代わりに、蹴って遊べる玩具を使う（AIイメージ）" data-guide-ja="手の代わりに、蹴って遊べる玩具を使う（AIイメージ）" data-guide-en="Offering a kicker toy instead of hands (AI illustration)" data-guide-zh="用可抱踢的玩具代替双手陪猫玩耍（AI示意图）"><figcaption><span data-guide-ja="手の代わりに、蹴って遊べる玩具を使う" data-guide-en="Offering a kicker toy instead of hands" data-guide-zh="用可抱踢的玩具代替双手陪猫玩耍">手の代わりに、蹴って遊べる玩具を使う</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><i class="ico ico-hand" aria-hidden="true"></i> <strong>Don't use hands as toys</strong> — Always use toys from kittenhood.</li>
     <li><i class="ico ico-circle-pause" aria-hidden="true"></i> <strong>Stop play when they bite</strong> — Walk away quietly for 2-3 min, resume when calm.</li>
@@ -529,16 +606,19 @@ guideBodyTranslations.en['guide.body.behavior'] = `
   <div class="guide-note">
     <i class="ico ico-lightbulb" aria-hidden="true"></i> Play-biting peaks during teeth transition (3-6 months). A chilled wet towel or teething toy helps. This naturally calms with growth, so be patient.
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-behavior-4">
   <h2 class="guide-section-title">What to Avoid</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="behavior-pause"><img src="/images/guide-scenes/v3/behavior-pause-960.webp" srcset="/images/guide-scenes/v3/behavior-pause-480.webp 480w, /images/guide-scenes/v3/behavior-pause-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="興奮したら、遊びをいったん休む（AIイメージ）" data-guide-ja="興奮したら、遊びをいったん休む（AIイメージ）" data-guide-en="Pausing play when excitement builds (AI illustration)" data-guide-zh="过于兴奋时先暂停玩耍（AI示意图）"><figcaption><span data-guide-ja="興奮したら、遊びをいったん休む" data-guide-en="Pausing play when excitement builds" data-guide-zh="过于兴奋时先暂停玩耍">興奮したら、遊びをいったん休む</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-warning">
     <i class="ico ico-triangle-alert" aria-hidden="true"></i> Yelling, hitting, or spraying water (creates fear and breaks trust)<br>
     <i class="ico ico-triangle-alert" aria-hidden="true"></i> Forcefully restraining (can increase excitement or aggression)<br>
     <i class="ico ico-triangle-alert" aria-hidden="true"></i> Prolonged scolding (cats can't understand the reason through words; it only confuses them)<br>
     <i class="ico ico-triangle-alert" aria-hidden="true"></i> Expecting instant results (habit improvement takes about 2-4 weeks)
   </div>
+</div></div>
 </section>
 `;
 
@@ -548,8 +628,9 @@ guideBodyTranslations.en['guide.body.passport'] = `
   *This is a sample of the passport provided at pickup. Form fields are shown blank.
 </div>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-passport-1">
   <h2 class="guide-section-title">Basic Information</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="passport"><img src="/images/guide-scenes/v2/passport-960.webp" srcset="/images/guide-scenes/v2/passport-480.webp 480w, /images/guide-scenes/v2/passport-960.webp 960w, /images/guide-scenes/v2/passport-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="猫の写真と未記入の情報欄をまとめた記録ファイルのAIイメージ" data-guide-ja="猫の写真と未記入の情報欄をまとめた記録ファイルのAIイメージ" data-guide-en="AI illustration of a care binder with a kitten photograph and blank fields" data-guide-zh="附猫咪照片与空白信息栏的照护档案AI示意图"><figcaption><span data-guide-ja="その子の情報を、ひとまとめに" data-guide-en="Keep the kitten’s information together" data-guide-zh="把这只猫的信息汇总在一起">その子の情報を、ひとまとめに</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-table-wrap">
     <table class="guide-table">
       <thead><tr><th>Item</th><th>Details</th></tr></thead>
@@ -563,15 +644,19 @@ guideBodyTranslations.en['guide.body.passport'] = `
       </tbody>
     </table>
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-passport-2">
   <h2 class="guide-section-title">Coat Color & Pattern</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="passport-color"><img src="/images/guide-scenes/v3/passport-color-960.webp" srcset="/images/guide-scenes/v3/passport-color-480.webp 480w, /images/guide-scenes/v3/passport-color-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="毛色や模様を記録するための参考イメージ（AIイメージ）" data-guide-ja="毛色や模様を記録するための参考イメージ（AIイメージ）" data-guide-en="Illustrative coat colours and patterns for record keeping (AI illustration)" data-guide-zh="用于说明毛色与花纹记录的参考画面（AI示意图）"><figcaption><span data-guide-ja="毛色や模様を記録するための参考イメージ" data-guide-en="Illustrative coat colours and patterns for record keeping" data-guide-zh="用于说明毛色与花纹记录的参考画面">毛色や模様を記録するための参考イメージ</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <p>Available colors: Brown, Silver, Golden, Black, Blue, Red, Cream, White, Tortie, Calico, Tabby, Solid, Bicolor, Smoke, Shaded, Neva Masquerade, Tabby & White, Other</p>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-passport-3">
   <h2 class="guide-section-title">Parent Information</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="passport-parents"><img src="/images/guide-scenes/v3/passport-parents-960.webp" srcset="/images/guide-scenes/v3/passport-parents-480.webp 480w, /images/guide-scenes/v3/passport-parents-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="両親欄は確認済みの情報で記入する（AIイメージ）" data-guide-ja="両親欄は確認済みの情報で記入する（AIイメージ）" data-guide-en="Completing parent records with confirmed information (AI illustration)" data-guide-zh="使用已确认的信息填写父母档案（AI示意图）"><figcaption><span data-guide-ja="両親欄は確認済みの情報で記入する" data-guide-en="Completing parent records with confirmed information" data-guide-zh="使用已确认的信息填写父母档案">両親欄は確認済みの情報で記入する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-table-wrap">
     <table class="guide-table">
       <thead><tr><th></th><th>Sire (Father)</th><th>Dam (Mother)</th></tr></thead>
@@ -581,10 +666,12 @@ guideBodyTranslations.en['guide.body.passport'] = `
       </tbody>
     </table>
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-passport-4">
   <h2 class="guide-section-title">Health Records</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="passport-health"><img src="/images/guide-scenes/v3/passport-health-960.webp" srcset="/images/guide-scenes/v3/passport-health-480.webp 480w, /images/guide-scenes/v3/passport-health-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="健康記録と受け取った書類を一緒に保管する（AIイメージ）" data-guide-ja="健康記録と受け取った書類を一緒に保管する（AIイメージ）" data-guide-en="Keeping health records and supplied documents together (AI illustration)" data-guide-zh="将健康记录与收到的资料一并保存（AI示意图）"><figcaption><span data-guide-ja="健康記録と受け取った書類を一緒に保管する" data-guide-en="Keeping health records and supplied documents together" data-guide-zh="将健康记录与收到的资料一并保存">健康記録と受け取った書類を一緒に保管する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-table-wrap">
     <table class="guide-table">
       <thead><tr><th>Item</th><th>Date</th></tr></thead>
@@ -597,10 +684,12 @@ guideBodyTranslations.en['guide.body.passport'] = `
       </tbody>
     </table>
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-passport-5">
   <h2 class="guide-section-title">Diet Information</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="passport-food"><img src="/images/guide-scenes/v3/passport-food-960.webp" srcset="/images/guide-scenes/v3/passport-food-480.webp 480w, /images/guide-scenes/v3/passport-food-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="フードの種類や食事の様子を記録する（AIイメージ）" data-guide-ja="フードの種類や食事の様子を記録する（AIイメージ）" data-guide-en="Recording the food type and eating habits (AI illustration)" data-guide-zh="记录猫粮种类与进食情况（AI示意图）"><figcaption><span data-guide-ja="フードの種類や食事の様子を記録する" data-guide-en="Recording the food type and eating habits" data-guide-zh="记录猫粮种类与进食情况">フードの種類や食事の様子を記録する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-table-wrap">
     <table class="guide-table">
       <thead><tr><th>Item</th><th>Details</th></tr></thead>
@@ -612,10 +701,12 @@ guideBodyTranslations.en['guide.body.passport'] = `
       </tbody>
     </table>
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-passport-6">
   <h2 class="guide-section-title">Personality & Socialization Check</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="passport-social"><img src="/images/guide-scenes/v3/passport-social-960.webp" srcset="/images/guide-scenes/v3/passport-social-480.webp 480w, /images/guide-scenes/v3/passport-social-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="自分から探索する様子を見守り、記録する（AIイメージ）" data-guide-ja="自分から探索する様子を見守り、記録する（AIイメージ）" data-guide-en="Observing and recording voluntary exploration (AI illustration)" data-guide-zh="观察并记录猫咪主动探索的表现（AI示意图）"><figcaption><span data-guide-ja="自分から探索する様子を見守り、記録する" data-guide-en="Observing and recording voluntary exploration" data-guide-zh="观察并记录猫咪主动探索的表现">自分から探索する様子を見守り、記録する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><i class="ico ico-hand-heart" aria-hidden="true"></i> Holding</li>
     <li><i class="ico ico-toilet" aria-hidden="true"></i> Litter Box (uses independently)</li>
@@ -630,6 +721,7 @@ guideBodyTranslations.en['guide.body.passport'] = `
     <li><i class="ico ico-house" aria-hidden="true"></i> Adaptability to New Environments</li>
     <li><i class="ico ico-square-pen" aria-hidden="true"></i> Special Notes</li>
   </ul>
+</div></div>
 </section>
 `;
 
@@ -639,17 +731,20 @@ guideBodyTranslations.en['guide.body.weightLog'] = `
   <p>Weigh whenever you feel like it. You don't need to do it daily. Just a quick check when you're curious is enough.</p>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-weight-log-1">
   <h2 class="guide-section-title">Growth Guidelines</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="weight-log"><img src="/images/guide-scenes/v2/weight-log-960.webp" srcset="/images/guide-scenes/v2/weight-log-480.webp 480w, /images/guide-scenes/v2/weight-log-960.webp 960w, /images/guide-scenes/v2/weight-log-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="床に置いた低いペット用体重計に乗る白いサイベリアンのAIイメージ" data-guide-ja="床に置いた低いペット用体重計に乗る白いサイベリアンのAIイメージ" data-guide-en="AI illustration of a white Siberian on a low pet scale on the floor" data-guide-zh="白色西伯利亚猫在地面低位宠物秤上称重的AI示意图"><figcaption><span data-guide-ja="同じ条件で量り、記録する" data-guide-en="Weigh consistently and keep a record" data-guide-zh="在相近条件下称重并记录">同じ条件で量り、記録する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><i class="ico ico-cat" aria-hidden="true"></i> <strong>Kitten period</strong> — Typically gain 50-100g per week (varies by individual)</li>
     <li><i class="ico ico-cat" aria-hidden="true"></i> <strong>Adult</strong> — Weight stabilizes. No sudden changes means healthy</li>
     <li><i class="ico ico-paw-print" aria-hidden="true"></i> <strong>Siberian</strong> — A large breed reaching 4-8kg as adults</li>
   </ul>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-weight-log-2">
   <h2 class="guide-section-title">What to Watch For</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="weight-changes"><img src="/images/guide-scenes/v3/weight-changes-960.webp" srcset="/images/guide-scenes/v3/weight-changes-480.webp 480w, /images/guide-scenes/v3/weight-changes-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="同じ条件で測り、記録を見比べる（AIイメージ）" data-guide-ja="同じ条件で測り、記録を見比べる（AIイメージ）" data-guide-en="Comparing weight records taken under consistent conditions (AI illustration)" data-guide-zh="在相同条件下称重并对照记录（AI示意图）"><figcaption><span data-guide-ja="同じ条件で測り、記録を見比べる" data-guide-en="Comparing weight records taken under consistent conditions" data-guide-zh="在相同条件下称重并对照记录">同じ条件で測り、記録を見比べる</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-table-wrap">
     <table class="guide-table">
       <thead><tr><th>Change</th><th>Action</th></tr></thead>
@@ -660,6 +755,7 @@ guideBodyTranslations.en['guide.body.weightLog'] = `
       </tbody>
     </table>
   </div>
+</div></div>
 </section>
 
 <div class="guide-info">
@@ -673,8 +769,9 @@ guideBodyTranslations.en['guide.body.weightLog'] = `
 
 // ==================== 1. VISIT ====================
 guideBodyTranslations.zh['guide.body.visit'] = `
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-visit-1">
   <h2 class="guide-section-title" data-accent="strawberry">当天流程（约30〜60分钟）</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="visit"><img src="/images/guide-scenes/v2/visit-960.webp" srcset="/images/guide-scenes/v2/visit-480.webp 480w, /images/guide-scenes/v2/visit-960.webp 960w, /images/guide-scenes/v2/visit-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="白いサイベリアンが見学者の前で猫じゃらしに反応するAIイメージ" data-guide-ja="白いサイベリアンが見学者の前で猫じゃらしに反応するAIイメージ" data-guide-en="AI illustration of a white Siberian responding to a wand toy during a viewing" data-guide-zh="白色西伯利亚猫在参观者面前回应逗猫棒的AI示意图"><figcaption><span data-guide-ja="見学では、その子の反応を見る" data-guide-en="Observe the individual kitten at a viewing" data-guide-zh="参观时，观察这只猫自己的反应">見学では、その子の反応を見る</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ol class="guide-steps">
     <li><strong>到店</strong> — 确认预约、引导入内。请脱鞋换上拖鞋。</li>
     <li><strong>消毒</strong> — 请配合洗手和酒精消毒（现场备有）。</li>
@@ -688,20 +785,24 @@ guideBodyTranslations.zh['guide.body.visit'] = `
     <p style="margin-bottom:4px"><strong><i class="ico ico-japanese-yen" aria-hidden="true"></i> 关于定金</strong></p>
     <p style="margin-bottom:0">支付定金 <strong>50,000日元</strong> 即正式预留。付款后将下架展示并停止向他人推荐。尾款请在接猫日前汇款。</p>
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-visit-2">
   <h2 class="guide-section-title" data-accent="strawberry">参观当天小贴士</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="visit-tips"><img src="/images/guide-scenes/v3/visit-tips-960.webp" srcset="/images/guide-scenes/v3/visit-tips-480.webp 480w, /images/guide-scenes/v3/visit-tips-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="距離を保ち、フラッシュを使わず撮影する場面（AIイメージ）" data-guide-ja="距離を保ち、フラッシュを使わず撮影する場面（AIイメージ）" data-guide-en="Photographing from a respectful distance without flash (AI illustration)" data-guide-zh="保持距离、关闭闪光灯拍摄的场景（AI示意图）"><figcaption><span data-guide-ja="距離を保ち、フラッシュを使わず撮影する場面" data-guide-en="Photographing from a respectful distance without flash" data-guide-zh="保持距离、关闭闪光灯拍摄的场景">距離を保ち、フラッシュを使わず撮影する場面</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li>请少用香水和浓烈气味（小猫可能会受惊）</li>
     <li>不要强行抱，等猫咪自己靠近</li>
     <li>可以拍照录像（请关闭闪光灯）</li>
     <li>怕生是自然反应，时间长了就会习惯</li>
   </ul>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-visit-3">
   <h2 class="guide-section-title" data-accent="strawberry">消毒·卫生须知</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="visit-hygiene"><img src="/images/guide-scenes/v3/visit-hygiene-960.webp" srcset="/images/guide-scenes/v3/visit-hygiene-480.webp 480w, /images/guide-scenes/v3/visit-hygiene-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="入室前の手洗いと履き替えの準備（AIイメージ）" data-guide-ja="入室前の手洗いと履き替えの準備（AIイメージ）" data-guide-en="Handwashing and indoor footwear before entering (AI illustration)" data-guide-zh="入室前洗手并准备更换室内拖鞋（AI示意图）"><figcaption><span data-guide-ja="入室前の手洗いと履き替えの準備" data-guide-en="Handwashing and indoor footwear before entering" data-guide-zh="入室前洗手并准备更换室内拖鞋">入室前の手洗いと履き替えの準備</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <p>这是保护小猫和怀孕猫妈妈免受感染的重要措施。感谢您的配合。</p>
   <ul class="guide-list">
     <li><strong>到店后：</strong>洗手·酒精消毒（现场备有），换拖鞋，工作人员引导</li>
@@ -710,10 +811,12 @@ guideBodyTranslations.zh['guide.body.visit'] = `
   <div class="guide-note">
     即使去过其他地方（如宠物店），洗手后即可。如身体不适，请随时改期。
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-visit-4">
   <h2 class="guide-section-title" data-accent="strawberry">请随时提问</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="visit-questions"><img src="/images/guide-scenes/v3/visit-questions-960.webp" srcset="/images/guide-scenes/v3/visit-questions-480.webp 480w, /images/guide-scenes/v3/visit-questions-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="フードやお世話について質問を整理する（AIイメージ）" data-guide-ja="フードやお世話について質問を整理する（AIイメージ）" data-guide-en="Preparing questions about food and daily care (AI illustration)" data-guide-zh="整理猫粮与日常照护方面的问题（AI示意图）"><figcaption><span data-guide-ja="フードやお世話について質問を整理する" data-guide-en="Preparing questions about food and daily care" data-guide-zh="整理猫粮与日常照护方面的问题">フードやお世話について質問を整理する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li>换粮方法</li>
     <li>换毛期护理</li>
@@ -724,21 +827,25 @@ guideBodyTranslations.zh['guide.body.visit'] = `
   <div class="guide-note">
     即使觉得"这种问题能问吗？"也请随时提问。也可以提前通过LINE发送问题。
   </div>
+</div></div>
 </section>
 `;
 
 // ==================== 2. PRICE ====================
 guideBodyTranslations.zh['guide.body.price'] = `
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-price-1">
   <h2 class="guide-section-title" data-accent="blueberry">价格体系</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="price"><img src="/images/guide-scenes/v2/price-960.webp" srcset="/images/guide-scenes/v2/price-480.webp 480w, /images/guide-scenes/v2/price-960.webp 960w, /images/guide-scenes/v2/price-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="見積もりとオプションの確認欄を照らし合わせる手元のAIイメージ" data-guide-ja="見積もりとオプションの確認欄を照らし合わせる手元のAIイメージ" data-guide-en="AI illustration of comparing quotation and optional-item checklists" data-guide-zh="对照报价与可选项目清单的AI示意图"><figcaption><span data-guide-ja="含まれるものと、追加分を分けて確認" data-guide-en="Separate included items from extras" data-guide-zh="分清包含项目与额外选项">含まれるものと、追加分を分けて確認</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-info">
     <p style="margin-bottom:8px"><strong>网站标价 = 幼猫本体价格（基础价）</strong></p>
     <p style="margin-bottom:0">按需添加选项即可</p>
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-price-2">
   <h2 class="guide-section-title" data-accent="blueberry">可选项目</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="price-options"><img src="/images/guide-scenes/v3/price-options-960.webp" srcset="/images/guide-scenes/v3/price-options-480.webp 480w, /images/guide-scenes/v3/price-options-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="移動用品とお手入れ用品を分けて検討する（AIイメージ）" data-guide-ja="移動用品とお手入れ用品を分けて検討する（AIイメージ）" data-guide-en="Considering travel and grooming supplies separately (AI illustration)" data-guide-zh="分别考虑出行用品与护理用品（AI示意图）"><figcaption><span data-guide-ja="移動用品とお手入れ用品を分けて検討する" data-guide-en="Considering travel and grooming supplies separately" data-guide-zh="分别考虑出行用品与护理用品">移動用品とお手入れ用品を分けて検討する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-table-wrap">
     <table class="guide-table">
       <thead><tr><th>选项</th><th>内容</th><th>价格（含税）</th></tr></thead>
@@ -753,23 +860,27 @@ guideBodyTranslations.zh['guide.body.price'] = `
     </table>
   </div>
   <div class="guide-disclaimer">※最新价格请通过LINE确认。价格可能因时期和情况有所变动。</div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-price-3">
   <h2 class="guide-section-title" data-accent="blueberry">定金·尾款流程</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="price-payment"><img src="/images/guide-scenes/v3/price-payment-960.webp" srcset="/images/guide-scenes/v3/price-payment-480.webp 480w, /images/guide-scenes/v3/price-payment-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="予約金と残金の条件を説明時に確認する（AIイメージ）" data-guide-ja="予約金と残金の条件を説明時に確認する（AIイメージ）" data-guide-en="Checking deposit and balance terms during consultation (AI illustration)" data-guide-zh="咨询时核对定金与尾款条件（AI示意图）"><figcaption><span data-guide-ja="予約金と残金の条件を説明時に確認する" data-guide-en="Checking deposit and balance terms during consultation" data-guide-zh="咨询时核对定金与尾款条件">予約金と残金の条件を説明時に確認する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ol class="guide-steps">
     <li><strong>签约：</strong>支付定金50,000日元 → 停止公开展示，暂停向他人推荐。</li>
     <li><strong>准备：</strong>尾款请在接猫日前汇款。</li>
     <li><strong>接猫当天：</strong>确认猫包 → 最终健康检查 → 交接。</li>
   </ol>
   <div class="guide-note">关于取消，我们会根据具体情况逐一说明。请随时咨询。</div>
+</div></div>
 </section>
 `;
 
 // ==================== 3. PREPARE ====================
 guideBodyTranslations.zh['guide.body.prepare'] = `
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-prepare-1">
   <h2 class="guide-section-title">必备（先准备这些就够了）</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="prepare"><img src="/images/guide-scenes/v2/prepare-960.webp" srcset="/images/guide-scenes/v2/prepare-480.webp 480w, /images/guide-scenes/v2/prepare-960.webp 960w, /images/guide-scenes/v2/prepare-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="接猫用品を種類別に並べた俯瞰写真風のAIイメージ" data-guide-ja="接猫用品を種類別に並べた俯瞰写真風のAIイメージ" data-guide-en="Overhead AI illustration of grouped kitten supplies" data-guide-zh="按种类摆放接猫用品的俯拍式AI示意图"><figcaption><span data-guide-ja="まず、必要な物を見える形に" data-guide-en="Lay out the essentials first" data-guide-zh="先把接猫用品摆齐">まず、必要な物を見える形に</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><i class="ico ico-house" aria-hidden="true"></i> <strong>笼子/围栏</strong> — 第一周的安心"家中之家"。大小适中最好。</li>
     <li><i class="ico ico-luggage" aria-hidden="true"></i> <strong>猫包</strong> — 推荐顶部开口款，方便进出。看诊时也要用。</li>
@@ -779,10 +890,12 @@ guideBodyTranslations.zh['guide.body.prepare'] = `
     <li><i class="ico ico-droplet" aria-hidden="true"></i> <strong>水碗 ×2</strong> — 建议放在两个地方，更安心。陶瓷或不锈钢更卫生。</li>
     <li><i class="ico ico-package" aria-hidden="true"></i> <strong>猫抓板</strong> — 立式或横式任选一个即可。尽早设置以保护家具。</li>
   </ul>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-prepare-2">
   <h2 class="guide-section-title">建议提前准备（最好在接猫前）</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="prepare-extra"><img src="/images/guide-scenes/v3/prepare-extra-960.webp" srcset="/images/guide-scenes/v3/prepare-extra-480.webp 480w, /images/guide-scenes/v3/prepare-extra-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="予備のシーツ、寝具、遊びとケアの用品（AIイメージ）" data-guide-ja="予備のシーツ、寝具、遊びとケアの用品（AIイメージ）" data-guide-en="Spare pads, bedding, play and grooming supplies (AI illustration)" data-guide-zh="备用尿垫、寝具、玩耍与护理用品（AI示意图）"><figcaption><span data-guide-ja="予備のシーツ、寝具、遊びとケアの用品" data-guide-en="Spare pads, bedding, play and grooming supplies" data-guide-zh="备用尿垫、寝具、玩耍与护理用品">予備のシーツ、寝具、遊びとケアの用品</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><i class="ico ico-bed" aria-hidden="true"></i> <strong>猫窝/毛毯</strong> — 我们有时会提供带有小猫气味的毛毯。</li>
     <li><i class="ico ico-utensils" aria-hidden="true"></i> <strong>湿粮</strong> — 食欲下降时的辅助。</li>
@@ -791,6 +904,7 @@ guideBodyTranslations.zh['guide.body.prepare'] = `
     <li><i class="ico ico-brush-cleaning" aria-hidden="true"></i> <strong>消毒用品</strong> — 有宠物专用除菌喷雾会很方便。</li>
     <li><i class="ico ico-file-text" aria-hidden="true"></i> <strong>尿垫</strong> — 铺在猫包内或笼子下面更安心。</li>
   </ul>
+</div></div>
 </section>
 
 <div class="guide-note">
@@ -800,8 +914,9 @@ guideBodyTranslations.zh['guide.body.prepare'] = `
 
 // ==================== 4. BRING ====================
 guideBodyTranslations.zh['guide.body.bring'] = `
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-bring-1">
   <h2 class="guide-section-title">需要带的物品</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="bring"><img src="/images/guide-scenes/v2/bring-960.webp" srcset="/images/guide-scenes/v2/bring-480.webp 480w, /images/guide-scenes/v2/bring-960.webp 960w, /images/guide-scenes/v2/bring-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="上開きキャリーにペットシーツを敷く手元のAIイメージ" data-guide-ja="上開きキャリーにペットシーツを敷く手元のAIイメージ" data-guide-en="AI illustration of hands lining a top-opening carrier" data-guide-zh="双手为顶开式航空箱铺尿垫的AI示意图"><figcaption><span data-guide-ja="出発前に、キャリーの中まで準備" data-guide-en="Prepare the carrier before leaving" data-guide-zh="出门前，先准备好航空箱内部">出発前に、キャリーの中まで準備</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><i class="ico ico-luggage" aria-hidden="true"></i> <strong>猫包</strong> — 推荐顶部开口款，方便进出。硬壳款更稳定。</li>
     <li><i class="ico ico-file-text" aria-hidden="true"></i> <strong>尿垫（1〜2片）</strong> — 铺在猫包内，移动中出意外也不怕。</li>
@@ -810,6 +925,7 @@ guideBodyTranslations.zh['guide.body.bring'] = `
     <li><i class="ico ico-utensils" aria-hidden="true"></i> <strong>平时的猫粮（少量）</strong> — 长途的话，到家后可以马上喂。※短途不需要。</li>
     <li><i class="ico ico-smartphone" aria-hidden="true"></i> <strong>可用LINE的联络方式</strong> — 到家后可以马上报告情况·咨询。</li>
   </ul>
+</div></div>
 </section>
 
 <div class="guide-note">
@@ -819,8 +935,9 @@ guideBodyTranslations.zh['guide.body.bring'] = `
 
 // ==================== 5. HOME SAFETY ====================
 guideBodyTranslations.zh['guide.body.homeSafety'] = `
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-home-safety-1">
   <h2 class="guide-section-title">常见注意事项</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="home-safety"><img src="/images/guide-scenes/v2/home-safety-960.webp" srcset="/images/guide-scenes/v2/home-safety-480.webp 480w, /images/guide-scenes/v2/home-safety-960.webp 960w, /images/guide-scenes/v2/home-safety-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="窓のロック、コード収納、戸棚のラッチを示す3分割のAIイメージ" data-guide-ja="窓のロック、コード収納、戸棚のラッチを示す3分割のAIイメージ" data-guide-en="Three-panel AI illustration of a window lock, cable enclosure and cupboard latch" data-guide-zh="展示窗锁、电线收纳和柜门锁扣的三联AI示意图"><figcaption><span data-guide-ja="窓・コード・収納を、手で確認" data-guide-en="Check windows, cables and storage" data-guide-zh="亲手检查门窗、电线和柜门">窓・コード・収納を、手で確認</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure><figure class="guide-section-figure" data-guide-visual="safety-small-items"><img src="/images/guide-scenes/v3/safety-small-items-960.webp" srcset="/images/guide-scenes/v3/safety-small-items-480.webp 480w, /images/guide-scenes/v3/safety-small-items-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="小物の収納、洗濯機の確認、窓や扉の閉鎖（AIイメージ）" data-guide-ja="小物の収納、洗濯機の確認、窓や扉の閉鎖（AIイメージ）" data-guide-en="Storing small objects, checking appliances and closing exits (AI illustration)" data-guide-zh="收好小物件、检查洗衣机并关好门窗（AI示意图）"><figcaption><span data-guide-ja="小物の収納、洗濯機の確認、窓や扉の閉鎖" data-guide-en="Storing small objects, checking appliances and closing exits" data-guide-zh="收好小物件、检查洗衣机并关好门窗">小物の収納、洗濯機の確認、窓や扉の閉鎖</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><i class="ico ico-zap" aria-hidden="true"></i> <strong>电源线·充电线</strong> — 咬到可能触电或烫伤。捆好加保护套，或藏在家具后面。</li>
     <li><i class="ico ico-fish" aria-hidden="true"></i> <strong>线·绳·橡皮筋</strong> — 吞下可能导致肠梗阻。发现了立刻收好。</li>
@@ -829,6 +946,7 @@ guideBodyTranslations.zh['guide.body.homeSafety'] = `
     <li><i class="ico ico-blinds" aria-hidden="true"></i> <strong>窗户·阳台</strong> — 安装防坠网或窗锁。光靠纱窗可能不够。</li>
     <li><i class="ico ico-leaf" aria-hidden="true"></i> <strong>观叶植物</strong> — 百合科即使少量对猫也是致命的。不确定名字的话发照片给我们即可。</li>
   </ul>
+</div></div>
 </section>
 
 <div class="guide-note">
@@ -838,8 +956,9 @@ guideBodyTranslations.zh['guide.body.homeSafety'] = `
 
 // ==================== 6. DAY 1 ====================
 guideBodyTranslations.zh['guide.body.day1'] = `
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-day1-1">
   <h2 class="guide-section-title" data-accent="mint">到家后立刻做的事</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="day1-arrival"><img src="/images/guide-scenes/v3/day1-arrival-960.webp" srcset="/images/guide-scenes/v3/day1-arrival-480.webp 480w, /images/guide-scenes/v3/day1-arrival-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="水・寝床・トイレを用意した小さな生活スペース（AIイメージ）" data-guide-ja="水・寝床・トイレを用意した小さな生活スペース（AIイメージ）" data-guide-en="A starter space with water, bedding and a litter tray (AI illustration)" data-guide-zh="备好饮水、寝具和猫厕所的初期生活区（AI示意图）"><figcaption><span data-guide-ja="水・寝床・トイレを用意した小さな生活スペース" data-guide-en="A starter space with water, bedding and a litter tray" data-guide-zh="备好饮水、寝具和猫厕所的初期生活区">水・寝床・トイレを用意した小さな生活スペース</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ol class="guide-steps">
     <li><strong>放进笼子/围栏里</strong>（不要强行拿出来）</li>
     <li><strong>准备水</strong>（新鲜的水放在笼子里）</li>
@@ -849,10 +968,12 @@ guideBodyTranslations.zh['guide.body.day1'] = `
   <div class="guide-note">
     <i class="ico ico-lightbulb" aria-hidden="true"></i> 第一周建议以笼子为主。可能会觉得"太小了好可怜"，但对猫咪来说这是安心的窝。
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-day1-2">
   <h2 class="guide-section-title" data-accent="mint">第1〜2天常见的情况</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="day1-observe"><img src="/images/guide-scenes/v3/day1-observe-960.webp" srcset="/images/guide-scenes/v3/day1-observe-480.webp 480w, /images/guide-scenes/v3/day1-observe-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="食事と飲水の様子を離れて観察する（AIイメージ）" data-guide-ja="食事と飲水の様子を離れて観察する（AIイメージ）" data-guide-en="Observing eating and drinking from a distance (AI illustration)" data-guide-zh="保持距离观察进食与饮水情况（AI示意图）"><figcaption><span data-guide-ja="食事と飲水の様子を離れて観察する" data-guide-en="Observing eating and drinking from a distance" data-guide-zh="保持距离观察进食与饮水情况">食事と飲水の様子を離れて観察する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-table-wrap">
     <table class="guide-table">
       <thead><tr><th>症状</th><th>对应</th></tr></thead>
@@ -864,20 +985,24 @@ guideBodyTranslations.zh['guide.body.day1'] = `
       </tbody>
     </table>
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-day1-3">
   <h2 class="guide-section-title" data-accent="mint">第一天要避免的事</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="day1"><img src="/images/guide-scenes/v2/day1-960.webp" srcset="/images/guide-scenes/v2/day1-480.webp 480w, /images/guide-scenes/v2/day1-960.webp 960w, /images/guide-scenes/v2/day1-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="薄暗い隠れ箱の中から外を観察するブラウンタビーのAIイメージ" data-guide-ja="薄暗い隠れ箱の中から外を観察するブラウンタビーのAIイメージ" data-guide-en="AI illustration of a brown tabby observing from a sheltered box at dusk" data-guide-zh="黄昏时在躲藏纸箱内观察环境的虎斑猫AI示意图"><figcaption><span data-guide-ja="初日は、隠れて見ていても大丈夫" data-guide-en="A quiet retreat for the first day" data-guide-zh="第一天，先有安静躲藏处">初日は、隠れて見ていても大丈夫</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><strong>追着抓</strong> — 如果躲起来了，不要强行拉出来，等它自己出来。</li>
     <li><strong>洗澡·洗浴</strong> — 接猫后1〜2周内请不要洗。</li>
     <li><strong>突然换粮</strong> — 请继续喂目前在吃的猫粮。</li>
     <li><strong>来客·大声响</strong> — 最初几天保持安静的环境。</li>
   </ul>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-day1-4">
   <h2 class="guide-section-title" data-accent="mint">联系我们的参考标准</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="day1-contact"><img src="/images/guide-scenes/v3/day1-contact-960.webp" srcset="/images/guide-scenes/v3/day1-contact-480.webp 480w, /images/guide-scenes/v3/day1-contact-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="相談のために普段の様子を動画に残す（AIイメージ）" data-guide-ja="相談のために普段の様子を動画に残す（AIイメージ）" data-guide-en="Recording everyday behaviour to share during consultation (AI illustration)" data-guide-zh="记录日常状态视频，便于咨询时说明（AI示意图）"><figcaption><span data-guide-ja="相談のために普段の様子を動画に残す" data-guide-en="Recording everyday behaviour to share during consultation" data-guide-zh="记录日常状态视频，便于咨询时说明">相談のために普段の様子を動画に残す</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-table-wrap">
     <table class="guide-table">
       <thead><tr><th>情况</th><th>对应</th></tr></thead>
@@ -890,6 +1015,7 @@ guideBodyTranslations.zh['guide.body.day1'] = `
   <div class="guide-warning">
     <i class="ico ico-triangle-alert" aria-hidden="true"></i> 不确定的时候，请随时通过LINE联系我们。发送照片或视频，我们会立刻给出建议。
   </div>
+</div></div>
 </section>
 `;
 
@@ -899,8 +1025,9 @@ guideBodyTranslations.zh['guide.body.week1'] = `
   <p>这是接猫后的参考标准。个体差异存在，仅供参考。</p>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-week1-1">
   <h2 class="guide-section-title">7天概览</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="week1"><img src="/images/guide-scenes/v2/week1-960.webp" srcset="/images/guide-scenes/v2/week1-480.webp 480w, /images/guide-scenes/v2/week1-960.webp 960w, /images/guide-scenes/v2/week1-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="食器とフードを横に、日々の確認表へ記録する手元のAIイメージ" data-guide-ja="食器とフードを横に、日々の確認表へ記録する手元のAIイメージ" data-guide-en="AI illustration of recording daily observations beside food supplies" data-guide-zh="在食物用品旁记录每日观察表的AI示意图"><figcaption><span data-guide-ja="毎日の小さな変化を、記録に残す" data-guide-en="Record the small changes each day" data-guide-zh="把每天的小变化记下来">毎日の小さな変化を、記録に残す</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-table-wrap">
     <table class="guide-table">
       <thead><tr><th>时期</th><th>饮水</th><th>饮食</th><th>排便</th><th>状态</th></tr></thead>
@@ -914,20 +1041,24 @@ guideBodyTranslations.zh['guide.body.week1'] = `
   <div class="guide-info">
     <i class="ico ico-square-pen" aria-hidden="true"></i> 网页版仅提供参考信息。可打印的记录表可通过LINE获取。
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-week1-2">
   <h2 class="guide-section-title">常见变化</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="week1-changes"><img src="/images/guide-scenes/v3/week1-changes-960.webp" srcset="/images/guide-scenes/v3/week1-changes-480.webp 480w, /images/guide-scenes/v3/week1-changes-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="静かな場所で食事や活動の変化を観察する（AIイメージ）" data-guide-ja="静かな場所で食事や活動の変化を観察する（AIイメージ）" data-guide-en="Observing changes in eating and activity in a quiet space (AI illustration)" data-guide-zh="在安静环境中观察进食与活动变化（AI示意图）"><figcaption><span data-guide-ja="静かな場所で食事や活動の変化を観察する" data-guide-en="Observing changes in eating and activity in a quiet space" data-guide-zh="在安静环境中观察进食与活动变化">静かな場所で食事や活動の変化を観察する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><i class="ico ico-utensils" aria-hidden="true"></i> <strong>食量减少</strong> — 环境变化导致暂时食欲下降是自然的。湿粮可以帮助。</li>
     <li><i class="ico ico-wind" aria-hidden="true"></i> <strong>轻微打喷嚏·软便</strong> — 可能是应激反应。通常2〜3天内好转。</li>
     <li><i class="ico ico-moon" aria-hidden="true"></i> <strong>夜间叫唤</strong> — 在新环境中不安所致。几天就会适应。笼子上盖毛巾会更安心。</li>
     <li><i class="ico ico-trending-up" aria-hidden="true"></i> <strong>第3天开始稳定</strong> — 大多数猫咪第3天左右食欲和排便开始稳定。</li>
   </ul>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-week1-3">
   <h2 class="guide-section-title">担心时请立即咨询</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="week1-consult"><img src="/images/guide-scenes/v3/week1-consult-960.webp" srcset="/images/guide-scenes/v3/week1-consult-480.webp 480w, /images/guide-scenes/v3/week1-consult-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="相談前に、経過と質問を手元にまとめる（AIイメージ）" data-guide-ja="相談前に、経過と質問を手元にまとめる（AIイメージ）" data-guide-en="Gathering observations and questions before consultation (AI illustration)" data-guide-zh="咨询前整理好情况经过与问题（AI示意图）"><figcaption><span data-guide-ja="相談前に、経過と質問を手元にまとめる" data-guide-en="Gathering observations and questions before consultation" data-guide-zh="咨询前整理好情况经过与问题">相談前に、経過と質問を手元にまとめる</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-warning">
     <p>请在以下情况时尽快联系我们：</p>
     <ul>
@@ -939,13 +1070,15 @@ guideBodyTranslations.zh['guide.body.week1'] = `
     <p>通过LINE发送照片·视频，我们会立刻给出建议。只发照片也可以 <i class="ico ico-smile" aria-hidden="true"></i></p>
     <p style="margin-top:8px;">※以上为参考标准。担心时或症状严重时，请咨询您的兽医。</p>
   </div>
+</div></div>
 </section>
 `;
 
 // ==================== 8. FAMILY ====================
 guideBodyTranslations.zh['guide.body.family'] = `
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-family-1">
   <h2 class="guide-section-title">有小孩的情况</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="family"><img src="/images/guide-scenes/v2/family-960.webp" srcset="/images/guide-scenes/v2/family-480.webp 480w, /images/guide-scenes/v2/family-960.webp 960w, /images/guide-scenes/v2/family-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="大人と子どもが静かに座り、虎斑の子猫が近づくAIイメージ" data-guide-ja="大人と子どもが静かに座り、虎斑の子猫が近づくAIイメージ" data-guide-en="AI illustration of an adult and child waiting as a tabby kitten approaches" data-guide-zh="大人与孩子安静坐着、虎斑小猫主动靠近的AI示意图"><figcaption><span data-guide-ja="子どもも大人も、まずは待つ" data-guide-en="Adults and children can start by waiting" data-guide-zh="大人和孩子都先安静等待">子どもも大人も、まずは待つ</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><i class="ico ico-eye" aria-hidden="true"></i> <strong>最初3天"只看不摸"</strong> — 忍住想摸的冲动。等猫咪自己靠过来。</li>
     <li><i class="ico ico-ban" aria-hidden="true"></i> <strong>不要追、不要抓</strong> — 跑着追会让猫咪害怕躲起来。</li>
@@ -955,51 +1088,61 @@ guideBodyTranslations.zh['guide.body.family'] = `
   <div class="guide-note">
     <i class="ico ico-lightbulb" aria-hidden="true"></i> 对小朋友说"猫咪就像小宝宝一样"，会更容易理解。
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-family-2">
   <h2 class="guide-section-title">有狗狗或其他宠物的情况</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="family-dog"><img src="/images/guide-scenes/v3/family-dog-960.webp" srcset="/images/guide-scenes/v3/family-dog-480.webp 480w, /images/guide-scenes/v3/family-dog-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="閉じた仕切り越しに、犬はリードで管理する（AIイメージ）" data-guide-ja="閉じた仕切り越しに、犬はリードで管理する（AIイメージ）" data-guide-en="Using a closed barrier with the dog on a lead (AI illustration)" data-guide-zh="使用关闭的隔离门，并用牵引绳控制犬只（AI示意图）"><figcaption><span data-guide-ja="閉じた仕切り越しに、犬はリードで管理する" data-guide-en="Using a closed barrier with the dog on a lead" data-guide-zh="使用关闭的隔离门，并用牵引绳控制犬只">閉じた仕切り越しに、犬はリードで管理する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ol class="guide-steps">
     <li><strong>气味交换</strong> — 互换毛巾或毛毯，让彼此习惯对方的气味。</li>
     <li><strong>保持距离同室</strong> — 通过笼子或牵绳，在同一房间。哈气是"吓到了"的意思。</li>
     <li><strong>逐渐延长时间</strong> — 慢慢延长安静相处的时间。</li>
   </ol>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-family-3">
   <h2 class="guide-section-title">安心小贴士</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="family-rules"><img src="/images/guide-scenes/v3/family-rules-960.webp" srcset="/images/guide-scenes/v3/family-rules-480.webp 480w, /images/guide-scenes/v3/family-rules-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="家族で、休んでいる猫をそっとしておく（AIイメージ）" data-guide-ja="家族で、休んでいる猫をそっとしておく（AIイメージ）" data-guide-en="Giving a resting kitten quiet time as a family (AI illustration)" data-guide-zh="全家共同遵守：让休息中的猫咪安静独处（AI示意图）"><figcaption><span data-guide-ja="家族で、休んでいる猫をそっとしておく" data-guide-en="Giving a resting kitten quiet time as a family" data-guide-zh="全家共同遵守：让休息中的猫咪安静独处">家族で、休んでいる猫をそっとしておく</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><i class="ico ico-house" aria-hidden="true"></i> <strong>第一周尽量减少来客</strong></li>
     <li><i class="ico ico-house" aria-hidden="true"></i> <strong>笼子是安全基地（不要强行让它出来）</strong></li>
     <li><i class="ico ico-camera" aria-hidden="true"></i> <strong>有困扰时发照片·视频咨询就行</strong></li>
   </ul>
+</div></div>
 </section>
 `;
 
 // ==================== 9. MULTI ====================
 guideBodyTranslations.zh['guide.body.multi'] = `
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-multi-cat-1">
   <h2 class="guide-section-title" data-accent="taro">多猫家庭的好处</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="multi-benefits"><img src="/images/guide-scenes/v3/multi-benefits-960.webp" srcset="/images/guide-scenes/v3/multi-benefits-480.webp 480w, /images/guide-scenes/v3/multi-benefits-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="それぞれの玩具で遊べる共有スペース（AIイメージ）" data-guide-ja="それぞれの玩具で遊べる共有スペース（AIイメージ）" data-guide-en="A shared space with separate toys for each kitten (AI illustration)" data-guide-zh="提供各自玩具的共享活动空间（AI示意图）"><figcaption><span data-guide-ja="それぞれの玩具で遊べる共有スペース" data-guide-en="A shared space with separate toys for each kitten" data-guide-zh="提供各自玩具的共享活动空间">それぞれの玩具で遊べる共有スペース</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><i class="ico ico-cat" aria-hidden="true"></i> 成为彼此的玩伴，减少运动不足和压力</li>
     <li><i class="ico ico-house" aria-hidden="true"></i> 独自看家时不那么孤单</li>
     <li><i class="ico ico-brain" aria-hidden="true"></i> 社会性更好，性格更容易变温和</li>
     <li><i class="ico ico-eye" aria-hidden="true"></i> 先住猫作为榜样，更容易学会生活习惯</li>
   </ul>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-multi-cat-2">
   <h2 class="guide-section-title" data-accent="taro">西伯利亚猫适合多猫饲养</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="multi-individual"><img src="/images/guide-scenes/v3/multi-individual-960.webp" srcset="/images/guide-scenes/v3/multi-individual-480.webp 480w, /images/guide-scenes/v3/multi-individual-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="隠れたい子、探索したい子、それぞれのペース（AIイメージ）" data-guide-ja="隠れたい子、探索したい子、それぞれのペース（AIイメージ）" data-guide-en="Different preferences for sheltering and exploring (AI illustration)" data-guide-zh="尊重不同猫咪躲藏或探索的节奏（AI示意图）"><figcaption><span data-guide-ja="隠れたい子、探索したい子、それぞれのペース" data-guide-en="Different preferences for sheltering and exploring" data-guide-zh="尊重不同猫咪躲藏或探索的节奏">隠れたい子、探索したい子、それぞれのペース</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li>性格温和，善于社交</li>
     <li>有与兄弟姐妹和父母猫相处的经验，擅长猫与猫之间的沟通</li>
     <li>对新环境的适应力强</li>
     <li>不容易威胁先住猫</li>
   </ul>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-multi-cat-3">
   <h2 class="guide-section-title" data-accent="taro">推进时间参考</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="multi-cat"><img src="/images/guide-scenes/v2/multi-cat-960.webp" srcset="/images/guide-scenes/v2/multi-cat-480.webp 480w, /images/guide-scenes/v2/multi-cat-960.webp 960w, /images/guide-scenes/v2/multi-cat-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="別々の場所で布のにおいを嗅ぐ虎斑と白猫の2分割AIイメージ" data-guide-ja="別々の場所で布のにおいを嗅ぐ虎斑と白猫の2分割AIイメージ" data-guide-en="Two-panel AI illustration of a tabby and white cat sniffing cloths in separate rooms" data-guide-zh="虎斑猫与白猫在各自房间闻布料的双联AI示意图"><figcaption><span data-guide-ja="顔を合わせる前に、においを知る" data-guide-en="Learn the scent before meeting" data-guide-zh="见面之前，先熟悉气味">顔を合わせる前に、においを知る</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ol class="guide-steps">
     <li><strong>第1〜3天</strong>：分房间或以笼子为主。只让它们感受彼此的气味。</li>
     <li><strong>第4〜7天</strong>：互换毛巾，让它们习惯彼此的气味。</li>
@@ -1007,10 +1150,12 @@ guideBodyTranslations.zh['guide.body.multi'] = `
     <li><strong>开始习惯后</strong>：短时间同室（有人看着）。</li>
     <li><strong>安定后</strong>：自由活动。</li>
   </ol>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-multi-cat-4">
   <h2 class="guide-section-title" data-accent="taro">成功秘诀</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="multi-resources"><img src="/images/guide-scenes/v3/multi-resources-960.webp" srcset="/images/guide-scenes/v3/multi-resources-480.webp 480w, /images/guide-scenes/v3/multi-resources-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="トイレ・食器・休憩場所を分散して用意する（AIイメージ）" data-guide-ja="トイレ・食器・休憩場所を分散して用意する（AIイメージ）" data-guide-en="Providing separate litter, feeding and resting areas (AI illustration)" data-guide-zh="分散设置猫厕所、食碗与休息处（AI示意图）"><figcaption><span data-guide-ja="トイレ・食器・休憩場所を分散して用意する" data-guide-en="Providing separate litter, feeding and resting areas" data-guide-zh="分散设置猫厕所、食碗与休息处">トイレ・食器・休憩場所を分散して用意する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li>猫厕所数量＝"猫的数量＋1"</li>
     <li>猫粮和水分开准备</li>
@@ -1019,16 +1164,19 @@ guideBodyTranslations.zh['guide.body.multi'] = `
     <li>优先照顾先住猫（防止嫉妒）</li>
     <li>每天坚持气味交换</li>
   </ul>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-multi-cat-5">
   <h2 class="guide-section-title" data-accent="taro">顺利的信号</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="multi-signs"><img src="/images/guide-scenes/v3/multi-signs-960.webp" srcset="/images/guide-scenes/v3/multi-signs-480.webp 480w, /images/guide-scenes/v3/multi-signs-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="別々の場所で落ち着いて休む様子を観察する（AIイメージ）" data-guide-ja="別々の場所で落ち着いて休む様子を観察する（AIイメージ）" data-guide-en="Observing relaxed rest in separate spots (AI illustration)" data-guide-zh="观察猫咪能否在各自位置安静休息（AI示意图）"><figcaption><span data-guide-ja="別々の場所で落ち着いて休む様子を観察する" data-guide-en="Observing relaxed rest in separate spots" data-guide-zh="观察猫咪能否在各自位置安静休息">別々の場所で落ち着いて休む様子を観察する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li>能在同一房间放松相处</li>
     <li>互相舔毛（理毛）</li>
     <li>嬉闹·追逐（非攻击性的）</li>
     <li>能互相无视（其实很重要）</li>
   </ul>
+</div></div>
 </section>
 `;
 
@@ -1036,17 +1184,20 @@ guideBodyTranslations.zh['guide.body.multi'] = `
 guideBodyTranslations.zh['guide.body.neuter'] = `
 <div class="guide-disclaimer">※ 本页内容仅供一般参考。如有担心或症状严重，请咨询您的兽医。</div>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-neuter-1">
   <h2 class="guide-section-title" data-accent="blueberry">术后安静休息最重要</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="neuter"><img src="/images/guide-scenes/v2/neuter-960.webp" srcset="/images/guide-scenes/v2/neuter-480.webp 480w, /images/guide-scenes/v2/neuter-960.webp 960w, /images/guide-scenes/v2/neuter-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="低い寝床と、カラー・術後服・説明書用封筒を準備したAIイメージ" data-guide-ja="低い寝床と、カラー・術後服・説明書用封筒を準備したAIイメージ" data-guide-en="AI illustration of a low rest area with a cone, recovery garment and instruction envelope" data-guide-zh="低位寝床与围脖、术后服、说明资料信封的AI示意图"><figcaption><span data-guide-ja="休む場所と、病院の指示を準備" data-guide-en="Prepare a rest area and the vet’s instructions" data-guide-zh="准备休息区，并核对医院交代">休む場所と、病院の指示を準備</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li>在安静的地方休息（推荐笼子）</li>
     <li>从少量食物开始（麻醉后容易呕吐）</li>
     <li>不要让它舔伤口（用伊丽莎白圈或术后服保护）</li>
   </ul>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-neuter-2">
   <h2 class="guide-section-title" data-accent="blueberry">公猫/母猫注意事项不同</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="neuter-individual"><img src="/images/guide-scenes/v3/neuter-individual-960.webp" srcset="/images/guide-scenes/v3/neuter-individual-480.webp 480w, /images/guide-scenes/v3/neuter-individual-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="保護具やケア方法は動物病院で確認する（AIイメージ）" data-guide-ja="保護具やケア方法は動物病院で確認する（AIイメージ）" data-guide-en="Checking protective equipment and care with the vet (AI illustration)" data-guide-zh="向动物医院确认防护用品与护理方法（AI示意图）"><figcaption><span data-guide-ja="保護具やケア方法は動物病院で確認する" data-guide-en="Checking protective equipment and care with the vet" data-guide-zh="向动物医院确认防护用品与护理方法">保護具やケア方法は動物病院で確認する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-table-wrap">
     <table class="guide-table">
       <thead><tr><th>项目</th><th>公猫（去势）</th><th>母猫（避妊）</th></tr></thead>
@@ -1058,10 +1209,12 @@ guideBodyTranslations.zh['guide.body.neuter'] = `
       </tbody>
     </table>
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-neuter-3">
   <h2 class="guide-section-title" data-accent="blueberry">一周参考</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="neuter-week"><img src="/images/guide-scenes/v3/neuter-week-960.webp" srcset="/images/guide-scenes/v3/neuter-week-480.webp 480w, /images/guide-scenes/v3/neuter-week-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="経過と再診予定をカレンダーにまとめる（AIイメージ）" data-guide-ja="経過と再診予定をカレンダーにまとめる（AIイメージ）" data-guide-en="Keeping recovery notes and follow-up appointments together (AI illustration)" data-guide-zh="集中记录恢复情况与复诊安排（AI示意图）"><figcaption><span data-guide-ja="経過と再診予定をカレンダーにまとめる" data-guide-en="Keeping recovery notes and follow-up appointments together" data-guide-zh="集中记录恢复情况与复诊安排">経過と再診予定をカレンダーにまとめる</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-table-wrap">
     <table class="guide-table">
       <thead><tr><th>时期</th><th>状况</th></tr></thead>
@@ -1072,20 +1225,24 @@ guideBodyTranslations.zh['guide.body.neuter'] = `
       </tbody>
     </table>
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-neuter-4">
   <h2 class="guide-section-title" data-accent="blueberry">绝育的好处</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="neuter-benefits"><img src="/images/guide-scenes/v3/neuter-benefits-960.webp" srcset="/images/guide-scenes/v3/neuter-benefits-480.webp 480w, /images/guide-scenes/v3/neuter-benefits-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="手術の利点と注意点を獣医師に相談する（AIイメージ）" data-guide-ja="手術の利点と注意点を獣医師に相談する（AIイメージ）" data-guide-en="Discussing the benefits and considerations with a vet (AI illustration)" data-guide-zh="与兽医讨论手术的益处与注意事项（AI示意图）"><figcaption><span data-guide-ja="手術の利点と注意点を獣医師に相談する" data-guide-en="Discussing the benefits and considerations with a vet" data-guide-zh="与兽医讨论手术的益处与注意事项">手術の利点と注意点を獣医師に相談する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li>防止意外怀孕</li>
     <li>减少喷尿行为和发情期叫声</li>
     <li>预防乳腺肿瘤·子宫蓄脓症等</li>
     <li>性格更容易变温和</li>
   </ul>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-neuter-5">
   <h2 class="guide-section-title" data-accent="blueberry">就医参考</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="neuter-warning"><img src="/images/guide-scenes/v3/neuter-warning-960.webp" srcset="/images/guide-scenes/v3/neuter-warning-480.webp 480w, /images/guide-scenes/v3/neuter-warning-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="気になる変化をメモし、動物病院に連絡する（AIイメージ）" data-guide-ja="気になる変化をメモし、動物病院に連絡する（AIイメージ）" data-guide-en="Noting concerning changes before contacting the vet (AI illustration)" data-guide-zh="记下令人担心的变化并联系动物医院（AI示意图）"><figcaption><span data-guide-ja="気になる変化をメモし、動物病院に連絡する" data-guide-en="Noting concerning changes before contacting the vet" data-guide-zh="记下令人担心的变化并联系动物医院">気になる変化をメモし、動物病院に連絡する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-warning">
     <ul>
       <li>超过24小时完全不吃不喝</li>
@@ -1095,27 +1252,33 @@ guideBodyTranslations.zh['guide.body.neuter'] = `
       <li>发烧（耳朵异常发烫）</li>
     </ul>
   </div>
+</div></div>
 </section>
 `;
 
 // ==================== 11. GROOMING ====================
 guideBodyTranslations.zh['guide.body.grooming'] = `
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-grooming-1">
   <h2 class="guide-section-title">什么是换毛期？</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="grooming-shed"><img src="/images/guide-scenes/v3/grooming-shed-960.webp" srcset="/images/guide-scenes/v3/grooming-shed-480.webp 480w, /images/guide-scenes/v3/grooming-shed-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="コームとブラシに付いた抜け毛を確認する（AIイメージ）" data-guide-ja="コームとブラシに付いた抜け毛を確認する（AIイメージ）" data-guide-en="Checking loose fur collected by a comb and brush (AI illustration)" data-guide-zh="观察梳子和毛刷收集的浮毛（AI示意图）"><figcaption><span data-guide-ja="コームとブラシに付いた抜け毛を確認する" data-guide-en="Checking loose fur collected by a comb and brush" data-guide-zh="观察梳子和毛刷收集的浮毛">コームとブラシに付いた抜け毛を確認する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <p>西伯利亚猫是双层被毛品种。春季（3〜5月）和秋季（9〜11月）会大量换毛。这个时期掉毛增多是健康的表现。</p>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-grooming-2">
   <h2 class="guide-section-title">毛球护理方法</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="grooming-hairball"><img src="/images/guide-scenes/v3/grooming-hairball-960.webp" srcset="/images/guide-scenes/v3/grooming-hairball-480.webp 480w, /images/guide-scenes/v3/grooming-hairball-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="飲水と食事も含めて日々のケアを考える（AIイメージ）" data-guide-ja="飲水と食事も含めて日々のケアを考える（AIイメージ）" data-guide-en="Including water and food in the daily care routine (AI illustration)" data-guide-zh="将饮水和饮食一并纳入日常护理（AI示意图）"><figcaption><span data-guide-ja="飲水と食事も含めて日々のケアを考える" data-guide-en="Including water and food in the daily care routine" data-guide-zh="将饮水和饮食一并纳入日常护理">飲水と食事も含めて日々のケアを考える</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><i class="ico ico-utensils" aria-hidden="true"></i> <strong>毛球控制猫粮</strong> — 日常使用毛球预防猫粮更安心。</li>
     <li><i class="ico ico-spray-can" aria-hidden="true"></i> <strong>化毛膏（如Laxatone）</strong> — 管装膏体每周1〜2次。猫草也有辅助作用。</li>
     <li><i class="ico ico-droplet" aria-hidden="true"></i> <strong>增加水分摄入</strong> — 多喂湿粮、增加饮水点，帮助毛球排出。</li>
   </ul>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-grooming-3">
   <h2 class="guide-section-title">梳毛技巧</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="grooming"><img src="/images/guide-scenes/v2/grooming-960.webp" srcset="/images/guide-scenes/v2/grooming-480.webp 480w, /images/guide-scenes/v2/grooming-960.webp 960w, /images/guide-scenes/v2/grooming-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="白い胸と白い足先のブラウンタビーを部分ごとにコームで梳くAIイメージ" data-guide-ja="白い胸と白い足先のブラウンタビーを部分ごとにコームで梳くAIイメージ" data-guide-en="AI illustration of gently combing a brown tabby with a white bib and paws" data-guide-zh="为白胸白脚虎斑猫局部梳毛的AI示意图"><figcaption><span data-guide-ja="毛の流れと、手の添え方を見る" data-guide-en="Look at the fur and hand placement" data-guide-zh="看清毛发方向与手部动作">毛の流れと、手の添え方を見る</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li>平时：每周2〜3次，每次3〜5分钟即可</li>
     <li>换毛期：尽量每天梳</li>
@@ -1126,18 +1289,22 @@ guideBodyTranslations.zh['guide.body.grooming'] = `
   <div class="guide-note">
     <i class="ico ico-lightbulb" aria-hidden="true"></i> 梳完给零食，猫咪就会记住"梳毛＝好事"。
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-grooming-4">
   <h2 class="guide-section-title">夏冬注意事项</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="grooming-seasons"><img src="/images/guide-scenes/v3/grooming-seasons-960.webp" srcset="/images/guide-scenes/v3/grooming-seasons-480.webp 480w, /images/guide-scenes/v3/grooming-seasons-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="夏の涼しい休憩場所と冬の寝床の例（AIイメージ）" data-guide-ja="夏の涼しい休憩場所と冬の寝床の例（AIイメージ）" data-guide-en="Examples of a cool summer area and winter bedding (AI illustration)" data-guide-zh="夏季凉爽休息区与冬季寝具示例（AI示意图）"><figcaption><span data-guide-ja="夏の涼しい休憩場所と冬の寝床の例" data-guide-en="Examples of a cool summer area and winter bedding" data-guide-zh="夏季凉爽休息区与冬季寝具示例">夏の涼しい休憩場所と冬の寝床の例</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><i class="ico ico-sun" aria-hidden="true"></i> <strong>夏天</strong>：不要让空调直吹。确保多个凉爽的地方和饮水点。</li>
     <li><i class="ico ico-snowflake" aria-hidden="true"></i> <strong>冬天</strong>：注意干燥（推荐加湿器）。准备温暖的窝。注意梳毛时的静电。</li>
   </ul>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-grooming-5">
   <h2 class="guide-section-title">这些情况请去医院</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="grooming-vet"><img src="/images/guide-scenes/v3/grooming-vet-960.webp" srcset="/images/guide-scenes/v3/grooming-vet-480.webp 480w, /images/guide-scenes/v3/grooming-vet-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="受診の準備に、キャリーと観察メモをそろえる（AIイメージ）" data-guide-ja="受診の準備に、キャリーと観察メモをそろえる（AIイメージ）" data-guide-en="Preparing a carrier and observation notes for a vet visit (AI illustration)" data-guide-zh="就诊前准备航空箱与观察记录（AI示意图）"><figcaption><span data-guide-ja="受診の準備に、キャリーと観察メモをそろえる" data-guide-en="Preparing a carrier and observation notes for a vet visit" data-guide-zh="就诊前准备航空箱与观察记录">受診の準備に、キャリーと観察メモをそろえる</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-warning">
     <i class="ico ico-triangle-alert" aria-hidden="true"></i> 出现以下症状请尽早就医：
     <ul>
@@ -1147,18 +1314,22 @@ guideBodyTranslations.zh['guide.body.grooming'] = `
       <li>便秘·腹部胀大</li>
     </ul>
   </div>
+</div></div>
 </section>
 `;
 
 // ==================== 12. BEHAVIOR ====================
 guideBodyTranslations.zh['guide.body.behavior'] = `
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-behavior-1">
   <h2 class="guide-section-title">基本思路</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="behavior-redirect"><img src="/images/guide-scenes/v3/behavior-redirect-960.webp" srcset="/images/guide-scenes/v3/behavior-redirect-480.webp 480w, /images/guide-scenes/v3/behavior-redirect-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="使ってよい爪とぎへ自然に誘導する（AIイメージ）" data-guide-ja="使ってよい爪とぎへ自然に誘導する（AIイメージ）" data-guide-en="Offering a suitable scratching surface (AI illustration)" data-guide-zh="引导猫咪使用合适的猫抓板（AI示意图）"><figcaption><span data-guide-ja="使ってよい爪とぎへ自然に誘導する" data-guide-en="Offering a suitable scratching surface" data-guide-zh="引导猫咪使用合适的猫抓板">使ってよい爪とぎへ自然に誘導する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <p>磨爪是指甲护理和伸展运动，轻咬是玩耍和牙齿成长的需要。不是要"制止"，而是"引导到正确的地方和方式"。用替代物表扬而不是责骂，好习惯就会自然养成。</p>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-behavior-2">
   <h2 class="guide-section-title">磨爪对策</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="behavior"><img src="/images/guide-scenes/v2/behavior-960.webp" srcset="/images/guide-scenes/v2/behavior-480.webp 480w, /images/guide-scenes/v2/behavior-960.webp 960w, /images/guide-scenes/v2/behavior-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="安定した爪とぎ板に前足をかけ、横のソファーに保護板を付けたAIイメージ" data-guide-ja="安定した爪とぎ板に前足をかけ、横のソファーに保護板を付けたAIイメージ" data-guide-en="AI illustration of a kitten using a stable scratcher beside a protected sofa" data-guide-zh="小猫使用稳固抓板、旁边沙发装有保护板的AI示意图"><figcaption><span data-guide-ja="爪とぎの場所を、具体的に用意する" data-guide-en="Give scratching a suitable place" data-guide-zh="给抓挠行为安排具体去处">爪とぎの場所を、具体的に用意する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><i class="ico ico-package" aria-hidden="true"></i> <strong>在2〜3个地方设置猫抓板</strong> — 通道旁·窝附近·窗边等经常经过的地方。</li>
     <li><i class="ico ico-brick-wall" aria-hidden="true"></i> <strong>尝试不同材质和形状</strong> — 麻绳·瓦楞纸·地毯·木材等。每只猫喜好不同。</li>
@@ -1169,10 +1340,12 @@ guideBodyTranslations.zh['guide.body.behavior'] = `
   <div class="guide-note">
     <i class="ico ico-lightbulb" aria-hidden="true"></i> 西伯利亚猫体型大，推荐稳固结实的猫抓板。
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-behavior-3">
   <h2 class="guide-section-title">轻咬对策</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="behavior-biting"><img src="/images/guide-scenes/v3/behavior-biting-960.webp" srcset="/images/guide-scenes/v3/behavior-biting-480.webp 480w, /images/guide-scenes/v3/behavior-biting-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="手の代わりに、蹴って遊べる玩具を使う（AIイメージ）" data-guide-ja="手の代わりに、蹴って遊べる玩具を使う（AIイメージ）" data-guide-en="Offering a kicker toy instead of hands (AI illustration)" data-guide-zh="用可抱踢的玩具代替双手陪猫玩耍（AI示意图）"><figcaption><span data-guide-ja="手の代わりに、蹴って遊べる玩具を使う" data-guide-en="Offering a kicker toy instead of hands" data-guide-zh="用可抱踢的玩具代替双手陪猫玩耍">手の代わりに、蹴って遊べる玩具を使う</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><i class="ico ico-hand" aria-hidden="true"></i> <strong>不要用手当玩具</strong> — 从小猫开始就用玩具的习惯。</li>
     <li><i class="ico ico-circle-pause" aria-hidden="true"></i> <strong>咬了就暂停玩耍</strong> — 安静离开等2〜3分钟，冷静后再继续。</li>
@@ -1183,16 +1356,19 @@ guideBodyTranslations.zh['guide.body.behavior'] = `
   <div class="guide-note">
     <i class="ico ico-lightbulb" aria-hidden="true"></i> 轻咬在换牙期（3〜6个月）会加重。冰过的湿毛巾或磨牙玩具有帮助。随着成长自然会好转，不用着急。
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-behavior-4">
   <h2 class="guide-section-title">避免的做法</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="behavior-pause"><img src="/images/guide-scenes/v3/behavior-pause-960.webp" srcset="/images/guide-scenes/v3/behavior-pause-480.webp 480w, /images/guide-scenes/v3/behavior-pause-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="興奮したら、遊びをいったん休む（AIイメージ）" data-guide-ja="興奮したら、遊びをいったん休む（AIイメージ）" data-guide-en="Pausing play when excitement builds (AI illustration)" data-guide-zh="过于兴奋时先暂停玩耍（AI示意图）"><figcaption><span data-guide-ja="興奮したら、遊びをいったん休む" data-guide-en="Pausing play when excitement builds" data-guide-zh="过于兴奋时先暂停玩耍">興奮したら、遊びをいったん休む</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-warning">
     <i class="ico ico-triangle-alert" aria-hidden="true"></i> 大声骂·打·泼水（会造成恐惧，破坏信任关系）<br>
     <i class="ico ico-triangle-alert" aria-hidden="true"></i> 强行按住（反而可能更兴奋或产生攻击性）<br>
     <i class="ico ico-triangle-alert" aria-hidden="true"></i> 长时间责骂（猫无法通过语言理解原因，只会困惑）<br>
     <i class="ico ico-triangle-alert" aria-hidden="true"></i> 期望立即见效（习惯改善大约需要2〜4周）
   </div>
+</div></div>
 </section>
 `;
 
@@ -1202,8 +1378,9 @@ guideBodyTranslations.zh['guide.body.passport'] = `
   ※这是接猫时提供的护照样本。表格栏目为空白显示。
 </div>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-passport-1">
   <h2 class="guide-section-title">基本信息</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="passport"><img src="/images/guide-scenes/v2/passport-960.webp" srcset="/images/guide-scenes/v2/passport-480.webp 480w, /images/guide-scenes/v2/passport-960.webp 960w, /images/guide-scenes/v2/passport-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="猫の写真と未記入の情報欄をまとめた記録ファイルのAIイメージ" data-guide-ja="猫の写真と未記入の情報欄をまとめた記録ファイルのAIイメージ" data-guide-en="AI illustration of a care binder with a kitten photograph and blank fields" data-guide-zh="附猫咪照片与空白信息栏的照护档案AI示意图"><figcaption><span data-guide-ja="その子の情報を、ひとまとめに" data-guide-en="Keep the kitten’s information together" data-guide-zh="把这只猫的信息汇总在一起">その子の情報を、ひとまとめに</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-table-wrap">
     <table class="guide-table">
       <thead><tr><th>项目</th><th>内容</th></tr></thead>
@@ -1217,15 +1394,19 @@ guideBodyTranslations.zh['guide.body.passport'] = `
       </tbody>
     </table>
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-passport-2">
   <h2 class="guide-section-title">毛色·花纹</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="passport-color"><img src="/images/guide-scenes/v3/passport-color-960.webp" srcset="/images/guide-scenes/v3/passport-color-480.webp 480w, /images/guide-scenes/v3/passport-color-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="毛色や模様を記録するための参考イメージ（AIイメージ）" data-guide-ja="毛色や模様を記録するための参考イメージ（AIイメージ）" data-guide-en="Illustrative coat colours and patterns for record keeping (AI illustration)" data-guide-zh="用于说明毛色与花纹记录的参考画面（AI示意图）"><figcaption><span data-guide-ja="毛色や模様を記録するための参考イメージ" data-guide-en="Illustrative coat colours and patterns for record keeping" data-guide-zh="用于说明毛色与花纹记录的参考画面">毛色や模様を記録するための参考イメージ</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <p>可选毛色：棕色、银色、金色、黑色、蓝色、红色、奶油色、白色、玳瑁、三花、虎斑、纯色、双色、烟色、渐变色、涅瓦伪装、虎斑白色、其他</p>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-passport-3">
   <h2 class="guide-section-title">父母信息</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="passport-parents"><img src="/images/guide-scenes/v3/passport-parents-960.webp" srcset="/images/guide-scenes/v3/passport-parents-480.webp 480w, /images/guide-scenes/v3/passport-parents-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="両親欄は確認済みの情報で記入する（AIイメージ）" data-guide-ja="両親欄は確認済みの情報で記入する（AIイメージ）" data-guide-en="Completing parent records with confirmed information (AI illustration)" data-guide-zh="使用已确认的信息填写父母档案（AI示意图）"><figcaption><span data-guide-ja="両親欄は確認済みの情報で記入する" data-guide-en="Completing parent records with confirmed information" data-guide-zh="使用已确认的信息填写父母档案">両親欄は確認済みの情報で記入する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-table-wrap">
     <table class="guide-table">
       <thead><tr><th></th><th>父猫（种公）</th><th>母猫（种母）</th></tr></thead>
@@ -1235,10 +1416,12 @@ guideBodyTranslations.zh['guide.body.passport'] = `
       </tbody>
     </table>
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-passport-4">
   <h2 class="guide-section-title">健康记录</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="passport-health"><img src="/images/guide-scenes/v3/passport-health-960.webp" srcset="/images/guide-scenes/v3/passport-health-480.webp 480w, /images/guide-scenes/v3/passport-health-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="健康記録と受け取った書類を一緒に保管する（AIイメージ）" data-guide-ja="健康記録と受け取った書類を一緒に保管する（AIイメージ）" data-guide-en="Keeping health records and supplied documents together (AI illustration)" data-guide-zh="将健康记录与收到的资料一并保存（AI示意图）"><figcaption><span data-guide-ja="健康記録と受け取った書類を一緒に保管する" data-guide-en="Keeping health records and supplied documents together" data-guide-zh="将健康记录与收到的资料一并保存">健康記録と受け取った書類を一緒に保管する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-table-wrap">
     <table class="guide-table">
       <thead><tr><th>项目</th><th>日期</th></tr></thead>
@@ -1251,10 +1434,12 @@ guideBodyTranslations.zh['guide.body.passport'] = `
       </tbody>
     </table>
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-passport-5">
   <h2 class="guide-section-title">饮食信息</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="passport-food"><img src="/images/guide-scenes/v3/passport-food-960.webp" srcset="/images/guide-scenes/v3/passport-food-480.webp 480w, /images/guide-scenes/v3/passport-food-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="フードの種類や食事の様子を記録する（AIイメージ）" data-guide-ja="フードの種類や食事の様子を記録する（AIイメージ）" data-guide-en="Recording the food type and eating habits (AI illustration)" data-guide-zh="记录猫粮种类与进食情况（AI示意图）"><figcaption><span data-guide-ja="フードの種類や食事の様子を記録する" data-guide-en="Recording the food type and eating habits" data-guide-zh="记录猫粮种类与进食情况">フードの種類や食事の様子を記録する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-table-wrap">
     <table class="guide-table">
       <thead><tr><th>项目</th><th>内容</th></tr></thead>
@@ -1266,10 +1451,12 @@ guideBodyTranslations.zh['guide.body.passport'] = `
       </tbody>
     </table>
   </div>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-passport-6">
   <h2 class="guide-section-title">性格·社会化检查</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="passport-social"><img src="/images/guide-scenes/v3/passport-social-960.webp" srcset="/images/guide-scenes/v3/passport-social-480.webp 480w, /images/guide-scenes/v3/passport-social-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="自分から探索する様子を見守り、記録する（AIイメージ）" data-guide-ja="自分から探索する様子を見守り、記録する（AIイメージ）" data-guide-en="Observing and recording voluntary exploration (AI illustration)" data-guide-zh="观察并记录猫咪主动探索的表现（AI示意图）"><figcaption><span data-guide-ja="自分から探索する様子を見守り、記録する" data-guide-en="Observing and recording voluntary exploration" data-guide-zh="观察并记录猫咪主动探索的表现">自分から探索する様子を見守り、記録する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><i class="ico ico-hand-heart" aria-hidden="true"></i> 抱抱</li>
     <li><i class="ico ico-toilet" aria-hidden="true"></i> 猫厕所（能自己使用）</li>
@@ -1284,6 +1471,7 @@ guideBodyTranslations.zh['guide.body.passport'] = `
     <li><i class="ico ico-house" aria-hidden="true"></i> 对新环境的适应</li>
     <li><i class="ico ico-square-pen" aria-hidden="true"></i> 特别备注</li>
   </ul>
+</div></div>
 </section>
 `;
 
@@ -1293,17 +1481,20 @@ guideBodyTranslations.zh['guide.body.weightLog'] = `
   <p>什么时候量都可以，不需要每天量。在意的时候随手量一下就够了。</p>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-weight-log-1">
   <h2 class="guide-section-title">成长参考</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="weight-log"><img src="/images/guide-scenes/v2/weight-log-960.webp" srcset="/images/guide-scenes/v2/weight-log-480.webp 480w, /images/guide-scenes/v2/weight-log-960.webp 960w, /images/guide-scenes/v2/weight-log-1536.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="床に置いた低いペット用体重計に乗る白いサイベリアンのAIイメージ" data-guide-ja="床に置いた低いペット用体重計に乗る白いサイベリアンのAIイメージ" data-guide-en="AI illustration of a white Siberian on a low pet scale on the floor" data-guide-zh="白色西伯利亚猫在地面低位宠物秤上称重的AI示意图"><figcaption><span data-guide-ja="同じ条件で量り、記録する" data-guide-en="Weigh consistently and keep a record" data-guide-zh="在相近条件下称重并记录">同じ条件で量り、記録する</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <ul class="guide-list">
     <li><i class="ico ico-cat" aria-hidden="true"></i> <strong>幼猫期</strong> — 一般每周增加约50〜100g（个体差异存在）</li>
     <li><i class="ico ico-cat" aria-hidden="true"></i> <strong>成猫</strong> — 体重稳定。没有突然增减就是健康的</li>
     <li><i class="ico ico-paw-print" aria-hidden="true"></i> <strong>西伯利亚猫</strong> — 成猫约4〜8kg的大型猫种</li>
   </ul>
+</div></div>
 </section>
 
-<section class="guide-section">
+<section class="guide-section" id="guide-topic-weight-log-2">
   <h2 class="guide-section-title">注意事项</h2>
+<div class="guide-section-layout"><div class="guide-section-media"><figure class="guide-section-figure" data-guide-visual="weight-changes"><img src="/images/guide-scenes/v3/weight-changes-960.webp" srcset="/images/guide-scenes/v3/weight-changes-480.webp 480w, /images/guide-scenes/v3/weight-changes-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), 280px" width="1536" height="1024" loading="lazy" decoding="async" alt="同じ条件で測り、記録を見比べる（AIイメージ）" data-guide-ja="同じ条件で測り、記録を見比べる（AIイメージ）" data-guide-en="Comparing weight records taken under consistent conditions (AI illustration)" data-guide-zh="在相同条件下称重并对照记录（AI示意图）"><figcaption><span data-guide-ja="同じ条件で測り、記録を見比べる" data-guide-en="Comparing weight records taken under consistent conditions" data-guide-zh="在相同条件下称重并对照记录">同じ条件で測り、記録を見比べる</span><small data-guide-ja="AIイメージ" data-guide-en="AI illustration" data-guide-zh="AI示意图">AIイメージ</small></figcaption></figure></div><div class="guide-section-copy">
   <div class="guide-table-wrap">
     <table class="guide-table">
       <thead><tr><th>变化</th><th>对应</th></tr></thead>
@@ -1314,6 +1505,7 @@ guideBodyTranslations.zh['guide.body.weightLog'] = `
       </tbody>
     </table>
   </div>
+</div></div>
 </section>
 
 <div class="guide-info">
