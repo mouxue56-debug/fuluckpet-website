@@ -24,6 +24,7 @@ const ADMIN_FAQ_RELEASE = TRUTH_RELEASE;
 const ADMIN_CALENDAR_RELEASE = '20260714c';
 const NAV_RELEASE = '20260926a';
 const I18N_RELEASE = '20260918b';
+const GUIDE_RELEASE = '20261003c';
 const NAV_STYLE_RELEASE = '20260918a';
 const CHAT_STYLE_RELEASE = '20260712e';
 const CHAT_RELEASE = '20260714g';
@@ -50,7 +51,8 @@ const PUBLIC_ASSETS = {
   'cta-widget.js': '20260926a',
   'script.js': SCRIPT_RELEASE,
   'analytics.js': '20260920a',
-  'guide/i18n-guide-body.js': COPY_RELEASE,
+  'guide/i18n-guide-body.js': GUIDE_RELEASE,
+  'guide/guide-visuals.js': GUIDE_RELEASE,
   'mobile-cta.js': COPY_RELEASE,
   'assets/chat/widget.css': CHAT_STYLE_RELEASE,
   'assets/chat/widget.js': CHAT_RELEASE,
