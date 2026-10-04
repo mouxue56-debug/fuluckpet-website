@@ -8,6 +8,8 @@
 
   var allFaq = [];
   var currentFilter = 'all';
+  var searchInput = document.getElementById('faqSearch');
+  var searchStatus = document.getElementById('faqSearchStatus');
 
   var CATEGORIES = {
     general:  { ja:'一般',    en:'General',  zh:'一般',  icon:'ico-message-circle' },
@@ -163,10 +165,14 @@
     var items = currentFilter === 'all'
       ? allFaq
       : allFaq.filter(function(f) { return f.category === currentFilter; });
+    var query = searchInput ? searchInput.value : '';
+    if (window.FuluckPageExperience) items = window.FuluckPageExperience.filterFaq(allFaq, currentFilter, query, getLang());
+    if (searchStatus) searchStatus.textContent = getLang() === 'en' ? items.length + ' questions' : getLang() === 'zh' ? items.length + ' 个问题' : items.length + '件の質問';
 
     if (items.length === 0) {
       var lang = getLang();
       var msg = lang === 'zh' ? '暂无FAQ' : lang === 'en' ? 'No FAQs yet' : 'まだFAQがありません';
+      if (query.trim()) msg = lang === 'zh' ? '没有找到匹配问题，请换个关键词或分类。' : lang === 'en' ? 'No matching questions. Try another keyword or category.' : '該当する質問がありません。キーワードや分類を変えてお試しください。';
       renderEmpty(msg, 'ico-search');
       return;
     }
@@ -205,6 +211,7 @@
   }
 
   // Init
+  if (searchInput) searchInput.addEventListener('input', renderList);
   fetch(API + '/api/faq')
     .then(function(r) { return r.json(); })
     .then(function(data) {

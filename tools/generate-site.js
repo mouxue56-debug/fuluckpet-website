@@ -4071,7 +4071,7 @@ function updateSitemap(articles, kittenDetailPages, store, smallAnimalDetailPage
   // stale sitemap URL behind. The noindex estimator is deliberately excluded.
   let serviceEntries = '  <!-- 公開サービス -->\n';
   let serviceCount = 0;
-  for (const relative of ['boarding/', 'grooming/']) {
+  for (const relative of ['boarding/', 'grooming/', 'en/boarding/', 'zh/boarding/', 'en/grooming/', 'zh/grooming/']) {
     const filepath = path.join(SITE_DIR, relative, 'index.html');
     if (!fs.existsSync(filepath)) continue;
     const html = fs.readFileSync(filepath, 'utf8');
@@ -4428,6 +4428,10 @@ async function main() {
 
   if (fs.existsSync(path.join(SITE_DIR, 'guide/i18n-guide-body.js'))) {
     require('./generate-guide-locales.js').generateGuideLocales(SITE_DIR, { sitemap: false });
+  }
+
+  if (fs.existsSync(path.join(SITE_DIR, 'tools/generate-service-locales.js'))) {
+    require('./generate-service-locales.js').generateServiceLocales(SITE_DIR);
   }
 
   // Always update sitemap (even with 0 articles, keeps static pages updated).

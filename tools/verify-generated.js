@@ -26,6 +26,14 @@ if (fs.existsSync(path.join(SITE, 'tools/generate-guide-locales.js')) && fs.exis
   } catch (error) { errors.push('[guide-locale] ' + error.message); }
 }
 
+if (fs.existsSync(path.join(SITE, 'tools/generate-service-locales.js'))) {
+  try {
+    for (const [relative, expected] of require('./generate-service-locales.js').buildServiceLocales(SITE)) {
+      if (read(relative) !== expected) errors.push('[service-locale] ' + relative + ' is stale; run node tools/generate-service-locales.js');
+    }
+  } catch (error) { errors.push('[service-locale] ' + error.message); }
+}
+
 const SHARED_ASSETS = ['style.css', 'i18n.js', 'nav.js', 'nav.css'];
 
 // --- Check 0b: generated pet-transport page freshness ---

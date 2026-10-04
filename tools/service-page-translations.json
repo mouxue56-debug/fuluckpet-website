@@ -1,0 +1,518 @@
+{
+  "猫・小動物のお預かり｜大阪・福楽キャッテリー": {
+    "en": "Cat & Small Animal Boarding | Fuluck Cattery, Osaka",
+    "zh": "猫与小动物寄养｜大阪福乐猫舍"
+  },
+  "メインコンテンツへスキップ": {
+    "en": "Skip to main content",
+    "zh": "跳转到主要内容"
+  },
+  "福楽キャッテリー": {
+    "en": "Fuluck Cattery",
+    "zh": "福乐猫舍"
+  },
+  "子猫": {
+    "en": "Kittens",
+    "zh": "幼猫"
+  },
+  "猫のお預かり": {
+    "en": "Cat boarding",
+    "zh": "猫咪寄养"
+  },
+  "猫のケア": {
+    "en": "Cat care",
+    "zh": "猫咪护理"
+  },
+  "見学予約": {
+    "en": "Book a visit",
+    "zh": "预约看猫"
+  },
+  "福楽について": {
+    "en": "About Fuluck",
+    "zh": "关于福乐"
+  },
+  "猫と小動物に、": {
+    "en": "For cats and small animals,",
+    "zh": "让猫咪和小动物，"
+  },
+  "いつもの安心を。": {
+    "en": "familiar comfort.",
+    "zh": "延续熟悉的安心。"
+  },
+  "猫を育ててきた日々の延長で、旅行や出張のあいだの暮らしをお手伝いします。猫・うさぎ・ハムスターなど、保管登録の対象動物を完全予約制でお預かりします。": {
+    "en": "Drawing on our daily experience raising cats, we help care for your pets while you travel or work away. Cats, rabbits, hamsters and other animals covered by our boarding registration are accepted by appointment.",
+    "zh": "以日常养猫经验为基础，在您旅行或出差期间协助照护。猫、兔、仓鼠等保管登记范围内的动物，均采用完全预约制。"
+  },
+  "料金を計算する": {
+    "en": "Estimate the cost",
+    "zh": "估算费用"
+  },
+  "LINEで相談する": {
+    "en": "Contact us on LINE",
+    "zh": "通过 LINE 咨询"
+  },
+  "第一種動物取扱業（保管）": {
+    "en": "Registered animal business (boarding)",
+    "zh": "第一种动物取扱业（保管）"
+  },
+  "登録番号 220012B": {
+    "en": "Registration No. 220012B",
+    "zh": "登记编号 220012B"
+  },
+  "1泊から、長期まで。": {
+    "en": "From one night to a longer stay.",
+    "zh": "从一晚到长期寄养。"
+  },
+  "表示は税込の概算です。全動物で同じ長期割引を使い、土日祝・繁忙期の加算はありません。": {
+    "en": "Estimates include tax. The same long-stay discounts apply to all animals, with no weekend, holiday or peak-season surcharge.",
+    "zh": "显示金额为含税估算。所有动物使用相同的长期折扣，周末、节假日和旺季不加价。"
+  },
+  "猫": {
+    "en": "Cats",
+    "zh": "猫"
+  },
+  "/ 1泊": {
+    "en": "/ night",
+    "zh": "/ 晚"
+  },
+  "福楽卒業猫はお預かりも30%OFF。他の割引と併用せず、卒業猫特典を適用します。": {
+    "en": "Fuluck graduate cats receive 30% off boarding. This benefit is applied without combining it with other discounts.",
+    "zh": "福乐毕业猫寄养享七折优惠，与其他折扣不叠加。"
+  },
+  "うさぎ・小動物": {
+    "en": "Rabbits & small animals",
+    "zh": "兔与小动物"
+  },
+  "/ 1泊〜": {
+    "en": "/ night and up",
+    "zh": "/ 晚起"
+  },
+  "60cmケージ相当。泊数に応じて合計から長期割引を適用します。": {
+    "en": "Based on a 60 cm cage equivalent. Long-stay discounts apply to the total according to the number of nights.",
+    "zh": "以约 60 厘米笼具为标准，按寄养晚数对总额应用长期折扣。"
+  },
+  "ハムスター等": {
+    "en": "Hamsters and similar pets",
+    "zh": "仓鼠等"
+  },
+  "小動物ケージ単位。種類と飼育環境を事前に確認します。": {
+    "en": "Per small-animal cage. We confirm the species and usual living arrangements in advance.",
+    "zh": "按小动物笼具计费，提前确认种类和饲养环境。"
+  },
+  "宿泊数": {
+    "en": "Length of stay",
+    "zh": "寄养晚数"
+  },
+  "1〜6泊": {
+    "en": "1–6 nights",
+    "zh": "1–6 晚"
+  },
+  "7〜13泊": {
+    "en": "7–13 nights",
+    "zh": "7–13 晚"
+  },
+  "14〜20泊": {
+    "en": "14–20 nights",
+    "zh": "14–20 晚"
+  },
+  "21〜29泊": {
+    "en": "21–29 nights",
+    "zh": "21–29 晚"
+  },
+  "30泊〜": {
+    "en": "30+ nights",
+    "zh": "30 晚以上"
+  },
+  "長期割引": {
+    "en": "Long-stay discount",
+    "zh": "长期折扣"
+  },
+  "通常料金": {
+    "en": "Standard rate",
+    "zh": "标准费用"
+  },
+  "7泊以上5%OFF": {
+    "en": "5% off from 7 nights",
+    "zh": "7 晚以上九五折"
+  },
+  "14泊以上10%OFF": {
+    "en": "10% off from 14 nights",
+    "zh": "14 晚以上九折"
+  },
+  "21泊以上15%OFF": {
+    "en": "15% off from 21 nights",
+    "zh": "21 晚以上八五折"
+  },
+  "30泊以上20%OFF": {
+    "en": "20% off from 30 nights",
+    "zh": "30 晚以上八折"
+  },
+  "割引は宿泊全体の基本料金に適用し、合計を100円単位で計算します。福楽卒業猫は宿泊数にかかわらず30%OFFで、長期割引とは併用しません。": {
+    "en": "Discounts apply to the base fee for the whole stay; totals are calculated in ¥100 units. Fuluck graduate cats receive 30% off regardless of stay length, without combining long-stay discounts.",
+    "zh": "折扣适用于整个寄养期间的基础费用，总额以 100 日元为单位计算。福乐毕业猫不论晚数均享七折，与长期折扣不叠加。"
+  },
+  "お預かり・ケア利用時のペット送迎": {
+    "en": "Pet transport for boarding and care",
+    "zh": "寄养与护理的宠物接送"
+  },
+  "距離は店舗から送迎先までの片道距離です。ご利用前にLINEで住所と日程を確認します。": {
+    "en": "Distance means the one-way distance from our shop to your address. Confirm the address and dates with us on LINE before use.",
+    "zh": "距离按门店至接送地址的单程计算，使用前请通过 LINE 确认地址和日期。"
+  },
+  "片道距離": {
+    "en": "One-way distance",
+    "zh": "单程距离"
+  },
+  "片道1回": {
+    "en": "One-way trip",
+    "zh": "单程一次"
+  },
+  "お迎え＋お送り": {
+    "en": "Pickup + return",
+    "zh": "接来＋送回"
+  },
+  "3km以内": {
+    "en": "Within 3 km",
+    "zh": "3 公里以内"
+  },
+  "3kmを超え5km以内": {
+    "en": "Over 3 to 5 km",
+    "zh": "超过 3 至 5 公里"
+  },
+  "5kmを超え10km以内": {
+    "en": "Over 5 to 10 km",
+    "zh": "超过 5 至 10 公里"
+  },
+  "10kmを超え20km以内": {
+    "en": "Over 10 to 20 km",
+    "zh": "超过 10 至 20 公里"
+  },
+  "LINEでお見積り": {
+    "en": "Ask for a LINE quote",
+    "zh": "通过 LINE 询价"
+  },
+  "20km超": {
+    "en": "Over 20 km",
+    "zh": "超过 20 公里"
+  },
+  "送迎対応なし": {
+    "en": "Transport unavailable",
+    "zh": "不提供接送"
+  },
+  "表示は税込の参考価格です。距離と送迎可否は、住所と日程を確認のうえ当店が確定します。": {
+    "en": "These are reference prices including tax. We confirm distance and transport availability after checking your address and dates.",
+    "zh": "显示金额为含税参考价。确认地址和日期后，由本店确定距离及能否接送。"
+  },
+  "送迎料金は割引対象外です。子猫のお届けとは別料金です。": {
+    "en": "Transport fees are not eligible for discounts and are separate from kitten delivery fees.",
+    "zh": "接送费不参与折扣，与幼猫交付运输费用分开。"
+  },
+  "預ける前に、暮らし方を聞かせてください。": {
+    "en": "Tell us about your pet’s everyday life.",
+    "zh": "寄养前，请告诉我们它的日常习惯。"
+  },
+  "完全予約制": {
+    "en": "By appointment only",
+    "zh": "完全预约制"
+  },
+  "まずLINEで日程、動物の種類、普段の食事、必要なケアを確認します。予約確定前の持ち込みは受け付けていません。": {
+    "en": "First, confirm the dates, species, usual food and care needs on LINE. We cannot accept drop-offs before a booking is confirmed.",
+    "zh": "请先通过 LINE 确认日期、动物种类、日常食物及照护需求。预约未确认前不接受直接送来。"
+  },
+  "いつもの環境を優先": {
+    "en": "Familiar routines first",
+    "zh": "优先保持熟悉的环境"
+  },
+  "食事や投薬、ケージ環境など、普段の過ごし方をできるだけ保てるよう事前にすり合わせます。": {
+    "en": "We discuss food, medication and enclosure arrangements in advance to maintain familiar routines as closely as possible.",
+    "zh": "提前沟通饮食、用药和笼具环境，尽量保持平时的生活方式。"
+  },
+  "対象動物を確認": {
+    "en": "Confirm eligible animals",
+    "zh": "确认可接待的动物"
+  },
+  "猫、うさぎ、ハムスターなど登録簿に記載された動物が対象です。種類や健康状態により個別相談となります。": {
+    "en": "Cats, rabbits, hamsters and other species listed in our registration are eligible. Acceptance depends on the species and health condition.",
+    "zh": "以登记簿列明的猫、兔、仓鼠等动物为对象，根据种类和健康状况逐一商量。"
+  },
+  "犬は現在受け付けていません。": {
+    "en": "We are not currently accepting dogs.",
+    "zh": "目前不接受犬类寄养。"
+  },
+  "猫のケアも一緒に": {
+    "en": "Combine with cat care",
+    "zh": "可同时安排猫咪护理"
+  },
+  "お預かり中に猫のシャンプー・爪切り・耳掃除・肛門腺絞りを組み合わせられます。": {
+    "en": "Cat shampooing, nail trimming, ear cleaning and anal gland care may be combined with boarding.",
+    "zh": "寄养期间可组合安排猫咪洗护、剪爪、耳部清洁及肛门腺护理。"
+  },
+  "猫のシャンプー・基本ケアを見る →": {
+    "en": "See cat shampoo & basic care →",
+    "zh": "查看猫咪洗护与基础护理 →"
+  },
+  "動物取扱業表示": {
+    "en": "Animal business registration",
+    "zh": "动物取扱业登记信息"
+  },
+  "大阪市の第一種動物取扱業登録簿に掲載されている事業所情報です。お預かりと猫の基本ケアは「保管」登録に基づきます。": {
+    "en": "Business details listed in Osaka City’s animal business register. Boarding and basic cat care are provided under the boarding registration.",
+    "zh": "以下为大阪市第一种动物取扱业登记簿所载信息。寄养与猫咪基础护理依据“保管”登记开展。"
+  },
+  "氏名又は名称": {
+    "en": "Registered person or company",
+    "zh": "登记人或公司名称"
+  },
+  "福楽株式会社": {
+    "en": "Fuluck Co., Ltd.",
+    "zh": "福乐株式会社"
+  },
+  "事業所の名称": {
+    "en": "Business establishment",
+    "zh": "营业场所名称"
+  },
+  "福楽ペット": {
+    "en": "Fuluck Pet",
+    "zh": "福乐宠物"
+  },
+  "所在地": {
+    "en": "Address",
+    "zh": "地址"
+  },
+  "大阪市城東区東中浜6丁目10番7号": {
+    "en": "6-10-7 Higashinakahama, Joto-ku, Osaka",
+    "zh": "大阪市城东区东中浜 6 丁目 10 番 7 号"
+  },
+  "種別・登録番号": {
+    "en": "Category / registration number",
+    "zh": "类别／登记编号"
+  },
+  "保管 220012B": {
+    "en": "Boarding 220012B",
+    "zh": "保管 220012B"
+  },
+  "登録年月日": {
+    "en": "Registration date",
+    "zh": "登记日期"
+  },
+  "2022年4月27日": {
+    "en": "April 27, 2022",
+    "zh": "2022 年 4 月 27 日"
+  },
+  "有効期間の末日": {
+    "en": "Registration expiry",
+    "zh": "有效期至"
+  },
+  "2027年4月26日": {
+    "en": "April 26, 2027",
+    "zh": "2027 年 4 月 26 日"
+  },
+  "動物取扱責任者": {
+    "en": "Responsible animal care manager",
+    "zh": "动物取扱负责人"
+  },
+  "羅 方遠": {
+    "en": "羅 方遠",
+    "zh": "羅 方遠"
+  },
+  "同一事業所の登録": {
+    "en": "Other registrations at this location",
+    "zh": "同一营业场所的其他登记"
+  },
+  "販売 220012A ／ 貸出し 220012C ／ 展示 220012E": {
+    "en": "Sales 220012A / Lending 220012C / Exhibition 220012E",
+    "zh": "销售 220012A／出租 220012C／展示 220012E"
+  },
+  "まずは日程と、その子のことを。": {
+    "en": "Start with the dates and your pet’s needs.",
+    "zh": "先告诉我们日期和它的情况。"
+  },
+  "料金シミュレーターで概算を確認するか、LINEで直接ご相談ください。": {
+    "en": "Check an estimate with the calculator, or contact us directly on LINE.",
+    "zh": "可使用费用计算器查看估算，也可直接通过 LINE 咨询。"
+  },
+  "© 福楽株式会社 · 福楽キャッテリー": {
+    "en": "© Fuluck Co., Ltd. · Fuluck Cattery",
+    "zh": "© 福乐株式会社 · 福乐猫舍"
+  },
+  "ホーム": {
+    "en": "Home",
+    "zh": "首页"
+  },
+  "猫のシャンプー・基本ケア": {
+    "en": "Cat shampoo & basic care",
+    "zh": "猫咪洗护与基础护理"
+  },
+  "会社・登録情報": {
+    "en": "Company & registration",
+    "zh": "公司与登记信息"
+  },
+  "猫のシャンプー・基本ケア｜大阪・福楽キャッテリー": {
+    "en": "Cat Shampoo & Basic Care | Fuluck Cattery, Osaka",
+    "zh": "猫咪洗护与基础护理｜大阪福乐猫舍"
+  },
+  "長毛猫を知る人の、": {
+    "en": "Care that understands long-haired cats,",
+    "zh": "了解长毛猫的需求，"
+  },
+  "無理をさせないケア。": {
+    "en": "at a comfortable pace.",
+    "zh": "以猫咪舒适的节奏护理。"
+  },
+  "シャンプー、爪切り、耳掃除、肛門腺絞りをひとつに。猫の様子と被毛の状態を見ながら、完全予約制で一頭ずつ対応します。": {
+    "en": "Shampooing, nail trimming, ear cleaning and anal gland care in one appointment. We watch each cat’s response and coat condition, caring for one cat at a time by appointment.",
+    "zh": "将洗护、剪爪、耳部清洁和肛门腺护理安排在一次预约中。观察猫咪反应与毛发状况，采用完全预约制，逐只照护。"
+  },
+  "LINEで予約相談": {
+    "en": "Ask about a booking on LINE",
+    "zh": "通过 LINE 咨询预约"
+  },
+  "お預かりと一緒に計算": {
+    "en": "Estimate with boarding",
+    "zh": "与寄养一起估算"
+  },
+  "猫のみ・完全予約制": {
+    "en": "Cats only · By appointment",
+    "zh": "仅限猫咪・完全预约制"
+  },
+  "基本料金と、福楽卒業猫の特典。": {
+    "en": "Base prices and Fuluck graduate benefits.",
+    "zh": "基础费用与福乐毕业猫优惠。"
+  },
+  "まずはシャンプーを含む基本コースをお選びください。必要な部分ケアだけのご相談も承ります。": {
+    "en": "Start with a basic course including shampoo. You can also ask about individual care items.",
+    "zh": "先选择包含洗护的基础套餐，也可咨询单项护理。"
+  },
+  "短毛猫": {
+    "en": "Short-haired cats",
+    "zh": "短毛猫"
+  },
+  "シャンプー・爪切り・耳掃除・肛門腺絞りを、安全に実施できる範囲で含みます。": {
+    "en": "Includes shampoo, nail trimming, ear cleaning and anal gland care where these can be performed safely.",
+    "zh": "在能够安全进行的范围内，包括洗护、剪爪、耳部清洁和肛门腺护理。"
+  },
+  "長毛猫": {
+    "en": "Long-haired cats",
+    "zh": "长毛猫"
+  },
+  "長毛猫の被毛を、毛量と状態に合わせて丁寧にケアします。基本ケアを含みます。": {
+    "en": "Care suited to the amount and condition of the coat, including basic care.",
+    "zh": "根据毛量和毛发状态细致护理，包含基础护理。"
+  },
+  "福楽卒業猫": {
+    "en": "Fuluck graduate cats",
+    "zh": "福乐毕业猫"
+  },
+  "短毛猫 ¥2,800 ／ 長毛猫 ¥4,200。お預かりと猫のケアが対象です。ほかの割引と併用不可。時間制の追加ケアは割引対象外です。": {
+    "en": "Short hair ¥2,800 / Long hair ¥4,200. Applies to boarding and cat care. Cannot be combined with other discounts. Additional time-based care is excluded.",
+    "zh": "短毛猫 2,800 日元／长毛猫 4,200 日元。适用于寄养和猫咪护理，不与其他折扣叠加，按时间计费的追加护理不参与折扣。"
+  },
+  "部分ケアの料金を見る": {
+    "en": "See individual care prices",
+    "zh": "查看单项护理费用"
+  },
+  "ケア内容": {
+    "en": "Care item",
+    "zh": "护理项目"
+  },
+  "税込料金": {
+    "en": "Price including tax",
+    "zh": "含税费用"
+  },
+  "単位": {
+    "en": "Unit",
+    "zh": "单位"
+  },
+  "爪切り": {
+    "en": "Nail trimming",
+    "zh": "剪爪"
+  },
+  "1回": {
+    "en": "Per session",
+    "zh": "每次"
+  },
+  "耳掃除": {
+    "en": "Ear cleaning",
+    "zh": "耳部清洁"
+  },
+  "足裏・足まわり": {
+    "en": "Paw pads & feet",
+    "zh": "脚垫与足部周围"
+  },
+  "歯みがき": {
+    "en": "Tooth brushing",
+    "zh": "刷牙"
+  },
+  "肛門腺絞り": {
+    "en": "Anal gland care",
+    "zh": "肛门腺护理"
+  },
+  "要相談": {
+    "en": "Consult us",
+    "zh": "需咨询"
+  },
+  "事前相談": {
+    "en": "Advance consultation",
+    "zh": "提前咨询"
+  },
+  "毛玉・ブラッシング": {
+    "en": "Tangles & brushing",
+    "zh": "打结处理与梳毛"
+  },
+  "15分": {
+    "en": "15 minutes",
+    "zh": "15 分钟"
+  },
+  "肛門腺絞りは猫の状態を確認し、安全に実施できる場合のみ対応します。毛玉が重い場合は事前見積りです。": {
+    "en": "Anal gland care is offered only after checking the cat and confirming it can be done safely. Severe matting requires an advance estimate.",
+    "zh": "肛门腺护理需先确认猫咪状况，仅在能够安全进行时提供。严重打结需提前报价。"
+  },
+  "毛玉、皮膚、体調、強いストレスが見られる場合は、安全を優先して内容変更・中止・動物病院への相談をご案内することがあります。": {
+    "en": "If matting, skin problems, poor condition or significant stress are present, we may change or stop the service or recommend consulting a veterinarian for safety.",
+    "zh": "如出现严重打结、皮肤问题、身体不适或明显应激，会优先考虑安全，可能调整或停止护理，或建议咨询兽医。"
+  },
+  "見た目だけでなく、日常の清潔まで。": {
+    "en": "Everyday cleanliness, as well as appearance.",
+    "zh": "兼顾外观与日常清洁。"
+  },
+  "シャンプー": {
+    "en": "Shampoo",
+    "zh": "洗护"
+  },
+  "被毛と皮膚の状態を確認しながら洗い、すすぎ残しがないよう丁寧に仕上げます。": {
+    "en": "We check the coat and skin while washing and rinse carefully to avoid residue.",
+    "zh": "清洗时确认毛发和皮肤状况，细致冲洗，避免残留。"
+  },
+  "生活時の引っかかりを減らせる長さに整えます。": {
+    "en": "Trim to a length that reduces snagging during daily life.",
+    "zh": "修整至日常生活中较少勾挂的长度。"
+  },
+  "目に見える汚れを無理のない範囲でケアします。": {
+    "en": "Gently address visible dirt within the cat’s comfort level.",
+    "zh": "在猫咪能够适应的范围内清洁可见污垢。"
+  },
+  "猫の様子を確認し、安全に実施できる場合に対応します。": {
+    "en": "We check the cat’s response and proceed only when it can be done safely.",
+    "zh": "确认猫咪反应，仅在能够安全进行时提供护理。"
+  },
+  "動物をお預かりして行う猫の基本ケアは「保管」登録に基づきます。": {
+    "en": "Basic cat care while the animal is in our custody is provided under the boarding registration.",
+    "zh": "接收猫咪后进行的基础护理，依据“保管”登记开展。"
+  },
+  "その子に無理のない内容から。": {
+    "en": "Start with care your cat can comfortably accept.",
+    "zh": "从猫咪能够适应的护理开始。"
+  },
+  "猫種、年齢、被毛、体調、お預かりの有無をLINEでお知らせください。": {
+    "en": "Tell us the breed, age, coat, health condition and whether boarding is needed on LINE.",
+    "zh": "请通过 LINE 告知猫种、年龄、毛发、身体状况及是否需要寄养。"
+  },
+  "お預かりを見る": {
+    "en": "See boarding",
+    "zh": "查看寄养服务"
+  },
+  "猫・小動物のお預かり": {
+    "en": "Cat & small animal boarding",
+    "zh": "猫与小动物寄养"
+  }
+}

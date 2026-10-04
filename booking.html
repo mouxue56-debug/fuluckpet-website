@@ -516,8 +516,10 @@
  }
  </style>
   <script defer src="/nav.js?v=20261004a"></script>
+  <link rel="stylesheet" href="/page-experience.css?v=20261004b">
+  <script defer src="/page-experience.js?v=20261004d"></script>
 </head>
-<body class="has-mobile-cta">
+<body class="has-mobile-cta experience-page" data-experience-page="booking.html">
   <a class="skip-link" href="#main" data-i18n="a11y.skipToMain">メインコンテンツへスキップ</a>
 
   <!-- Scroll Progress Bar -->
@@ -624,7 +626,7 @@
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:14px 0 4px">
         <span style="background:#fff;border:1px solid #e8f5f0;border-radius:30px;padding:6px 16px;font-weight:600;color:#5A7A7A;font-size:.9rem"><i class="ico ico-star" aria-hidden="true"></i> 5.00／100件以上</span>
         <span style="background:#fff;border:1px solid #e8f5f0;border-radius:30px;padding:6px 16px;font-weight:600;color:#5A7A7A;font-size:.9rem"><i class="ico ico-trophy" aria-hidden="true"></i> 全国1位</span>
-        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:30px;padding:6px 16px;font-weight:600;color:#5A7A7A;font-size:.9rem"><i class="ico ico-shield-check" aria-hidden="true"></i> 完全予約制・安心対応</span>
+        <span style="background:#fff;border:1px solid #e8f5f0;border-radius:30px;padding:6px 16px;font-weight:600;color:#5A7A7A;font-size:.9rem"><i class="ico ico-shield-check" aria-hidden="true"></i> <span data-experience-ja="完全予約制・安心対応" data-experience-en="By appointment · Personal support" data-experience-zh="完全预约制・贴心接待">完全予約制・安心対応</span></span>
       </div>
       <p data-i18n="booking.subtitle">対面見学・LINEビデオ通話、お好きな方法でご予約ください。<br>お気軽にどうぞ。</p>
     </div>
@@ -641,6 +643,7 @@
           <p class="form-intro" data-i18n="booking.formIntro">ご希望の日時と見学方法をお知らせください。分かる範囲で大丈夫です。</p>
           <p class="form-required-note"><span class="required" aria-hidden="true">*</span><span data-i18n="booking.requiredNote">必須項目です。</span></p>
 
+          <div class="experience-context" id="bookingKittenContext" hidden><img width="76" height="76" alt="" hidden><div><strong data-experience-ja="気になる子猫" data-experience-en="Kitten you selected" data-experience-zh="您关注的幼猫" >気になる子猫</strong><p>ID: <span data-kitten-id></span></p><p data-experience-ja="掲載番号を予約内容に引き継ぎます。ご希望は下の欄で編集できます。" data-experience-en="The listing ID is included below. You can edit your preference in the form." data-experience-zh="编号已带入下方表单，您仍可修改关注的幼猫。" >掲載番号を予約内容に引き継ぎます。ご希望は下の欄で編集できます。</p></div></div>
           <form id="bookingForm" novalidate>
             <fieldset class="form-section">
               <legend><span class="section-step" aria-hidden="true">1</span><span data-i18n="booking.sectionContact">ご連絡先</span></legend>
