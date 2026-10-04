@@ -1818,8 +1818,8 @@ ${hreflangBlock(relPath)}
   ]}
   </script>
   <script defer src="/nav.js?v=${navJsV}"></script>
-  <link rel="stylesheet" href="/ambient-motion.css?v=20261004c">
-  <script type="module" src="/ambient-motion.mjs?v=20261004b"></script>
+  <link rel="stylesheet" href="/ambient-motion.css?v=20261004d">
+  <script type="module" src="/ambient-motion.mjs?v=20261004c"></script>
 </head>
 <body class="has-mobile-cta">
   <a class="skip-link" href="#main" data-i18n="a11y.skipToMain">メインコンテンツへスキップ</a>

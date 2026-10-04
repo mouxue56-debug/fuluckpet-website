@@ -26,3 +26,24 @@ body.ambient-off .ambient-scene{visibility:hidden}
 .ambient-enabled .kitten-price{color:#24583c}
 @media(prefers-reduced-transparency:reduce),(prefers-contrast:more){.ambient-enabled:not(.ambient-off) .ambient-glass-copy:before{background:rgba(255,255,250,.94)}}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.ambient-enabled:not(.ambient-off) .ambient-glass-copy:before{background:rgba(255,255,250,.92)}}
+
+/* Service and reading pages keep their original geometry and foreground photos. */
+.ambient-enabled:not(.ambient-off) :is(.service-hero,.service-section.is-white,.service-final-cta,.booking-hero,.blog-hero,.guide-hub){background:transparent}
+.ambient-enabled:not(.ambient-off) :is(.service-table thead th,.guide-quick-start a){background:rgba(242,250,245,.32)}
+.ambient-enabled:not(.ambient-off) .service-heading{background:transparent!important}
+.ambient-enabled:not(.ambient-off) .service-hero-inner>.ambient-glass-copy:before{inset:-18px -10px}
+.ambient-enabled:not(.ambient-off) :is(.service-final-cta,.booking-hero .container,.blog-hero,.blog-cat-heading):before{left:0;right:0}
+.ambient-enabled:not(.ambient-off) :is(.service-table,.guide-card-body,.gal-caption){background:rgba(255,255,255,.20)}
+.ambient-enabled:not(.ambient-off) :is(.service-proof,.booking-input,.booking-select,.booking-textarea,#blogSearch){background:rgba(255,255,255,.60)!important}
+.ambient-enabled:not(.ambient-off) :is(.service-hero-inner,.service-heading,.service-price-card,.service-info-card,.service-table-wrap,.guide-card,.blog-card,.booking-form-card){color:var(--text-body)}
+.ambient-enabled:not(.ambient-off) :is(.blog-cat-tag,.blog-card-cat,.guide-card-title){color:#285944}
+.ambient-enabled:not(.ambient-off) :is(.blog-card-desc,.guide-card-desc){color:#354b41}
+.ambient-enabled:not(.ambient-off) :is(.booking-form-card,.guide-figure figcaption){background:linear-gradient(135deg,rgba(255,255,255,.60),rgba(255,255,255,.42))!important}
+.ambient-enabled:not(.ambient-off) .guide-figure figcaption :is(strong,small,span){color:#294638}
+@media(prefers-reduced-transparency:reduce),(prefers-contrast:more){
+ .ambient-enabled:not(.ambient-off) :is(.service-proof,.booking-input,.booking-select,.booking-textarea,#blogSearch){background:rgba(255,255,250,.96)!important}
+ .ambient-enabled:not(.ambient-off) :is(.booking-form-card,.guide-figure figcaption){background:rgba(255,255,250,.96)!important}
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+ .ambient-enabled:not(.ambient-off) :is(.booking-form-card,.guide-figure figcaption,.service-proof,.booking-input,.booking-select,.booking-textarea,#blogSearch){background:rgba(255,255,250,.96)!important}
+}
