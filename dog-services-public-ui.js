@@ -128,10 +128,158 @@
       '<div class="estimate-types">' + choices + '</div></fieldset></div>';
   }
 
-  function renderSurface(surface, projection) {
+  var SERVICE_COPY = [
+  [
+    "体重別の税込予定価格です。長期料金は7泊以上5%OFF、14泊以上10%OFF、21泊以上15%OFF、30泊以上20%OFFです。土日祝・繁忙期の加算はありません。受付開始時の内容は開始前にあらためてお知らせします。",
+    "Planned prices include tax and vary by weight. Long stays receive 5% off from 7 nights, 10% from 14, 15% from 21 and 20% from 30 nights. No weekend, holiday or peak-season surcharge. Details will be confirmed before bookings open.",
+    "按体重划分的含税预定价格。7晚起优惠5%、14晚起10%、21晚起15%、30晚起20%。周末、节假日及旺季不加价。正式开放前会另行公布服务内容。"
+  ],
+  [
+    "体重別の税込基本料金です。長期料金は7泊以上5%OFF、14泊以上10%OFF、21泊以上15%OFF、30泊以上20%OFFです。土日祝・繁忙期の加算はありません。正式料金は事前相談後に確定します。",
+    "Base prices include tax and vary by weight. Long stays receive 5% off from 7 nights, 10% from 14, 15% from 21 and 20% from 30 nights. No weekend, holiday or peak-season surcharge. The final price is confirmed after consultation.",
+    "按体重划分的含税基础价格。7晚起优惠5%、14晚起10%、21晚起15%、30晚起20%。周末、节假日及旺季不加价，最终费用经事前咨询后确认。"
+  ],
+  [
+    "大阪・針中野での受付開始を予定しています。開始時期は決まり次第お知らせします。",
+    "We plan to open this service in Harinakano, Osaka. The opening date will be announced once confirmed.",
+    "计划在大阪针中野开放此项服务，开始时间确定后另行通知。"
+  ],
+  [
+    "以下は受付開始後を想定した税込の予定価格です。現在はご予約いただけません。",
+    "These are planned prices including tax for when the service opens. Bookings are not currently available.",
+    "以下为计划开放后的含税预定价格，目前暂不接受预约。"
+  ],
+  [
+    "爪切り・耳掃除・肛門腺を、体型別の税込料金でご案内します。",
+    "Nail trimming, ear cleaning and anal gland care are priced by dog size, including tax.",
+    "剪指甲、清洁耳朵及肛门腺护理，按体型提供含税价格。"
+  ],
+  [
+    "犬の基本ケアを見る",
+    "See basic dog care",
+    "查看犬类基础护理"
+  ],
+  [
+    "犬の料金を計算する",
+    "Estimate dog boarding",
+    "估算犬类寄养费用"
+  ],
+  [
+    "お預かりと一緒に計算する",
+    "Estimate with boarding",
+    "与寄养一起估算"
+  ],
+  [
+    "LINEで予約相談",
+    "Discuss booking on LINE",
+    "通过 LINE 咨询预约"
+  ],
+  [
+    "基本ケア3点セット",
+    "Three basic care items",
+    "三项基础护理套餐"
+  ],
+  [
+    "犬のお預かり",
+    "Dog boarding",
+    "犬类寄养"
+  ],
+  [
+    "犬の基本ケア",
+    "Basic dog care",
+    "犬类基础护理"
+  ],
+  [
+    "現在受付停止",
+    "Not accepting bookings",
+    "暂不接受预约"
+  ],
+  [
+    "準備中",
+    "Preparing to open",
+    "准备中"
+  ],
+  [
+    "予定価格を見る",
+    "View planned prices",
+    "查看预定价格"
+  ],
+  [
+    "料金表を見る",
+    "View prices",
+    "查看价格"
+  ],
+  [
+    "ケア内容",
+    "Care service",
+    "护理内容"
+  ],
+  [
+    "小型犬",
+    "Small dogs",
+    "小型犬"
+  ],
+  [
+    "中型犬",
+    "Medium dogs",
+    "中型犬"
+  ],
+  [
+    "大型犬",
+    "Large dogs",
+    "大型犬"
+  ],
+  [
+    "爪切り",
+    "Nail trimming",
+    "剪指甲"
+  ],
+  [
+    "耳掃除",
+    "Ear cleaning",
+    "清洁耳朵"
+  ],
+  [
+    "肛門腺",
+    "Anal gland care",
+    "肛门腺护理"
+  ],
+  [
+    "1泊・税込予定価格",
+    "night · planned price, tax included",
+    "晚·含税预定价格"
+  ],
+  [
+    "1泊",
+    "night",
+    "晚"
+  ],
+  [
+    "10kg以上20kg未満",
+    "10 to under 20 kg",
+    "10至不足20公斤"
+  ],
+  [
+    "10kg未満",
+    "Under 10 kg",
+    "不足10公斤"
+  ],
+  [
+    "20kg以上",
+    "20 kg and up",
+    "20公斤及以上"
+  ]
+];
+  function localizedSurface(html, lang) {
+    if (lang !== 'en' && lang !== 'zh') return html;
+    var column = lang === 'en' ? 1 : 2;
+    SERVICE_COPY.forEach(function(row) { html = html.split(row[0]).join(row[column]); });
+    return html.replace(/href="\/(boarding|grooming)\/#/g, 'href="/' + lang + '/$1/#');
+  }
+  function renderSurface(surface, projection, lang) {
     if (!validDisplay(projection) || (projection.public !== true && projection.preparing !== true)) return '';
-    if (surface === 'boarding') return renderBoarding(projection);
-    if (surface === 'care') return renderCare(projection);
+    if (surface === 'boarding') return localizedSurface(renderBoarding(projection),lang);
+    if (surface === 'care') return localizedSurface(renderCare(projection),lang);
     if (surface === 'estimate') return renderEstimate(projection);
     if (surface === 'estimate-care') return renderEstimateCare(projection);
     return '';
@@ -252,7 +400,7 @@
   function mountDocument(doc, projection) {
     var safe = validDisplay(projection) ? projection : FALSE_PROJECTION;
     Array.prototype.forEach.call(doc.querySelectorAll('[data-dog-services-surface]'), function (node) {
-      node.innerHTML = renderSurface(node.getAttribute('data-dog-services-surface'), safe);
+      node.innerHTML = renderSurface(node.getAttribute('data-dog-services-surface'), safe, doc.documentElement && doc.documentElement.lang);
     });
     removeSchemas(doc);
     Array.prototype.forEach.call(doc.querySelectorAll('[data-dog-private-only]'), function (node) {

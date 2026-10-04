@@ -31,9 +31,11 @@ const CHAT_RELEASE = '20260714g';
 const SERVICE_STYLE_RELEASE = '20260816a';
 const SERVICE_RELEASE = '20260816a';
 const SERVICE_CALC_RELEASE = '20260816a';
-const DOG_UI_RELEASE = '20260816a';
+const DOG_UI_RELEASE = '20261004a';
 const ESTIMATE_RELEASE = '20260816a';
 const PUBLIC_ASSETS = {
+  'page-experience.css': '20261004b',
+  'page-experience.js': '20261004d',
   'style.css': STYLE_RELEASE,
   'nav.css': NAV_STYLE_RELEASE,
   'nav.js': NAV_RELEASE,
@@ -46,7 +48,7 @@ const PUBLIC_ASSETS = {
   'card-loader.js': CARD_LOADER_RELEASE,
   'faq-trust-copy.js': '20261004a',
   'faq-loader.js': TRUST_RELEASE,
-  'faq-page-loader.js': TRUST_RELEASE,
+  'faq-page-loader.js': '20261004a',
   'kitten-carousel.js': KITTEN_CAROUSEL_RELEASE,
   'cta-widget.js': '20260926a',
   'script.js': SCRIPT_RELEASE,

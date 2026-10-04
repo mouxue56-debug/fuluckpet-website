@@ -2236,6 +2236,10 @@
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
+  <url><loc>https://fuluckpet.com/en/boarding/</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://fuluckpet.com/zh/boarding/</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://fuluckpet.com/en/grooming/</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://fuluckpet.com/zh/grooming/</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://fuluckpet.com/en/guide/behavior.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://fuluckpet.com/zh/guide/behavior.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://fuluckpet.com/en/guide/bring.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>

@@ -59,7 +59,7 @@ function localize(source, relative, lang, copy) {
         if (icons.length) replaceChildren(node, [...icons, { nodeName: '#text', value: ' ' + value }]);
       }
     }
-    const visual = attr(node, 'data-guide-' + lang);
+    const visual = attr(node, 'data-guide-' + lang) ?? attr(node, 'data-experience-' + lang);
     if (visual !== undefined) {
       if (attr(node, 'data-guide-target') === 'aria-label') set(node, 'aria-label', visual);
       else if (node.tagName === 'img') set(node, 'alt', visual);

@@ -33,8 +33,10 @@
   ]}
   </script>
   <script defer src="/nav.js?v=20261004a"></script>
+  <link rel="stylesheet" href="/page-experience.css?v=20261004b">
+  <script defer src="/page-experience.js?v=20261004d"></script>
 </head>
-<body class="has-mobile-cta">
+<body class="has-mobile-cta experience-page" data-experience-page="parents.html">
   <a class="skip-link" href="#main" data-i18n="a11y.skipToMain">メインコンテンツへスキップ</a>
 
   <!-- Scroll Progress Bar -->
@@ -149,11 +151,12 @@
     </div>
     <h1>親猫紹介</h1>
     <p>優秀な血統と愛情深い性格を持つ、当舎自慢の親猫たちをご紹介します。</p>
-  </section>
+    <div class="experience-toolbar" id="parentFilters" role="group" aria-label="Parent cat filters"><button data-experience-ja="すべての親猫" data-experience-en="All parents" data-experience-zh="全部亲猫" class="experience-button" type="button" aria-pressed="true" data-parent-filter="all">すべての親猫</button><button data-experience-ja="パパ猫" data-experience-en="Fathers" data-experience-zh="父猫" class="experience-button" type="button" aria-pressed="false" data-parent-filter="♂">パパ猫</button><button data-experience-ja="ママ猫" data-experience-en="Mothers" data-experience-zh="母猫" class="experience-button" type="button" aria-pressed="false" data-parent-filter="♀">ママ猫</button></div>
+</section>
 
 
   <!-- ========== SIBERIAN PARENTS ========== -->
-  <section class="section sec-white" style="position:relative;">
+  <section class="section sec-white" style="position:relative;" data-parent-section>
     <div class="parallax-bg">
       <div class="shape" style="width:200px;height:200px;background:var(--mint);top:5%;left:-5%;"></div>
       <div class="shape" style="width:150px;height:150px;background:var(--strawberry);bottom:10%;right:-3%;"></div>
@@ -408,7 +411,7 @@
   </div>
 
   <!-- ========== BRITISH LONGHAIR PARENTS ========== -->
-  <section class="section sec-white" style="position:relative;">
+  <section class="section sec-white" style="position:relative;" data-parent-section>
     <div class="parallax-bg">
       <div class="shape" style="width:200px;height:200px;background:var(--mint);top:5%;left:-5%;"></div>
       <div class="shape" style="width:150px;height:150px;background:var(--strawberry);bottom:10%;right:-3%;"></div>

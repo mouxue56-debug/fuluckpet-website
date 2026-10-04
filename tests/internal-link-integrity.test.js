@@ -69,6 +69,8 @@ test('localized pages keep visitors on an existing same-language static sibling'
     const html = fs.readFileSync(path.join(ROOT, relative), 'utf8')
       .replace(/<!--[\s\S]*?-->/g, '');
     for (const match of html.matchAll(/<a\b[^>]*\bhref\s*=\s*["']([^"']+)["'][^>]*>/gi)) {
+      // An explicitly labelled Japanese language switch intentionally leaves the locale.
+      if (/\blang=["']ja["']/i.test(match[0]) && /\bhreflang=["']ja["']/i.test(match[0])) continue;
       const raw = match[1].trim();
       if (!raw || raw.startsWith('#') || raw.includes('${') || raw.includes('{{')) continue;
       let resolved;

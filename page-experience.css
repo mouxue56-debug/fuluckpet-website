@@ -1,0 +1,87 @@
+/* Scoped refinements for the editorial and service pages. */
+.experience-page [hidden]{display:none!important}
+.experience-page .page-hero{padding:112px 24px 30px;min-height:0}
+.experience-page .page-hero h1{font-size:clamp(1.8rem,3.2vw,2.8rem);line-height:1.35;text-wrap:balance}
+.experience-page .page-hero p{max-width:720px;margin:12px auto 0}
+.experience-page .page-hero .breadcrumb{margin-bottom:14px}
+.experience-page .page-hero + .section{padding-top:30px}
+.experience-page .section .sec-header{margin-bottom:24px}
+.experience-page .parents-grid .parent-card>img{height:auto!important;aspect-ratio:1/1;object-fit:cover}
+.experience-page .parent-card{overflow:hidden}
+.experience-page .filter-bar{margin-bottom:22px;gap:8px}
+.experience-page .booking-hero{padding:105px 20px 24px}
+.experience-page .booking-section{padding-top:24px}
+.experience-page .booking-form-card{padding:28px}
+.experience-page .booking-form-card h2{margin-bottom:10px}
+.experience-page .booking-form-card .form-intro{margin-bottom:12px}
+.experience-page .booking-form-card .form-required-note{margin-bottom:16px}
+.experience-page .booking-form-card fieldset{margin-top:0}
+.experience-hero{display:grid!important;grid-template-columns:1.1fr 1fr;align-items:center;gap:40px;max-width:1120px!important;text-align:left!important}
+.experience-hero .hero-buttons{justify-content:flex-start!important;gap:10px}
+.experience-hero h1{margin-top:0}
+.experience-photo{margin:0;min-width:0}
+.experience-photo img{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;border-radius:22px}
+.experience-photo figcaption{font-size:.76rem;color:#536c68;line-height:1.65;padding:8px 2px}
+.experience-page .service-hero-media{aspect-ratio:auto;overflow:visible;box-shadow:none;background:transparent}
+.experience-page .service-proof{position:static;max-width:none;margin-top:8px;box-shadow:none}
+.experience-eyebrow{font-size:.73rem!important;letter-spacing:.14em;text-transform:uppercase;color:#356d61!important;font-weight:700}
+.experience-wrap{max-width:1120px;margin:0 auto;padding:32px 24px}
+.experience-wrap h2{font-size:clamp(1.35rem,2.3vw,1.9rem);color:#254c45;margin:0 0 12px}
+.experience-wrap>p{color:#526c65;line-height:1.8;margin-bottom:22px}
+.experience-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
+.experience-grid.is-two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.experience-card{min-width:0;padding:18px;border:1px solid #d9e7e1;border-radius:22px;background:rgba(255,255,255,.87);color:#36574f}
+.experience-card h3{font-size:1.1rem;line-height:1.6;margin:12px 0 8px;color:#254c45}
+.experience-card p{font-size:.94rem;line-height:1.8;margin:0}
+.experience-card>a{display:block;color:inherit;text-decoration:none}
+.experience-card .experience-photo img{border-radius:14px}
+.experience-card .experience-photo figcaption{font-size:.7rem}
+.experience-steps{list-style:none;padding:0;margin:24px 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;counter-reset:step}
+.experience-steps li{counter-increment:step;padding:22px;border:1px solid #d5e6df;border-radius:20px;background:#fff;line-height:1.8}
+.experience-steps li:before{content:'0' counter(step);display:block;font-size:1.5rem;font-weight:700;color:#3a796b;margin-bottom:8px}
+.experience-steps strong{display:block;color:#254c45;margin-bottom:6px}
+.experience-template{padding:24px;border-radius:22px;background:#edf6f1;border:1px solid #cadfd4}
+.experience-template label{display:block;font-weight:700;margin-bottom:10px}
+.experience-template textarea{display:block;width:100%;min-height:180px;resize:vertical;padding:16px;font:inherit;line-height:1.7;border:1px solid #a8c6ba;border-radius:12px;background:#fff;color:#284e43;margin-bottom:14px}
+.experience-template [role=status]{min-height:1.5em;font-size:.9rem;margin-top:10px}
+.experience-button{display:inline-flex;justify-content:center;align-items:center;min-height:44px;padding:10px 18px;border-radius:999px;background:#286450;color:#fff;border:1px solid #286450;font:inherit;font-weight:600;cursor:pointer;text-decoration:none}
+.experience-button.is-light{color:#285548;background:#fff;border-color:#aecbbe}
+.experience-toolbar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:12px 24px;margin:0 auto 8px}
+.experience-toolbar button[aria-pressed=true]{background:#286450;color:#fff}
+.experience-toolbar button[aria-pressed=false]{background:#fff;color:#285548}
+.experience-context{display:flex;gap:16px;align-items:center;padding:14px;margin:0 0 20px;border:1px solid #c8dfd3;background:#f0f7f3;border-radius:16px;color:#285548}
+.experience-context img{width:76px;height:76px;object-fit:cover;border-radius:12px}
+.experience-context p{margin:4px 0!important;font-size:.9rem}
+.experience-search{margin:0 0 22px;text-align:left}
+.experience-search label{display:block;color:#285548;font-weight:600;margin-bottom:8px}
+.experience-search input{width:100%;min-height:48px;border-radius:14px;border:1px solid #adc7bb;padding:12px 16px;font:inherit;background:#fff;color:#254c45}
+.experience-search [role=status]{font-size:.85rem;min-height:1.5em;padding-top:8px;color:#49675b}
+.experience-jump{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0}
+.experience-jump a{padding:10px 16px;border-radius:99px;border:1px solid #c4dace;background:#fff;color:#285548;text-decoration:none;min-height:44px}
+.experience-blog-cover{width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:12px;margin-bottom:14px}
+.experience-page .blog-card:has(.experience-blog-cover){padding:14px}
+.experience-button:focus-visible,.experience-jump a:focus-visible,.experience-search input:focus-visible,.experience-template textarea:focus-visible{outline:3px solid #164d3b;outline-offset:4px}
+@media(max-width:700px){
+ .experience-page .page-hero{padding:88px 20px 20px}
+ .experience-page .page-hero+.section{padding-top:20px}
+ .experience-page .section .sec-header{margin-bottom:18px}
+ .experience-page .sec-header .sec-title{font-size:1.7rem}
+ .experience-page .booking-hero{padding:88px 18px 16px}
+ .experience-page .booking-hero h1{font-size:1.8rem;margin-bottom:8px}
+ .experience-page .booking-hero p{font-size:.94rem;line-height:1.7}
+ .experience-page .booking-section{padding-top:12px}
+ .experience-page .booking-form-card{padding:20px 16px}
+ .experience-page .booking-form-card h2{font-size:1.35rem}
+ .experience-hero{grid-template-columns:1fr;gap:20px}
+ .experience-hero .experience-photo{max-width:none}
+ .experience-hero .experience-photo img{max-height:250px}
+ .experience-wrap{padding:24px 18px}
+ .experience-grid,.experience-grid.is-two,.experience-steps{grid-template-columns:1fr}
+ .experience-steps{gap:10px;margin:18px 0}
+ .experience-steps li{padding:16px 18px}
+ .experience-steps li:before{font-size:1.2rem;margin-bottom:4px}
+ .experience-template{padding:18px}
+ .experience-page .parents-grid{gap:14px}
+ .experience-page .parent-body{padding:14px}
+ .experience-page:has(#bookingForm:focus-within) .mobile-cta-bar{display:none}
+}
