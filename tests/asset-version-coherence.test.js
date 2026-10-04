@@ -35,7 +35,7 @@ const DOG_UI_RELEASE = '20261004a';
 const ESTIMATE_RELEASE = '20260816a';
 const PUBLIC_ASSETS = {
   'ambient-motion.css': '20261004f',
-  'ambient-motion.mjs': '20261004d',
+  'ambient-motion.mjs': '20261004e',
   'awards.css': '20261004d',
   'page-experience.css': '20261004b',
   'page-experience.js': '20261004d',

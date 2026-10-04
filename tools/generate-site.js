@@ -1820,7 +1820,7 @@ ${hreflangBlock(relPath)}
   </script>
   <script defer src="/nav.js?v=${navJsV}"></script>
   <link rel="stylesheet" href="/ambient-motion.css?v=20261004f">
-  <script type="module" src="/ambient-motion.mjs?v=20261004d"></script>
+  <script type="module" src="/ambient-motion.mjs?v=20261004e"></script>
 </head>
 <body class="has-mobile-cta catalog-page">
   <a class="skip-link" href="#main" data-i18n="a11y.skipToMain">メインコンテンツへスキップ</a>
