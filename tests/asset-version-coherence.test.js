@@ -28,7 +28,7 @@ const GUIDE_RELEASE = '20261003c';
 const NAV_STYLE_RELEASE = '20261004e';
 const CHAT_STYLE_RELEASE = '20260712e';
 const CHAT_RELEASE = '20260714g';
-const SERVICE_STYLE_RELEASE = '20260816a';
+const SERVICE_STYLE_RELEASE = '20261004c';
 const SERVICE_RELEASE = '20260816a';
 const SERVICE_CALC_RELEASE = '20260816a';
 const DOG_UI_RELEASE = '20261004a';
@@ -37,8 +37,9 @@ const PUBLIC_ASSETS = {
   'ambient-motion.css': '20261004f',
   'ambient-motion.mjs': '20261004e',
   'awards.css': '20261004d',
-  'page-experience.css': '20261004b',
-  'page-experience.js': '20261004d',
+  'page-experience.css': '20261004c',
+  'page-experience.js': '20261004e',
+  'gallery-filters.js': '20261004a',
   'style.css': STYLE_RELEASE,
   'nav.css': NAV_STYLE_RELEASE,
   'nav.js': NAV_RELEASE,
