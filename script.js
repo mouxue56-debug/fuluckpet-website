@@ -781,7 +781,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const actions = createModalNode('div', 'modal-actions');
     actions.style.marginTop = '12px';
     const booking = createModalNode('a', 'btn btn-secondary modal-visit-btn', copy.booking);
-    booking.setAttribute('href', '/booking.html');
+    const bookingId = /^[A-Za-z0-9][A-Za-z0-9_-]{0,99}$/.test(breederId) && breederId.toLowerCase() !== 'index' ? breederId : '';
+    booking.setAttribute('href', '/booking.html?lang=' + catalogLang + (bookingId ? '&kitten=' + encodeURIComponent(bookingId) : ''));
     booking.addEventListener('click', () => closeModalA11y(kittenModal));
     actions.appendChild(booking);
     content.push(actions);
@@ -1001,11 +1002,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!parentModal) return;
     const galleryVersion = ++parentGalleryVersion;
     const name = card.dataset.name || '';
-    const breed = card.dataset.breed || '';
+    const displayValue = value => typeof window.fuluckTranslatePublicText === 'function' ? window.fuluckTranslatePublicText(value, String(document.documentElement.lang || 'ja')) : value;
+    const breed = displayValue(card.dataset.breed || '');
     const gender = card.dataset.gender || '';
     const role = card.dataset.role || '';
     const age = card.dataset.age || '';
-    const color = card.dataset.color || '';
+    const color = displayValue(card.dataset.color || '');
     const tested = card.dataset.tested === 'true';
     const copy = getKittenModalCopy();
 
@@ -1075,7 +1077,7 @@ document.addEventListener('DOMContentLoaded', () => {
       appendModalDetail(details, copy.breed, breed);
       appendModalDetail(details, copy.sex, gender === '♂' ? copy.male : gender === '♀' ? copy.female : '');
       if (color) appendModalDetail(details, copy.color, color);
-      if (age) appendModalDetail(details, copy.age, age);
+      if (age) appendModalDetail(details, copy.age, displayValue(age));
       appendModalDetail(details, copy.testInfo, tested ? copy.testRecorded : copy.testMissing, tested ? { icon: 'ico-circle-check' } : {});
     }
 

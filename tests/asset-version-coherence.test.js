@@ -12,18 +12,18 @@ const RELEASE = '20260710b';
 const COPY_RELEASE = '20260823a';
 const TRUST_RELEASE = '20260711b';
 const STYLE_RELEASE = COPY_RELEASE;
-const SCRIPT_RELEASE = '20260920b';
+const SCRIPT_RELEASE = '20261004a';
 const TRUTH_RELEASE = '20260711c';
 const CATALOG_RELEASE = '20260711b';
 const KITTEN_CAROUSEL_RELEASE = '20260917a';
-const CARD_LOADER_RELEASE = '20260920a';
+const CARD_LOADER_RELEASE = '20261004a';
 const ADMIN_RENDER_RELEASE = '20260811a';
 const ADMIN_PHOTOS_RELEASE = '20260811a';
 const ADMIN_DIARY_RELEASE = '20260711a';
 const ADMIN_FAQ_RELEASE = TRUTH_RELEASE;
 const ADMIN_CALENDAR_RELEASE = '20260714c';
-const NAV_RELEASE = '20260926a';
-const I18N_RELEASE = '20260918b';
+const NAV_RELEASE = '20261004a';
+const I18N_RELEASE = '20261004a';
 const GUIDE_RELEASE = '20261003c';
 const NAV_STYLE_RELEASE = '20260918a';
 const CHAT_STYLE_RELEASE = '20260712e';
@@ -41,17 +41,17 @@ const PUBLIC_ASSETS = {
   'blog/blog-i18n.js': RELEASE,
   'blog-listing-i18n.js': '20260920a',
   'blog-listing-i18n-apply.js': '20260918a',
-  'catalog-i18n.js': COPY_RELEASE,
+  'catalog-i18n.js': '20261004a',
   'kitten-catalog.js': CATALOG_RELEASE,
   'card-loader.js': CARD_LOADER_RELEASE,
-  'faq-trust-copy.js': COPY_RELEASE,
+  'faq-trust-copy.js': '20261004a',
   'faq-loader.js': TRUST_RELEASE,
   'faq-page-loader.js': TRUST_RELEASE,
   'kitten-carousel.js': KITTEN_CAROUSEL_RELEASE,
   'cta-widget.js': '20260926a',
   'script.js': SCRIPT_RELEASE,
   'analytics.js': '20260920a',
-  'guide/i18n-guide-body.js': GUIDE_RELEASE,
+  'guide/i18n-guide-body.js': '20261004a',
   'guide/guide-visuals.js': GUIDE_RELEASE,
   'mobile-cta.js': COPY_RELEASE,
   'assets/chat/widget.css': CHAT_STYLE_RELEASE,

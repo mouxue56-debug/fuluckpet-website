@@ -123,6 +123,10 @@
     var table = cat && cat[kind] && cat[kind][lang];
     return (table && table[value]) || value;
   }
+  function ctPublic(value) {
+    return typeof window.fuluckTranslatePublicText === 'function' ? window.fuluckTranslatePublicText(value, getLang()) : value;
+  }
+
   function ctColor(color) { return ctCatalog('colors', color); }
 
   // ===== Breed taxonomy — MUST mirror tools/generate-site.js BREED_CONFIG =====
@@ -490,7 +494,7 @@
       '<div class="parent-body">' +
         '<h3>' + escAttr(name) + '</h3>' +
         '<p>' + escAttr(ctBreed(breed)) + ' ・ ' + escAttr(safeGender(p.gender)) + ' ・ ' + escAttr(ctColor(color)) + '</p>' +
-        '<p style="font-size:12px;color:var(--text-note);">' + escAttr(age) + '</p>' +
+        '<p style="font-size:12px;color:var(--text-note);">' + escAttr(ctPublic(age)) + '</p>' +
         '<span class="parent-role ' + roleClass + '">' + escAttr(ctRole(role)) + '</span>' +
       '</div>' +
     '</div>';
@@ -503,9 +507,9 @@
         '<div class="review-stars"><i class="ico ico-star" aria-hidden="true"></i><i class="ico ico-star" aria-hidden="true"></i><i class="ico ico-star" aria-hidden="true"></i><i class="ico ico-star" aria-hidden="true"></i><i class="ico ico-star" aria-hidden="true"></i></div>' +
         '<span class="review-platform">' + ct('reviewPlatform') + '</span>' +
       '</div>' +
-      '<p class="review-body">' + escAttr(r.body) + '</p>' +
+      '<p class="review-body">' + escAttr(ctPublic(r.body)) + '</p>' +
       '<div class="review-footer">' +
-        '<p class="review-author">— ' + escAttr(r.region) + ' ' + escAttr(r.author) + '（' + escAttr(r.date) + '）</p>' +
+        '<p class="review-author">' + escAttr(ctPublic('— ' + safeString(r.region) + ' ' + safeString(r.author) + '（' + safeString(r.date) + '）')) + '</p>' +
         '<span class="review-verified">' + ct('verifiedReview') + '</span>' +
       '</div>' +
     '</div>';

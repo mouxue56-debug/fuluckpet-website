@@ -14,7 +14,7 @@ function runtime(hrefs, pathname = '/blog.html', search = '?lang=en') {
   }));
   const document = {
     documentElement: { lang: 'ja' },
-    querySelectorAll(s) { return s === '.footer a[href]' ? links : []; },
+    querySelectorAll(s) { return s === '.footer a[href]' || s === 'a[href]' ? links : []; },
     addEventListener() {},
   };
   const context = vm.createContext({document, URL, URLSearchParams, WeakMap,
@@ -39,7 +39,7 @@ test('footer switching works without enhanced nav and preserves query and fragme
   h.set('ja'); assert.equal(h.links[0].attrs.href, '/kittens.html?utm_source=blog#available');
 });
 test('footer leaves external, explicit language choices and destinations without siblings unchanged', () => {
-  const hrefs=['/index.html#about','/parents.html','/guide/','/blog/cat-cost-monthly.html','/kittens/index.html','https://example.com/kittens.html','//example.com/kittens.html','javascript:alert(1)','/en/community/','/en/kittens.html'];
+  const hrefs=['/index.html#about','/parents.html','/blog/cat-cost-monthly.html','/kittens/index.html','https://example.com/kittens.html','//example.com/kittens.html','javascript:alert(1)','/en/community/','/en/kittens.html'];
   const h=runtime(hrefs);h.links.at(-1).attrs.hreflang='en';
   h.set('zh');assert.deepEqual(h.links.map(a=>a.attrs.href),hrefs);
 });
@@ -47,4 +47,16 @@ test('footer leaves external, explicit language choices and destinations without
 test('stale language query cannot redirect a restored Japanese footer link', () => {
   const h=runtime(['/en/kittens.html?lang=en&utm_source=blog#available']);
   h.set('ja'); assert.equal(h.links[0].attrs.href, '/kittens.html?utm_source=blog#available');
+});
+
+test('guide links keep language without losing anchors or changing assets and external links', () => {
+  const h=runtime(['/guide/price.html?lang=en#guide-topic-price-1','guide/','https://outside.example/guide/','/guide/guide.css','/en/guide/bring.html']);
+  h.set('zh');
+  assert.equal(h.links[0].attrs.href,'/zh/guide/price.html#guide-topic-price-1');
+  assert.equal(h.links[1].attrs.href,'/zh/guide/');
+  assert.equal(h.links[2].attrs.href,'https://outside.example/guide/');
+  assert.equal(h.links[3].attrs.href,'/guide/guide.css');
+  assert.equal(h.links[4].attrs.href,'/zh/guide/bring.html');
+  h.set('ja');
+  assert.equal(h.links[0].attrs.href,'/guide/price.html#guide-topic-price-1');
 });

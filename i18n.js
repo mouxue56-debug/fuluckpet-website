@@ -216,7 +216,7 @@ const translations = {
     'faqPage.q.faq_15': '血統書は付きますか？',
     'faqPage.a.faq_15': '純血種の子猫にはCFAまたはTICAの血統書が付きます（ミックスは対象外）。お引渡し後に登録団体から郵送される場合がありますので、届くまで少々お時間をいただくことがあります。',
     'faqPage.q.faq_16': '予約金やデポジットは必要ですか？',
-    'faqPage.a.faq_16': 'ご成約時に予約金として50,000円をお願いしております。ご入金確認後、他のお客様からのお問い合わせをお断りし、商談中の状態に切り替えさせていただきます。残金は引き渡し日当日にお支払いください。',
+    'faqPage.a.faq_16': 'ご成約時に予約金として50,000円をお願いしております。ご入金確認後、他のお客様からのお問い合わせをお断りし、商談中の状態に切り替えさせていただきます。残金は、お迎え前の銀行振込をお願いしています。現金でお支払いの場合は、お引渡し日当日までに全額をお支払いください。',
     'faqPage.q.faq_17': 'お引渡しの時期はいつ頃ですか？',
     'faqPage.a.faq_17': '子猫の健康状態や社会化の進捗を見て、生後2.5〜3ヶ月頃のお引渡しを目安としております。早すぎるお引渡しは子猫の心身の発達に影響するため、適切な時期をご案内します。',
     'faqPage.q.faq_18': '購入をキャンセルすることはできますか？',
@@ -423,7 +423,7 @@ const translations = {
     'booking.infoLocation': '見学場所：大阪市城東区東中浜2-6-23（最寄り：Osaka Metro 緑橋駅）',
     'booking.infoCostTitle': 'お迎えまでの費用の流れ',
     'booking.infoVaccineFee': '表示価格は子猫本体価格（税込）です。3種混合ワクチン（1回目）の接種費用として、別途10,000円（税込）を申し受けます。',
-    'booking.infoDeposit': 'ご成約時に予約金として50,000円をお願いしています。残金はお引き渡し日当日にお支払いください。契約は登録事業所での現物確認後に行います。',
+    'booking.infoDeposit': 'ご成約時に予約金として50,000円をお願いしています。残金は、お迎え前の銀行振込をお願いしています。現金でお支払いの場合は、お引渡し日当日までに全額をお支払いください。契約は登録事業所での現物確認後に行います。',
     'booking.lawTitle': '対面販売について',
     'booking.lawText': '契約前には登録事業所で子猫の現物確認と対面説明が必要です。LINEビデオ通話だけで売買契約を成立させることはできません。',
     'booking.lineTitle': 'LINEでも予約OK',
@@ -545,7 +545,7 @@ const translations = {
 
     // Price Page
     'guide.price.title': '料金の説明',
-    'guide.price.lead': 'サイト掲載価格をベースに、必要なオプションだけ追加するシンプルな仕組みです。',
+    'guide.price.lead': "子猫本体価格に、必須の初回ワクチン代10,000円を加算します。その他のオプションはご希望に応じて追加できます。",
     'guide.price.s1.title': '料金の仕組み',
     'guide.price.s2.title': '選べるオプション',
     'guide.price.s3.title': '予約金・残金の流れ',
@@ -805,7 +805,7 @@ const translations = {
     'faqPage.q.faq_11': 'Do kittens have microchips?',
     'faqPage.a.faq_11': 'Yes, by Japanese law all kittens are microchipped before handover. We will guide you through the owner-information transfer process — please rest assured.',
     'faqPage.q.faq_12': 'Where is the cattery?',
-    'faqPage.a.faq_12': 'Visit location: 2-6-23 Higashinakahama, Joto-ku, Osaka (nearest station: Osaka Metro Midoribashi). Parking is available. Visits are by appointment only \u2014 please contact us via LINE or the booking page in advance.',
+    'faqPage.a.faq_12': 'Visit location: 2-6-23 Higashinakahama, Joto-ku, Osaka (nearest station: Osaka Metro Midoribashi). You can visit by car. Visits are by appointment only \u2014 please contact us via LINE or the booking page in advance.',
     'faqPage.q.faq_13': 'I am a first-time cat owner. Will I be OK?',
     'faqPage.a.faq_13': 'Of course! We explain food, litter, health care, and training in detail so first-time owners can adopt with confidence. You can consult us anytime via LINE after adoption — please rest assured.',
     'faqPage.q.faq_14': 'How do you manage hygiene?',
@@ -813,7 +813,7 @@ const translations = {
     'faqPage.q.faq_15': 'Is a pedigree certificate included?',
     'faqPage.a.faq_15': 'Purebred kittens come with a CFA or TICA pedigree certificate (mixed-breed kittens are not eligible). The certificate may be mailed from the registry after handover, so it can take a little time to arrive.',
     'faqPage.q.faq_16': 'Is a deposit required?',
-    'faqPage.a.faq_16': 'A ¥50,000 reservation deposit is required to confirm a kitten. Once received, we stop taking inquiries from other customers and mark the kitten as reserved. The remaining balance is due on the day of handover.',
+    'faqPage.a.faq_16': 'A ¥50,000 reservation deposit is required to confirm a kitten. Once received, we stop taking inquiries from other customers and mark the kitten as reserved. Please pay the remaining balance by bank transfer before pickup where possible. If paying in cash, the full balance must be settled no later than handover day.',
     'faqPage.q.faq_17': 'When is handover?',
     'faqPage.a.faq_17': 'We aim for handover at around 2.5–3 months of age, depending on the kitten’s health and socialization progress. Earlier handover affects the kitten’s development, so we will guide you to the right timing.',
     'faqPage.q.faq_18': 'Can I cancel my purchase?',
@@ -1020,7 +1020,7 @@ const translations = {
     'booking.infoLocation': 'Visits: 2-6-23 Higashinakahama, Joto-ku, Osaka (nearest station: Osaka Metro Midoribashi)',
     'booking.infoCostTitle': 'What you pay, and when',
     'booking.infoVaccineFee': 'The listed price is the kitten price (tax included). The first FVRCP (3-in-1) vaccination is charged separately at \u00a510,000 (tax included).',
-    'booking.infoDeposit': 'A deposit of \u00a550,000 is due when the reservation is agreed, and the balance is paid on hand-over day. The contract itself is signed at our registered premises after you have seen the kitten.',
+    'booking.infoDeposit': 'A deposit of \u00a550,000 is due when the reservation is agreed. Please pay the remaining balance by bank transfer before pickup where possible. If paying in cash, the full balance must be settled no later than handover day. The contract itself is signed at our registered premises after you have seen the kitten.',
     'booking.lawTitle': 'In-Person Meeting Requirement',
     'booking.lawText': 'Before signing a contract, you must visit the registered premises to see the kitten and receive an in-person explanation. A LINE video call alone cannot complete the sale.',
     'booking.lineTitle': 'Also Available via LINE',
@@ -1142,7 +1142,7 @@ const translations = {
 
     // Price Page
     'guide.price.title': 'Pricing Guide',
-    'guide.price.lead': 'A simple system based on the listed price, with only the options you need.',
+    'guide.price.lead': "The kitten price plus a mandatory ¥10,000 first-vaccination fee. Other services are optional.",
     'guide.price.s1.title': 'Pricing Structure',
     'guide.price.s2.title': 'Available Options',
     'guide.price.s3.title': 'Deposit & Payment Flow',
@@ -1410,7 +1410,7 @@ const translations = {
     'faqPage.q.faq_15': '是否提供血统证书？',
     'faqPage.a.faq_15': '纯种幼猫附带CFA或TICA血统证书（混血猫不适用）。证书可能在交付后由登记机构邮寄，可能需要一些时间送达。',
     'faqPage.q.faq_16': '需要预约金或定金吗？',
-    'faqPage.a.faq_16': '签约时需支付 50,000 日元的预约金。确认收款后，我们将停止接受其他客户的咨询，并将该猫咪状态切换为洽谈中。余款请在交付当日支付。',
+    'faqPage.a.faq_16': '签约时需支付 50,000 日元的预约金。确认收款后，我们将停止接受其他客户的咨询，并将该猫咪状态切换为洽谈中。尾款优先在接猫前通过银行转账支付；如使用现金，最迟须在交付当天结清。',
     'faqPage.q.faq_17': '什么时候可以接猫？',
     'faqPage.a.faq_17': '根据幼猫的健康与社会化情况，一般在出生2.5〜3个月左右交付。过早交付会影响幼猫身心发展，我们会指导合适的时机。',
     'faqPage.q.faq_18': '可以取消订购吗？',
@@ -1617,7 +1617,7 @@ const translations = {
     'booking.infoLocation': '见学地点：大阪市城东区东中浜2-6-23（最近车站：Osaka Metro 绿桥站）',
     'booking.infoCostTitle': '接猫回家的费用流程',
     'booking.infoVaccineFee': '标示价格为幼猫本体价格（含税）。首针三联疫苗费用另计 10,000 日元（含税）。',
-    'booking.infoDeposit': '成交时需支付预约金 50,000 日元，余款在交付当日结清。合同在登记营业所当面确认幼猫后签订。',
+    'booking.infoDeposit': '成交时需支付预约金 50,000 日元。尾款优先在接猫前通过银行转账支付；如使用现金，最迟须在交付当天结清。合同在登记营业所当面确认幼猫后签订。',
     'booking.lawTitle': '关于面对面确认',
     'booking.lawText': '签约前须到登记营业场所现场确认幼猫实物并接受面对面说明，仅凭LINE视频通话不能完成销售合同。',
     'booking.lineTitle': 'LINE也可以预约',
@@ -1739,7 +1739,7 @@ const translations = {
 
     // Price Page
     'guide.price.title': '价格说明',
-    'guide.price.lead': '以网站标价为基础，按需添加选项的简单体系。',
+    'guide.price.lead': "幼猫本体价格另加必收的首针疫苗费10,000日元。其他服务可按需选择。",
     'guide.price.s1.title': '价格体系',
     'guide.price.s2.title': '可选项目',
     'guide.price.s3.title': '定金·尾款流程',
@@ -1797,6 +1797,147 @@ const translations = {
 };
 
 // Keys that should use innerHTML instead of textContent
+// Supplementary translations of existing public copy. Exact Japanese keys prevent
+// a changed API review or owner-supplied value from receiving a stale translation.
+const supplementalCopy = {
+  '男の子': ['Male', '男孩'],
+  '女の子': ['Female', '女孩'],
+  '遺伝子検査済': ['DNA tested', '基因检测完毕'],
+  '✓ 遺伝子検査済': ['✓ DNA tested', '✓ 基因检测完毕'],
+  "質問にも丁寧に答えてくださり、引き渡し前には爪切りやシャンプーまで準備してくださいました。とても安心してお迎えすることができました。アフターフォローも手厚く、感謝しています。": ["They answered my questions carefully and even prepared the kitten with nail trimming and a shampoo before handover. I felt very reassured bringing the kitten home. I am grateful for the attentive follow-up support.","所有问题都耐心解答，交付前还准备了剪指甲和洗澡，让我非常安心地迎接猫咪。后续支持也很周到，非常感谢。"],
+  "説明がとても分かりやすく、素晴らしいブリーダーさんです。可愛い子猫をお迎えでき、食事やケアについても丁寧にアドバイスいただきました。これからの成長が楽しみです。": ["The explanations were easy to understand; they are a wonderful breeder. We welcomed a lovely kitten and received thoughtful advice on food and care. We look forward to watching our kitten grow.","说明十分清晰易懂，是非常棒的繁殖者。我们迎接了可爱的幼猫，也得到了关于饮食与护理的细心建议，期待猫咪今后的成长。"],
+  "初めて猫を飼いましたが、とても丁寧にサポートしていただけました。子猫はすぐにご飯を食べてくれて、人懐こくてとても可愛いです。LINEでの相談にも迅速に対応してくださり助かっています。": ["This was my first cat, and the support was very thorough. The kitten started eating right away and is affectionate and adorable. Their quick replies to questions on LINE have been a great help.","第一次养猫，得到了非常细致的支持。幼猫很快就开始吃饭，亲人又可爱。通过LINE咨询时也能迅速得到回复，帮了很大忙。"],
+  "予定変更にも柔軟に対応してくださり、子猫の成長動画も送ってくださいました。ブリーダーさんの猫への愛情がとても伝わります。お迎えした子猫はとても元気で幸せです。": ["They were flexible with schedule changes and sent videos of the kitten growing up. Their love for cats really comes through. Our kitten is healthy and happy.","对于日程变动能够灵活配合，还发来了幼猫成长的视频。能感受到繁殖者对猫咪的爱。迎接的小猫很健康，也很幸福。"],
+  "動物への愛情が本物だと感じられるブリーダーさんです。お迎え初日からすぐに馴染んでくれました。環境が素晴らしく、子猫の社会化もしっかりされています。": ["This breeder’s love for animals feels sincere. Our kitten settled in from the very first day. The environment is excellent, and the kitten has been well socialized.","能感受到这位繁殖者对动物真诚的爱。猫咪接回家的第一天就适应了。环境很好，幼猫的社会化也做得充分。"],
+  "遠方からでしたが、LINEビデオ通話で事前に子猫を見せていただきました。実物はさらに可愛く、性格もとても穏やかで大満足です。健康診断書や遺伝子検査結果もしっかりいただけました。": ["As we lived far away, they showed us the kitten beforehand on a LINE video call. The kitten was even lovelier in person and has a very gentle personality; we are delighted. We also received the health certificate and genetic test results.","因为住得较远，提前通过LINE视频看了幼猫。见面后觉得它更加可爱，性格也非常温和，我们非常满意。健康检查证明和基因检测结果也都收到了。"],
+  "— 大阪府 L.A様（2026年1月）": ["— L.A, Osaka (January 2026)","— 大阪府 L.A（2026年1月）"],
+  "— 滋賀県 Kei様（2026年1月）": ["— Kei, Shiga (January 2026)","— 滋贺县 Kei（2026年1月）"],
+  "— 大阪府 H.U様（2026年1月）": ["— H.U, Osaka (January 2026)","— 大阪府 H.U（2026年1月）"],
+  "— 和歌山県 D.S様（2026年1月）": ["— D.S, Wakayama (January 2026)","— 和歌山县 D.S（2026年1月）"],
+  "— 大阪府 ドラム様（2025年12月）": ["— ドラム, Osaka (December 2025)","— 大阪府 ドラム（2025年12月）"],
+  "— 東京都 T様（2025年12月）": ["— T, Tokyo (December 2025)","— 东京都 T（2025年12月）"],
+
+  'ホーム': ['Home', '首页'],
+  '受賞歴・認定': ['Awards & Registration', '获奖与登记信息'],
+  'お客様にご信頼いただける品質の証。これまでの実績と認定情報をご紹介します。': ['Our awards and registration information.', '介绍猫舍已有的获奖实绩与登记信息。'],
+  '認定・登録情報': ['Registration Information', '登记信息'],
+  '動物取扱業者として正式に登録されています。': ['Registered as an animal handling business.', '已正式登记为动物经营机构。'],
+  '氏名又は名称': ['Name / Company', '姓名或名称'],
+  '事業所の名称': ['Business name', '经营场所名称'],
+  '事業所の所在地': ['Business address', '经营场所地址'],
+  '動物取扱業の種別': ['Registered activities', '动物经营业务类别'],
+  '販売・保管・貸出し・展示': ['Sales, boarding, lending and exhibition', '销售、寄养、出租及展示'],
+  '登録番号': ['Registration number', '登记编号'],
+  '登録年月日': ['Registration date', '登记日期'],
+  '登録の有効期間の末日': ['Registration expiry date', '登记有效期截止日'],
+  '動物取扱責任者': ['Responsible animal handler', '动物经营负责人'],
+  '法人情報': ['Company Information', '公司信息'],
+  '法人名': ['Company name', '公司名称'],
+  '代表取締役': ['Representative director', '代表董事'],
+  '所在地': ['Location', '所在地'],
+  '事業内容': ['Business activities', '经营内容'],
+  '猫の繁殖・販売': ['Cat breeding and sales', '猫咪繁育与销售'],
+  '親猫紹介': ['Parent Cats', '父母猫介绍'],
+  '優秀な血統と愛情深い性格を持つ、当舎自慢の親猫たちをご紹介します。': ['Meet our parent cats, known for their pedigrees and affectionate personalities.', '介绍本猫舍拥有优良血统与亲人性格的父母猫。'],
+  'サイベリアン 親猫': ['Siberian Parent Cats', '西伯利亚猫父母猫'],
+  'ブリティッシュショートヘア 親猫': ['British Shorthair Parent Cats', '英国短毛猫父母猫'],
+  'ブリティッシュロングヘア 親猫': ['British Longhair Parent Cats', '英国长毛猫父母猫'],
+  'どっしりした体型と愛らしい丸い顔が人気のブリティッシュショートヘアの親猫たちです。': ['Our British Shorthair parent cats are known for their sturdy build and endearing round faces.', '英国短毛猫父母猫，拥有结实的体型与可爱的圆脸。'],
+  'ブリティッシュショートヘアの長毛種。穏やかで上品な親猫たちです。': ['The longhaired relatives of the British Shorthair: calm, elegant parent cats.', '英国短毛猫的长毛类型，性格沉稳、姿态优雅的父母猫。'],
+  'ラグドール（過去の繁育実績）': ['Ragdolls (Past Breeding)', '布偶猫（过往繁育实绩）'],
+  '過去にラグドールの繁育実績がございます。現在は繁育しておりません（サイベリアン・ブリティッシュを中心に繁育しています）。': ['We bred Ragdolls in the past. We no longer breed them; our focus is now Siberian and British cats.', '过去曾繁育布偶猫，目前已不再繁育，现以西伯利亚猫与英国猫为主。'],
+  '過去の実績': ['Past breeding', '过往繁育实绩'],
+  'パパ猫': ['Father', '父猫'],
+  'ママ猫': ['Mother', '母猫'],
+  '子猫に会いに来ませんか？': ['Would you like to meet our kittens?', '想来见见幼猫吗？'],
+  '親猫たちの愛情をたっぷり受けた子猫が待っています。': ['Our kittens, raised with care by their parents, are waiting to meet you.', '在父母猫关爱下成长的幼猫，期待与您见面。'],
+  '子猫を見る': ['View Kittens', '查看幼猫'],
+  'トップページへ戻る': ['Back to Home', '返回首页'],
+  '見学を予約する': ['Book a Visit', '预约参观'],
+  '見学予約・ご相談': ['Visits & inquiries', '预约参观与咨询'],
+  'LINEで相談': ['Chat on LINE', 'LINE咨询'],
+  'LINEで相談する': ['Chat on LINE', 'LINE咨询'],
+  'LINEでお問い合わせ': ['Contact us on LINE', '通过LINE联系我们'],
+  'ページトップへ': ['Back to top', '返回顶部'],
+  '対面販売について': ['About In-Person Sales', '关于面对面销售'],
+  'おすすめ': ['Recommended', '推荐排序'],
+  '価格 ↑': ['Price ↑', '价格 ↑'],
+  '価格 ↓': ['Price ↓', '价格 ↓'],
+  '新着順': ['Newest first', '最新发布'],
+  '卒業猫ギャラリー': ['Adopted Cat Gallery', '毕业猫相册'],
+  '新しいご家族の元で幸せに暮らす卒業猫たちをご紹介します。': ['Meet cats enjoying life with their new families.', '介绍在新家庭幸福生活的毕业猫。'],
+  '卒業猫たち': ['Our Adopted Cats', '毕业猫们'],
+  '200匹以上の子猫たちが新しいご家族の元へ旅立ちました。': ['More than 200 kittens have joined their new families.', '已有200多只幼猫加入新的家庭。'],
+  '…他 170匹以上の卒業猫がいます': ['…and more than 170 other adopted cats', '……还有170多只毕业猫'],
+  '次はあなたの番です': ['Your turn could be next', '期待下一位家长就是您'],
+  '素敵なご家族との出会いを、心よりお待ちしております。': ['We look forward to meeting wonderful new families.', '衷心期待与新的温暖家庭相遇。'],
+  'お客様の声': ['Customer Reviews', '客户评价'],
+  'レビュー一覧': ['All Reviews', '评价一览'],
+  'みんなの子猫ブリーダーに寄せられたお客様の声をご紹介します。': ['Customer reviews originally posted on Minna no Koneko Breeder.', '介绍客户在“大家的幼猫繁殖者”平台发布的评价。'],
+  'みんなの子猫ブリーダー': ['Minna no Koneko Breeder', '大家的幼猫繁殖者'],
+  '認証済みレビュー': ['Verified review', '已认证评价'],
+  '✓ 認証済みレビュー': ['✓ Verified review', '✓ 已认证评价'],
+  '/ 100件以上のレビュー': ['/ 100+ Reviews', '/ 100条以上评价'],
+  '／ 100件以上のレビュー': ['/ 100+ Reviews', '/ 100条以上评价'],
+  '5.00／100件以上': ['5.00 / 100+ reviews', '5.00／100条以上评价'],
+  '全国1位': ['No. 1 in Japan', '日本全国第1名'],
+  '200+卒業': ['200+ adopted cats', '200多只毕业猫'],
+  '第三者プラットフォームの評価': ['Third-party Platform Reviews', '第三方平台评价'],
+  'お客様評価は、第三者プラットフォーム「みんなの子猫ブリーダー」の認定ページで公開されています。': ['Customer ratings are published on the certification page of Minna no Koneko Breeder.', '客户评分公开于“大家的幼猫繁殖者”平台的认证页面。'],
+  'すべてのお客様評価は、みんなの子猫ブリーダーの認定ページで直接ご確認いただけます。': ['All customer ratings can be viewed on the platform’s certification page.', '全部客户评分可在该平台的认证页面查看。'],
+  'みんなの子猫ブリーダーで全レビューを見る →': ['View all reviews on Minna no Koneko Breeder →', '在“大家的幼猫繁殖者”查看全部评价 →'],
+  'あなたも福楽ファミリーに': ['Join the Fuluck Family', '加入福楽大家庭'],
+  '多くのお客様にご満足いただいています。次はあなたの番です。': ['Many families have enjoyed their experience with us. Yours could be next.', '许多家庭对迎接猫咪的体验感到满意，期待与您相遇。'],
+  '気になる子がいたら、まずはお気軽にご相談を': ['Interested in a kitten? Get in touch.', '遇到喜欢的猫咪，欢迎先咨询'],
+  'LINEビデオ通話は事前相談・オンライン見学として利用できますが、契約前には登録事業所で子猫の現物確認と対面説明が必要です。': ['LINE video calls are available for initial inquiries and online visits. Before signing a contract, an in-person meeting with the kitten and explanation at the registered premises are required.', '可通过LINE视频提前咨询或线上参观，但签约前仍须在登记经营场所当面确认幼猫并听取说明。'],
+};
+
+function translateSupplementalText(raw, lang) {
+  if (lang !== 'en' && lang !== 'zh') return raw;
+  const exact = supplementalCopy[raw];
+  if (exact) return exact[lang === 'en' ? 0 : 1];
+  // Translate presentation units only; never recalculate an animal's age or facts.
+  const age = /^(?:(\d+)歳)?(?:(\d+)ヶ?月)?$/.exec(raw);
+  if (age && (age[1] || age[2])) {
+    if (lang === 'zh') return (age[1] ? age[1] + '岁' : '') + (age[2] ? age[2] + '个月' : '');
+    return [age[1] && age[1] + (age[1] === '1' ? ' year' : ' years'), age[2] && age[2] + (age[2] === '1' ? ' month' : ' months')].filter(Boolean).join(' ') + ' old';
+  }
+  if (typeof raw === 'string' && raw.includes(' ・ ')) return raw.split(' ・ ').map(part => translateSupplementalText(part.trim(), lang)).join(' ・ ');
+  const monthBorn = /^(\d{4})年(\d{1,2})月生まれ$/.exec(raw);
+  if (monthBorn) return lang === 'en' ? 'Born ' + monthBorn[1] + '/' + monthBorn[2] : monthBorn[1] + '年' + monthBorn[2] + '月出生';
+  if (typeof raw === 'string' && /（税込）$/.test(raw)) return raw.replace(/（税込）$/, lang === 'en' ? '(tax incl.)' : '（含税）');
+  const born = /^(\d{4})\/(\d{1,2})\/(\d{1,2})生$/.exec(raw);
+  if (born) return lang === 'en' ? 'Born ' + born.slice(1).join('/') : born[1] + '年' + born[2] + '月' + born[3] + '日出生';
+  const catalog = window.FULUCK_CATALOG_I18N;
+  for (const kind of ['colors', 'breeds']) {
+    const value = catalog && catalog[kind] && catalog[kind][lang] && catalog[kind][lang][raw];
+    if (value) return value;
+  }
+  return raw;
+}
+window.fuluckTranslatePublicText = translateSupplementalText;
+
+function localizeSupplementalContent(lang) {
+  document.querySelectorAll('body *').forEach(el => {
+    // Article/health bodies already own their translations. Never replace authored copy
+    // inside those blocks, form inputs, structured data or existing dictionary bindings.
+    if (el.closest('script, style, textarea, [data-i18n], [data-i18n-html]')) return;
+    el.childNodes.forEach(node => {
+      if (node.nodeType !== 3 || !node.textContent.trim()) return;
+      if (!node._fuluckSource || node.textContent !== node._fuluckRendered) node._fuluckSource = node.textContent;
+      const source = node._fuluckSource;
+      const translated = translateSupplementalText(source.trim(), lang);
+      node.textContent = source.replace(source.trim(), () => translated);
+      node._fuluckRendered = node.textContent;
+    });
+  });
+  document.querySelectorAll('.fixed-line[aria-label], .back-to-top[aria-label]').forEach(el => {
+    const source = el._fuluckAria || el.getAttribute('aria-label');
+    el._fuluckAria = source;
+    el.setAttribute('aria-label', translateSupplementalText(source, lang));
+  });
+}
+
 const htmlKeys = new Set([
   'hero.subtitle',
   'story.subtitle',
@@ -1823,6 +1964,19 @@ function syncFooterKittenLinks(lang) {
     // A stale ?lang=en on the Japanese root would redirect back to English.
     target.searchParams.delete('lang');
     link.setAttribute('href', (lang === 'ja' ? '' : '/' + lang) + target.pathname + target.search + target.hash);
+  });
+}
+
+function syncGuideLanguageLinks(lang) {
+  document.querySelectorAll('a[href]').forEach(link => {
+    if (link.hasAttribute('hreflang') || link.hasAttribute('lang')) return;
+    const raw = link.getAttribute('href') || '';
+    // Only relative links to known local Guide pages. Never rewrite an external URL.
+    const match = raw.match(/^(?:\/(?:en\/|zh\/)?)?guide\/(index\.html|(?:behavior|bring|day1|family|grooming|home-safety|multi-cat|neuter|passport|prepare|price|visit|week1|weight-log)\.html)?([?#].*)?$/);
+    if (!match) return;
+    const url = new URL('/guide/' + (match[1] || '') + (match[2] || ''), 'https://fuluckpet.com');
+    url.searchParams.delete('lang');
+    link.setAttribute('href', (lang === 'ja' ? '' : '/' + lang) + url.pathname + url.search + url.hash);
   });
 }
 
@@ -1899,6 +2053,8 @@ function setLanguage(lang) {
 
   syncCtaAccessibleNames();
   syncFooterKittenLinks(lang);
+  syncGuideLanguageLinks(lang);
+  localizeSupplementalContent(lang);
 
   try {
     localStorage.setItem('fuluckpet-lang', lang);
@@ -1932,7 +2088,7 @@ function initI18n() {
   };
   var I18N_KITTEN_DETAIL_RE = /^\/kittens\/[^\/]+\.html$/;
   function jaHasStaticSibling(p) {
-    return !!(I18N_BLOG_SIBLINGS[p] || I18N_KITTEN_DETAIL_RE.test(p));
+    return !!(I18N_BLOG_SIBLINGS[p] || I18N_KITTEN_DETAIL_RE.test(p) || /^\/guide\/(?:index\.html|(?:behavior|bring|day1|family|grooming|home-safety|multi-cat|neuter|passport|prepare|price|visit|week1|weight-log)\.html)?$/.test(p));
   }
 
   // Language-switch clicks are owned SOLELY by nav.js (one unified mechanism: it handles

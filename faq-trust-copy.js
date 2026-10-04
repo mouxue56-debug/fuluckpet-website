@@ -65,7 +65,7 @@
       },
       answer: {
         ja: '見学場所：大阪市城東区東中浜2-6-23（最寄り：Osaka Metro 緑橋駅）です。お車でのお越しも可能です。完全予約制のため、事前にLINEまたは予約ページからご連絡ください。',
-        en: 'Visit location: 2-6-23 Higashinakahama, Joto-ku, Osaka (nearest station: Osaka Metro Midoribashi). Parking is available. Visits are by appointment only — please contact us via LINE or the booking page in advance.',
+        en: 'Visit location: 2-6-23 Higashinakahama, Joto-ku, Osaka (nearest station: Osaka Metro Midoribashi). You can visit by car. Visits are by appointment only — please contact us via LINE or the booking page in advance.',
         zh: '见学地点：大阪市城东区东中浜2-6-23（最近车站：Osaka Metro 绿桥站）。可以自驾前来。因采用完全预约制，请提前通过LINE或预约页面联系我们。'
       },
       links: {
@@ -94,9 +94,9 @@
         zh: '需要预约金或定金吗？'
       },
       answer: {
-        ja: 'ご成約時に予約金として50,000円をお願いしております。ご入金確認後、他のお客様からのお問い合わせをお断りし、商談中の状態に切り替えさせていただきます。残金は引き渡し日当日にお支払いください。',
-        en: 'A ¥50,000 reservation deposit is required to confirm a kitten. Once received, we stop taking inquiries from other customers and mark the kitten as reserved. The remaining balance is due on the day of handover.',
-        zh: '签约时需支付 50,000 日元的预约金。确认收款后，我们将停止接受其他客户的咨询，并将该猫咪状态切换为洽谈中。余款请在交付当日支付。'
+        ja: 'ご成約時に予約金として50,000円をお願いしております。ご入金確認後、他のお客様からのお問い合わせをお断りし、商談中の状態に切り替えさせていただきます。残金は、お迎え前の銀行振込をお願いしています。現金でお支払いの場合は、お引渡し日当日までに全額をお支払いください。',
+        en: 'A ¥50,000 reservation deposit is required to confirm a kitten. Once received, we stop taking inquiries from other customers and mark the kitten as reserved. Please pay the remaining balance by bank transfer before pickup where possible. If paying in cash, the full balance must be settled no later than handover day.',
+        zh: '签约时需支付 50,000 日元的预约金。确认收款后，我们将停止接受其他客户的咨询，并将该猫咪状态切换为洽谈中。尾款优先在接猫前通过银行转账支付；如使用现金，最迟须在交付当天结清。'
       },
       links: { ja: [], en: [], zh: [] }
     },

@@ -25,6 +25,9 @@ jobs:
         with:
           node-version-file: '.node-version'
 
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
       - name: Run SEO GEO contract tests
         run: node --test tests/seo-geo-structured-data.test.js tests/seo-geo-content-contract.test.js tests/seo-geo-audit.test.js tests/seo-geo-content-opportunities.test.js tests/siberian-weight-truth.test.js tests/localized-blog-seo.test.js tests/whole-site-trust-contract.test.js tests/workflow-integrity.test.js
 
