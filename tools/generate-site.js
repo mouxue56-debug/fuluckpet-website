@@ -1758,7 +1758,7 @@ function buildListHeader(jaHeader, lang) {
   const chrome = listToAbsoluteLinks(jaHeader.substring(headerIdx, heroIdx).replace(/\s*$/, ''));
 
   const styleV = verAsset('style.css', '20260823a');
-  const navCssV = verAsset('nav.css', '20261004b');
+  const navCssV = verAsset('nav.css', '20261004c');
   const navJsV = verAsset('nav.js', '20261004a');
   const relPath = 'kittens.html';
   const selfUrl = `${BASE_URL}/${langDir(lang)}kittens.html`;
@@ -1783,7 +1783,7 @@ function buildListHeader(jaHeader, lang) {
 <html lang="${lang}">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>${escapeHtml(title)}</title>
   <meta name="description" content="${escapeHtml(desc)}">
   <meta property="og:title" content="${escapeHtml(title)}">
@@ -1818,8 +1818,8 @@ ${hreflangBlock(relPath)}
   ]}
   </script>
   <script defer src="/nav.js?v=${navJsV}"></script>
-  <link rel="stylesheet" href="/ambient-motion.css?v=20261004a">
-  <script type="module" src="/ambient-motion.mjs?v=20261004a"></script>
+  <link rel="stylesheet" href="/ambient-motion.css?v=20261004b">
+  <script type="module" src="/ambient-motion.mjs?v=20261004b"></script>
 </head>
 <body class="has-mobile-cta">
   <a class="skip-link" href="#main" data-i18n="a11y.skipToMain">メインコンテンツへスキップ</a>
@@ -2364,7 +2364,7 @@ function smallAnimalHead({ lang, detailId = '', title, description }) {
 <html lang="${lang}">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>${escapeHtml(title)}</title>
   <meta name="description" content="${escapeHtml(description)}">
 ${robotsMeta}  <meta property="og:title" content="${escapeHtml(title)}">
@@ -2380,7 +2380,7 @@ ${smallAnimalHreflangBlock(detailId)}
   <link rel="preload" as="style" href="${fontHref(lang)}" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="${fontHref(lang)}" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260823a')}">
-  <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20261004b')}">
+  <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20261004c')}">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -3259,7 +3259,7 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja') {
 <html lang="${htmlLang}">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>${escapeHtml(pageTitle)}</title>
   <meta name="description" content="${escapeHtml(metaDesc)}">
   <meta property="og:title" content="${escapeHtml(pageTitle)}">
@@ -3276,7 +3276,7 @@ ${hreflangBlock(`kittens/${fileId}.html`)}
   <link rel="preload" as="style" href="${detailFontHref}" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="${detailFontHref}" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260823a')}">
-  <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20261004b')}">
+  <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20261004c')}">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
