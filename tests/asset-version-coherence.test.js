@@ -51,7 +51,7 @@ const PUBLIC_ASSETS = {
   'card-loader.js': CARD_LOADER_RELEASE,
   'faq-trust-copy.js': '20261004c',
   'faq-loader.js': TRUST_RELEASE,
-  'faq-page-loader.js': '20261004d',
+  'faq-page-loader.js': '20261004e',
   'kitten-carousel.js': KITTEN_CAROUSEL_RELEASE,
   'cta-widget.js': '20260926a',
   'script.js': SCRIPT_RELEASE,
