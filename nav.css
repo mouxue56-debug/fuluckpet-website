@@ -270,7 +270,7 @@ body.nav-enhanced .nav-mobile-shell {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 16px 16px calc(24px + env(safe-area-inset-bottom, 0px));
+  padding: 16px max(16px, env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
 }
 
 body.nav-enhanced .nav-mobile-top {
@@ -483,6 +483,10 @@ body.nav-enhanced .sr-only {
 }
 
 @media (max-width: 768px) {
+  /* Align the drawer with the safe-area-aware mobile header. */
+  body.nav-enhanced .mobile-nav {
+    top: calc(var(--header-height) + env(safe-area-inset-top, 0px));
+  }
   body.nav-enhanced.mobile-nav-open .mobile-cta-bar,
   body.nav-enhanced.mobile-nav-open .fuluck-chat-root,
   body.nav-enhanced.mobile-nav-open .back-to-top {
