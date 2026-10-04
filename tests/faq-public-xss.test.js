@@ -168,6 +168,25 @@ function domSurface(root) {
   return fields.join('|');
 }
 
+test('payment FAQ retains approved cash and bank-transfer options after API load and language switching', async () => {
+  const result = createHarness(PAGE_SOURCE, [{
+    id: 'faq_19', category: 'purchase',
+    question: { ja: '支払い方法', en: 'Payment methods', zh: '付款方式' },
+    answer: { ja: '銀行振込のみ', en: 'Bank transfer only', zh: '仅接受银行转账' },
+  }], 'page');
+  await new Promise(setImmediate);
+  for (const [lang, cash, stale] of [
+    ['ja', /現金払い・銀行振込/, /銀行振込のみ/],
+    ['en', /cash and bank transfer/, /Bank transfer only/],
+    ['zh', /现金支付与银行转账/, /仅接受银行转账/],
+  ]) {
+    result.storage.set('fuluckpet-lang', lang);
+    result.events.langChanged();
+    assert.match(result.listContainer.textContent, cash);
+    assert.doesNotMatch(result.listContainer.textContent, stale);
+  }
+});
+
 test('homepage FAQ renders malicious API fields as literal text with accordion a11y and language switching', async () => {
   const hostileId = '"><img src=x onerror=globalThis.pwned=true>';
   const hostileCategory = '<svg onload=globalThis.pwned=true>';
