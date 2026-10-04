@@ -57,7 +57,13 @@ function render(){
 
 }
 function schedule(){if(!queued){queued=true;requestAnimationFrame(render)}}
-function resize(){w=innerWidth;h=innerHeight;const d=Math.min(devicePixelRatio||1,1.5);canvas.classList.remove('ready');canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);ctx.setTransform(d,0,0,d,0,0);dirty=true;schedule()}
+function resize(){
+ // The large viewport stays stable while Safari's browser bars or keyboard move.
+ w=scene.clientWidth||innerWidth;h=scene.clientHeight||innerHeight;
+ const d=Math.min(devicePixelRatio||1,1.5),cw=Math.round(w*d),ch=Math.round(h*d);
+ if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch;ctx.setTransform(d,0,0,d,0,0)}
+ dirty=true;schedule();
+}
 function sync(){document.body.classList.toggle('ambient-off',off);if(off||reduce.matches||navigator.connection?.saveData){for(const i of [...players.keys()])release(i);if(reduce.matches)canvas.classList.remove('ready')}schedule()}
 new ResizeObserver(()=>{dirty=true;schedule()}).observe(document.querySelector('main'));
 addEventListener('scroll',schedule,{passive:true});addEventListener('resize',resize,{passive:true});document.addEventListener('visibilitychange',schedule);reduce.addEventListener('change',sync);resize();sync();
