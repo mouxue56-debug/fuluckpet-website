@@ -14,6 +14,8 @@
   // reproduce). Any other ja page falls back to in-place setLanguage(). Kept in sync with the
   // en/zh files the generator + static authoring produce. Normalized (no /index.html).
   var STATIC_SIBLINGS = {
+    '/boarding/': true,
+    '/grooming/': true,
     '/kittens.html': true,
     '/siberian-allergy.html': true,
     '/siberian-breeder-osaka.html': true,
@@ -68,8 +70,8 @@
       labelKey: 'nav.group.services',
       icon: 'hand-heart',
       items: [
-        { href: '/boarding/', key: 'nav.boarding', icon: 'bed', jaOnly: true, match: ['/boarding/'] },
-        { href: '/grooming/', key: 'nav.grooming', icon: 'bath', jaOnly: true, match: ['/grooming/'] },
+        { href: '/boarding/', key: 'nav.boarding', icon: 'bed', localized: true, match: ['/boarding/'] },
+        { href: '/grooming/', key: 'nav.grooming', icon: 'bath', localized: true, match: ['/grooming/'] },
         { href: 'https://fukurakupet.stores.jp/', key: 'nav.shop', icon: 'shopping-cart', external: true }
       ]
     },
@@ -271,6 +273,7 @@
   }
 
   function localizedItemHref(item, lang) {
+    if (item && item.key === 'nav.naming') return item.href + '?lang=' + (LANGS.indexOf(lang) === -1 ? 'ja' : lang);
     if (item && !item.external && item.href === '/booking.html') return bookingHref();
     if (!item || !item.localized || item.external || lang === 'ja') return item.href;
     return '/' + lang + item.href;

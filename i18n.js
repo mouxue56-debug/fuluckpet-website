@@ -1980,6 +1980,16 @@ function syncGuideLanguageLinks(lang) {
   });
 }
 
+function syncNamingLanguageLinks(lang) {
+  document.querySelectorAll('a[href]').forEach(link => {
+    const raw = link.getAttribute('href') || '';
+    if (!/^https:\/\/catnamegive\.mouxue56\.workers\.dev\/?(?:[?#]|$)/.test(raw)) return;
+    const url = new URL(raw);
+    url.searchParams.set('lang', ['ja', 'en', 'zh'].includes(lang) ? lang : 'ja');
+    link.setAttribute('href', url.href);
+  });
+}
+
 /**
  * Apply translations to all elements with data-i18n attribute
  */
@@ -2054,6 +2064,7 @@ function setLanguage(lang) {
   syncCtaAccessibleNames();
   syncFooterKittenLinks(lang);
   syncGuideLanguageLinks(lang);
+  syncNamingLanguageLinks(lang);
   localizeSupplementalContent(lang);
 
   try {
@@ -2088,6 +2099,7 @@ function initI18n() {
   };
   var I18N_KITTEN_DETAIL_RE = /^\/kittens\/[^\/]+\.html$/;
   function jaHasStaticSibling(p) {
+    if (/^\/(?:boarding|grooming)\/(?:index\.html)?$/.test(p)) return true;
     return !!(I18N_BLOG_SIBLINGS[p] || I18N_KITTEN_DETAIL_RE.test(p) || /^\/guide\/(?:index\.html|(?:behavior|bring|day1|family|grooming|home-safety|multi-cat|neuter|passport|prepare|price|visit|week1|weight-log)\.html)?$/.test(p));
   }
 
@@ -2141,6 +2153,7 @@ function initI18n() {
     setLanguage(activeLang);
   } else {
     syncCtaAccessibleNames();
+    syncNamingLanguageLinks('ja');
   }
 }
 
