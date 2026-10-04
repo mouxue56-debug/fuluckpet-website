@@ -208,6 +208,7 @@ function createHarness(responseModes, options = {}) {
   const context = {
     Date: ClockDate,
     gtag: options.gtag,
+    FuluckAnalytics: options.analytics,
     AbortController,
     AbortSignal,
     DOMException,
@@ -427,7 +428,7 @@ for (const lang of ['ja', 'en', 'zh']) {
 
 
 test('a saved booking stays successful when optional analytics throws', async () => {
-  const h = createHarness(['success'], { gtag() { throw new Error('analytics unavailable'); } });
+  const h = createHarness(['success'], { analytics: { booking() { throw new Error('analytics unavailable'); } } });
   h.submitForm();
   await flushMicrotasks();
   assert.equal(h.requests.length, 1);
@@ -435,6 +436,23 @@ test('a saved booking stays successful when optional analytics throws', async ()
   assert.equal(h.success.className, 'booking-result success');
   assert.equal(h.error.className, 'booking-result');
   assert.equal(h.errorHeading.focusCount, 0);
+});
+
+test('booking analytics distinguishes rejected input, failed request and confirmed save without field values', async () => {
+  const calls = [];
+  const h = createHarness(['http-failure', 'success'], { analytics: { booking(...args) { calls.push(args); } } });
+  h.elements.get('bk-name').value = '';
+  h.submitForm();
+  assert.deepEqual(calls, [['error', 'validation']]);
+  assert.equal(h.requests.length, 0);
+  h.elements.get('bk-name').value = 'Synthetic Visitor';
+  h.submitForm();
+  await flushMicrotasks();
+  assert.deepEqual(calls.slice(1), [['start', undefined], ['submit', undefined], ['error', 'request']]);
+  h.submitForm();
+  await flushMicrotasks();
+  assert.deepEqual(calls.slice(-3), [['start', undefined], ['submit', undefined], ['success', undefined]]);
+  assert.doesNotMatch(JSON.stringify(calls), /Synthetic|synthetic@example|fixture/);
 });
 
 test('raw message length matches server limit including surrounding whitespace', async () => {

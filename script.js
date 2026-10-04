@@ -1169,6 +1169,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ===== FAQ Accordion =====
   document.querySelectorAll('.faq-item').forEach((item, idx) => {
     const q = item.querySelector('.faq-q');
+    if (q && q.dataset.faqBound === 'true') return;
     if (q) {
       // a11y: expose expand state and link Q → A (mirrors faq-page-loader.js)
       const panel = item.querySelector('.faq-a');

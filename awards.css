@@ -2,15 +2,15 @@
 
 .hero-award-proof {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(130px, 180px);
   grid-template-areas:
-    "copy cta"
-    "plates plates";
+    "copy plates"
+    "cta plates";
   align-items: center;
-  gap: 18px 24px;
+  gap: 10px 18px;
   width: min(100%, 640px);
-  min-height: 260px;
-  padding: 22px;
+  min-height: 0;
+  padding: 16px;
   overflow: hidden;
   color: var(--text-heading);
   background: var(--bg-white);
@@ -37,7 +37,7 @@
   display: grid;
   align-content: center;
   justify-items: start;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
 }
 
@@ -55,7 +55,7 @@
 
 .hero-award-proof-copy strong {
   color: var(--text-heading);
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
   line-height: 1.25;
 }
@@ -67,12 +67,12 @@
 }
 
 .hero-award-proof-highlights span {
-  padding: 7px 12px;
+  padding: 4px 8px;
   color: var(--text-heading);
   background: var(--mango-milk);
   border: 1px solid var(--line);
   border-radius: 999px;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 700;
   line-height: 1.4;
 }
@@ -100,17 +100,17 @@
 .hero-award-proof-plates {
   grid-area: plates;
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 10px;
-  padding-top: 18px;
-  border-top: 1px solid var(--line);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  padding-left: 12px;
+  border-left: 1px solid var(--line);
 }
 
 .hero-award-proof-plate {
   display: grid;
   place-items: center;
   min-width: 0;
-  padding: 7px;
+  padding: 4px;
   background: var(--bg-cream);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
@@ -128,7 +128,7 @@
 }
 
 .hero-award-proof-plate img {
-  width: min(100%, 74px);
+  width: min(100%, 42px);
   height: auto;
   aspect-ratio: 162 / 256;
   object-fit: contain;
@@ -396,11 +396,11 @@
       "plates"
       "cta";
     justify-items: stretch;
-    gap: 16px;
+    gap: 10px;
     width: 100%;
     max-width: 390px;
     min-height: 0;
-    padding: 18px 16px;
+    padding: 14px;
     text-align: left;
   }
 
@@ -433,17 +433,19 @@
   }
 
   .hero-award-proof-plates {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-    padding-top: 16px;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 5px;
+    padding: 10px 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--line);
   }
 
   .hero-award-proof-plate {
-    padding: 6px;
+    padding: 3px;
   }
 
   .hero-award-proof-plate img {
-    width: min(100%, 66px);
+    width: min(100%, 42px);
   }
 
   .hero-award-proof-cta {

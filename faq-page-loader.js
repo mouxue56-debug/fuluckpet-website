@@ -19,6 +19,9 @@
   };
 
   function getLang() {
+    // The document follows the selected route/language even when storage is blocked.
+    var pageLang = document.documentElement && document.documentElement.lang;
+    if (pageLang === 'en' || pageLang === 'zh' || pageLang === 'ja') return pageLang;
     try { return localStorage.getItem('fuluckpet-lang') || 'ja'; } catch(e) { return 'ja'; }
   }
 
@@ -136,6 +139,7 @@
     var button = document.createElement('button');
     button.type = 'button';
     button.className = 'faq-q';
+    button.dataset.faqBound = 'true';
     button.textContent = txt(item.question);
     button.setAttribute('aria-expanded', 'false');
     var panel = document.createElement('div');
@@ -210,7 +214,40 @@
     listContainer.appendChild(fragment);
   }
 
+  // Keep the checked-in questions usable while the API loads or is unavailable.
+  // Read approved translation strings verbatim; never infer FAQ facts from images.
+  function readStaticFaq() {
+    var items = [];
+    listContainer.querySelectorAll('.faq-item').forEach(function(row) {
+      var id = row.getAttribute('data-faq-id');
+      var question = row.querySelector('.faq-q');
+      var answer = row.querySelector('.faq-a');
+      var paragraph = answer && answer.querySelector('p');
+      if (!id || !question || !paragraph) return;
+      var item = { id: id, category: row.getAttribute('data-category'), question: {}, answer: {} };
+      ['ja', 'en', 'zh'].forEach(function(lang) {
+        var dictionary = typeof translations !== 'undefined' && translations[lang];
+        if (dictionary && dictionary['faqPage.q.' + id] && dictionary['faqPage.a.' + id]) {
+          item.question[lang] = dictionary['faqPage.q.' + id];
+          item.answer[lang] = dictionary['faqPage.a.' + id];
+        } else if (lang === getLang()) {
+          item.question[lang] = question.textContent;
+          item.answer[lang] = paragraph.textContent;
+        }
+      });
+      items.push(item);
+    });
+    return items;
+  }
+
   // Init
+  allFaq = readStaticFaq();
+  if (allFaq.length) {
+    var initialTrust = trustCopy();
+    if (initialTrust) allFaq = initialTrust.applyTrustOverrides(allFaq);
+    renderFilters();
+    renderList();
+  }
   if (searchInput) searchInput.addEventListener('input', renderList);
   fetch(API + '/api/faq')
     .then(function(r) { return r.json(); })
@@ -223,6 +260,7 @@
       renderList();
     })
     .catch(function() {
+      if (allFaq.length) return;
       var lang = getLang();
       var msg = lang === 'zh' ? '加载失败，请稍后重试' : lang === 'en' ? 'Failed to load. Please try again.' : '読み込みに失敗しました。再度お試しください。';
       renderEmpty(msg, 'ico-triangle-alert');
