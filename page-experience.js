@@ -149,7 +149,10 @@
       var link = document.createElement('a');
       link.setAttribute('href', '#' + encodeURIComponent(heading.id));
       link.addEventListener('click', function(event) {
-        if (event.button > 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+        if (event.button > 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
+          event.stopImmediatePropagation();
+          return;
+        }
         event.preventDefault();
         // The site's older smooth-scroll handler also binds to hash links.
         // Keep this navigation atomic, including its history entry.

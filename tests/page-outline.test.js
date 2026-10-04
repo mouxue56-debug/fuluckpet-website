@@ -208,3 +208,20 @@ test('every shipped outline entrypoint has a real main, direct hero, and working
     }
   }
 });
+
+
+test('modified outline clicks remain native even when legacy smooth scrolling is installed', () => {
+  const h = harness(); h.api.init();
+  const outline = h.main.querySelector('.experience-page-outline');
+  const link = outline.querySelector('a');
+  let legacyCalls = 0;
+  link.addEventListener('click', event => { legacyCalls++; event.preventDefault(); });
+  outline.open = true;
+  for (const modifier of [{metaKey:true},{ctrlKey:true},{shiftKey:true},{altKey:true},{button:1}]) {
+    const event = link.click(modifier);
+    assert.equal(event.prevented, false);
+    assert.equal(outline.open, true);
+  }
+  assert.equal(legacyCalls, 0);
+  assert.equal(h.history.length, 0);
+});
