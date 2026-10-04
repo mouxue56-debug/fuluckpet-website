@@ -10,8 +10,8 @@ const poster=new Image();poster.alt='';poster.src=media[clips[0]].poster;scene.a
 const canvas=document.createElement('canvas');scene.append(canvas);document.body.prepend(scene);
 const ctx=canvas.getContext('2d',{alpha:false}),reduce=matchMedia('(prefers-reduced-motion: reduce)'),players=new Map();
 document.body.classList.add('ambient-enabled');document.body.dataset.ambientPage=page;
-const serviceGlass='.service-price-card,.service-info-card,.service-table-wrap,.service-care-details,.service-legal,.booking-form-card,.booking-sidebar .info-card,.booking-sidebar .line-card,.blog-card,.blog-cat-nav,.blog-bottom-cta,.guide-card,.guide-quick-start,.guide-figure figcaption,.guide-cta,.rel-card';
-const serviceCopy='.service-hero-inner>div:not(.service-hero-media),.service-heading,.service-final-cta,.booking-hero .container,.blog-hero,.blog-cat-heading,.guide-hub-header,.guide-category-title';
+const serviceGlass='.service-price-card,.service-info-card,.service-table-wrap,.service-care-details,.service-legal,.booking-form-card,.booking-sidebar .info-card,.booking-sidebar .line-card,.blog-card,.blog-cat-nav,.blog-bottom-cta,.guide-card,.guide-quick-start,.guide-figure figcaption,.guide-cta,.rel-card,.experience-card,.experience-steps>li,.experience-template,.experience-context,.experience-photo figcaption';
+const serviceCopy='.experience-hero>div,.service-hero-inner>div:not(.service-hero-media),.service-heading,.service-final-cta,.booking-hero .container,.blog-hero,.blog-cat-heading,.guide-hub-header,.guide-category-title';
 const glassSelectors='.hero-content,.hero-award-proof,.page-hero,.sec-header,.choice-block,.about-card,.kitten-card,.parent-card,.review-card,.faq-item,.visit-card,.line-cta-card,.award-period,.awards-proof-note,.kit-filters,.filter-bar,.sort-controls,.kitten-filter-tabs,.kitten-sort-row,.sec-cta,.jisseki-obi,.kittens-toolbar';
 function glassify(){
  document.querySelectorAll(glassSelectors+','+serviceGlass).forEach(e=>{e.classList.add('ambient-glass')});

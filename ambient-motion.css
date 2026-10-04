@@ -40,6 +40,7 @@ body.ambient-off .ambient-scene{visibility:hidden}
 .ambient-enabled:not(.ambient-off) :is(.blog-card-desc,.guide-card-desc){color:#354b41}
 .ambient-enabled:not(.ambient-off) :is(.booking-form-card,.guide-figure figcaption){background:linear-gradient(135deg,rgba(255,255,255,.60),rgba(255,255,255,.42))!important}
 .ambient-enabled:not(.ambient-off) .guide-figure figcaption :is(strong,small,span){color:#294638}
+.ambient-enabled:not(.ambient-off) .experience-photo figcaption{color:#294638}
 @media(prefers-reduced-transparency:reduce),(prefers-contrast:more){
  .ambient-enabled:not(.ambient-off) :is(.service-proof,.booking-input,.booking-select,.booking-textarea,#blogSearch){background:rgba(255,255,250,.96)!important}
  .ambient-enabled:not(.ambient-off) :is(.booking-form-card,.guide-figure figcaption){background:rgba(255,255,250,.96)!important}

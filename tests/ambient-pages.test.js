@@ -24,6 +24,8 @@ test('localized guide and waitlist share the same scenes and directory aliases w
   for (const prefix of ['', '/en', '/zh']) {
     assert.deepEqual(ambientPage(prefix + '/guide/index.html'), ambientPage('/guide/'));
     assert.deepEqual(ambientPage(prefix + '/waitlist.html'), ambientPage('/waitlist.html'));
+    assert.deepEqual(ambientPage(prefix + '/boarding/index.html'), ambientPage('/boarding/'));
+    assert.deepEqual(ambientPage(prefix + '/grooming/'), ambientPage('/grooming/'));
   }
   assert.deepEqual(ambientPage('/boarding/index.html'), ambientPage('/boarding/'));
   assert.deepEqual(ambientPage('/grooming/index.html'), ambientPage('/grooming/'));
@@ -54,6 +56,7 @@ test('every added entry point supplies a content landmark for motion and reading
     return node.childNodes?.map(findMain).find(Boolean);
   }
   for (const file of ['gallery.html', 'boarding/index.html', 'grooming/index.html', 'booking.html',
+    'en/boarding/index.html', 'zh/boarding/index.html', 'en/grooming/index.html', 'zh/grooming/index.html',
     'waitlist.html', 'en/waitlist.html', 'zh/waitlist.html',
     'guide/index.html', 'en/guide/index.html', 'zh/guide/index.html', 'blog.html']) {
     const document = parse(readFileSync(new URL('../' + file, import.meta.url), 'utf8'));
