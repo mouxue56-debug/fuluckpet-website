@@ -1019,40 +1019,17 @@
         <!-- TikTok -->
         <div>
           <h3 style="font-size:1rem; font-weight:600; margin-bottom:12px; color:var(--text-heading); text-align:center;"><i class="ico ico-music" aria-hidden="true"></i> TikTok</h3>
-          <div style="border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.12); max-width:320px; margin:0 auto;">
-            <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@fuluckpet/video/7608970454937652496" data-video-id="7608970454937652496" data-embed-from="oembed" style="max-width:100%; min-width:100%; margin:0; padding:0;">
-              <section><a target="_blank" rel="noopener" title="@fuluckpet" href="https://www.tiktok.com/@fuluckpet">@fuluckpet</a></section>
-            </blockquote>
+          <div style="border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.12); aspect-ratio:16/9; background:#000;">
+            <iframe src="https://www.tiktok.com/player/v1/7608970454937652496?rel=0&amp;autoplay=0" title="TikTok — @fuluckpet" loading="lazy" allow="fullscreen" allowfullscreen style="display:block; width:100%; height:100%; border:0;"></iframe>
           </div>
           <div style="text-align:center; margin-top:12px;">
-            <a href="https://www.tiktok.com/@fuluckpet" class="btn btn-secondary" target="_blank" rel="noopener" style="background:#000; color:#fff;"><i class="ico ico-music" aria-hidden="true"></i> フォロー</a>
+            <a href="https://www.tiktok.com/@fuluckpet/video/7608970454937652496" class="btn btn-secondary" target="_blank" rel="noopener" style="background:#000; color:#fff;"><i class="ico ico-music" aria-hidden="true"></i> TikTok ↗</a>
           </div>
         </div>
 
       </div>
     </div>
   </section>
-
-  <!-- TikTok Embed JS — lazy-loaded when the SNS section nears the viewport (saves upfront fetch on every page load) -->
-  <script>
-  (function () {
-    var sec = document.getElementById('sns-media');
-    if (!sec) return;
-    var loaded = false;
-    function load() {
-      if (loaded) return; loaded = true;
-      var s = document.createElement('script');
-      s.async = true; s.src = 'https://www.tiktok.com/embed.js';
-      document.body.appendChild(s);
-    }
-    if ('IntersectionObserver' in window) {
-      var io = new IntersectionObserver(function (entries) {
-        if (entries.some(function (e) { return e.isIntersecting; })) { load(); io.disconnect(); }
-      }, { rootMargin: '400px' });
-      io.observe(sec);
-    } else { load(); }
-  })();
-  </script>
 
   </main>
 
