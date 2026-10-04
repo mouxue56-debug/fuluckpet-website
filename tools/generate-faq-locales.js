@@ -82,8 +82,8 @@ function buildFaqLocales(root) {
       }
       if (node.tagName === 'a') {
         const href = attr(node, 'href') || '';
-        if (/^\/(?:guide\/|kittens\.html|faq\.html|boarding\/|grooming\/)/.test(href)) set(node, 'href', '/' + lang + href);
-        else if (/^\/(?:index|booking|about|parents|reviews|gallery|blog|waitlist|siberian|siberian-allergy|siberian-breeder-osaka)\.html(?:#.*)?$/.test(href)) {
+        if (/^\/(?:guide\/|kittens\.html|faq\.html|boarding\/|grooming\/|siberian-allergy\.html|siberian-breeder-osaka\.html|waitlist\.html)/.test(href)) set(node, 'href', '/' + lang + href);
+        else if (href !== '/about.html#registration' && /^\/(?:index|booking|about|parents|reviews|gallery|blog|siberian)\.html(?:#.*)?$/.test(href)) {
           const [pathname, hash] = href.split('#'); set(node, 'href', pathname + '?lang=' + lang + (hash ? '#' + hash : ''));
         }
       }

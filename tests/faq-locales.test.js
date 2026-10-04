@@ -57,6 +57,13 @@ test('FAQ locale metadata is reciprocal and resources work under translated path
     }
     const guide = all.find(n => n.tagName === 'a' && attr(n, 'data-i18n') === 'nav.guide');
     assert.equal(attr(guide, 'href'), '/' + lang + '/guide/');
+    const hrefs = all.filter(n => n.tagName === 'a').map(n => attr(n, 'href'));
+    for (const relative of ['/siberian-allergy.html', '/siberian-breeder-osaka.html', '/waitlist.html']) {
+      assert.ok(hrefs.includes('/' + lang + relative), relative + ' must use its static locale');
+      assert.ok(!hrefs.some(href => href === relative || href?.startsWith(relative + '?')), relative + ' must not fall back to the Japanese page');
+    }
+    const registration = all.find(n => n.tagName === 'a' && attr(n, 'data-i18n') === 'footer.legalFullLink');
+    assert.equal(attr(registration, 'href'), '/about.html#registration');
   }
 });
 
