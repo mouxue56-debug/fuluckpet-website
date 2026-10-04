@@ -46,7 +46,7 @@ const PUBLIC_ASSETS = {
   'catalog-i18n.js': '20261004a',
   'kitten-catalog.js': CATALOG_RELEASE,
   'card-loader.js': CARD_LOADER_RELEASE,
-  'faq-trust-copy.js': '20261004a',
+  'faq-trust-copy.js': '20261004c',
   'faq-loader.js': TRUST_RELEASE,
   'faq-page-loader.js': '20261004a',
   'kitten-carousel.js': KITTEN_CAROUSEL_RELEASE,

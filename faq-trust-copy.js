@@ -7,7 +7,7 @@
 }(typeof window !== 'undefined' ? window : this, function () {
   'use strict';
 
-  var VERSION = '20260823-trust-v2';
+  var VERSION = '20261004-payment-v3';
   var LINE_URL = 'https://page.line.me/915hnnlk?oat__id=5765672&openQrModal=true';
   var COPY = {
     faq_3: {
@@ -110,6 +110,19 @@
         ja: 'やむを得ない事情がある場合はご相談ください。ただし、お客様のご都合によるキャンセルの場合、お支払いいただいた予約金（50,000円）はご返金いたしかねますのでご了承ください。詳しくはご契約時にご説明いたします。',
         en: "Please contact us if there are unavoidable circumstances. For cancellations at the customer's discretion, however, the ¥50,000 reservation deposit cannot be refunded — please understand. Details are explained at contract time.",
         zh: '如有不可避免的情况，请与我们商议。但因客户自身原因取消时，已支付的 50,000 日元预约金恕不退还，敬请谅解。具体内容将在签约时说明。'
+      },
+      links: { ja: [], en: [], zh: [] }
+    },
+    faq_19: {
+      question: {
+        ja: '支払い方法は何がありますか？',
+        en: 'What payment methods do you accept?',
+        zh: '支持哪些支付方式？'
+      },
+      answer: {
+        ja: '現金払い・銀行振込（三井住友銀行／ゆうちょ銀行）に対応しております。その他のお支払い方法をご希望の場合は、ご契約時にご案内いたしますので、LINEでお問い合わせください。',
+        en: 'We accept cash and bank transfer (Sumitomo Mitsui Banking Corporation / Japan Post Bank). If you would like to use another payment method, please ask us on LINE and we will confirm the details when you sign.',
+        zh: '支持现金支付与银行转账（三井住友银行／邮储银行）。如需使用其他支付方式，请通过 LINE 咨询，我们会在签约时告知详情。'
       },
       links: { ja: [], en: [], zh: [] }
     },
