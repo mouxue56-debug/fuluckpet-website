@@ -2,15 +2,15 @@
 body.ambient-enabled{isolation:isolate;--text-heading:#203e32;--text-body:#263f36;--text-note:#354b41}
 .ambient-scene{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;height:100vh;height:100lvh;background:#f7f4eb}
 .ambient-scene img,.ambient-scene canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.ambient-scene:after{content:'';position:absolute;inset:0;background:rgba(255,254,248,.10)}
+.ambient-scene:after{content:'';position:absolute;inset:0;background:rgba(255,254,248,.025)}
 .ambient-scene canvas{opacity:0}.ambient-scene canvas.ready{opacity:1}
-.ambient-enabled:not(.ambient-off) .sec-white,.ambient-enabled:not(.ambient-off) .sec-cream,.ambient-enabled:not(.ambient-off) .sec-pink{background:rgba(255,253,246,.22)}
+.ambient-enabled:not(.ambient-off) .sec-white,.ambient-enabled:not(.ambient-off) .sec-cream,.ambient-enabled:not(.ambient-off) .sec-pink{background:rgba(255,253,246,.04)}
 .ambient-enabled:not(.ambient-off) .ambient-glass{background:var(--glass-surface)!important;-webkit-backdrop-filter:var(--glass-filter);backdrop-filter:var(--glass-filter);box-shadow:var(--glass-edge);border-radius:var(--radius-lg,20px)}
 .ambient-enabled:not(.ambient-off) .ambient-glass-copy{position:relative;isolation:isolate;background:transparent!important;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
 .ambient-enabled:not(.ambient-off) .ambient-glass-copy:before{content:'';position:absolute;inset:-14px -10px;z-index:-1;pointer-events:none;border-radius:18px;background:var(--glass-surface);-webkit-backdrop-filter:var(--glass-filter);backdrop-filter:var(--glass-filter);box-shadow:var(--glass-edge)}
 .ambient-enabled .hero-accent,.ambient-enabled .sec-tag,.ambient-enabled .sec-title,.ambient-enabled .hero-title{color:#305e51}
-.ambient-enabled .sec-desc,.ambient-enabled .hero-subtitle,.ambient-enabled .choice-body,.ambient-enabled .note{color:#30473b}
-.ambient-enabled .kitten-body,.ambient-enabled .parent-body{background:transparent}
+.ambient-enabled .sec-desc,.ambient-enabled .hero-subtitle,.ambient-enabled .choice-body,.ambient-enabled .note{color:#223d30}
+.ambient-enabled .kitten-body,.ambient-enabled .parent-body{background:rgba(255,255,255,.24)}
 .ambient-enabled .page-hero{border-radius:0!important}
 .ambient-enabled .wave-divider{opacity:.55}
 body.ambient-off .ambient-scene{visibility:hidden}
@@ -20,3 +20,9 @@ body.ambient-off .ambient-scene{visibility:hidden}
 
 .ambient-enabled:not(.ambient-off) .ambient-glass .ambient-glass{background:rgba(255,255,255,.15)!important;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.36)}
 .ambient-enabled .hero-accent,.ambient-enabled .hero-accent .char{-webkit-text-fill-color:#305e51!important;background:none!important;color:#305e51!important}
+
+/* A local reading veil protects small copy without whitening the whole section. */
+.ambient-enabled:not(.ambient-off) .ambient-glass-copy:before{background:linear-gradient(135deg,rgba(255,255,255,.46),rgba(255,255,255,.32))}
+.ambient-enabled .kitten-price{color:#24583c}
+@media(prefers-reduced-transparency:reduce),(prefers-contrast:more){.ambient-enabled:not(.ambient-off) .ambient-glass-copy:before{background:rgba(255,255,250,.94)}}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.ambient-enabled:not(.ambient-off) .ambient-glass-copy:before{background:rgba(255,255,250,.92)}}

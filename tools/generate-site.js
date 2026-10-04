@@ -1758,7 +1758,7 @@ function buildListHeader(jaHeader, lang) {
   const chrome = listToAbsoluteLinks(jaHeader.substring(headerIdx, heroIdx).replace(/\s*$/, ''));
 
   const styleV = verAsset('style.css', '20260823a');
-  const navCssV = verAsset('nav.css', '20261004d');
+  const navCssV = verAsset('nav.css', '20261004e');
   const navJsV = verAsset('nav.js', '20261004a');
   const relPath = 'kittens.html';
   const selfUrl = `${BASE_URL}/${langDir(lang)}kittens.html`;
@@ -1818,7 +1818,7 @@ ${hreflangBlock(relPath)}
   ]}
   </script>
   <script defer src="/nav.js?v=${navJsV}"></script>
-  <link rel="stylesheet" href="/ambient-motion.css?v=20261004b">
+  <link rel="stylesheet" href="/ambient-motion.css?v=20261004c">
   <script type="module" src="/ambient-motion.mjs?v=20261004b"></script>
 </head>
 <body class="has-mobile-cta">
@@ -2380,7 +2380,7 @@ ${smallAnimalHreflangBlock(detailId)}
   <link rel="preload" as="style" href="${fontHref(lang)}" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="${fontHref(lang)}" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260823a')}">
-  <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20261004d')}">
+  <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20261004e')}">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -3276,7 +3276,7 @@ ${hreflangBlock(`kittens/${fileId}.html`)}
   <link rel="preload" as="style" href="${detailFontHref}" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="${detailFontHref}" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260823a')}">
-  <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20261004d')}">
+  <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20261004e')}">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
