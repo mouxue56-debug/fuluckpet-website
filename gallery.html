@@ -42,8 +42,9 @@
   {"@context":"https://schema.org","@type":"WebPage","@id":"https://fuluckpet.com/gallery.html#webpage","url":"https://fuluckpet.com/gallery.html","name":"卒業猫ギャラリー｜大阪・福楽キャッテリー","description":"大阪の福楽キャッテリーから卒業した200匹以上のサイベリアン子猫たち。新しいご家族の元で幸せに暮らしています。ブリーダー羅方遠（ラホウエン）が愛情を込めて育てた子猫の記録。","inLanguage":"ja","isPartOf":{"@id":"https://fuluckpet.com/#website"},"mainEntity":{"@id":"https://fuluckpet.com/#cattery"},"about":[{"@id":"https://fuluckpet.com/#cattery"},{"@type":"Thing","name":"卒業猫ギャラリー"}],"publisher":{"@id":"https://fuluckpet.com/#cattery"}}
   </script>
   <script defer src="/nav.js?v=20261004d"></script>
-  <link rel="stylesheet" href="/page-experience.css?v=20261004b">
-  <script defer src="/page-experience.js?v=20261004d"></script>
+  <link rel="stylesheet" href="/page-experience.css?v=20261004c">
+  <script defer src="/page-experience.js?v=20261004e"></script>
+  <script defer src="/gallery-filters.js?v=20261004a"></script>
   <link rel="stylesheet" href="/ambient-motion.css?v=20261004f">
   <script type="module" src="/ambient-motion.mjs?v=20261004e"></script>
 </head>
@@ -177,12 +178,13 @@
         <p class="sec-desc">200匹以上の子猫たちが新しいご家族の元へ旅立ちました。</p>
       </div>
       <!-- 卒業猫フィルター -->
-      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;">
-        <button class="filter-btn active" onclick="filterGallery('all')" data-i18n="gallery.filterAll">すべて</button>
-        <button class="filter-btn" onclick="filterGallery('siberian')" data-i18n="gallery.filterSiberian">サイベリアン</button>
-        <button class="filter-btn" onclick="filterGallery('british')" data-i18n="gallery.filterBritish">ブリティッシュ</button>
-        <button class="filter-btn" onclick="filterGallery('ragdoll')" data-i18n="gallery.filterRagdoll">ラグドール（過去の実績）</button>
+      <div class="gallery-filters" id="galleryFilters" role="group" aria-label="猫種で絞り込み / Filter by breed" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;">
+        <button class="filter-btn active" type="button" data-gallery-filter="all" aria-controls="galleryGrid" aria-pressed="true" data-i18n="gallery.filterAll">すべて</button>
+        <button class="filter-btn" type="button" data-gallery-filter="siberian" aria-controls="galleryGrid" aria-pressed="false" data-i18n="gallery.filterSiberian">サイベリアン</button>
+        <button class="filter-btn" type="button" data-gallery-filter="british" aria-controls="galleryGrid" aria-pressed="false" data-i18n="gallery.filterBritish">ブリティッシュ</button>
+        <button class="filter-btn" type="button" data-gallery-filter="ragdoll" aria-controls="galleryGrid" aria-pressed="false" data-i18n="gallery.filterRagdoll">ラグドール（過去の実績）</button>
       </div>
+      <p class="gallery-filter-status" id="galleryFilterStatus" role="status" aria-live="polite" aria-atomic="true"></p>
       <p class="note" style="text-align:center;margin-bottom:32px;" data-i18n="gallery.ragdollNote">※過去にラグドールの繁育実績がありますが、現在は繁育しておりません。</p>
 
       <div class="gallery-page-grid" id="galleryGrid">
@@ -227,21 +229,6 @@
       </div>
       <p class="gallery-more-note">…他 170匹以上の卒業猫がいます <i class="ico ico-paw-print" aria-hidden="true"></i></p>
 
-      <script>
-      function filterGallery(breed) {
-        var items = document.querySelectorAll('#galleryGrid .gallery-item');
-        var btns = document.querySelectorAll('.filter-btn');
-        btns.forEach(function(b){ b.classList.remove('active'); });
-        event.target.classList.add('active');
-        items.forEach(function(item) {
-          if (breed === 'all' || item.getAttribute('data-breed') === breed) {
-            item.style.display = '';
-          } else {
-            item.style.display = 'none';
-          }
-        });
-      }
-      </script>
     </div>
   </section>
 

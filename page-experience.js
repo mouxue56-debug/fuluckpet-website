@@ -117,9 +117,84 @@
       grids.forEach(function(grid) { observer.observe(grid,{childList:true}); });
     }
   }
+  var outlineState = null;
+  function setupOutline() {
+    var path = location.pathname;
+    if (!/^\/(?:(?:en|zh)\/)?(?:boarding\/(?:index\.html)?|grooming\/(?:index\.html)?|siberian-breeder-osaka\.html)$/.test(path) && !/^\/(?:siberian|about)\.html$/.test(path)) return;
+    var main = document.querySelector('main');
+    if (!main) return;
+    if (outlineState && outlineState.main === main) { outlineState.sync(); return; }
+    var hero = main.querySelector('.service-hero, .page-hero') || main.querySelector('section');
+    if (!hero || hero.parentNode !== main) return;
+    var headings = Array.from(main.querySelectorAll('h2')).filter(function(heading) {
+      if (!heading.textContent.trim() || heading.closest('footer, .footer, details, .faq-item, .service-final-cta, [hidden], [data-dog-services-surface], .experience-page-outline')) return false;
+      var section = heading.closest('section');
+      return section && section !== hero && !section.querySelector('.hero-buttons');
+    });
+    if (headings.length < 3) return;
+    var details = document.createElement('details');
+    details.className = 'experience-page-outline';
+    var summary = document.createElement('summary');
+    var nav = document.createElement('nav');
+    details.appendChild(summary);
+    details.appendChild(nav);
+    var links = headings.map(function(heading, index) {
+      if (!heading.id) {
+        var id = 'experience-section-' + (index + 1);
+        var suffix = 1;
+        while (document.getElementById(id)) id = 'experience-section-' + (index + 1) + '-' + (++suffix);
+        heading.id = id;
+      }
+      heading.setAttribute('data-experience-outline-target', '');
+      var link = document.createElement('a');
+      link.setAttribute('href', '#' + encodeURIComponent(heading.id));
+      link.addEventListener('click', function(event) {
+        if (event.button > 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
+          event.stopImmediatePropagation();
+          return;
+        }
+        event.preventDefault();
+        // The site's older smooth-scroll handler also binds to hash links.
+        // Keep this navigation atomic, including its history entry.
+        event.stopImmediatePropagation();
+        details.open = false;
+        var hash = link.getAttribute('href');
+        if (location.hash !== hash) window.history.pushState(null, '', hash);
+        if (!heading.hasAttribute('tabindex')) heading.setAttribute('tabindex', '-1');
+        heading.focus({preventScroll:true});
+        var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        heading.scrollIntoView({behavior:reduceMotion ? 'auto' : 'smooth',block:'start'});
+      });
+      nav.appendChild(link);
+      return link;
+    });
+    function sync() {
+      var label = {ja:'このページの内容',en:'On this page',zh:'本页导航'}[currentLanguage()];
+      if (summary.textContent !== label) summary.textContent = label;
+      nav.setAttribute('aria-label', label);
+      headings.forEach(function(heading, index) {
+        var title = heading.textContent.trim();
+        if (links[index].textContent !== title) links[index].textContent = title;
+      });
+    }
+    sync();
+    main.insertBefore(details, hero.nextSibling);
+    outlineState = {main:main, sync:sync};
+    // Generated fragments must also work when a visitor opens a saved URL.
+    if (location.hash && /^#experience-section-/.test(location.hash) && typeof requestAnimationFrame === 'function') {
+      var initialTarget = document.getElementById(location.hash.slice(1));
+      if (headings.indexOf(initialTarget) !== -1) requestAnimationFrame(function() { initialTarget.scrollIntoView({block:'start'}); });
+    }
+    window.addEventListener('langChanged', sync);
+    if (typeof MutationObserver !== 'undefined') {
+      new MutationObserver(function(records) {
+        if (records.some(function(record) { return headings.some(function(heading) { return heading === record.target || heading.contains(record.target); }); })) sync();
+      }).observe(main, {subtree:true,childList:true,characterData:true});
+    }
+  }
   function init() {
-    applyLanguage(); setupWaitlist(); setupBooking(); setupParents();
+    applyLanguage(); setupWaitlist(); setupBooking(); setupParents(); setupOutline();
     window.addEventListener('langChanged',applyLanguage);
   }
-  return {filterFaq:filterFaq, kittenContext:kittenContext, waitlistTemplate:waitlistTemplate, localHref:localHref, init:init};
+  return {filterFaq:filterFaq, kittenContext:kittenContext, waitlistTemplate:waitlistTemplate, localHref:localHref, init:init, setupOutline:setupOutline};
 });

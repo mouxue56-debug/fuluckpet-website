@@ -85,3 +85,59 @@
  .experience-page .parent-body{padding:14px}
  .experience-page:has(#bookingForm:focus-within) .mobile-cta-bar{display:none}
 }
+
+/* Compact wayfinding stays within the existing reading flow. */
+.experience-page-outline{position:sticky;top:calc(var(--header-height,72px) + 8px);z-index:90;max-width:1080px;margin:12px auto 20px;width:calc(100% - 40px);border:1px solid rgba(255,255,255,.8);border-radius:18px;background:rgba(248,251,246,.76);-webkit-backdrop-filter:blur(18px) saturate(120%);backdrop-filter:blur(18px) saturate(120%);box-shadow:0 5px 24px rgba(28,60,46,.08);color:#254b3d}
+.experience-page-outline summary{padding:12px 18px;min-height:48px;font-size:.9rem;font-weight:700;cursor:pointer}
+.experience-page-outline nav{position:absolute;top:calc(100% + 6px);left:0;right:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;padding:10px;max-height:55vh;overflow:auto;overscroll-behavior:contain;border:1px solid rgba(255,255,255,.9);border-radius:18px;background:rgba(249,252,247,.94);-webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);box-shadow:0 12px 32px rgba(28,60,46,.14)}
+.experience-page-outline a{display:flex;align-items:center;min-height:44px;padding:10px 12px;color:#254b3d;border-radius:10px;line-height:1.55;text-decoration:none;overflow-wrap:anywhere}
+.experience-page-outline a:hover{background:rgba(196,226,213,.5)}
+.experience-page-outline :is(summary,a):focus-visible,.gallery-filters button:focus-visible{outline:3px solid #285f49;outline-offset:3px}
+[data-experience-outline-target]{scroll-margin-top:calc(var(--header-height,72px) + 84px)}
+.gallery-filters .filter-btn.active{background:#285f49;color:#fff;border-color:#285f49}
+.gallery-filter-status{font-size:.82rem;color:#355a4a;text-align:center;margin:6px auto 14px;line-height:1.7}
+@media(max-width:700px){
+ .experience-page-outline{top:calc(var(--header-height,60px) + 6px);margin:8px auto 16px;width:calc(100% - 32px);border-radius:14px}
+ .experience-page-outline nav{grid-template-columns:1fr}
+ .experience-page[data-experience-page="gallery.html"] .page-hero{padding:calc(var(--header-height,64px) + 18px + env(safe-area-inset-top,0px)) 18px 18px!important}
+ .experience-page[data-experience-page="gallery.html"] .page-hero h1{font-size:1.6rem}
+ .experience-page[data-experience-page="gallery.html"] .page-hero p{font-size:.9rem;line-height:1.7;margin-top:8px}
+ .experience-page[data-experience-page="gallery.html"] .page-hero+.section{padding-top:12px}
+ .experience-page[data-experience-page="gallery.html"] .page-hero+.section .sec-header{padding:12px 10px!important;margin-bottom:12px}
+ .experience-page[data-experience-page="gallery.html"] .page-hero+.section .sec-tag{margin-bottom:4px;font-size:.65rem}
+ .experience-page[data-experience-page="gallery.html"] .page-hero+.section .sec-title{font-size:1.25rem;margin-bottom:4px}
+ .experience-page[data-experience-page="gallery.html"] .page-hero+.section .sec-desc{font-size:.83rem;line-height:1.65}
+ .experience-page .gallery-filters{flex-wrap:nowrap!important;justify-content:flex-start!important;overflow-x:auto;max-width:100%;padding:4px 2px 8px;scroll-padding-inline:8px;-webkit-overflow-scrolling:touch}
+ .experience-page .gallery-filters .filter-btn{flex:none;min-height:44px;white-space:nowrap;padding:9px 17px;border-radius:999px}
+ .experience-page[data-experience-page="parents.html"] .parents-grid{grid-template-columns:1fr;max-width:none;gap:12px}
+ .experience-page[data-experience-page="parents.html"] .parent-card{display:grid;grid-template-columns:104px minmax(0,1fr);grid-template-rows:auto auto;align-items:center;gap:6px 14px;padding:14px;perspective:none}
+ .experience-page[data-experience-page="parents.html"] .parents-grid .parent-card>img{grid-column:1;grid-row:1 / span 2;width:104px!important;height:104px!important;border-radius:14px!important;align-self:center}
+ .experience-page[data-experience-page="parents.html"] .parent-body{grid-column:2;grid-row:1;padding:0;text-align:left;min-width:0;background:transparent!important}
+ .experience-page[data-experience-page="parents.html"] .parent-body h3{font-size:1rem;line-height:1.5;margin-bottom:4px;overflow-wrap:anywhere}
+ .experience-page[data-experience-page="parents.html"] .parent-body p{font-size:.8rem;line-height:1.6;margin-bottom:4px;overflow-wrap:anywhere}
+ .experience-page[data-experience-page="parents.html"] .parent-role{font-size:.72rem;padding:3px 9px}
+ .experience-page[data-experience-page="parents.html"] .parent-card>.health-tag{position:static!important;grid-column:2;grid-row:2;justify-self:start;max-width:100%;font-size:.65rem!important;line-height:1.6;white-space:normal}
+ .experience-page[data-experience-page="parents.html"] .parent-card:hover{transform:none}
+ .experience-page[data-experience-page="parents.html"] .section{padding-top:24px;padding-bottom:24px}
+ .experience-page[data-experience-page="parents.html"] .section .sec-header{margin-bottom:16px}
+ .experience-page[data-experience-page="parents.html"] .sec-header .sec-desc{font-size:.875rem;line-height:1.7}
+ .experience-page[data-experience-page="guide/index.html"] .experience-jump{flex-wrap:nowrap;overflow-x:auto;gap:8px;padding:3px 2px 8px;margin:14px 0;max-width:100%}
+ .experience-page[data-experience-page="guide/index.html"] .experience-jump a{flex:none;white-space:nowrap;font-size:.85rem}
+}
+@media(max-width:380px){
+ .experience-page[data-experience-page="parents.html"] .parent-card{grid-template-columns:86px minmax(0,1fr);gap:6px 10px;padding:12px}
+ .experience-page[data-experience-page="parents.html"] .parents-grid .parent-card>img{width:86px!important;height:100px!important}
+}
+@media(prefers-reduced-transparency:reduce),(prefers-contrast:more){
+ .experience-page-outline,.experience-page-outline nav{background:#f7faf5}
+}
+
+/* The hub is an index: keep scene images compact while titles stay readable. */
+@media(max-width:600px){
+ .guide-hub .guide-cards{grid-template-columns:1fr;gap:12px}
+ .guide-hub .guide-card{display:grid;grid-template-columns:104px minmax(0,1fr);align-items:center;gap:0;min-height:112px;padding:8px}
+ .guide-hub .guide-card-media{width:104px;height:96px;aspect-ratio:auto;border-radius:12px}
+ .guide-hub .guide-card-body{min-width:0;padding:10px 12px;background:transparent!important}
+ .guide-hub .guide-card-title{font-size:.94rem;line-height:1.65;overflow-wrap:anywhere}
+ .guide-hub .guide-card-desc{font-size:.79rem;line-height:1.65;margin-top:4px;color:#385345}
+}
