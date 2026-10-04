@@ -1,32 +1,38 @@
 import {regions,sample,needed,fastMove} from './ambient-timeline.mjs?v=20261004a';
-import {media} from './ambient-media.mjs?v=20261004a';
-const route=location.pathname.replace(/^\/(?:en|zh)(?=\/)/,'');
-const page=route==='/about.html'?'about':route==='/kittens.html'?'kittens':'home';
-const clips=page==='about'?['C','A','B']:['A','B','C'];
+import {media} from './ambient-media.mjs?v=20261004b';
+import {ambientPage,contentAnchors} from './ambient-pages.mjs?v=20261004a';
+const config=ambientPage(location.pathname),main=document.querySelector('main,[role="main"]');
+if(config&&main)startAmbient();
+function startAmbient(){
+const {page,clips}=config;
 const scene=document.createElement('div');scene.className='ambient-scene';scene.setAttribute('aria-hidden','true');
 const poster=new Image();poster.alt='';poster.src=media[clips[0]].poster;scene.append(poster);
 const canvas=document.createElement('canvas');scene.append(canvas);document.body.prepend(scene);
 const ctx=canvas.getContext('2d',{alpha:false}),reduce=matchMedia('(prefers-reduced-motion: reduce)'),players=new Map();
 document.body.classList.add('ambient-enabled');document.body.dataset.ambientPage=page;
+const serviceGlass='.service-price-card,.service-info-card,.service-table-wrap,.service-care-details,.service-legal,.booking-form-card,.booking-sidebar .info-card,.booking-sidebar .line-card,.blog-card,.blog-cat-nav,.blog-bottom-cta,.guide-card,.guide-quick-start,.guide-figure figcaption,.guide-cta,.rel-card,.experience-card,.experience-steps>li,.experience-template,.experience-context,.experience-photo figcaption';
+const serviceCopy='.experience-hero>div,.service-hero-inner>div:not(.service-hero-media),.service-heading,.service-final-cta,.booking-hero .container,.blog-hero,.blog-cat-heading,.guide-hub-header,.guide-category-title';
 const glassSelectors='.hero-content,.hero-award-proof,.page-hero,.sec-header,.choice-block,.about-card,.kitten-card,.parent-card,.review-card,.faq-item,.visit-card,.line-cta-card,.award-period,.awards-proof-note,.kit-filters,.filter-bar,.sort-controls,.kitten-filter-tabs,.kitten-sort-row,.sec-cta,.jisseki-obi,.kittens-toolbar';
 function glassify(){
- document.querySelectorAll(glassSelectors).forEach(e=>{e.classList.add('ambient-glass')});
+ document.querySelectorAll(glassSelectors+','+serviceGlass).forEach(e=>{e.classList.add('ambient-glass')});
+ document.querySelectorAll(serviceCopy).forEach(e=>e.classList.add('ambient-glass','ambient-glass-copy'));
  document.querySelectorAll('main .container>p,main .container>h2,main .container>div').forEach(e=>{
+  if(e.parentElement.closest('.ambient-glass'))return;
   if(e.matches('.ambient-glass,.kittens-grid,.parents-grid,.about-grid,.reviews-grid,.gallery-grid,.visit-grid,.sns-grid,.awards-timeline,.parallax-bg'))return;
   if(e.matches('p,h2')||e.querySelector(':scope > .sec-title')||e.querySelector(':scope > div[style*="background:"]'))e.classList.add('ambient-glass');
  });
  document.querySelectorAll('.sec-header,.choice-block,.sec-cta,.kit-filters,.filter-bar,.sort-controls,main .container>p,main .container>h2').forEach(e=>{if(e.classList.contains('ambient-glass'))e.classList.add('ambient-glass-copy')});
- document.querySelectorAll('main h1,main h2,main h3,main p,main li,main label').forEach(e=>{if(!e.closest('.ambient-glass,button,.btn'))e.classList.add('ambient-glass','ambient-glass-copy')});
+ main.querySelectorAll('h1,h2,h3,p,li,label').forEach(e=>{if(!e.closest('.ambient-glass,button,.btn,[aria-hidden="true"]'))e.classList.add('ambient-glass','ambient-glass-copy')});
 }
 glassify();
-const contentObserver=new MutationObserver(()=>glassify());contentObserver.observe(document.querySelector('main'),{childList:true,subtree:true});
+const contentObserver=new MutationObserver(()=>glassify());contentObserver.observe(main,{childList:true,subtree:true});
 let bounds=[0,1,2,3],w=innerWidth,h=innerHeight,off=new URLSearchParams(location.search).get('motion')==='off',lastY=scrollY,direction=1,queued=false,dirty=true,current=[],lastTick=performance.now(),fastUntil=0,settleTimer;
 function top(el){return el.getBoundingClientRect().top+scrollY}
 function measure(){
  const end=Math.max(1,document.documentElement.scrollHeight-innerHeight);let anchors=[];
  if(page==='home'){const a=document.querySelector('#kittens'),b=document.querySelector('#about');if(a&&b)anchors=[top(a)-h*.4,top(b)-h*.4]}
  else if(page==='about'){const a=document.querySelector('#registration'),ss=[...document.querySelectorAll('main>section')];if(a&&ss[4])anchors=[top(a)-h*.4,top(ss[4])-h*.4]}
- else {const cards=[...document.querySelectorAll('.kitten-card')].filter(e=>e.getClientRects().length&&getComputedStyle(e).display!=='none');if(cards.length>=3)anchors=[top(cards[Math.floor(cards.length/3)])-h*.4,top(cards[Math.floor(cards.length*2/3)])-h*.4]}
+ else if(config.sections){const cards=[...main.querySelectorAll(config.sections)].filter(e=>e.getClientRects().length&&getComputedStyle(e).display!=='none');anchors=contentAnchors(cards.map(top),h)}
  bounds=regions(end,anchors);canvas.dataset.bounds=JSON.stringify(bounds.map(Math.round));dirty=false;
 }
 function snapshot(p){if(p.video.readyState<2||p.video.seeking)return;const v=p.video;if(p.image.width!==v.videoWidth||p.image.height!==v.videoHeight){p.image.width=v.videoWidth;p.image.height=v.videoHeight}p.image.getContext('2d').drawImage(v,0,0);p.time=v.currentTime;p.ready=true;schedule()}
@@ -41,9 +47,9 @@ function ensure(index){
 }
 function seek(p){const v=p.video;if(v.readyState<2||v.seeking||!Number.isFinite(v.duration))return;const t=Math.min(v.duration-.06,Math.max(0,p.want));if(Math.abs(v.currentTime-t)>1/48)v.currentTime=t;}
 function release(index){const p=players.get(index);p.disposed=true;p.abort.abort();p.video.pause();p.video.removeAttribute('src');p.video.load();p.image.width=0;p.image.height=0;if(p.objectUrl)URL.revokeObjectURL(p.objectUrl);players.delete(index)}
-function paint(p,progress,alpha){const image=p.image;const scale=Math.max(w/image.width,h/image.height)*(1.02+progress*.10);const dw=image.width*scale,dh=image.height*scale;ctx.globalAlpha=alpha;ctx.drawImage(image,(w-dw)*(.40+progress*.14),(h-dh)*(.48+progress*.10),dw,dh)}
+function paint(p,progress,alpha){const image=p.image;const scale=Math.max(w/image.width,h/image.height)*(1.02+progress*(['home','about','kittens'].includes(page)?.10:.04));const dw=image.width*scale,dh=image.height*scale;ctx.globalAlpha=alpha;ctx.drawImage(image,(w-dw)*(.40+progress*.14),(h-dh)*(.48+progress*.10),dw,dh)}
 function render(){
- queued=false;if(dirty)measure();if(off||reduce.matches||navigator.connection?.saveData||document.hidden)return;
+ queued=false;const editing=!!document.activeElement?.matches('input,textarea,select,[contenteditable="true"]');canvas.dataset.paused=String(editing);if(editing)return;if(dirty)measure();if(off||reduce.matches||navigator.connection?.saveData||document.hidden)return;
  const y=scrollY,now=performance.now(),delta=y-lastY;if(Math.abs(delta)>1)direction=delta>0?1:-1;
  if(fastMove(delta,now-lastTick,h))fastUntil=now+110;
  lastY=y;lastTick=now;
@@ -65,5 +71,6 @@ function resize(){
  dirty=true;schedule();
 }
 function sync(){document.body.classList.toggle('ambient-off',off);if(off||reduce.matches||navigator.connection?.saveData){for(const i of [...players.keys()])release(i);if(reduce.matches)canvas.classList.remove('ready')}schedule()}
-new ResizeObserver(()=>{dirty=true;schedule()}).observe(document.querySelector('main'));
-addEventListener('scroll',schedule,{passive:true});addEventListener('resize',resize,{passive:true});document.addEventListener('visibilitychange',schedule);reduce.addEventListener('change',sync);resize();sync();
+new ResizeObserver(()=>{dirty=true;schedule()}).observe(main);
+addEventListener('scroll',schedule,{passive:true});addEventListener('resize',resize,{passive:true});document.addEventListener('visibilitychange',schedule);document.addEventListener('focusin',schedule);document.addEventListener('focusout',()=>{dirty=true;schedule()});reduce.addEventListener('change',sync);resize();sync();
+}
