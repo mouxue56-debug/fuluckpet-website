@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 const vm = require('node:vm');
+const { parse } = require('parse5');
 
 const ROOT = path.resolve(__dirname, '..');
 const TRUST_SOURCE = fs.readFileSync(path.join(ROOT, 'faq-trust-copy.js'), 'utf8');
@@ -100,7 +101,7 @@ class FakeElement {
     const className = selector.startsWith('.') ? selector.slice(1) : null;
     (function visit(node) {
       node.children.forEach((child) => {
-        if (className && child.classList.contains(className)) results.push(child);
+        if (className ? child.classList.contains(className) : child.tagName === selector.toUpperCase()) results.push(child);
         visit(child);
       });
     }(this));
@@ -112,7 +113,7 @@ class FakeElement {
   }
 }
 
-function createHarness(source, items, surface) {
+function createHarness(source, items, surface, options = {}) {
   const htmlWrites = [];
   const homeContainer = new FakeElement('div', htmlWrites);
   homeContainer.className = 'faq-list';
@@ -123,6 +124,7 @@ function createHarness(source, items, surface) {
   const events = Object.create(null);
   const storage = new Map([['fuluckpet-lang', 'ja']]);
   const document = {
+    documentElement: options.pageLang ? { lang: options.pageLang } : undefined,
     querySelector(selector) {
       return selector === '.faq-list' && surface === 'home' ? homeContainer : null;
     },
@@ -148,17 +150,57 @@ function createHarness(source, items, surface) {
     document,
     window,
     localStorage: {
-      getItem(key) { return storage.has(key) ? storage.get(key) : null; },
+      getItem(key) { if (options.denyStorage) throw new Error('Storage blocked'); return storage.has(key) ? storage.get(key) : null; },
       setItem(key, value) { storage.set(key, String(value)); },
     },
     fetch() {
+      if (options.rejectFetch) return Promise.reject(new Error('Offline'));
       return Promise.resolve({ json() { return Promise.resolve(items); } });
     },
   });
+  if (options.staticHtml) {
+    const doc = parse(options.staticHtml);
+    let sourceList;
+    (function find(node) {
+      if ((node.attrs || []).some(a => a.name === 'id' && a.value === 'faqList')) sourceList = node;
+      (node.childNodes || []).forEach(find);
+    }(doc));
+    function convert(node) {
+      const element = new FakeElement(node.tagName || '#text', htmlWrites);
+      if (node.nodeName === '#text') element.textContent = node.value;
+      for (const attr of node.attrs || []) {
+        element.setAttribute(attr.name, attr.value);
+        if (attr.name === 'class') element.className = attr.value;
+      }
+      (node.childNodes || []).forEach(child => element.appendChild(convert(child)));
+      return element;
+    }
+    sourceList.childNodes.forEach(child => listContainer.appendChild(convert(child)));
+  }
   vm.runInContext(TRUST_SOURCE, context, { filename: 'faq-trust-copy.js' });
   vm.runInContext(source, context, { filename: surface === 'home' ? 'faq-loader.js' : 'faq-page-loader.js' });
-  return { homeContainer, listContainer, filterContainer, htmlWrites, events, storage, window };
+  return { homeContainer, listContainer, filterContainer, htmlWrites, events, storage, window, document };
 }
+
+test('translated static FAQ remains readable and interactive if API and browser storage fail', async () => {
+  for (const lang of ['en', 'zh']) {
+    const result = createHarness(PAGE_SOURCE, null, 'page', {
+      pageLang: lang, denyStorage: true, rejectFetch: true,
+      staticHtml: fs.readFileSync(path.join(ROOT, lang, 'faq.html'), 'utf8'),
+    });
+    await new Promise(setImmediate);
+    const questions = result.listContainer.querySelectorAll('.faq-q');
+    assert.equal(questions.length, 27);
+    assert.ok(questions.some(q => q.textContent === (lang === 'en' ? 'Are vaccinations completed?' : '是否已经接种疫苗？')));
+    assert.doesNotMatch(result.listContainer.textContent, /Failed to load|加载失败|読み込みに失敗/);
+    questions[0].click();
+    assert.equal(questions[0].getAttribute('aria-expanded'), 'true');
+    const health = result.filterContainer.querySelectorAll('.faq-filter-btn').find(b => b.dataset.cat === 'health');
+    health.click();
+    assert.equal(result.listContainer.querySelectorAll('.faq-q').length, 6);
+    assert.deepEqual(result.htmlWrites, []);
+  }
+});
 
 function domSurface(root) {
   const fields = [root.tagName, root.id, root.className, root._text];

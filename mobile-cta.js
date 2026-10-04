@@ -43,25 +43,8 @@
       io.observe(footer);
     }
 
-    // GA4 click signals (defensive — analytics.js may load after).
-    bar.addEventListener('click', function (e) {
-      var a = e.target.closest('a');
-      if (!a) return;
-      var label = a.getAttribute('data-cta') || a.textContent.trim();
-      if (window.dataLayer) {
-        window.dataLayer.push({
-          event: 'mobile_cta_click',
-          cta_label: label,
-          cta_href: a.getAttribute('href') || ''
-        });
-      }
-      if (typeof window.gtag === 'function') {
-        window.gtag('event', 'mobile_cta_click', {
-          cta_label: label,
-          cta_href: a.getAttribute('href') || ''
-        });
-      }
-    });
+    // Click analytics are delegated once in analytics.js, with mobile_bar attribution.
+
   }
 
   if (document.readyState === 'loading') {

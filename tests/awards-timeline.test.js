@@ -221,7 +221,7 @@ test('homepage presents all six Osaka and national No. 1 plates without replacin
 });
 
 test('award visuals use one isolated, cache-busted stylesheet on only the two award surfaces', () => {
-  const awardStylesheet = '/awards.css?v=20260903c';
+  const awardStylesheet = '/awards.css?v=20261004d';
   const trackedHtml = execFileSync('git', ['ls-files', '*.html'], {
     cwd: new URL('../', import.meta.url),
     encoding: 'utf8',
@@ -241,13 +241,13 @@ test('award visuals use one isolated, cache-busted stylesheet on only the two aw
   assert.match(proofRule, /display:\s*grid/);
   assert.match(proofRule, /align-items:\s*center/);
   assert.match(proofRule, /width:\s*min\(100%,\s*640px\)/);
-  assert.match(proofRule, /min-height:\s*260px/);
+  assert.match(proofRule, /min-height:\s*0/);
   assert.match(awardsCssSource, /\.hero-award-proof-plates\s*\{[\s\S]*grid-template-columns:\s*repeat\(6,\s*minmax\(0,\s*1fr\)\)/);
 });
 
 test('award pages use fresh translation and favicon cache keys', () => {
   for (const source of [indexSource, aboutSource]) {
-    assert.match(source, /i18n\.js\?v=20261004b/);
+    assert.match(source, /i18n\.js\?v=20261004d/);
     assert.match(source, /href=["']\/favicon\.ico\?v=20260903a["']/);
   }
 });
