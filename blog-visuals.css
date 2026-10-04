@@ -1,0 +1,50 @@
+/* Images stay inside existing cards, preserving the library's reading order. */
+body[data-experience-page="blog.html"] .blog-card:has(.blog-card-visual) {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  column-gap: 14px;
+  align-content: start;
+  align-items: start;
+}
+.blog-card-visual {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  display: block;
+  min-width: 0;
+  align-self: start;
+}
+.blog-card-visual img {
+  display: block;
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.8);
+  box-shadow: 0 4px 12px rgba(39,65,47,.07);
+}
+.blog-card-visual-label {
+  display: block;
+  padding-top: 5px;
+  color: #42564b;
+  font-size: 10px;
+  line-height: 1.35;
+  text-align: center;
+}
+.blog-card:has(.blog-card-visual) > .blog-card-cat { grid-column: 2; justify-self: start; margin-bottom: 6px; }
+.blog-card:has(.blog-card-visual) > .blog-card-title { grid-column: 2; margin-bottom: 0; overflow-wrap: anywhere; }
+.blog-card:has(.blog-card-visual) > .blog-card-desc { grid-column: 1 / -1; margin-top: 12px; }
+@media (max-width: 380px) {
+  body[data-experience-page="blog.html"] .blog-card:has(.blog-card-visual) { grid-template-columns: 78px minmax(0, 1fr); column-gap: 12px; }
+  .blog-card-visual img { width: 78px; height: 78px; }
+  .blog-card-visual-label { font-size: 9px; }
+}
+body[data-experience-page="blog.html"] .blog-card:has(.blog-card-visual) {
+  background: linear-gradient(135deg, rgba(255,255,255,.64), rgba(248,253,247,.43) 55%, rgba(255,255,255,.54)) !important;
+}
+.blog-card:has(.blog-card-visual) > .blog-card-title { color: #183b2f; }
+.blog-card:has(.blog-card-visual) > .blog-card-desc { color: #294538; }
+.blog-search #blogSearchResults .blog-grid { padding-inline: 0; }
+#blogSearchResults [data-blog-search-status] { color: #284b3c !important; }
+/* Keep both subjects visible in breed comparison thumbnails. */
+.blog-card-visual img[src$="siberian-norwegian.webp"],
+.blog-card-visual img[src$="siberian-mainecoon.webp"] { object-fit: contain; background: #ecece2; }
