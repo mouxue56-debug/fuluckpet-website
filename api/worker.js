@@ -29,6 +29,7 @@
  */
 
 import launchConfig from '../small-animals-launch.json' with { type: 'json' };
+import { serveAmbientMedia } from './ambient-media.mjs';
 import { canDeleteCalendarEvent, canUpdateCalendarEvent, canWriteCalendarEvent } from './calendar-dog-policy.mjs';
 import {
   attemptNotifyIntent,
@@ -2923,6 +2924,10 @@ export default {
       }
 
       // ===== R2 PUBLIC IMAGE SERVING =====
+
+      if (path.startsWith('/r2/ambient/') && (method === 'GET' || method === 'HEAD')) {
+        return addCors(await serveAmbientMedia(request, env.BUCKET, caches.default, ctx));
+      }
 
       // GET /r2/* — serve images from R2 bucket, edge-cached.
       // Mirrors the drive-img caching pattern: edge cache (caches.default) keyed on the
