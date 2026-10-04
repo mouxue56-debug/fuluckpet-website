@@ -60,3 +60,15 @@ test('guide links keep language without losing anchors or changing assets and ex
   h.set('ja');
   assert.equal(h.links[0].attrs.href,'/guide/price.html#guide-topic-price-1');
 });
+
+test('naming links preserve language while leaving other services and lookalike hosts unchanged', () => {
+  const hrefs=['https://catnamegive.mouxue56.workers.dev','https://catnamegive.mouxue56.workers.dev/?lang=ja#results','https://catnamegive.mouxue56.workers.dev.example.com/','https://fukurakupet.stores.jp/'];
+  const h=runtime(hrefs);
+  h.set('en');
+  assert.equal(h.links[0].attrs.href,'https://catnamegive.mouxue56.workers.dev/?lang=en');
+  assert.equal(h.links[1].attrs.href,'https://catnamegive.mouxue56.workers.dev/?lang=en#results');
+  assert.equal(h.links[2].attrs.href,hrefs[2]);
+  assert.equal(h.links[3].attrs.href,hrefs[3]);
+  h.set('zh');
+  assert.equal(h.links[0].attrs.href,'https://catnamegive.mouxue56.workers.dev/?lang=zh');
+});
