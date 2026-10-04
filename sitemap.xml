@@ -5,90 +5,90 @@
   <!-- メインページ -->
   <url>
     <loc>https://fuluckpet.com/</loc>
-    <lastmod>2026-09-26</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <!-- ストーリーカード -->
   <url>
     <loc>https://fuluckpet.com/story/</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <!-- サイベリアンの魅力 -->
   <url>
     <loc>https://fuluckpet.com/siberian.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <!-- ランディング（ja/en/zh）: 追加 2026-07-08 監査 -->
   <url>
     <loc>https://fuluckpet.com/siberian-breeder-osaka.html</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/en/siberian-breeder-osaka.html</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/siberian-breeder-osaka.html</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/siberian-allergy.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/en/siberian-allergy.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/siberian-allergy.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/waitlist.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/en/waitlist.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/waitlist.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <!-- 受賞歴・認定 -->
   <url>
     <loc>https://fuluckpet.com/about.html</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <!-- 卒業猫ギャラリー -->
   <url>
     <loc>https://fuluckpet.com/gallery.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -215,21 +215,21 @@
   <!-- お客様の声 -->
   <url>
     <loc>https://fuluckpet.com/reviews.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <!-- 子猫一覧 -->
   <url>
     <loc>https://fuluckpet.com/kittens.html</loc>
-    <lastmod>2026-09-30</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <!-- 親猫紹介 -->
   <url>
     <loc>https://fuluckpet.com/parents.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -300,21 +300,21 @@
   <!-- 知識ライブラリ -->
   <url>
     <loc>https://fuluckpet.com/blog.html</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <!-- よくある質問 -->
   <url>
     <loc>https://fuluckpet.com/faq.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <!-- 見学予約 -->
   <url>
     <loc>https://fuluckpet.com/booking.html</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -324,7 +324,7 @@
   <!-- 子猫詳細ページ -->
   <url>
     <loc>https://fuluckpet.com/kittens/2603-02736.html</loc>
-    <lastmod>2026-09-01</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -334,7 +334,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/kittens/2607-02164.html</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -344,7 +344,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/kittens/2607-02167.html</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -354,7 +354,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/kittens/2608-51174.html</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -364,7 +364,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/kittens/2604-02563.html</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -374,7 +374,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/kittens/2605-02526.html</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -384,7 +384,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/kittens/2608-52935.html</loc>
-    <lastmod>2026-09-01</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -394,7 +394,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/kittens/2608-52936.html</loc>
-    <lastmod>2026-09-01</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -404,7 +404,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/kittens/2607-02161.html</loc>
-    <lastmod>2026-09-01</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -414,7 +414,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/kittens/2607-02478.html</loc>
-    <lastmod>2026-09-01</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -424,7 +424,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/kittens/2607-00594.html</loc>
-    <lastmod>2026-09-01</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -434,7 +434,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/kittens/2607-02790.html</loc>
-    <lastmod>2026-09-01</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -444,7 +444,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/kittens/2607-02998.html</loc>
-    <lastmod>2026-09-01</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -454,7 +454,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/kittens/2608-51773.html</loc>
-    <lastmod>2026-09-01</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -464,7 +464,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/kittens/2606-03044.html</loc>
-    <lastmod>2026-09-01</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -474,7 +474,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/kittens/2607-02807.html</loc>
-    <lastmod>2026-09-01</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -484,7 +484,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/kittens/2608-51547.html</loc>
-    <lastmod>2026-09-01</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -494,7 +494,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/kittens/2606-01235.html</loc>
-    <lastmod>2026-09-01</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -504,7 +504,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/kittens/2607-00576.html</loc>
-    <lastmod>2026-09-01</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -514,7 +514,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/kittens/2608-51328.html</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -524,7 +524,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/kittens/2608-51339.html</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -534,7 +534,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/kittens/2607-01890.html</loc>
-    <lastmod>2026-09-01</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -544,7 +544,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/kittens/2603-02684.html</loc>
-    <lastmod>2026-09-01</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -555,20 +555,20 @@
   <!-- 子猫一覧ページ (en/zh) -->
   <url>
     <loc>https://fuluckpet.com/en/kittens.html</loc>
-    <lastmod>2026-09-30</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/kittens.html</loc>
-    <lastmod>2026-09-30</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <!-- 子猫詳細ページ (en) -->
   <url>
     <loc>https://fuluckpet.com/en/kittens/2603-02736.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -578,7 +578,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/en/kittens/2607-02164.html</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -588,7 +588,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/en/kittens/2607-02167.html</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -598,7 +598,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/en/kittens/2608-51174.html</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -608,7 +608,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/en/kittens/2604-02563.html</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -618,7 +618,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/en/kittens/2605-02526.html</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -628,27 +628,27 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/en/kittens/2608-52935.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
       <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_77de821153c2.jpg.webp</image:loc>
-      <image:caption>Siberian kitten ブラウンタビー Female · ID 2608-52935</image:caption>
+      <image:caption>Siberian kitten Brown Tabby Female · ID 2608-52935</image:caption>
     </image:image>
   </url>
   <url>
     <loc>https://fuluckpet.com/en/kittens/2608-52936.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
       <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_3b6e7a00e957.jpg.webp</image:loc>
-      <image:caption>Siberian kitten ブラウンタビー Male · ID 2608-52936</image:caption>
+      <image:caption>Siberian kitten Brown Tabby Male · ID 2608-52936</image:caption>
     </image:image>
   </url>
   <url>
     <loc>https://fuluckpet.com/en/kittens/2607-02161.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -658,7 +658,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/en/kittens/2607-02478.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -668,7 +668,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/en/kittens/2607-00594.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -678,7 +678,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/en/kittens/2607-02790.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -688,7 +688,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/en/kittens/2607-02998.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -698,7 +698,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/en/kittens/2608-51773.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -708,7 +708,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/en/kittens/2606-03044.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -718,7 +718,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/en/kittens/2607-02807.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -728,7 +728,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/en/kittens/2608-51547.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -738,7 +738,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/en/kittens/2606-01235.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -748,7 +748,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/en/kittens/2607-00576.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -758,7 +758,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/en/kittens/2608-51328.html</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -768,7 +768,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/en/kittens/2608-51339.html</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -778,7 +778,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/en/kittens/2607-01890.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -788,7 +788,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/en/kittens/2603-02684.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -799,7 +799,7 @@
   <!-- 子猫詳細ページ (zh) -->
   <url>
     <loc>https://fuluckpet.com/zh/kittens/2603-02736.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -809,7 +809,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/kittens/2607-02164.html</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -819,7 +819,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/kittens/2607-02167.html</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -829,7 +829,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/kittens/2608-51174.html</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -839,7 +839,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/kittens/2604-02563.html</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -849,7 +849,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/kittens/2605-02526.html</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -859,27 +859,27 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/kittens/2608-52935.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
       <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_77de821153c2.jpg.webp</image:loc>
-      <image:caption>西伯利亚猫幼猫 ブラウンタビー 女孩・个体编号2608-52935</image:caption>
+      <image:caption>西伯利亚猫幼猫 棕虎斑 女孩・个体编号2608-52935</image:caption>
     </image:image>
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/kittens/2608-52936.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
       <image:loc>https://www.koneko-breeder.com/breeder/data/c995680/child_img_1_3b6e7a00e957.jpg.webp</image:loc>
-      <image:caption>西伯利亚猫幼猫 ブラウンタビー 男孩・个体编号2608-52936</image:caption>
+      <image:caption>西伯利亚猫幼猫 棕虎斑 男孩・个体编号2608-52936</image:caption>
     </image:image>
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/kittens/2607-02161.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -889,7 +889,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/kittens/2607-02478.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -899,7 +899,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/kittens/2607-00594.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -909,7 +909,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/kittens/2607-02790.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -919,7 +919,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/kittens/2607-02998.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -929,7 +929,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/kittens/2608-51773.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -939,7 +939,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/kittens/2606-03044.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -949,7 +949,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/kittens/2607-02807.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -959,7 +959,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/kittens/2608-51547.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -969,7 +969,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/kittens/2606-01235.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -979,7 +979,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/kittens/2607-00576.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -989,7 +989,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/kittens/2608-51328.html</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -999,7 +999,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/kittens/2608-51339.html</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -1009,7 +1009,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/kittens/2607-01890.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -1019,7 +1019,7 @@
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/kittens/2603-02684.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -1030,104 +1030,308 @@
   <!-- お迎えガイド -->
   <url>
     <loc>https://fuluckpet.com/guide/behavior.html</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/guide/bring.html</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/guide/day1.html</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/guide/family.html</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/guide/grooming.html</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/guide/home-safety.html</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/guide/</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/guide/multi-cat.html</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/guide/neuter.html</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/guide/passport.html</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/guide/prepare.html</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/guide/price.html</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/guide/visit.html</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/guide/week1.html</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/guide/weight-log.html</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/guide/behavior.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/guide/bring.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/guide/day1.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/guide/family.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/guide/grooming.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/guide/home-safety.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/guide/</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/guide/multi-cat.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/guide/neuter.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/guide/passport.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/guide/prepare.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/guide/price.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/guide/visit.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/guide/week1.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/guide/weight-log.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/guide/behavior.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/guide/bring.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/guide/day1.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/guide/family.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/guide/grooming.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/guide/home-safety.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/guide/</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/guide/multi-cat.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/guide/neuter.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/guide/passport.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/guide/prepare.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/guide/price.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/guide/visit.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/guide/week1.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/guide/weight-log.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
   <!-- 公開サービス -->
   <url>
     <loc>https://fuluckpet.com/boarding/</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/grooming/</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/boarding/</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/boarding/</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/en/grooming/</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://fuluckpet.com/zh/grooming/</loc>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1147,1140 +1351,1106 @@
   <!-- ブログ記事 -->
   <url>
     <loc>https://fuluckpet.com/blog/air-purifier-for-cats.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/allergy-living-tips.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/allergy-medications.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/allergy-test-method.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/breeder-visit-flow-osaka.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/en/blog/breeder-visit-flow-osaka.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/blog/breeder-visit-flow-osaka.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/breeder-visit-guide.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/breeder-vs-petshop.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/bringing-kitten-home.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/british-longhair-character.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/british-shorthair-character.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/british-shorthair-guide.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-age-human.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-allergy-guide.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-and-baby.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-and-other-pets.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-apartment-living.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-appetite-loss.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-balance-vestibular.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-biting-habit.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-body-language.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-body-language-tail-ears.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-breed-ranking-japan.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-carrier-guide.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-claws-anatomy.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-cold-symptoms.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-communication-sounds.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-cost-monthly.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-daily-care-checklist.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-dangerous-foods.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-dental-care.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-dental-care-prevention.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-disaster-prep.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-diy-toys.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-domestication-history.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-dreams-sleep-cycle.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-ear-cleaning.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-emotions-expression.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-enrichment-ideas.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-exercise-play.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-eye-care.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-first-year-cost.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-five-senses.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-food-allergy.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-genetic-test.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-grooming-tools.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-hairball-prevention.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-health-checkpoints.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-hearing-range.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-hiding-reasons.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-hunting-instinct.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-hydration-tips.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-indoor-benefits.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-insurance-guide.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-jumping-physics.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-kneading-behavior.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-litter-guide.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-magnetic-sense.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-memory-learning.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-microchip.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-moving-stress.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-nail-clipping.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-naming-guide.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-neuter-timing.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-night-crying.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-obesity-prevention.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-parasite-prevention.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-paw-pads.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-photo-tips.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-proof-your-home.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-pupils-vision.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-purring-meaning.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-righting-reflex.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-shampoo-guide.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-shedding-season.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-sleeping-habits.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-slow-blink.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-smell-jacobson.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-smell-prevention.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-social-hierarchy.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-socialization.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-spatial-cognition.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-spray-behavior.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-stool-check.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-stress-signs.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-summer-care.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-taste-preferences.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-territorial-behavior.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-toilet-cleaning.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-toilet-training.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-tongue-structure.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-travel-tips.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-treats-guide.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-urinary-tract-disease.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-vaccination-guide.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-virus-test.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-vomit-causes.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-water-intake.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-whiskers-function.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cat-winter-care.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cats-lily-safety-home.html</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cattery-daily-routine.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/cattery-visit-preparation-guide.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/choose-breeder.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/choose-healthy-kitten-checklist.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/en/blog/choose-healthy-kitten-checklist.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/blog/choose-healthy-kitten-checklist.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/common-cat-diseases.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/first-cat-common-mistakes.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/first-time-cat-checklist-osaka.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/first-week-arrival-tips.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/food-dry-vs-wet.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/food-transition.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/fuluck-200-graduates-stories.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/fuluck-2025-award-1st-reasons.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/fuluck-aftercare-promise.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/fuluck-customer-reviews-summary.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/fuluck-founder-story.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/graduate-cat-stories.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/hcm-pkd-test-explained.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/kansai-breeder-guide.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/kansai-cat-shipping-options.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/kansai-vs-kanto-cattery.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/kitten-and-children.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/kitten-checklist.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/kitten-day1-guide.html</loc>
-    <lastmod>2026-09-22</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/kitten-first-time.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/kitten-food-guide.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/kitten-growth-guide.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/kitten-health-prevention.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/kitten-meet-existing-cat.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/kitten-price-factors.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/kitten-room-safety.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/kitten-socialization-3to12-weeks.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/kitten-socialization-period.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/kitten-toy-guide.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/kitten-vaccine-schedule.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/kitten-week1-guide.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/kitten-weight-management.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/large-cat-breeds.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/long-hair-brushing.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/multi-cat-tips.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/natural-cat-breeds.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/osaka-cat-vet-network.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/osaka-jouto-access-guide.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/osaka-pet-allergy-clinics.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/pedigree-certificate.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/ragdoll-character.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/senior-cat-cognitive.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/senior-cat-comfort.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/senior-cat-diet.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/senior-cat-diseases.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/senior-cat-end-of-life.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/senior-cat-health.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/shop-vs-breeder-siberian.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/siberian-allergy-facts.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/siberian-allergy-solution.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/siberian-allergy-test-real.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/siberian-cfa-breed-standard.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/siberian-character.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/siberian-coat-color-guide.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/en/blog/siberian-coat-color-guide.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/blog/siberian-coat-color-guide.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/siberian-color-types.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/siberian-cost-breakdown.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/siberian-grooming-basics.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/siberian-history.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/siberian-kitten-feeding-guide.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/en/blog/siberian-kitten-feeding-guide.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/blog/siberian-kitten-feeding-guide.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/siberian-lifespan.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/siberian-neva-masquerade.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/siberian-osaka-guide.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/siberian-owner-stories.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/siberian-price-guide.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/siberian-voice.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/siberian-vs-bsh-vs-ragdoll.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/en/blog/siberian-vs-bsh-vs-ragdoll.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/zh/blog/siberian-vs-bsh-vs-ragdoll.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/siberian-vs-mainecoon.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/siberian-vs-norwegian.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/siberian-weight-size.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://fuluckpet.com/blog/spay-neuter-timing-siberian.html</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
-  <url><loc>https://fuluckpet.com/en/boarding/</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/zh/boarding/</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/en/grooming/</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/zh/grooming/</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/en/guide/behavior.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/zh/guide/behavior.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/en/guide/bring.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/zh/guide/bring.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/en/guide/day1.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/zh/guide/day1.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/en/guide/family.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/zh/guide/family.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/en/guide/grooming.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/zh/guide/grooming.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/en/guide/home-safety.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/zh/guide/home-safety.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/en/guide/</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/zh/guide/</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/en/guide/multi-cat.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/zh/guide/multi-cat.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/en/guide/neuter.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/zh/guide/neuter.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/en/guide/passport.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/zh/guide/passport.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/en/guide/prepare.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/zh/guide/prepare.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/en/guide/price.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/zh/guide/price.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/en/guide/visit.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/zh/guide/visit.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/en/guide/week1.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/zh/guide/week1.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/en/guide/weight-log.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://fuluckpet.com/zh/guide/weight-log.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
 </urlset>
