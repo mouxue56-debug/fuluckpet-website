@@ -48,3 +48,18 @@ body.ambient-off .ambient-scene{visibility:hidden}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
  .ambient-enabled:not(.ambient-off) :is(.booking-form-card,.guide-figure figcaption,.service-proof,.booking-input,.booking-select,.booking-textarea,#blogSearch){background:rgba(255,255,250,.96)!important}
 }
+
+/* Information stays legible over every frame; the surrounding scene remains visible. */
+.ambient-enabled:not(.ambient-off) :is(.hero-content,.page-hero,.kit-filters,.kit-discovery-bar,.filter-bar,.kittens-toolbar,.service-table-wrap,.service-care-details,.booking-form-card,.booking-sidebar .info-card,.faq-item) {
+ background:rgba(255,254,248,.88)!important;
+}
+.ambient-enabled:not(.ambient-off) :is(.sec-header,.service-heading,.booking-hero .container,.guide-hub-header).ambient-glass-copy:before {
+ background:rgba(255,254,248,.88);
+}
+.ambient-enabled:not(.ambient-off) :is(.kitten-body,.parent-body,.guide-card-body,.gal-caption) {background:rgba(255,254,248,.92)}
+.ambient-enabled:not(.ambient-off) :is(.booking-input,.booking-select,.booking-textarea,#blogSearch) {background:rgba(255,255,255,.96)!important}
+.ambient-enabled:not(.ambient-off) :is(.booking-form-card,.service-table-wrap,.kit-filters) :is(label,p,td,th) {color:#263f36}
+@media(prefers-reduced-transparency:reduce),(prefers-contrast:more){
+ .ambient-enabled:not(.ambient-off) :is(.ambient-glass,.hero-content,.page-hero,.kit-filters,.filter-bar,.kittens-toolbar,.service-table-wrap,.service-care-details,.booking-form-card,.booking-sidebar .info-card,.faq-item,.kitten-body,.parent-body,.guide-card-body,.gal-caption),
+ .ambient-enabled:not(.ambient-off) .ambient-glass-copy:before {background:rgba(255,254,248,.98)!important}
+}

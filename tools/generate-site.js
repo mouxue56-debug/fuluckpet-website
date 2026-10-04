@@ -1676,6 +1676,7 @@ function listToAbsoluteLinks(html) {
 // These static pages have hand-maintained en/zh siblings. Keep localized visitors in
 // their active language when copied ja chrome (header/footer/CTA) links to a root page.
 const LOCALIZED_STATIC_SIBLING_PATHS = new Set([
+  '/faq.html',
   '/kittens.html',
   '/siberian-allergy.html',
   '/siberian-breeder-osaka.html',
@@ -1757,9 +1758,9 @@ function buildListHeader(jaHeader, lang) {
   // Chrome = HEADER marker through just before PAGE HERO (nav + mobile nav), absolutized.
   const chrome = listToAbsoluteLinks(jaHeader.substring(headerIdx, heroIdx).replace(/\s*$/, ''));
 
-  const styleV = verAsset('style.css', '20260823a');
+  const styleV = verAsset('style.css', '20261004d');
   const navCssV = verAsset('nav.css', '20261004e');
-  const navJsV = verAsset('nav.js', '20261004b');
+  const navJsV = verAsset('nav.js', '20261004d');
   const relPath = 'kittens.html';
   const selfUrl = `${BASE_URL}/${langDir(lang)}kittens.html`;
   const kittensLabel = KITTENS_LABEL[lang];
@@ -1818,10 +1819,10 @@ ${hreflangBlock(relPath)}
   ]}
   </script>
   <script defer src="/nav.js?v=${navJsV}"></script>
-  <link rel="stylesheet" href="/ambient-motion.css?v=20261004d">
-  <script type="module" src="/ambient-motion.mjs?v=20261004c"></script>
+  <link rel="stylesheet" href="/ambient-motion.css?v=20261004f">
+  <script type="module" src="/ambient-motion.mjs?v=20261004d"></script>
 </head>
-<body class="has-mobile-cta">
+<body class="has-mobile-cta catalog-page">
   <a class="skip-link" href="#main" data-i18n="a11y.skipToMain">メインコンテンツへスキップ</a>
 
   <!-- Scroll Progress Bar -->
@@ -1888,6 +1889,7 @@ function kittenFilterAssets(lang) {
         else { card.setAttribute('hidden', ''); }
       }
       if (empty) { if (shown === 0) empty.removeAttribute('hidden'); else empty.setAttribute('hidden', ''); }
+      window.dispatchEvent(new Event('kittenFiltersApplied'));
     }
     function select(button, attribute) {
       var buttons = root.querySelectorAll('[' + attribute + ']');
@@ -1920,7 +1922,9 @@ function kittenFilterAssets(lang) {
     }
     apply();
   })();
-  </script>`;
+  </script>
+  <link rel="stylesheet" href="/kitten-discovery.css?v=20261004a">
+  <script defer src="/kitten-discovery.js?v=20261004a"></script>`;
 }
 
 function generateKittens(kittens, lang = 'ja') {
@@ -2379,12 +2383,12 @@ ${smallAnimalHreflangBlock(detailId)}
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="${fontHref(lang)}" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="${fontHref(lang)}" rel="stylesheet"></noscript>
-  <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260823a')}">
+  <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20261004d')}">
   <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20261004e')}">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <script defer src="/nav.js?v=${verAsset('nav.js', '20261004b')}"></script>`;
+  <script defer src="/nav.js?v=${verAsset('nav.js', '20261004d')}"></script>`;
 }
 
 function buildSmallAnimalListHtml(animals, headerHtml, footerHtml, lang = 'ja') {
@@ -2486,8 +2490,10 @@ ${sections}
 
 ${footerHtml}
 
-  <script src="/i18n.js?v=${verAsset('i18n.js', '20261004b')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20261004a')}"></script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20261004d')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20261004d')}"></script>
+  <script defer src="/inquiry-context.js?v=20261004d"></script>
+  <script defer src="/analytics.js?v=20261004d"></script>
 </body>
 </html>`;
 }
@@ -2630,8 +2636,10 @@ ${footerHtml}
     });
   });
   </script>
-  <script src="/i18n.js?v=${verAsset('i18n.js', '20261004b')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20261004a')}"></script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20261004d')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20261004d')}"></script>
+  <script defer src="/inquiry-context.js?v=20261004d"></script>
+  <script defer src="/analytics.js?v=20261004d"></script>
 </body>
 </html>`;
 }
@@ -3239,21 +3247,7 @@ function buildKittenDetailHtml(kitten, headerHtml, footerHtml, lang = 'ja') {
     </div>
   </div>`;
 
-  // GA4 view_item for this exact kitten. analytics.js only fires list-level events, so
-  // without this the detail page — the highest-intent page on the site — reported nothing.
-  const viewItemPayload = {
-    event: 'view_item',
-    items: [{
-      item_id: fileId,
-      item_name: titleText,
-      item_category: kitten.breed || '',
-      ...(salePrice === null ? {} : { price: salePrice, currency: 'JPY' }),
-    }],
-  };
-  const viewItemScript = `  <script>
-  window.dataLayer = window.dataLayer || [];
-  window.dataLayer.push(${jsonForHtmlScript(viewItemPayload)});
-  </script>`;
+  // analytics.js emits the detail view once with the validated kitten ID.
 
   return `<!DOCTYPE html>
 <html lang="${htmlLang}">
@@ -3275,12 +3269,12 @@ ${hreflangBlock(`kittens/${fileId}.html`)}
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="${detailFontHref}" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="${detailFontHref}" rel="stylesheet"></noscript>
-  <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20260823a')}">
+  <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20261004d')}">
   <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20261004e')}">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <script defer src="/nav.js?v=${verAsset('nav.js', '20261004b')}"></script>
+  <script defer src="/nav.js?v=${verAsset('nav.js', '20261004d')}"></script>
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
@@ -3702,15 +3696,15 @@ ${footerHtml}
   </script>
 ${mobileCtaHtml}
 
-${viewItemScript}
   <script src="/kitten-catalog.js?v=${verAsset('kitten-catalog.js', '20260711b')}"></script>
-  <script src="/i18n.js?v=${verAsset('i18n.js', '20261004b')}"></script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20261004d')}"></script>
   <script src="/catalog-i18n.js?v=${verAsset('catalog-i18n.js', '20261004a')}"></script>
   <script src="/kitten-carousel.js?v=${verAsset('kitten-carousel.js', '20260917a')}"></script>
   <script src="/cta-widget.js?v=${verAsset('cta-widget.js', '20260926a')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20261004a')}"></script>
-  <script defer src="/mobile-cta.js?v=${verAsset('mobile-cta.js', '20260823a')}"></script>
-  <script defer src="/analytics.js?v=${verAsset('analytics.js', '20260920a')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20261004d')}"></script>
+  <script defer src="/mobile-cta.js?v=${verAsset('mobile-cta.js', '20261004d')}"></script>
+  <script defer src="/inquiry-context.js?v=${verAsset('inquiry-context.js', '20261004d')}"></script>
+  <script defer src="/analytics.js?v=${verAsset('analytics.js', '20261004d')}"></script>
 </body>
 </html>`;
 }
@@ -4086,6 +4080,25 @@ function updateSitemap(articles, kittenDetailPages, store, smallAnimalDetailPage
     serviceCount++;
   }
 
+  // FAQ translations have their own URLs; the Japanese entry stays in staticPart.
+  // Rebuild this block each time, excluding missing, noindex or noncanonical pages.
+  let faqEntries = '  <!-- FAQ (en/zh) -->\n';
+  let faqCount = 0;
+  for (const relative of ['en/faq.html', 'zh/faq.html']) {
+    const filepath = path.join(SITE_DIR, relative);
+    if (!fs.existsSync(filepath)) continue;
+    const html = fs.readFileSync(filepath, 'utf8');
+    const loc = `${BASE_URL}/${relative}`;
+    if (hasNoindexMeta(html) || canonicalHref(html) !== loc) continue;
+    faqEntries += `  <url>
+    <loc>${loc}</loc>
+    <lastmod>${store.lastmodForUrl(loc)}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>\n`;
+    faqCount++;
+  }
+
   // A public-launch flip registers all three list pages and the same eligible detail
   // set generated above. Dark mode emits zero bytes here, so the private slug can never
   // leak into sitemap.xml. Markers are XML comments (never raw urlset text nodes).
@@ -4183,12 +4196,12 @@ function updateSitemap(articles, kittenDetailPages, store, smallAnimalDetailPage
     }
   }
 
-  const output = staticPart + kittenEntries + guideEntries + serviceEntries + smallAnimalEntries + blogEntries + '</urlset>\n';
+  const output = staticPart + kittenEntries + guideEntries + serviceEntries + faqEntries + smallAnimalEntries + blogEntries + '</urlset>\n';
   fs.writeFileSync(filepath, output, 'utf-8');
   store.save();
   const diskOnly = sortedSlugs.length - publishedArticles.length;
   const smallCount = smallDetailPages === null ? 'preserved' : smallDetailPages.length;
-  console.log(`  sitemap.xml -> ${detailPages.length} kitten detail pages, ${guideCount} guide pages, ${serviceCount} service pages, ${smallCount} small-animal detail pages, ${sortedSlugs.length} ja + ${localizedBlogCount} localized blog URLs updated${diskOnly > 0 ? ` (${diskOnly} from disk only)` : ''}`);
+  console.log(`  sitemap.xml -> ${detailPages.length} kitten detail pages, ${guideCount} guide pages, ${serviceCount} service pages, ${faqCount} localized FAQ pages, ${smallCount} small-animal detail pages, ${sortedSlugs.length} ja + ${localizedBlogCount} localized blog URLs updated${diskOnly > 0 ? ` (${diskOnly} from disk only)` : ''}`);
 }
 
 // ── RSS feed (/feed.xml) ──────────────────────────────────────
@@ -4434,6 +4447,10 @@ async function main() {
     require('./generate-service-locales.js').generateServiceLocales(SITE_DIR);
   }
 
+  if (fs.existsSync(path.join(SITE_DIR, 'tools/generate-faq-locales.js'))) {
+    require('./generate-faq-locales.js').generateFaqLocales(SITE_DIR, { sitemap: false });
+  }
+
   // Always update sitemap (even with 0 articles, keeps static pages updated).
   // Single shared lastmod-store for the whole run (ja + en + zh URLs coexist).
   const store = createLastmodStore(SITE_DIR, todayISO());
@@ -4444,7 +4461,6 @@ async function main() {
 
   // Future capabilities (not yet implemented)
   console.log('  [future] blog.html — 104 article cards (not yet implemented)');
-  console.log('  [future] faq.html — FAQ page (not yet implemented)');
 
   console.log('');
   console.log('========================');

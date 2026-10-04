@@ -11,8 +11,8 @@ const RELEASE = '20260710b';
 // 2026-08-23 site-copy release: every public asset changed in that pass shares one stamp.
 const COPY_RELEASE = '20260823a';
 const TRUST_RELEASE = '20260711b';
-const STYLE_RELEASE = COPY_RELEASE;
-const SCRIPT_RELEASE = '20261004a';
+const STYLE_RELEASE = '20261004d';
+const SCRIPT_RELEASE = '20261004d';
 const TRUTH_RELEASE = '20260711c';
 const CATALOG_RELEASE = '20260711b';
 const KITTEN_CAROUSEL_RELEASE = '20260917a';
@@ -22,8 +22,8 @@ const ADMIN_PHOTOS_RELEASE = '20260811a';
 const ADMIN_DIARY_RELEASE = '20260711a';
 const ADMIN_FAQ_RELEASE = TRUTH_RELEASE;
 const ADMIN_CALENDAR_RELEASE = '20260714c';
-const NAV_RELEASE = '20261004b';
-const I18N_RELEASE = '20261004b';
+const NAV_RELEASE = '20261004d';
+const I18N_RELEASE = '20261004d';
 const GUIDE_RELEASE = '20261003c';
 const NAV_STYLE_RELEASE = '20261004e';
 const CHAT_STYLE_RELEASE = '20260712e';
@@ -34,6 +34,9 @@ const SERVICE_CALC_RELEASE = '20260816a';
 const DOG_UI_RELEASE = '20261004a';
 const ESTIMATE_RELEASE = '20260816a';
 const PUBLIC_ASSETS = {
+  'ambient-motion.css': '20261004f',
+  'ambient-motion.mjs': '20261004d',
+  'awards.css': '20261004d',
   'page-experience.css': '20261004b',
   'page-experience.js': '20261004d',
   'style.css': STYLE_RELEASE,
@@ -48,14 +51,17 @@ const PUBLIC_ASSETS = {
   'card-loader.js': CARD_LOADER_RELEASE,
   'faq-trust-copy.js': '20261004c',
   'faq-loader.js': TRUST_RELEASE,
-  'faq-page-loader.js': '20261004a',
+  'faq-page-loader.js': '20261004d',
   'kitten-carousel.js': KITTEN_CAROUSEL_RELEASE,
   'cta-widget.js': '20260926a',
   'script.js': SCRIPT_RELEASE,
-  'analytics.js': '20260920a',
+  'analytics.js': '20261004d',
+  'inquiry-context.js': '20261004d',
+  'kitten-discovery.js': '20261004a',
+  'kitten-discovery.css': '20261004a',
   'guide/i18n-guide-body.js': '20261004a',
   'guide/guide-visuals.js': GUIDE_RELEASE,
-  'mobile-cta.js': COPY_RELEASE,
+  'mobile-cta.js': '20261004d',
   'assets/chat/widget.css': CHAT_STYLE_RELEASE,
   'assets/chat/widget.js': CHAT_RELEASE,
   'services.css': SERVICE_STYLE_RELEASE,

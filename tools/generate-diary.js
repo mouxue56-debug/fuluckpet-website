@@ -720,14 +720,14 @@ function buildHead({ title, description, pageUrl, image, jsonLd, ogType = 'artic
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
-  <link rel="stylesheet" href="/style.css?v=${ver('style.css', '20260823a')}">
+  <link rel="stylesheet" href="/style.css?v=${ver('style.css', '20261004d')}">
   <link rel="stylesheet" href="/nav.css?v=${ver('nav.css', '20261004e')}">
   <link rel="stylesheet" href="/guide/guide.css?v=${ver('guide/guide.css', '20260706a')}">
   <link rel="stylesheet" href="/blog.css?v=${ver('blog.css', '20260706a')}">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <script defer src="/nav.js?v=${ver('nav.js', '20261004b')}"></script>
+  <script defer src="/nav.js?v=${ver('nav.js', '20261004d')}"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
 ${jsonLd.join('\n')}
@@ -981,10 +981,10 @@ ${bodyJa}
 
 ${chrome.footerHtml}
 
-  <script src="/i18n.js?v=${ver('i18n.js', '20261004b')}"></script>
+  <script src="/i18n.js?v=${ver('i18n.js', '20261004d')}"></script>
   <script>window._diaryArticleI18n = ${safeJsonForHtmlScript(i18n)}; window._blogArticleI18n = window._diaryArticleI18n;</script>
   <script src="/blog/blog-i18n.js?v=${ver('blog/blog-i18n.js', '20260710b')}"></script>
-  <script src="/script.js?v=${ver('script.js', '20261004a')}"></script>
+  <script src="/script.js?v=${ver('script.js', '20261004d')}"></script>
 
   <div class="mobile-cta-bar" role="navigation" aria-label="クイック連絡">
     <div class="mobile-cta-bar-inner">
@@ -998,7 +998,9 @@ ${chrome.footerHtml}
       </a>
     </div>
   </div>
-  <script defer src="/mobile-cta.js?v=${ver('mobile-cta.js', '20260823a')}"></script>
+  <script defer src="/mobile-cta.js?v=${ver('mobile-cta.js', '20261004d')}"></script>
+  <script defer src="/inquiry-context.js?v=20261004d"></script>
+  <script defer src="/analytics.js?v=20261004d"></script>
 </body>
 </html>
 `;
@@ -1154,8 +1156,8 @@ ${chrome.headerHtml}
 
 ${chrome.footerHtml}
 
-  <script src="/i18n.js?v=${ver('i18n.js', '20261004b')}"></script>
-  <script src="/script.js?v=${ver('script.js', '20261004a')}"></script>
+  <script src="/i18n.js?v=${ver('i18n.js', '20261004d')}"></script>
+  <script src="/script.js?v=${ver('script.js', '20261004d')}"></script>
 
   <div class="mobile-cta-bar" role="navigation" aria-label="クイック連絡">
     <div class="mobile-cta-bar-inner">
@@ -1169,7 +1171,9 @@ ${chrome.footerHtml}
       </a>
     </div>
   </div>
-  <script defer src="/mobile-cta.js?v=${ver('mobile-cta.js', '20260823a')}"></script>
+  <script defer src="/mobile-cta.js?v=${ver('mobile-cta.js', '20261004d')}"></script>
+  <script defer src="/inquiry-context.js?v=20261004d"></script>
+  <script defer src="/analytics.js?v=20261004d"></script>
 </body>
 </html>
 `;

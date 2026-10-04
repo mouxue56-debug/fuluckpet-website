@@ -14,6 +14,7 @@
   // reproduce). Any other ja page falls back to in-place setLanguage(). Kept in sync with the
   // en/zh files the generator + static authoring produce. Normalized (no /index.html).
   var STATIC_SIBLINGS = {
+    '/faq.html': true,
     '/boarding/': true,
     '/grooming/': true,
     '/kittens.html': true,
@@ -84,7 +85,7 @@
         { href: '/waitlist.html', key: 'nav.waitlist', icon: 'clipboard-list', localized: true, match: ['/waitlist.html'] },
         { href: '/siberian-breeder-osaka.html', key: 'nav.osakaAdoption', icon: 'map-pin', localized: true, match: ['/siberian-breeder-osaka.html'] },
         { href: '/guide/', key: 'nav.guide', icon: 'book-open', localized: true, match: ['/guide/'] },
-        { href: '/faq.html', key: 'nav.faq', icon: 'circle-help', match: ['/faq.html'] }
+        { href: '/faq.html', key: 'nav.faq', icon: 'circle-help', localized: true, match: ['/faq.html'] }
       ]
     },
     {

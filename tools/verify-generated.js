@@ -34,6 +34,14 @@ if (fs.existsSync(path.join(SITE, 'tools/generate-service-locales.js'))) {
   } catch (error) { errors.push('[service-locale] ' + error.message); }
 }
 
+if (fs.existsSync(path.join(SITE, 'tools/generate-faq-locales.js'))) {
+  try {
+    for (const [relative, expected] of require('./generate-faq-locales.js').buildFaqLocales(SITE)) {
+      if (read(relative) !== expected) errors.push('[faq-locale] ' + relative + ' is stale; run node tools/generate-faq-locales.js');
+    }
+  } catch (error) { errors.push('[faq-locale] ' + error.message); }
+}
+
 const SHARED_ASSETS = ['style.css', 'i18n.js', 'nav.js', 'nav.css'];
 
 // --- Check 0b: generated pet-transport page freshness ---
@@ -193,6 +201,7 @@ function publicUrlsForHtml(rel) {
 const generatedPages = [
   'kittens.html', 'parents.html', 'reviews.html', 'diary/index.html',
   'en/kittens.html', 'zh/kittens.html',
+  'faq.html', 'en/faq.html', 'zh/faq.html',
   ...listHtml('kittens'),
   ...listHtml('en/kittens'),
   ...listHtml('zh/kittens'),
@@ -365,6 +374,7 @@ if (sitemap) {
     'kittens.html',
     'parents.html',
     'reviews.html',
+    'faq.html', 'en/faq.html', 'zh/faq.html',
     ...listHtml('blog'),
     ...listHtml('guide'),
     ...listHtml('kittens'),

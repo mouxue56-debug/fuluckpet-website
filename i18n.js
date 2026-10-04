@@ -1990,6 +1990,17 @@ function syncNamingLanguageLinks(lang) {
   });
 }
 
+function syncFaqLanguageLinks(lang) {
+  document.querySelectorAll('a[href]').forEach(link => {
+    if (link.hasAttribute('hreflang') || link.hasAttribute('lang')) return;
+    const match = (link.getAttribute('href') || '').match(/^(?:\/(?:en\/|zh\/)?)?faq\.html([?#].*)?$/);
+    if (!match) return;
+    const url = new URL('/faq.html' + (match[1] || ''), 'https://fuluckpet.com');
+    url.searchParams.delete('lang');
+    link.setAttribute('href', (lang === 'ja' ? '' : '/' + lang) + url.pathname + url.search + url.hash);
+  });
+}
+
 /**
  * Apply translations to all elements with data-i18n attribute
  */
@@ -2064,6 +2075,7 @@ function setLanguage(lang) {
   syncCtaAccessibleNames();
   syncFooterKittenLinks(lang);
   syncGuideLanguageLinks(lang);
+  syncFaqLanguageLinks(lang);
   syncNamingLanguageLinks(lang);
   localizeSupplementalContent(lang);
 
@@ -2099,6 +2111,7 @@ function initI18n() {
   };
   var I18N_KITTEN_DETAIL_RE = /^\/kittens\/[^\/]+\.html$/;
   function jaHasStaticSibling(p) {
+    if (p === '/faq.html') return true;
     if (/^\/(?:boarding|grooming)\/(?:index\.html)?$/.test(p)) return true;
     return !!(I18N_BLOG_SIBLINGS[p] || I18N_KITTEN_DETAIL_RE.test(p) || /^\/guide\/(?:index\.html|(?:behavior|bring|day1|family|grooming|home-safety|multi-cat|neuter|passport|prepare|price|visit|week1|weight-log)\.html)?$/.test(p));
   }
@@ -2160,20 +2173,7 @@ function initI18n() {
 document.addEventListener('DOMContentLoaded', initI18n);
 
 
-/* GA4 conversion event tracking (delegated, fires on LINE/booking/CTA clicks) */
-document.addEventListener('click', function (e) {
-  var a = e.target && e.target.closest ? e.target.closest('a, button') : null;
-  if (!a || typeof window.gtag !== 'function') return;
-  var href = (a.getAttribute('href') || '');
-  var cta = a.getAttribute('data-cta') || '';
-  try {
-    if (/page\.line\.me/.test(href) || cta === 'line') {
-      window.gtag('event', 'line_click', { link_location: a.className || 'link' });
-    } else if (/\/booking\.html/.test(href) || cta === 'booking') {
-      window.gtag('event', 'booking_click', { link_location: a.className || 'link' });
-    }
-  } catch (_) {}
-}, true);
+/* Inquiry click analytics are centralized in analytics.js. */
 
 /* ===== YouTube lazy-load facade: swap thumbnail for iframe on first interaction ===== */
 (function () {

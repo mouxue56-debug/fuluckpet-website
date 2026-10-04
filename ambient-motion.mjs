@@ -1,6 +1,7 @@
 import {regions,sample,needed,fastMove} from './ambient-timeline.mjs?v=20261004a';
 import {media} from './ambient-media.mjs?v=20261004b';
 import {ambientPage,contentAnchors} from './ambient-pages.mjs?v=20261004a';
+import {ambientPolicy} from './ambient-policy.mjs?v=20261004d';
 const config=ambientPage(location.pathname),main=document.querySelector('main,[role="main"]');
 if(config&&main)startAmbient();
 function startAmbient(){
@@ -9,6 +10,7 @@ const scene=document.createElement('div');scene.className='ambient-scene';scene.
 const poster=new Image();poster.alt='';poster.src=media[clips[0]].poster;scene.append(poster);
 const canvas=document.createElement('canvas');scene.append(canvas);document.body.prepend(scene);
 const ctx=canvas.getContext('2d',{alpha:false}),reduce=matchMedia('(prefers-reduced-motion: reduce)'),players=new Map();
+function policy(){return ambientPolicy({reduced:reduce.matches,saveData:navigator.connection?.saveData,effectiveType:navigator.connection?.effectiveType,width:innerWidth,dpr:devicePixelRatio})}
 document.body.classList.add('ambient-enabled');document.body.dataset.ambientPage=page;
 const serviceGlass='.service-price-card,.service-info-card,.service-table-wrap,.service-care-details,.service-legal,.booking-form-card,.booking-sidebar .info-card,.booking-sidebar .line-card,.blog-card,.blog-cat-nav,.blog-bottom-cta,.guide-card,.guide-quick-start,.guide-figure figcaption,.guide-cta,.rel-card,.experience-card,.experience-steps>li,.experience-template,.experience-context,.experience-photo figcaption';
 const serviceCopy='.experience-hero>div,.service-hero-inner>div:not(.service-hero-media),.service-heading,.service-final-cta,.booking-hero .container,.blog-hero,.blog-cat-heading,.guide-hub-header,.guide-category-title';
@@ -22,7 +24,7 @@ function glassify(){
   if(e.matches('p,h2')||e.querySelector(':scope > .sec-title')||e.querySelector(':scope > div[style*="background:"]'))e.classList.add('ambient-glass');
  });
  document.querySelectorAll('.sec-header,.choice-block,.sec-cta,.kit-filters,.filter-bar,.sort-controls,main .container>p,main .container>h2').forEach(e=>{if(e.classList.contains('ambient-glass'))e.classList.add('ambient-glass-copy')});
- main.querySelectorAll('h1,h2,h3,p,li,label').forEach(e=>{if(!e.closest('.ambient-glass,button,.btn,[aria-hidden="true"]'))e.classList.add('ambient-glass','ambient-glass-copy')});
+ main.querySelectorAll('h1,h2,h3,p,li,label').forEach(e=>{if(!e.closest('.ambient-glass,button,.btn,.kit-discovery-bar,.kit-discovery-tools,[aria-hidden="true"]'))e.classList.add('ambient-glass','ambient-glass-copy')});
 }
 glassify();
 const contentObserver=new MutationObserver(()=>glassify());contentObserver.observe(main,{childList:true,subtree:true});
@@ -49,13 +51,13 @@ function seek(p){const v=p.video;if(v.readyState<2||v.seeking||!Number.isFinite(
 function release(index){const p=players.get(index);p.disposed=true;p.abort.abort();p.video.pause();p.video.removeAttribute('src');p.video.load();p.image.width=0;p.image.height=0;if(p.objectUrl)URL.revokeObjectURL(p.objectUrl);players.delete(index)}
 function paint(p,progress,alpha){const image=p.image;const scale=Math.max(w/image.width,h/image.height)*(1.02+progress*(['home','about','kittens'].includes(page)?.10:.04));const dw=image.width*scale,dh=image.height*scale;ctx.globalAlpha=alpha;ctx.drawImage(image,(w-dw)*(.40+progress*.14),(h-dh)*(.48+progress*.10),dw,dh)}
 function render(){
- queued=false;const editing=!!document.activeElement?.matches('input,textarea,select,[contenteditable="true"]');canvas.dataset.paused=String(editing);if(editing)return;if(dirty)measure();if(off||reduce.matches||navigator.connection?.saveData||document.hidden)return;
+ queued=false;const editing=!!document.activeElement?.matches('input,textarea,select,[contenteditable="true"]');canvas.dataset.paused=String(editing);if(editing)return;if(dirty)measure();if(off||!policy().animate||document.hidden)return;
  const y=scrollY,now=performance.now(),delta=y-lastY;if(Math.abs(delta)>1)direction=delta>0?1:-1;
  if(fastMove(delta,now-lastTick,h))fastUntil=now+110;
  lastY=y;lastTick=now;
  const deferMedia=now<fastUntil;if(deferMedia){clearTimeout(settleTimer);settleTimer=setTimeout(schedule,120);}
  current=sample(y,bounds,Math.min(360,h*.4));
- const active=current.map(s=>s.index);const load=[...new Set([...active,...needed(y,bounds,h,direction)])].slice(0,2);
+ const active=current.map(s=>s.index);const load=[...new Set([...active,...(policy().preloadNext?needed(y,bounds,h,direction):[])])].slice(0,2);
  for(const index of [...players.keys()])if(!deferMedia&&!load.includes(index))release(index);
  for(const index of load){if(deferMedia&&!players.has(index))continue;const p=ensure(index);const s=current.find(s=>s.index===index);p.want=(s?s.progress:index<active[0]?1:0)*(Number.isFinite(p.video.duration)?p.video.duration-.06:6.52);seek(p)}
  const ready=current.filter(s=>players.get(s.index)?.ready);if(ready.length){ctx.globalAlpha=1;const first=ready[0];paint(players.get(first.index),first.progress,1);if(ready.length>1)paint(players.get(ready[1].index),ready[1].progress,ready[1].weight);ctx.globalAlpha=1;canvas.classList.add('ready');canvas.dataset.display=ready.map(s=>`${clips[s.index]}:${players.get(s.index).time.toFixed(2)}`).join('+')}
@@ -66,11 +68,11 @@ function schedule(){if(!queued){queued=true;requestAnimationFrame(render)}}
 function resize(){
  // The large viewport stays stable while Safari's browser bars or keyboard move.
  w=scene.clientWidth||innerWidth;h=scene.clientHeight||innerHeight;
- const d=Math.min(devicePixelRatio||1,1.5),cw=Math.round(w*d),ch=Math.round(h*d);
+ const d=policy().pixelRatio,cw=Math.round(w*d),ch=Math.round(h*d);
  if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch;ctx.setTransform(d,0,0,d,0,0)}
  dirty=true;schedule();
 }
-function sync(){document.body.classList.toggle('ambient-off',off);if(off||reduce.matches||navigator.connection?.saveData){for(const i of [...players.keys()])release(i);if(reduce.matches)canvas.classList.remove('ready')}schedule()}
+function sync(){document.body.classList.toggle('ambient-off',off);if(off||!policy().animate){for(const i of [...players.keys()])release(i);canvas.classList.remove('ready')}schedule()}
 new ResizeObserver(()=>{dirty=true;schedule()}).observe(main);
-addEventListener('scroll',schedule,{passive:true});addEventListener('resize',resize,{passive:true});document.addEventListener('visibilitychange',schedule);document.addEventListener('focusin',schedule);document.addEventListener('focusout',()=>{dirty=true;schedule()});reduce.addEventListener('change',sync);resize();sync();
+addEventListener('scroll',schedule,{passive:true});addEventListener('resize',resize,{passive:true});document.addEventListener('visibilitychange',schedule);document.addEventListener('focusin',schedule);document.addEventListener('focusout',()=>{dirty=true;schedule()});reduce.addEventListener('change',sync);navigator.connection?.addEventListener?.('change',sync);resize();sync();
 }

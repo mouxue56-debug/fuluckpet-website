@@ -43,6 +43,22 @@ function write(siteDir, rel, content) {
   fs.writeFileSync(target, content, 'utf8');
 }
 
+test('localized FAQ sitemap entries are idempotent and require public self-canonical files', (t) => {
+  const { siteDir, generator } = loadSiteGeneratorInTempSite(t);
+  write(siteDir, 'en/faq.html', '<!doctype html><link rel="canonical" href="https://fuluckpet.com/en/faq.html">');
+  write(siteDir, 'zh/faq.html', '<!doctype html><link rel="canonical" href="https://fuluckpet.com/zh/faq.html">');
+  write(siteDir, 'sitemap.xml', '<?xml version="1.0"?><urlset>\n  <!-- 子猫詳細ページ -->\n  <!-- ブログ記事 -->\n</urlset>\n');
+  generator.updateSitemap([], []);
+  const first = fs.readFileSync(path.join(siteDir, 'sitemap.xml'), 'utf8');
+  generator.updateSitemap([], []);
+  assert.equal(fs.readFileSync(path.join(siteDir, 'sitemap.xml'), 'utf8'), first);
+  for (const lang of ['en', 'zh']) assert.equal(first.split('<loc>https://fuluckpet.com/' + lang + '/faq.html</loc>').length - 1, 1);
+  write(siteDir, 'en/faq.html', '<!doctype html><meta name="robots" content="noindex"><link rel="canonical" href="https://fuluckpet.com/en/faq.html">');
+  write(siteDir, 'zh/faq.html', '<!doctype html><link rel="canonical" href="https://fuluckpet.com/faq.html">');
+  generator.updateSitemap([], []);
+  assert.doesNotMatch(fs.readFileSync(path.join(siteDir, 'sitemap.xml'), 'utf8'), /<loc>https:\/\/fuluckpet\.com\/(?:en|zh)\/faq\.html<\/loc>/);
+});
+
 test('site sitemap disk scan excludes noindex blog pages', (t) => {
   const { siteDir, generator } = loadSiteGeneratorInTempSite(t);
   write(siteDir, 'blog/public.html', '<!doctype html><link rel="canonical" href="https://fuluckpet.com/blog/public.html"><title>Public</title>\n');

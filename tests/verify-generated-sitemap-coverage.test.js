@@ -91,6 +91,17 @@ const ALL_MARKERS = `  <!-- 成長日記 -->
   <!-- 子猫詳細ページ -->
   <!-- ブログ記事 -->`;
 
+test('verify-generated requires translated FAQ sitemap coverage', (t) => {
+  const siteDir = createVerifierSite(t);
+  const assets = '<link rel="stylesheet" href="/style.css?v=test"><link rel="stylesheet" href="/nav.css?v=test"><script src="/i18n.js?v=test"></script><script src="/nav.js?v=test"></script>';
+  for (const lang of ['en', 'zh']) write(siteDir, lang + '/faq.html', '<!doctype html><link rel="canonical" href="https://fuluckpet.com/' + lang + '/faq.html">' + assets);
+  write(siteDir, 'sitemap.xml', '<urlset><url><loc>https://fuluckpet.com/kittens.html</loc></url>\n' + ALL_MARKERS + '\n</urlset>');
+  const result = runVerifier(siteDir);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /missing <loc>: https:\/\/fuluckpet\.com\/en\/faq\.html/);
+  assert.match(result.stderr, /missing <loc>: https:\/\/fuluckpet\.com\/zh\/faq\.html/);
+});
+
 test('verify-generated rejects a sitemap that lost generated sections and disk pages', (t) => {
   const siteDir = createVerifierSite(t);
   write(siteDir, 'blog/health.html', '<!doctype html><title>Health</title>\n');
