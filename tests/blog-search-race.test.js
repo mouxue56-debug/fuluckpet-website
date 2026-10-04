@@ -96,6 +96,7 @@ function harness(search = '', options = {}) {
     } },
     localStorage: storage,
     _blogListingI18n: options.listing || null,
+    FuluckBlogVisuals: options.visuals ? require('../blog-visuals.js') : undefined,
     addEventListener(type, handler) { windowListeners.set(type, handler); },
   };
   const html = fs.readFileSync(path.join(__dirname, '..', 'blog.html'), 'utf8');
@@ -423,4 +424,29 @@ test('malicious titles are escaped and off-site hrefs never become clickable res
   assert.doesNotMatch(h.out.innerHTML, /<script>/);
   assert.match(h.out.innerHTML, /&lt;img src=x onerror=alert\(1\)&gt;/);
   assert.match(h.out.innerHTML, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
+});
+
+
+test('known search articles keep their illustration across language changes and ignore supplied image URLs', async () => {
+  const h = harness('', {visuals: true, index: [{t: 'Siberian article', d: 'Siberian care', c: '猫種知識', u: '/blog/siberian-character.html', image: 'https://evil.example/tracker.webp'}]});
+  h.search('Siberian');
+  h.resolve(0);
+  await flush();
+  assert.match(h.out.innerHTML, /class="blog-card-visual"/);
+  assert.match(h.out.innerHTML, /loading="lazy"/);
+  assert.match(h.out.innerHTML, />AIイメージ<\/span>/);
+  const source = h.out.innerHTML.match(/<img src="([^"]+)"/)[1];
+  assert.match(source, /^\/images\//);
+  assert.ok(!h.out.innerHTML.includes('evil.example'));
+  h.changeLang('en');
+  await flush();
+  assert.match(h.out.innerHTML, />AI illustration<\/span>/);
+  assert.ok(h.out.innerHTML.includes('src="' + source + '"'));
+  h.changeLang('zh');
+  await flush();
+  assert.match(h.out.innerHTML, />AI 示意图<\/span>/);
+  assert.ok(h.out.innerHTML.includes('src="' + source + '"'));
+  h.search('');
+  assert.equal(h.out.hidden, true);
+  assert.ok(h.sections.every(section => section.style.display === ''));
 });
