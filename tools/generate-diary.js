@@ -721,7 +721,7 @@ function buildHead({ title, description, pageUrl, image, jsonLd, ogType = 'artic
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="/style.css?v=${ver('style.css', '20260823a')}">
-  <link rel="stylesheet" href="/nav.css?v=${ver('nav.css', '20260918a')}">
+  <link rel="stylesheet" href="/nav.css?v=${ver('nav.css', '20261004b')}">
   <link rel="stylesheet" href="/guide/guide.css?v=${ver('guide/guide.css', '20260706a')}">
   <link rel="stylesheet" href="/blog.css?v=${ver('blog.css', '20260706a')}">
   <link rel="icon" href="/favicon.ico" sizes="any">

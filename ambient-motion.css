@@ -1,0 +1,22 @@
+/* Backgrounds occupy no document space. Glass does not change content geometry. */
+body.ambient-enabled{isolation:isolate;--text-heading:#284b43;--text-body:#354f48;--text-note:#4c605a}
+.ambient-scene{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;background:#f7f4eb}
+.ambient-scene img,.ambient-scene canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ambient-scene:after{content:'';position:absolute;inset:0;background:rgba(255,254,248,.10)}
+.ambient-scene canvas{opacity:0}.ambient-scene canvas.ready{opacity:1}
+.ambient-enabled:not(.ambient-off) .sec-white,.ambient-enabled:not(.ambient-off) .sec-cream,.ambient-enabled:not(.ambient-off) .sec-pink{background:rgba(255,253,246,.22)}
+.ambient-enabled:not(.ambient-off) .ambient-glass{background:linear-gradient(120deg,rgba(255,255,250,.78),rgba(255,255,255,.64))!important;-webkit-backdrop-filter:blur(18px) saturate(.85);backdrop-filter:blur(18px) saturate(.85);box-shadow:inset 0 0 0 1px rgba(255,255,255,.65),0 8px 28px rgba(35,62,51,.055);border-radius:var(--radius-lg,20px)}
+.ambient-enabled:not(.ambient-off) .ambient-glass-copy{position:relative;isolation:isolate;background:transparent!important;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+.ambient-enabled:not(.ambient-off) .ambient-glass-copy:before{content:'';position:absolute;inset:-14px -10px;z-index:-1;pointer-events:none;border-radius:18px;background:linear-gradient(120deg,rgba(255,255,250,.78),rgba(255,255,255,.64));-webkit-backdrop-filter:blur(18px) saturate(.85);backdrop-filter:blur(18px) saturate(.85);box-shadow:inset 0 0 0 1px rgba(255,255,255,.65),0 8px 28px rgba(35,62,51,.055)}
+.ambient-enabled .hero-accent,.ambient-enabled .sec-tag,.ambient-enabled .sec-title,.ambient-enabled .hero-title{color:#305e51}
+.ambient-enabled .sec-desc,.ambient-enabled .hero-subtitle,.ambient-enabled .choice-body,.ambient-enabled .note{color:#3f554d}
+.ambient-enabled .kitten-body,.ambient-enabled .parent-body{background:transparent}
+.ambient-enabled .page-hero{border-radius:0!important}
+.ambient-enabled .wave-divider{opacity:.55}
+body.ambient-off .ambient-scene{visibility:hidden}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.ambient-enabled:not(.ambient-off) .ambient-glass,.ambient-enabled:not(.ambient-off) .ambient-glass-copy:before{background:rgba(255,255,250,.89)!important}}
+@media(prefers-reduced-motion:reduce){.ambient-scene canvas{display:none}}
+@media print{.ambient-scene{display:none}.ambient-glass,.ambient-glass-copy:before{box-shadow:none!important;backdrop-filter:none!important}}
+
+.ambient-enabled:not(.ambient-off) .ambient-glass .ambient-glass{background:rgba(255,255,255,.15)!important;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.36)}
+.ambient-enabled .hero-accent,.ambient-enabled .hero-accent .char{-webkit-text-fill-color:#305e51!important;background:none!important;color:#305e51!important}
