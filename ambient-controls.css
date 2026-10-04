@@ -1,0 +1,12 @@
+.ambient-motion-toggle{position:fixed;right:88px;bottom:24px;z-index:1000;display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid rgba(255,255,255,.78);border-radius:50%;color:#234d3c;background:rgba(248,253,249,.78);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:0 3px 18px rgba(29,67,49,.12),inset 0 1px 0 rgba(255,255,255,.8);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.ambient-motion-toggle[hidden]{display:none}
+.ambient-motion-toggle svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ambient-motion-toggle .ambient-play-icon{display:none}
+.ambient-motion-toggle[data-paused=true] .ambient-pause-icon{display:none}
+.ambient-motion-toggle[data-paused=true] .ambient-play-icon{display:block}
+.ambient-motion-toggle:focus-visible{outline:3px solid #245d47;outline-offset:4px}
+@media(max-width:767px){.ambient-motion-toggle{right:14px;bottom:calc(90px + env(safe-area-inset-bottom,0px))}}
+@media(min-width:360px) and (max-width:767px){.ambient-motion-toggle{right:76px;top:calc(10px + env(safe-area-inset-top,0px));bottom:auto;z-index:1001}}
+body:has(#hamburger[aria-expanded=true]) .ambient-motion-toggle{visibility:hidden}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.ambient-motion-toggle{background:#edf5ef}}
+@media(prefers-contrast:more),(prefers-reduced-transparency:reduce){.ambient-motion-toggle{background:#edf5ef;border-color:#245d47}}

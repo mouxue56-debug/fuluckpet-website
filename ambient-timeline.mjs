@@ -6,10 +6,10 @@ export function regions(end,anchors=[]){
  a=clamp(a,end*.12,end*.55);b=clamp(b,a+end*.15,end*.88);
  return [0,a,b,end];
 }
-export function sample(y,bounds,blend=200){
+export function sample(y,bounds,blend=200,motionSpan=Infinity){
  const end=bounds[3];y=clamp(y,0,end);
  const half=Math.min(blend/2,(bounds[1]-bounds[0])/4,(bounds[2]-bounds[1])/4,(end-bounds[2])/4);
- const item=(index,weight)=>({index,progress:clamp((y-bounds[index])/(bounds[index+1]-bounds[index]),0,1),weight});
+ const item=(index,weight)=>({index,progress:clamp((y-bounds[index])/Math.min(bounds[index+1]-bounds[index],Math.max(1,motionSpan)),0,1),weight});
  for(let i=1;i<3;i++)if(Math.abs(y-bounds[i])<half){const p=(y-bounds[i]+half)/(2*half);return [item(i-1,1-p),item(i,p)]}
  const i=y<bounds[1]?0:y<bounds[2]?1:2;return [item(i,1)];
 }
@@ -20,3 +20,4 @@ export function needed(y,bounds,viewport,direction=1){
  return result;
 }
 export function fastMove(delta,elapsed,viewport){return Math.abs(delta)>Math.max(60,viewport*.06)&&Math.abs(delta)/Math.max(1,elapsed)>2.2}
+export function frameTime(progress,duration){return Number.isFinite(duration)?clamp(progress,0,1)*Math.max(0,duration-.06):null}

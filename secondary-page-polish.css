@@ -1,0 +1,21 @@
+/* Local page refinements; shared navigation, content and glass styles keep their own rules. */
+.reviews-page .stars-big{display:inline-flex;flex-wrap:nowrap;flex-shrink:0;align-items:center;gap:4px;white-space:nowrap;letter-spacing:0}
+.reviews-page .stars-big .ico{flex:0 0 1em}
+@media(max-width:700px){
+ body[data-experience-page="parents.html"] .page-hero{padding-top:calc(var(--header-height,64px) + 18px + env(safe-area-inset-top,0px))!important;padding-bottom:16px}
+ body[data-experience-page="parents.html"] .page-hero .breadcrumb{margin-bottom:8px}
+ body[data-experience-page="parents.html"] .page-hero h1{margin-bottom:8px}
+ body[data-experience-page="parents.html"] .page-hero p{font-size:16px;line-height:1.7;margin-top:6px}
+ body[data-experience-page="parents.html"] #parentFilters{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:6px;padding:12px 0 0;margin:0;max-width:390px;margin-inline:auto}
+ body[data-experience-page="parents.html"] #parentFilters button{min-height:44px;padding:8px 6px;font-size:16px;line-height:1.4;white-space:nowrap}
+ body[data-experience-page="parents.html"] .page-hero+[data-parent-section]{padding-top:16px}
+ body[data-experience-page="parents.html"] .page-hero+[data-parent-section]>.container{padding-top:0}
+ body[data-experience-page="parents.html"] .page-hero+[data-parent-section] .sec-header{margin-bottom:16px}
+ body[data-experience-page="parents.html"] .page-hero+[data-parent-section] .sec-tag{margin-bottom:6px}
+ body[data-experience-page="parents.html"] .page-hero+[data-parent-section] .sec-title{font-size:24px;margin-bottom:8px}
+ body[data-experience-page="parents.html"] .page-hero+[data-parent-section] .sec-desc{font-size:16px;line-height:1.7}
+ .reviews-page .page-hero{padding-top:calc(var(--header-height,64px) + 18px + env(safe-area-inset-top,0px))!important;padding-bottom:28px}
+ .reviews-page .review-summary{display:grid;grid-template-columns:auto auto;gap:6px 12px;max-width:340px;margin-inline:auto}
+ .reviews-page .review-total{grid-column:1/-1;text-align:center;font-size:14px}
+}
+@media(max-width:359px){body[data-experience-page="parents.html"] #parentFilters button{font-size:14px}}
