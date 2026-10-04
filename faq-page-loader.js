@@ -91,19 +91,38 @@
       button.type = 'button';
       button.className = 'faq-filter-btn' + (currentFilter === category ? ' active' : '');
       button.dataset.cat = category;
-      var iconWrap = document.createElement('span');
-      iconWrap.className = 'filter-icon';
-      iconWrap.appendChild(createIcon(iconClass));
-      button.appendChild(iconWrap);
-      button.appendChild(document.createTextNode(label));
+      button.setAttribute('aria-pressed', String(currentFilter === category));
+      if (isKnownCategory(category)) {
+        var image = document.createElement('img');
+        image.className = 'faq-topic-image';
+        image.src = '/images/faq-scenes/v1/' + category + '.webp';
+        image.alt = '';
+        image.width = 160;
+        image.height = 120;
+        image.decoding = 'async';
+        button.appendChild(image);
+      } else {
+        var iconWrap = document.createElement('span');
+        iconWrap.className = 'filter-icon';
+        iconWrap.appendChild(createIcon(iconClass));
+        button.appendChild(iconWrap);
+      }
+      var labelText = document.createElement('span');
+      labelText.className = 'faq-filter-label';
+      labelText.textContent = label;
+      button.appendChild(labelText);
       var count = document.createElement('span');
       count.className = 'faq-filter-count';
       count.textContent = countByCat(category);
       button.appendChild(count);
       button.addEventListener('click', function() {
         currentFilter = this.dataset.cat;
-        filterContainer.querySelectorAll('.faq-filter-btn').forEach(function(item) { item.classList.remove('active'); });
+        filterContainer.querySelectorAll('.faq-filter-btn').forEach(function(item) {
+          item.classList.remove('active');
+          item.setAttribute('aria-pressed', 'false');
+        });
         this.classList.add('active');
+        this.setAttribute('aria-pressed', 'true');
         renderList();
       });
       filterContainer.appendChild(button);
@@ -139,13 +158,16 @@
     var button = document.createElement('button');
     button.type = 'button';
     button.className = 'faq-q';
+    button.id = 'faq-q-' + index;
     button.dataset.faqBound = 'true';
     button.textContent = txt(item.question);
     button.setAttribute('aria-expanded', 'false');
     var panel = document.createElement('div');
     panel.className = 'faq-a';
     panel.id = 'faq-a-' + index;
+    panel.hidden = true;
     panel.setAttribute('role', 'region');
+    panel.setAttribute('aria-labelledby', button.id);
     button.setAttribute('aria-controls', panel.id);
     var answer = document.createElement('p');
     answer.textContent = txt(item.answer);
@@ -155,9 +177,11 @@
       var isActive = faqItem.classList.contains('active');
       listContainer.querySelectorAll('.faq-item').forEach(function(row) { row.classList.remove('active'); });
       listContainer.querySelectorAll('.faq-q').forEach(function(question) { question.setAttribute('aria-expanded', 'false'); });
+      listContainer.querySelectorAll('.faq-a').forEach(function(answerPanel) { answerPanel.hidden = true; });
       if (!isActive) {
         faqItem.classList.add('active');
         button.setAttribute('aria-expanded', 'true');
+        panel.hidden = false;
       }
     });
     faqItem.appendChild(button);

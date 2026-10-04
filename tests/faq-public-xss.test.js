@@ -23,6 +23,7 @@ class FakeElement {
     this.className = '';
     this.id = '';
     this.type = '';
+    this.hidden = false;
     this._text = '';
     this._innerHTML = '';
     this._listeners = Object.create(null);
@@ -304,7 +305,7 @@ test('standalone FAQ safely preserves categories, icons, filtering, a11y, and la
 
   const iconClasses = result.filterContainer.querySelectorAll('.ico').map((node) => node.className);
   assert.ok(iconClasses.some((value) => value.includes('ico-clipboard-list')));
-  assert.ok(iconClasses.some((value) => value.includes('ico-message-circle')));
+  assert.ok(result.filterContainer.querySelectorAll('.faq-topic-image').some((image) => image.src === '/images/faq-scenes/v1/general.webp'));
 
   // applyTrustOverrides() always appends its 3 owner-reviewed additions (ids
   // faq_25/26/27 — 1 "purchase", 2 "general") to whatever the API returned, so the
@@ -329,4 +330,86 @@ test('standalone FAQ safely preserves categories, icons, filtering, a11y, and la
   result.events.langChanged();
   assert.match(result.listContainer.textContent, /一般问题/);
   assert.ok(result.filterContainer.querySelectorAll('.faq-filter-btn').find((button) => button.dataset.cat === 'general').classList.contains('active'));
+});
+
+test('standalone accordion exposes only its open panel and names each region from its question', async () => {
+  const result = createHarness(PAGE_SOURCE, [], 'page');
+  await new Promise(setImmediate);
+  const questions = result.listContainer.querySelectorAll('.faq-q');
+  assert.ok(questions.length >= 2);
+  const ids = questions.map((question) => question.id);
+  assert.equal(new Set(ids).size, questions.length);
+  questions.forEach((question) => {
+    const panel = question.nextElementSibling;
+    assert.equal(panel.hidden, true, 'collapsed answers must hide their links from keyboard focus');
+    assert.ok(question.id);
+    assert.equal(panel.getAttribute('aria-labelledby'), question.id);
+    assert.equal(question.getAttribute('aria-controls'), panel.id);
+    assert.equal(question.getAttribute('aria-expanded'), 'false');
+  });
+  questions[0].click();
+  assert.equal(questions[0].nextElementSibling.hidden, false);
+  assert.equal(questions[0].getAttribute('aria-expanded'), 'true');
+  questions[1].click();
+  assert.equal(questions[0].nextElementSibling.hidden, true);
+  assert.equal(questions[0].getAttribute('aria-expanded'), 'false');
+  assert.equal(questions[0].parentElement.classList.contains('active'), false);
+  assert.equal(questions[1].nextElementSibling.hidden, false);
+  assert.equal(questions[1].getAttribute('aria-expanded'), 'true');
+  questions[1].click();
+  assert.ok(questions.every((question) => question.nextElementSibling.hidden));
+  assert.ok(questions.every((question) => question.getAttribute('aria-expanded') === 'false'));
+});
+
+test('illustrated category filters retain safe images and selected semantics after API and language rendering', async () => {
+  const categories = ['general', 'purchase', 'care', 'health'];
+  const items = categories.map((category) => ({
+    id: 'sample-' + category, category,
+    question: { ja: '質問', en: 'Question', zh: '问题' },
+    answer: { ja: '回答', en: 'Answer', zh: '回答' },
+  }));
+  items.push({ id: 'hostile', category: '../../untrusted', question: { en: 'Unknown category' }, answer: { en: 'Visible only in All' } });
+  const result = createHarness(PAGE_SOURCE, items, 'page', {
+    pageLang: 'ja', staticHtml: fs.readFileSync(path.join(ROOT, 'faq.html'), 'utf8'),
+  });
+  function verifyFilters(selected, expectedGeneralLabel) {
+    const buttons = result.filterContainer.querySelectorAll('.faq-filter-btn');
+    assert.deepEqual(buttons.map((button) => button.dataset.cat), ['all', ...categories]);
+    buttons.forEach((button) => {
+      assert.equal(button.getAttribute('aria-pressed'), String(button.dataset.cat === selected));
+      assert.equal(button.classList.contains('active'), button.dataset.cat === selected);
+      const label = button.querySelector('.faq-filter-label');
+      assert.ok(label && label.textContent);
+      assert.ok(button.querySelector('.faq-filter-count'));
+      if (button.dataset.cat === 'all') {
+        assert.equal(button.querySelector('img'), null);
+        assert.ok(button.querySelector('.ico'));
+      } else {
+        const image = button.querySelector('.faq-topic-image');
+        assert.ok(image, 'category artwork survives every render');
+        assert.equal(image.src, '/images/faq-scenes/v1/' + button.dataset.cat + '.webp');
+        assert.equal(image.alt, '');
+        assert.equal(image.width, 160);
+        assert.equal(image.height, 120);
+        assert.equal(image.decoding, 'async');
+        assert.equal(button.querySelector('.ico'), null);
+        if (button.dataset.cat === 'general') assert.equal(label.textContent, expectedGeneralLabel);
+      }
+    });
+  }
+  verifyFilters('all', '一般');
+  result.filterContainer.querySelectorAll('.faq-filter-btn').find((button) => button.dataset.cat === 'care').click();
+  verifyFilters('care', '一般');
+  await new Promise(setImmediate);
+  verifyFilters('care', '一般');
+  for (const [lang, label] of [['en', 'General'], ['zh', '一般']]) {
+    result.document.documentElement.lang = lang;
+    result.events.langChanged();
+    verifyFilters('care', label);
+    assert.equal(result.listContainer.querySelectorAll('.faq-q').length, 1);
+  }
+  result.filterContainer.querySelectorAll('.faq-filter-btn').find((button) => button.dataset.cat === 'all').click();
+  verifyFilters('all', '一般');
+  assert.match(result.listContainer.textContent, /Unknown category/);
+  assert.deepEqual(result.htmlWrites, []);
 });
