@@ -2817,7 +2817,7 @@ function generateParents(parents) {
     sections += `
 
   <!-- ========== ${cfg.tag.toUpperCase()} PARENTS ========== -->
-  <section class="section ${cfg.bgClass}" style="position:relative;">
+  <section class="section ${cfg.bgClass}" style="position:relative;" data-parent-section>
     <div class="parallax-bg">
 ${shapesHtml}
     </div>
