@@ -114,7 +114,8 @@ test('tracked homepage owns exactly one bounded generated kittens block', () => 
 test('tracked homepage visible count matches its current generated fallback cards', () => {
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   const owned = html.slice(html.indexOf(START) + START.length, html.indexOf(END));
-  assert.equal(visibleCountValue(html), kittenCards(owned).length);
+  assert.equal(visibleCountValue(html), Math.min(9, kittenCards(owned).filter(card => card.attrs['data-status'] === 'available').length));
+  assert.equal(kittenCards(owned).filter(card => !/^<[^>]*\shidden(?:\s|>)/.test(card.html)).length, 9);
 });
 
 test('homepage fallback is the ordered eligible subset of the complete list snapshot', (t) => {
@@ -139,11 +140,10 @@ test('homepage fallback is the ordered eligible subset of the complete list snap
   ];
   const intended = new Set([
     'home-featured', 'home-campaign', 'home-a1', 'home-a2', 'home-a3',
-    'home-a4', 'home-a5', 'home-r1', 'home-r2', 'home-r3',
+    'home-a4', 'home-a5', 'home-r1', 'home-r2', 'home-r3', 'other-breed', '2601-01855',
   ]);
   const expectedIds = KittenCatalog.orderKittens(kittens)
     .filter((kitten) => intended.has(kitten.breederId))
-    .slice(0, 9)
     .map((kitten) => kitten.breederId);
   const indexPath = path.join(siteDir, 'index.html');
   const stale = fs.readFileSync(indexPath, 'utf8').replace(
@@ -160,10 +160,10 @@ test('homepage fallback is the ordered eligible subset of the complete list snap
   const homepage = kittenCards(after);
   const fullList = kittenCards(fs.readFileSync(path.join(siteDir, 'kittens.html'), 'utf8'));
   assert.deepEqual(homepage.map((card) => card.attrs['data-breeder-id']), expectedIds);
-  assert.equal(homepage.length, 9);
-  assert.equal(visibleCountValue(after), homepage.length);
-  assert.equal(homepage.some((card) => card.attrs['data-breeder-id'] === '2601-01855'), false);
-  for (const absent of ['other-breed', 'unsafe-photo', 'missing-photo', 'unknown-status']) {
+  assert.equal(homepage.length, 12);
+  assert.equal(visibleCountValue(after), 8);
+  assert.equal(homepage.some((card) => card.attrs['data-breeder-id'] === '2601-01855'), true);
+  for (const absent of ['unsafe-photo', 'missing-photo', 'unknown-status']) {
     assert.equal(homepage.some((card) => card.attrs['data-breeder-id'] === absent), false, absent);
   }
 

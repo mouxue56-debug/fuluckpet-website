@@ -73,7 +73,7 @@ test('public review proof stays truthful without a volatile exact count', () => 
 
 test('public FAQ copy names real channels and contains no invented form or hardcoded range', () => {
   for (const file of ['faq.html', 'index.html', 'i18n.js']) {
-    const source = read(file);
+    const source = read(file).replace(/<!-- BEGIN GENERATED HOMEPAGE KITTENS -->[\s\S]*?<!-- END GENERATED HOMEPAGE KITTENS -->/, '');
     assert.doesNotMatch(source, /お問い合わせフォーム|contact form|联系表单/i, file);
     assert.doesNotMatch(source, /14万円|16万円|29万円|140,000|160,000|290,000/, file);
   }

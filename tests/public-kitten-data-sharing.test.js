@@ -78,7 +78,7 @@ class CatalogGrid {
 
   set innerHTML(value) {
     this._innerHTML = String(value || '');
-    this.children = [...this._innerHTML.matchAll(/<div class="kitten-card"([^>]*)>/g)].map((match) => {
+    this.children = [...this._innerHTML.matchAll(/<(?:div|a) class="kitten-card"([^>]*)>/g)].map((match) => {
       const card = new CatalogControlNode('kitten-card');
       for (const attribute of match[1].matchAll(/\bdata-([a-z-]+)="([^"]*)"/g)) {
         const key = attribute[1].replace(/-([a-z])/g, (_whole, letter) => letter.toUpperCase());

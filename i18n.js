@@ -24,7 +24,7 @@ const translations = {
     'nav.diary': '猫舎日記',
     'nav.allergy': '猫アレルギーと飼育',
     'nav.booking': '見学予約',
-    'nav.waitlist': 'ご希望登録',
+    'nav.waitlist': '出産予定・未掲載の子猫',
     'nav.osakaAdoption': '大阪・関西のお迎え',
     'nav.aboutPage': '受賞歴・認定',
     'nav.gallery': '卒業猫ギャラリー',

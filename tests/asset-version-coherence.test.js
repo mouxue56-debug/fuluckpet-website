@@ -12,18 +12,18 @@ const RELEASE = '20260710b';
 const COPY_RELEASE = '20260823a';
 const TRUST_RELEASE = '20260711b';
 const STYLE_RELEASE = '20261004d';
-const SCRIPT_RELEASE = '20261004d';
+const SCRIPT_RELEASE = '20261007a';
 const TRUTH_RELEASE = '20260711c';
 const CATALOG_RELEASE = '20260711b';
 const KITTEN_CAROUSEL_RELEASE = '20260917a';
-const CARD_LOADER_RELEASE = '20261004a';
+const CARD_LOADER_RELEASE = '20261007a';
 const ADMIN_RENDER_RELEASE = '20260811a';
 const ADMIN_PHOTOS_RELEASE = '20260811a';
 const ADMIN_DIARY_RELEASE = '20260711a';
 const ADMIN_FAQ_RELEASE = TRUTH_RELEASE;
 const ADMIN_CALENDAR_RELEASE = '20260714c';
 const NAV_RELEASE = '20261004d';
-const I18N_RELEASE = '20261004d';
+const I18N_RELEASE = '20261007a';
 const GUIDE_RELEASE = '20261003c';
 const NAV_STYLE_RELEASE = '20261004e';
 const CHAT_STYLE_RELEASE = '20260712e';
@@ -38,7 +38,7 @@ const PUBLIC_ASSETS = {
   'ambient-motion.mjs': '20261004e',
   'awards.css': '20261004d',
   'page-experience.css': '20261004c',
-  'page-experience.js': '20261004e',
+  'page-experience.js': '20261007a',
   'gallery-filters.js': '20261004a',
   'style.css': STYLE_RELEASE,
   'nav.css': NAV_STYLE_RELEASE,
@@ -58,8 +58,8 @@ const PUBLIC_ASSETS = {
   'script.js': SCRIPT_RELEASE,
   'analytics.js': '20261004d',
   'inquiry-context.js': '20261004d',
-  'kitten-discovery.js': '20261004a',
-  'kitten-discovery.css': '20261004a',
+  'kitten-discovery.js': '20261007a',
+  'kitten-discovery.css': '20261007a',
   'guide/i18n-guide-body.js': '20261004a',
   'guide/guide-visuals.js': GUIDE_RELEASE,
   'mobile-cta.js': '20261004d',

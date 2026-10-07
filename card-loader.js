@@ -293,6 +293,11 @@
         });
     return responseData
       .then(function(data) {
+        if (endpoint === '/api/kittens' && window.FuluckKittenHistory) return window.FuluckKittenHistory.load(data);
+        if (endpoint === '/api/reviews' && document.querySelector('[data-review-archive]')) return fetch('/review-summaries.json').then(function(r) { if (!r.ok) throw new Error('reviews'); return r.json(); }).catch(function() { return data; });
+        return data;
+      })
+      .then(function(data) {
         if (!Array.isArray(data) || !data.every(isRecord)) {
           throw new Error('card-loader: API payload must be an array of objects');
         }
@@ -396,7 +401,7 @@
     var color = safeEmbeddedText(k.color);
     var status = KittenCatalog.normalizeStatus(k.status);
     var statusClass = status === 'available' ? 'st-available' : status === 'reserved' ? 'st-reserved' : 'st-sold';
-    var statusText = status === 'available' ? ct('available') : status === 'reserved' ? ct('reserved') : ct('sold');
+    var statusText = k.sourceStatus === '販売終了' ? ({ja:'販売終了',en:'Listing closed',zh:'已结束销售'}[getLang()] || '販売終了') : status === 'available' ? ct('available') : status === 'reserved' ? ct('reserved') : ct('sold');
     var gender = safeGender(k.gender);
     var genderFull = gender === '♂' ? ct('male') : gender === '♀' ? ct('female') : '';
     var dataImages = opts && opts.showImages && cover ? escAttr(cover) : '';
@@ -428,7 +433,7 @@
     var detailUrl = detailId && (status === 'available' || status === 'reserved')
       ? localePrefix + '/kittens/' + detailId + '.html'
       : '';
-    var cardRole = opts && opts.showImages && detailUrl ? 'link' : 'button';
+    var cardRole = detailUrl ? 'link' : 'button';
     var modalSemantics = cardRole === 'button' ? ' aria-haspopup="dialog"' : '';
     // A catalogue card that has a detail page IS a link: an anchor gives middle-click,
     // "open in new tab", copy-link and crawlable markup for free, and matches the markup
@@ -453,7 +458,7 @@
     var neuteredChip = isNeuteredKitten(k)
       ? '<span class="usp-chip usp-chip--card" data-i18n="chip.neutered">' + ct('neutered') + '</span>'
       : '';
-    return '<' + cardTag + ' class="kitten-card"' + cardHref + ' role="' + cardRole + '" tabindex="0"' + modalSemantics + ' data-status="' + status + '" data-entry-group="' + entryGroup + '" data-promotion-tag="' + escAttr(promotionTag) + '" data-promotion-priority="' + promotionPriority + '" data-price="' + (price === null ? '' : price) + '" data-breed="' + escAttr(breed) + '" data-birthday="' + escAttr(fmtBdayAttr(k.birthday)) + '" data-images="' + dataImages + '" data-video="' + escAttr(video) + '" data-papa="' + escAttr(safeEmbeddedText(k.papa)) + '" data-mama="' + escAttr(safeEmbeddedText(k.mama)) + '" data-new="' + isNew + '" data-name="" data-breeder-id="' + escAttr(breederId) + '" data-detail-url="' + escAttr(detailUrl) + '">' +
+    return '<' + cardTag + ' class="kitten-card"' + cardHref + ' role="' + cardRole + '" tabindex="0"' + modalSemantics + ' data-status="' + (k.sourceStatus === '販売終了' ? 'ended' : status) + '" data-entry-group="' + entryGroup + '" data-promotion-tag="' + escAttr(promotionTag) + '" data-promotion-priority="' + promotionPriority + '" data-price="' + (price === null ? '' : price) + '" data-breed="' + escAttr(breed) + '" data-birthday="' + escAttr(fmtBdayAttr(k.birthday)) + '" data-images="' + dataImages + '" data-video="' + escAttr(video) + '" data-papa="' + escAttr(safeEmbeddedText(k.papa)) + '" data-mama="' + escAttr(safeEmbeddedText(k.mama)) + '" data-new="' + isNew + '" data-name="" data-breeder-id="' + escAttr(breederId) + '" data-detail-url="' + escAttr(detailUrl) + '">' +
       '<div class="kitten-img">' +
         (cover ? '<img src="' + escAttr(cover) + '" alt="' + escAttr(ct('photoAlt')) + '" ' + imgLoad + ' style="width:100%;height:100%;object-fit:cover;">' : '<div class="img-placeholder"><span><i class="ico ico-cat" aria-hidden="true"></i></span></div>') +
         '<span class="kit-status ' + statusClass + '">' + statusText + '</span>' +
@@ -463,6 +468,7 @@
       '</div>' +
       '<div class="kitten-body">' +
         '<h3>' + escAttr(ctBreed(breed)) + '</h3>' +
+        (status === 'sold' ? '<small>' + ({ja:'過去の掲載記録',en:'Past breeding record',zh:'过往繁育记录'}[getLang()] || '過去の掲載記録') + '</small>' : '') +
         promotionChip +
         hypoChip +
         mixChip +
@@ -471,7 +477,7 @@
         '<p class="kit-meta">' + genderFull + ' ・ ' + escAttr(ctColor(color)) + '</p>' +
         '<p class="kit-meta">' + bdayText + '</p>' +
         (noteL ? '<p class="kit-meta" style="font-size:11px;color:var(--text-note);">' + escAttr(safeEmbeddedText(noteL)) + '</p>' : '') +
-        '<p class="kit-price">' + (price === null ? escAttr(ct('askPrice')) : priceText + ' <span class="tax">' + ct('taxIncl') + '</span>') + '</p>' +
+        '<p class="kit-price">' + (status === 'sold' ? '' : price === null ? escAttr(ct('askPrice')) : priceText + ' <span class="tax">' + ct('taxIncl') + '</span>') + '</p>' +
       '</div>' +
     '</' + cardTag + '>';
   }
@@ -504,8 +510,8 @@
   function reviewCardHTML(r) {
     return '<div class="review-card">' +
       '<div class="review-header">' +
-        '<div class="review-stars"><i class="ico ico-star" aria-hidden="true"></i><i class="ico ico-star" aria-hidden="true"></i><i class="ico ico-star" aria-hidden="true"></i><i class="ico ico-star" aria-hidden="true"></i><i class="ico ico-star" aria-hidden="true"></i></div>' +
-        '<span class="review-platform">' + ct('reviewPlatform') + '</span>' +
+        '<div class="review-stars" aria-label="' + (Number.isInteger(r.rating) ? r.rating : 5) + ' / 5">' + '★'.repeat(Number.isInteger(r.rating) && r.rating >= 1 && r.rating <= 5 ? r.rating : 5) + '</div>' +
+        '<span class="review-platform">' + (r.summary ? 'みんなの子猫ブリーダー · 投稿冒頭の要点' : ct('reviewPlatform')) + '</span>' +
       '</div>' +
       '<p class="review-body">' + escAttr(ctPublic(r.body)) + '</p>' +
       '<div class="review-footer">' +
@@ -595,13 +601,8 @@
   }
 
   function selectHomepageKittens(kittens) {
-    // Mirrors tools/generate-site.js generateHomepageKittens(): Siberian line (incl. the mix)
-    // plus any owner-promoted kitten (featured/campaign) regardless of breed line, so the
-    // ¥240,000 golden British entry can surface on the homepage (2026-08-23).
-    return KittenCatalog.orderKittens(kittens).filter(function(k) {
-      var promoted = Boolean(KittenCatalog.normalizePromotionTag(k.promotionTag));
-      return (promoted || breedSectionIndex(k.breed) === 0) && KittenCatalog.normalizeStatus(k.status) !== 'sold';
-    }).slice(0, HOME_KITTEN_LIMIT);
+    // Filtering and the nine-card page window belong to discovery, after the full catalogue loads.
+    return KittenCatalog.orderKittens(kittens);
   }
 
   // ===== Page Detection =====
@@ -625,9 +626,7 @@
       var parents = results[1] || [];
       var reviews = results[2] || [];
 
-      // Kittens: only Siberian group, not sold
-      // Homepage Siberian subset: select by BREED (folds the mix into Siberian), not by
-      // platform group — empty-group Siberian records were being dropped here too (FIX 7).
+      // Keep the entire catalogue; discovery filters before applying the page window.
       var sib = selectHomepageKittens(kittens);
       if (kittensGrid) {
         kittensGrid.innerHTML = sib.length > 0

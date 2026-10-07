@@ -35,7 +35,7 @@
   }
   function waitlistTemplate(lang) {
     return {
-      ja:'ウェイトリストへの登録を希望します。\n希望の毛色：\n希望の性別（未定でも可）：\nお迎え希望時期：\nご相談したいこと：',
+      ja:'出産予定・未掲載の子猫について知りたいです。\n希望の毛色：\n希望の性別（未定でも可）：\nお迎え希望時期：\nご相談したいこと：',
       en:'I would like to join the kitten waitlist.\nPreferred coat color:\nPreferred sex (undecided is fine):\nPreferred timing:\nQuestions:',
       zh:'您好，我想登记幼猫候补名单。\n希望的毛色：\n希望的性别（可未定）：\n计划接猫时间：\n其他想咨询的问题：'
     }[language(lang)];

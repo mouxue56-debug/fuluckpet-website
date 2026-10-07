@@ -371,14 +371,14 @@ test('successful empty collections clear stale cards and publish localized hones
   }
 });
 
-test('card loader declares one shared nine-card homepage limit', () => {
+test('card loader leaves homepage pagination to discovery after full data selection', () => {
   const declarations = CARD_SOURCE.match(/\b(?:var|const|let)\s+HOME_KITTEN_LIMIT\s*=\s*9\s*;/g) || [];
   const capApplications = CARD_SOURCE.match(/\.slice\(0,\s*HOME_KITTEN_LIMIT\)/g) || [];
   assert.equal(declarations.length, 1);
-  assert.equal(capApplications.length, 1, 'one shared homepage selector must own the cap');
+  assert.equal(capApplications.length, 0, 'never truncate the data before filtering');
 });
 
-test('homepage initial render and language rerender share the nine-card cap', async () => {
+test('homepage initial render and language rerender keep all records for filtering', async () => {
   const kittens = Array.from({ length: 12 }, (_, index) => ({
     breederId: `homepage-cap-${index}`,
     breed: 'サイベリアン',
@@ -392,8 +392,8 @@ test('homepage initial render and language rerender share the nine-card cap', as
   const result = runCardLoader({ payloads: { kittens: response(kittens) } });
 
   function assertCapped(stage) {
-    assert.equal((result.kittenGrid.innerHTML.match(/class="kitten-card"/g) || []).length, 9, stage);
-    assert.equal(result.visibleCount.textContent, 9, stage);
+    assert.equal((result.kittenGrid.innerHTML.match(/class="kitten-card"/g) || []).length, 12, stage);
+    assert.equal(result.visibleCount.textContent, 12, stage);
   }
 
   await flushAsyncWork();
@@ -461,7 +461,7 @@ test('card loader validates and escapes all API-backed card fields while preserv
   assert.doesNotMatch(combined, /src="[^"]*PAYLOAD_MARKER|data-(?:price|status|new|video|tested)="[^"]*PAYLOAD_MARKER/i);
   assert.match(result.kittenGrid.innerHTML, /ico-mars/);
   assert.match(result.parentGrid.innerHTML, /ico-check/);
-  assert.match(result.reviewGrid.innerHTML, /ico-star/);
+  assert.match(result.reviewGrid.innerHTML, /★★★★★/);
   assert.match(combined, /&lt;(?:img|svg|script)/i, 'unsafe text should remain visible as escaped text');
 
   // Several card values are read back from the DOM and interpolated by the legacy modal.

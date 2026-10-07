@@ -44,6 +44,8 @@
 </script>
   <script defer src="/nav.js?v=20261004d"></script>
   <link rel="stylesheet" href="/secondary-page-polish.css?v=20261004a">
+<link rel="stylesheet" href="/kitten-discovery.css?v=20261007a">
+<script defer src="/review-pagination.js?v=20261007a"></script>
 </head>
 <body class="has-mobile-cta reviews-page">
   <a class="skip-link" href="#main" data-i18n="a11y.skipToMain">メインコンテンツへスキップ</a>
@@ -73,7 +75,7 @@
             <a href="siberian.html" class="nav-dropdown-item" data-i18n="nav.siberian">サイベリアンの魅力</a>
             <a href="siberian-allergy.html" class="nav-dropdown-item">猫アレルギーと飼育</a>
             <a href="siberian-breeder-osaka.html" class="nav-dropdown-item">大阪・関西のお迎え</a>
-            <a href="waitlist.html" class="nav-dropdown-item">お迎え予約（ウェイトリスト）</a>
+            <a href="waitlist.html" class="nav-dropdown-item">出産予定・未掲載の子猫</a>
             <a href="about.html" class="nav-dropdown-item" data-i18n="nav.aboutPage">受賞歴・認定</a>
             <a href="kittens.html" class="nav-dropdown-item" data-i18n="nav.allKittens">子猫一覧（すべて）</a>
             <a href="parents.html" class="nav-dropdown-item" data-i18n="nav.allParents">親猫紹介（すべて）</a>
@@ -124,7 +126,7 @@
       <a href="siberian.html" class="mobile-nav-link" data-i18n="nav.siberian">サイベリアン</a>
       <a href="siberian-allergy.html" class="mobile-nav-link">猫アレルギーと飼育</a>
       <a href="siberian-breeder-osaka.html" class="mobile-nav-link">大阪・関西のお迎え</a>
-      <a href="waitlist.html" class="mobile-nav-link">お迎え予約（ウェイトリスト）</a>
+      <a href="waitlist.html" class="mobile-nav-link">出産予定・未掲載の子猫</a>
       <a href="kittens.html" class="mobile-nav-link" data-i18n="nav.allKittens">子猫一覧（すべて）</a>
       <a href="parents.html" class="mobile-nav-link" data-i18n="nav.allParents">親猫紹介（すべて）</a>
       <a href="gallery.html" class="mobile-nav-link" data-i18n="nav.gallery">ギャラリー</a>
@@ -149,7 +151,7 @@
     </div>
   </div>
 
-  <main id="main">
+  <main id="main" data-review-archive>
   <!-- ========== PAGE HERO ========== -->
   <section class="page-hero">
     <div class="breadcrumb">
@@ -157,9 +159,9 @@
       <span>/</span>
       <span>お客様の声</span>
     </div>
-    <h1>お客様の声</h1>
+    <h1>お客様の声</h1><p>過去のお迎え時の評価を含みます。ラグドールは過去の繁育実績で、現在は繁育していません。</p>
     <div class="review-summary" style="justify-content:center; margin-top:20px;">
-      <span class="stars-big"><i class="ico ico-star" aria-hidden="true"></i><i class="ico ico-star" aria-hidden="true"></i><i class="ico ico-star" aria-hidden="true"></i><i class="ico ico-star" aria-hidden="true"></i><i class="ico ico-star" aria-hidden="true"></i></span>
+      <span class="stars-big"><span role="img" aria-label="5 / 5">★★★★★</span></span>
       <span class="score-big">5.00</span>
       <span class="review-total">/ 100件以上のレビュー</span>
     </div>
@@ -177,18 +179,18 @@
       <div class="sec-header">
         <span class="sec-tag">Reviews</span>
         <h2 class="sec-title">レビュー一覧</h2>
-        <p class="sec-desc">みんなの子猫ブリーダーに寄せられたお客様の声をご紹介します。</p>
+        <p class="sec-desc">公開ページで確認できた140件の評価を、投稿日・評価点と短い要点でご紹介します。要点は投稿冒頭を当サイトで整理したもので、原文の転載ではありません。</p>
       </div>
       <div class="reviews-page-grid">
         <!-- Review -->
         <div class="review-card">
           <div class="review-header">
             <div class="review-stars">★★★★★</div>
-            <span class="review-platform">みんなの子猫ブリーダー</span>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
           </div>
-          <p class="review-body">質問にも丁寧に答えてくださり、引き渡し前には爪切りやシャンプーまで準備してくださいました。とても安心してお迎えすることができました。アフターフォローも手厚く、感謝しています。</p>
+          <p class="review-body">見学の対応と、お迎え後の相談体制への評価。</p>
           <div class="review-footer">
-            <p class="review-author">— 大阪府 L.A様（2026年1月）</p>
+            <p class="review-author">—  兵庫県 T.Ｉ様（2026/09/26）</p>
             <span class="review-verified">&#10003; 認証済みレビュー</span>
           </div>
         </div>
@@ -196,11 +198,11 @@
         <div class="review-card">
           <div class="review-header">
             <div class="review-stars">★★★★★</div>
-            <span class="review-platform">みんなの子猫ブリーダー</span>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
           </div>
-          <p class="review-body">説明がとても分かりやすく、素晴らしいブリーダーさんです。可愛い子猫をお迎えでき、食事やケアについても丁寧にアドバイスいただきました。これからの成長が楽しみです。</p>
+          <p class="review-body">清掃の行き届いた環境と、急な見学への対応。</p>
           <div class="review-footer">
-            <p class="review-author">— 滋賀県 Kei様（2026年1月）</p>
+            <p class="review-author">—  兵庫県 A.Y様（2026/09/25）</p>
             <span class="review-verified">&#10003; 認証済みレビュー</span>
           </div>
         </div>
@@ -208,11 +210,11 @@
         <div class="review-card">
           <div class="review-header">
             <div class="review-stars">★★★★★</div>
-            <span class="review-platform">みんなの子猫ブリーダー</span>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
           </div>
-          <p class="review-body">初めて猫を飼いましたが、とても丁寧にサポートしていただけました。子猫はすぐにご飯を食べてくれて、人懐こくてとても可愛いです。LINEでの相談にも迅速に対応してくださり助かっています。</p>
+          <p class="review-body">人への親しみやすさと、新生活への順応を報告。</p>
           <div class="review-footer">
-            <p class="review-author">— 大阪府 H.U様（2026年1月）</p>
+            <p class="review-author">—  大阪府 K.S様（2026/09/21）</p>
             <span class="review-verified">&#10003; 認証済みレビュー</span>
           </div>
         </div>
@@ -220,11 +222,11 @@
         <div class="review-card">
           <div class="review-header">
             <div class="review-stars">★★★★★</div>
-            <span class="review-platform">みんなの子猫ブリーダー</span>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
           </div>
-          <p class="review-body">予定変更にも柔軟に対応してくださり、子猫の成長動画も送ってくださいました。ブリーダーさんの猫への愛情がとても伝わります。お迎えした子猫はとても元気で幸せです。</p>
+          <p class="review-body">初めての飼育で、説明やLINE相談が支えに。</p>
           <div class="review-footer">
-            <p class="review-author">— 和歌山県 D.S様（2026年1月）</p>
+            <p class="review-author">—  大阪府 ちゃん様（2026/09/03）</p>
             <span class="review-verified">&#10003; 認証済みレビュー</span>
           </div>
         </div>
@@ -232,11 +234,11 @@
         <div class="review-card">
           <div class="review-header">
             <div class="review-stars">★★★★★</div>
-            <span class="review-platform">みんなの子猫ブリーダー</span>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
           </div>
-          <p class="review-body">動物への愛情が本物だと感じられるブリーダーさんです。お迎え初日からすぐに馴染んでくれました。環境が素晴らしく、子猫の社会化もしっかりされています。</p>
+          <p class="review-body">見学時の相談から、お迎え後の対応まで評価。</p>
           <div class="review-footer">
-            <p class="review-author">— 大阪府 ドラム様（2025年12月）</p>
+            <p class="review-author">—  大阪府 M.O様（2026/08/22）</p>
             <span class="review-verified">&#10003; 認証済みレビュー</span>
           </div>
         </div>
@@ -244,11 +246,1619 @@
         <div class="review-card">
           <div class="review-header">
             <div class="review-stars">★★★★★</div>
-            <span class="review-platform">みんなの子猫ブリーダー</span>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
           </div>
-          <p class="review-body">遠方からでしたが、LINEビデオ通話で事前に子猫を見せていただきました。実物はさらに可愛く、性格もとても穏やかで大満足です。健康診断書や遺伝子検査結果もしっかりいただけました。</p>
+          <p class="review-body">穏やかな性格と、各段階での丁寧な対応。</p>
           <div class="review-footer">
-            <p class="review-author">— 東京都 T様（2025年12月）</p>
+            <p class="review-author">—  大阪府 Y.M様（2026/08/18）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">リビングで時間をかけ、相性を確認できた。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 HM様（2026/08/13）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">連絡の速さと、環境に慣れる様子への安心感。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 K.Y様（2026/08/12）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">オンラインでの説明と、甘える姿への喜び。</p>
+          <div class="review-footer">
+            <p class="review-author">—  宮城県 M.S様（2026/08/09）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">お迎え時の注意事項と、その後の相談支援。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 M.Ｉ様（2026/08/02）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">お迎え前後に相談できることへの安心感。</p>
+          <div class="review-footer">
+            <p class="review-author">—  兵庫県 N.N様（2026/07/30）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">性格の説明が、初めてのお迎えの判断に役立つ。</p>
+          <div class="review-footer">
+            <p class="review-author">—  京都府 S.H様（2026/07/19）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">ケアへの慣れと、見学後の様子の共有を評価。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 H.K様（2026/07/15）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">複数の子と会い、初心者の質問を相談できた。</p>
+          <div class="review-footer">
+            <p class="review-author">—  兵庫県 S.K様（2026/07/13）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">家庭的な環境と飼い方の説明。順応には数日。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 Y.Ｉ様（2026/07/12）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">体調の変化を動画で共有する姿勢を評価。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 N様（2026/06/17）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">日程への配慮と、初めての飼育への説明。</p>
+          <div class="review-footer">
+            <p class="review-author">—  埼玉県 R.Y様（2026/06/09）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">先住猫との対面や、食事に関する助言。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 T.H様（2026/06/04）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">質問への返答が早く、初めてでも心強かった。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 Y.U様（2026/05/20）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">準備の相談と、活発で人懐こい姿への喜び。</p>
+          <div class="review-footer">
+            <p class="review-author">—  奈良県 Y.F様（2026/05/16）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">性格と日常の説明が、お迎えの安心につながる。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 S.T様（2026/05/10）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">初日の緊張から、元気に遊ぶまでの変化を報告。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 M.T様（2026/04/29）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">猫の様子や清潔な環境、質問への対応を評価。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 おちゃ様（2026/04/27）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">飼育の助言と、人に慣れた子猫への評価。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 M.T様（2026/04/23）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">体調を優先して引渡しを延期する対応を評価。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 T.T様（2026/04/13）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">基礎からの説明と、お迎え日程の調整。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 S.Ｉ様（2026/04/05）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">ビデオ面会と、お迎え日変更への対応。</p>
+          <div class="review-footer">
+            <p class="review-author">—  神奈川県 K.M様（2026/04/01）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">長毛の手入れを相談。家に慣れるまで約2週間。</p>
+          <div class="review-footer">
+            <p class="review-author">—  静岡県 Y.T様（2026/03/27）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">話を聞く姿勢と、少しずつ家に慣れる様子。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 T.O様（2026/03/19）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">長毛種の相談。お迎え直後は食事等に不安も。</p>
+          <div class="review-footer">
+            <p class="review-author">—  東京都 S.H様（2026/02/16）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">活発な姿への喜び。先住猫との対面は慎重に。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 M.S様（2026/02/11）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">引渡しの延期に感謝。噛み癖には苦労も。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 K.H様（2026/02/01）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">お迎え前の爪切りやシャンプーへの配慮。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 L.A様（2026/01/25）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">見学時の分かりやすい回答と助言への感謝。</p>
+          <div class="review-footer">
+            <p class="review-author">—  滋賀県 kei様（2026/01/24）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">飼育初心者への説明と、継続相談への安心感。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 H.U様（2026/01/18）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">お迎え日の延期と、待つ間の動画共有を評価。</p>
+          <div class="review-footer">
+            <p class="review-author">—  和歌山県 D.S様（2026/01/04）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">先住猫との暮らしや、アフターケアを相談。</p>
+          <div class="review-footer">
+            <p class="review-author">—  香川県 M.T様（2026/01/02）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">質問への対応と、猫に接する姿が印象に。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 ドラム様（2025/12/20）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">性別の記載違いはあったが、相談支援を評価。</p>
+          <div class="review-footer">
+            <p class="review-author">—  兵庫県 A.N様（2025/12/06）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">取引時の説明と、人に慣れた子猫への喜び。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 S.H様（2025/11/26）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">訪問して感じた、飼育環境とスタッフの温かさ。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 R.N様（2025/11/22）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">初めてのお迎えを準備段階から支えてもらえた。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 R.M様（2025/11/21）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">質問に答える姿勢と、家族に馴染む様子を報告。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 J.T様（2025/11/16）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">迅速な説明と、今後も相談できる安心感。</p>
+          <div class="review-footer">
+            <p class="review-author">—  東京都 A.K様（2025/11/09）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">初めは食事に不安も。連絡の速さが助けに。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 T.S様（2025/10/31）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">近隣引渡サービスを利用した遠方からの体験。</p>
+          <div class="review-footer">
+            <p class="review-author">—  神奈川県 N.S様（2025/10/31）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">質問への返信と、成長動画の共有を評価。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 Y.S様（2025/10/29）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">子猫の様子と、引渡し後の相談案内への評価。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 T.H様（2025/10/27）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">きれいな環境と、親切な対応への安心感。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 NAOKI様（2025/10/24）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">日程対応に感謝。排泄の不安も連絡で相談。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 K.T様（2025/10/13）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">見学時の清潔さと、猫の毛並みなどを評価。</p>
+          <div class="review-footer">
+            <p class="review-author">—  兵庫県 仲里様（2025/10/02）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">問い合わせへの対応と、元気な姿への喜び。</p>
+          <div class="review-footer">
+            <p class="review-author">—  鳥取県 タ様（2025/10/02）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">家族に続くお迎え。分かりやすい回答を評価。</p>
+          <div class="review-footer">
+            <p class="review-author">—  兵庫県 きてぃ様（2025/09/19）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">食事や排泄が順調で、元気な暮らしを報告。</p>
+          <div class="review-footer">
+            <p class="review-author">—  兵庫県 AK様（2025/09/10）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">きれいな環境と、親身な対応への安心感。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 M.H様（2025/09/03）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">初めての訪問で、家族の温かい対応が印象に。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 Nao様（2025/08/19）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">性格や育て方の説明が、初めてのお迎えの支え。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 N様（2025/08/18）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">多頭飼育の相談と、明るく清潔な環境を評価。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 にゃんぼーる様（2025/07/26）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">飼育環境やしつけの相談と、人への慣れ。</p>
+          <div class="review-footer">
+            <p class="review-author">—  滋賀県 S.T様（2025/07/20）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">新幹線でお迎え。到着後の食事や排泄は順調。</p>
+          <div class="review-footer">
+            <p class="review-author">—  東京都 R.O様（2025/07/13）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">多頭飼いの相談と、日程変更への対応。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 S.H様（2025/07/11）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">よく食べ遊ぶ姿と、引渡しまでの対応。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 S.M様（2025/07/09）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">初日は緊張。翌日から先住猫と少しずつ交流。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 HR様（2025/06/17）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">丁寧な対応と、遠方からの訪問体験。</p>
+          <div class="review-footer">
+            <p class="review-author">—  群馬県 ゆう様（2025/06/11）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">直接のお迎えへ変更。初日は夜泣きもあった。</p>
+          <div class="review-footer">
+            <p class="review-author">—  千葉県 しーかめ様（2025/06/05）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">希望する子の変更相談と、清潔な環境を評価。</p>
+          <div class="review-footer">
+            <p class="review-author">—  滋賀県 Heromom様（2025/05/27）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">飼育初心者への助言と、手入れへの慣れ。</p>
+          <div class="review-footer">
+            <p class="review-author">—  山梨県 ポンジュース様（2025/05/27）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">先住猫がいる家庭の不安を相談できた。</p>
+          <div class="review-footer">
+            <p class="review-author">—  兵庫県 Mika様（2025/05/25）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">初めての飼育相談と、家族に馴染む様子。</p>
+          <div class="review-footer">
+            <p class="review-author">—  兵庫県 H.N様（2025/05/08）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">子連れ見学の相談と、簡潔な説明を評価。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 A.M様（2025/05/06）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">これからの暮らし方を教わり、お迎えに安心。</p>
+          <div class="review-footer">
+            <p class="review-author">—  兵庫県 はじゅ様（2025/04/28）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">引渡しまでの体調への配慮を評価。</p>
+          <div class="review-footer">
+            <p class="review-author">—  愛知県 S.K様（2025/04/22）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">普段の食事や遊びについて説明を受けた。</p>
+          <div class="review-footer">
+            <p class="review-author">—  福島県 A.K様（2025/04/22）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">希望に合う子との出会いと、食事の様子。</p>
+          <div class="review-footer">
+            <p class="review-author">—  兵庫県 ジュリア様（2025/04/15）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">手入れの実演と、お迎え後の支援案内。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 A.S様（2025/04/10）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">連絡への返答と、初心者の質問への説明。</p>
+          <div class="review-footer">
+            <p class="review-author">—  兵庫県 Y.M様（2025/04/09）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">世話に関する相談と、その後の支援への安心。</p>
+          <div class="review-footer">
+            <p class="review-author">—  兵庫県 にゃ様（2025/04/03）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">日程の調整を経て、兄弟2匹をお迎え。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 S.Y様（2025/04/03）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">見学から引渡し後までの相談体制を評価。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 ゆきこ様（2025/04/01）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">分かりやすい説明と、親切な対応。</p>
+          <div class="review-footer">
+            <p class="review-author">—  東京都 すずちゃん様（2025/03/13）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">素早い連絡と、準備の相談への対応。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 C.N様（2025/03/06）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">初歩的な質問にも説明があり、不安が和らいだ。</p>
+          <div class="review-footer">
+            <p class="review-author">—  奈良県 おもち様（2025/03/02）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">見学前のけがの報告と、日程対応を評価。</p>
+          <div class="review-footer">
+            <p class="review-author">—  和歌山県 T.M様（2025/02/26）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">オンライン見学から引渡しまでの説明。</p>
+          <div class="review-footer">
+            <p class="review-author">—  京都府 M.H様（2025/02/21）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">初めての飼育で、注意点と相談先を確認。</p>
+          <div class="review-footer">
+            <p class="review-author">—  兵庫県 M.T様（2025/02/03）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">世話の仕方を相談。子猫にはまだ緊張も。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 ぱとこ様（2025/02/01）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">飼育初心者への回答と、その後も相談できる安心。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 Y様（2025/01/27）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">飼育環境と説明を確認し、お迎えを決定。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 うゆ様（2025/01/26）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">性格や世話の説明、食べ慣れたフードの用意。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 ミコ様（2025/01/11）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">初めての飼育で、多くの質問に答えてもらえた。</p>
+          <div class="review-footer">
+            <p class="review-author">—  京都府 いち様（2024/12/24）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">お迎えまで約1か月、育ててもらえたことに感謝。</p>
+          <div class="review-footer">
+            <p class="review-author">—  兵庫県 まさひで様（2024/12/21）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">一つずつ質問に答える対応への安心感。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 M.N様（2024/12/20）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">連絡が早く、年末までのお迎えにつながった。</p>
+          <div class="review-footer">
+            <p class="review-author">—  福岡県 s.t様（2024/12/20）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">幼児のいる家庭として、環境と説明を評価。</p>
+          <div class="review-footer">
+            <p class="review-author">—  京都府 ひは様（2024/12/19）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">遠隔での事前面会から、訪問してお迎えへ。</p>
+          <div class="review-footer">
+            <p class="review-author">—  愛知県 ちゅう様（2024/12/11）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">兄弟猫をお迎え。引渡し後の相談案内を評価。</p>
+          <div class="review-footer">
+            <p class="review-author">—  兵庫県 A.N様（2024/11/28）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">ケージ到着を待ち、準備を整えてお迎え。</p>
+          <div class="review-footer">
+            <p class="review-author">—  滋賀県 Y様（2024/11/19）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">途中で風邪をひいたが、回復後の引渡しを評価。</p>
+          <div class="review-footer">
+            <p class="review-author">—  岐阜県 T.O様（2024/11/17）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">対処の助言と、遠方からのお迎えへの配慮。</p>
+          <div class="review-footer">
+            <p class="review-author">—  東京都 Hee様（2024/11/09）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">質問に答えてもらえ、今後の相談先として安心。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 りゅう様（2024/11/06）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">説明通りの甘える性格と、排泄への慣れ。</p>
+          <div class="review-footer">
+            <p class="review-author">—  岡山県 ペパーミント様（2024/10/21）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">落ち着いて対面でき、迎えた後の対応を相談。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 またたび様（2024/10/18）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">お迎え時間を調整。初日はまだ緊張した様子。</p>
+          <div class="review-footer">
+            <p class="review-author">—  愛知県 N700様（2024/10/09）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">生活音に警戒する時期に、LINE相談が支えに。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 Hana様（2024/09/20）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">説明の分かりやすさと、先住猫への社交性。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 マユミ様（2024/09/19）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">手入れの方法・頻度と、継続相談への案内。</p>
+          <div class="review-footer">
+            <p class="review-author">—  兵庫県 M様（2024/09/09）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">急な予約への返答と、成長後の説明を評価。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 桜蘭様（2024/08/24）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">台風に伴うお迎え変更に対応してもらえた。</p>
+          <div class="review-footer">
+            <p class="review-author">—  東京都 M様（2024/08/17）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">初めての取引で、質問と継続相談への対応。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 R.S様（2024/08/17）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">初日は鳴いていたが、徐々に落ち着いた体験。</p>
+          <div class="review-footer">
+            <p class="review-author">—  兵庫県 M.Ｉ様（2024/08/12）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">準備品の用意と、お迎え後の連絡に感謝。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 もり様（2024/07/28）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">家族のアレルギーの相談と、飼育説明を評価。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大分県 M.T様（2024/07/27）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">子供と一緒に見学し、子猫を選んだ体験。</p>
+          <div class="review-footer">
+            <p class="review-author">—  京都府 M.K様（2024/07/14）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">清潔な環境と、世話の方法についての説明。</p>
+          <div class="review-footer">
+            <p class="review-author">—  神奈川県 ai様（2024/06/21）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">風邪で引渡しが延期に。その後の相談は安心。</p>
+          <div class="review-footer">
+            <p class="review-author">—  兵庫県 saki様（2024/06/13）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">兄弟で迷う間も相談でき、待機中は動画共有。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 ナルト様（2024/04/04）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">東北から訪問。質問への対応と移動の体験。</p>
+          <div class="review-footer">
+            <p class="review-author">—  福島県 A.O様（2024/03/18）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">体調の共有を評価。返信には時間が空くことも。</p>
+          <div class="review-footer">
+            <p class="review-author">—  広島県 ひなこ様（2024/02/10）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">初めての飼育で、分からない点を相談できた。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 しん様（2024/02/05）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">気さくな対応と、引渡し後の相談体制。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 E.M様（2024/01/26）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">初めてのお迎えへの細かな説明が支えに。</p>
+          <div class="review-footer">
+            <p class="review-author">—  千葉県 あんぴー様（2024/01/22）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">6か月の子を見学し、性格や好みを教わった。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 人間様（2023/12/30）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">穏やかな性格と、スムーズな取引への喜び。</p>
+          <div class="review-footer">
+            <p class="review-author">—  和歌山県 sanatora様（2023/12/05）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">子供との暮らしへの順応と、連絡の速さ。</p>
+          <div class="review-footer">
+            <p class="review-author">—  東京都 M.S様（2023/11/24）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">元気な姿と、困った時の相談先への安心感。</p>
+          <div class="review-footer">
+            <p class="review-author">—  兵庫県 ミルミル♪様（2023/11/06）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">犬の飼育経験者が、猫の世話を見学時に相談。</p>
+          <div class="review-footer">
+            <p class="review-author">—  京都府 めー様（2023/10/07）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">説明通りの性格で、子供とも遊ぶ様子を報告。</p>
+          <div class="review-footer">
+            <p class="review-author">—  石川県 ゆいちゃん様（2023/10/02）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">ラグドールを迎えた際の助言と対応への感謝。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 みーちゃん様（2023/09/27）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">食事や爪・耳のケアについて説明を受けた。</p>
+          <div class="review-footer">
+            <p class="review-author">—  長野県 H.M様（2023/09/05）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">見学で疑問が解け、お迎えを決められた。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 なお様（2023/09/01）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">初日の緊張から、部屋でくつろぐまでの変化。</p>
+          <div class="review-footer">
+            <p class="review-author">—  静岡県 K.Y様（2023/08/01）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">引渡し時の説明と、日々遊ぶ元気な様子。</p>
+          <div class="review-footer">
+            <p class="review-author">—  和歌山県 C.Y様（2023/07/18）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">見学の雰囲気と、お迎え後のLINE支援。</p>
+          <div class="review-footer">
+            <p class="review-author">—  兵庫県 AC様（2023/07/01）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">オンライン見学後、北海道から訪問してお迎え。</p>
+          <div class="review-footer">
+            <p class="review-author">—  北海道 はま様（2023/04/09）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">事前のオンライン相談と、清潔な飼育環境。</p>
+          <div class="review-footer">
+            <p class="review-author">—  和歌山県 Y様（2023/03/12）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">2匹を迎え、人との触れ合いに慣れた様子。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 もち様（2023/02/28）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">見学時の毛並みや、抱っこへの慣れを評価。</p>
+          <div class="review-footer">
+            <p class="review-author">—  福井県 ういしず様（2023/02/19）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">見学で別の子を選び、子供との相性も確認。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 H.I様（2023/02/18）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">引渡しまでの体調連絡と、写真共有を評価。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 S.T様（2023/01/30）</p>
+            <span class="review-verified">&#10003; 認証済みレビュー</span>
+          </div>
+        </div>
+        <!-- Review -->
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-stars">★★★★★</div>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価） · 投稿冒頭の要点</span>
+          </div>
+          <p class="review-body">特徴や既往歴の説明と、お迎え時の支援。</p>
+          <div class="review-footer">
+            <p class="review-author">—  大阪府 梅子様（2023/01/17）</p>
             <span class="review-verified">&#10003; 認証済みレビュー</span>
           </div>
         </div>
@@ -268,13 +1878,13 @@
       <div class="sec-header">
         <span class="sec-tag">Verified</span>
         <h2 class="sec-title">第三者プラットフォームの評価</h2>
-        <p class="sec-desc">お客様評価は、第三者プラットフォーム「みんなの子猫ブリーダー」の認定ページで公開されています。</p>
+        <p class="sec-desc">出典：みんなの子猫ブリーダー（羅方遠・刘暁棉の両アカウント）。2026年10月7日確認。</p>
       </div>
       <div style="max-width:600px; margin:0 auto; text-align:center;">
         <div style="font-size:34px; line-height:1; color:var(--star-amber); letter-spacing:3px;" role="img" aria-label="5点満点中5点">★★★★★</div>
         <div style="margin-top:12px; font-size:22px; font-weight:700; color:var(--ink); font-variant-numeric:tabular-nums;">5.00 <span style="font-weight:500; color:var(--ink-soft); font-size:16px;">／ 100件以上のレビュー</span></div>
-        <p style="margin:18px auto 26px; max-width:32em; color:var(--ink-soft); line-height:1.9;">すべてのお客様評価は、みんなの子猫ブリーダーの認定ページで直接ご確認いただけます。</p>
-        <a href="https://www.koneko-breeder.com/breeder_c995680.html" target="_blank" rel="noopener" class="btn btn-primary">みんなの子猫ブリーダーで全レビューを見る →</a>
+        <p style="margin:18px auto 26px; max-width:32em; color:var(--ink-soft); line-height:1.9;">当サイトの収録数は、公開評価一覧で確認できた140件です。プラットフォームのプロフィールに表示される合計件数とは異なります。</p>
+
       </div>
     </div>
   </section>
@@ -392,11 +2002,11 @@
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
   </button>
 
-  <script src="i18n.js?v=20261004d"></script>
+  <script src="i18n.js?v=20261007a"></script>
   <script src="catalog-i18n.js?v=20261004a"></script>
   <script src="/kitten-catalog.js?v=20260711b"></script>
-  <script src="card-loader.js?v=20261004a"></script>
-  <script src="script.js?v=20261004d"></script>
+  <script src="card-loader.js?v=20261007a"></script>
+  <script src="script.js?v=20261007a"></script>
   <!-- ========== FLOATING MOBILE NAV BUTTON (always-visible nav, mobile only) ========== -->
   <button class="mobile-nav-fab" id="mobileNavFab" aria-label="メニューを開く" aria-controls="mobileNav" aria-expanded="false" type="button">
     <span class="fab-icon" aria-hidden="true"><i class="ico ico-paw-print" aria-hidden="true"></i></span>

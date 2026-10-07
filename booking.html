@@ -517,9 +517,13 @@
  </style>
   <script defer src="/nav.js?v=20261004d"></script>
   <link rel="stylesheet" href="/page-experience.css?v=20261004c">
-  <script defer src="/page-experience.js?v=20261004e"></script>
+  <script defer src="/page-experience.js?v=20261007a"></script>
   <link rel="stylesheet" href="/ambient-motion.css?v=20261004f">
   <script type="module" src="/ambient-motion.mjs?v=20261004e"></script>
+<link rel="stylesheet" href="/kitten-discovery.css?v=20261007a">
+<script defer src="/catalog-i18n.js?v=20261004a"></script>
+<script defer src="/kitten-catalog.js?v=20260711b"></script>
+<script defer src="/booking-kittens.js?v=20261007a"></script>
 </head>
 <body class="has-mobile-cta experience-page" data-experience-page="booking.html">
   <a class="skip-link" href="#main" data-i18n="a11y.skipToMain">メインコンテンツへスキップ</a>
@@ -549,7 +553,7 @@
             <a href="siberian.html" class="nav-dropdown-item" data-i18n="nav.siberian">サイベリアンの魅力</a>
             <a href="siberian-allergy.html" class="nav-dropdown-item">猫アレルギーと飼育</a>
             <a href="siberian-breeder-osaka.html" class="nav-dropdown-item">大阪・関西のお迎え</a>
-            <a href="waitlist.html" class="nav-dropdown-item">お迎え予約（ウェイトリスト）</a>
+            <a href="waitlist.html" class="nav-dropdown-item">出産予定・未掲載の子猫</a>
             <a href="about.html" class="nav-dropdown-item" data-i18n="nav.aboutPage">受賞歴・認定</a>
             <a href="kittens.html" class="nav-dropdown-item" data-i18n="nav.allKittens">子猫一覧（すべて）</a>
             <a href="parents.html" class="nav-dropdown-item" data-i18n="nav.allParents">親猫紹介（すべて）</a>
@@ -600,7 +604,7 @@
       <a href="siberian.html" class="mobile-nav-link" data-i18n="nav.siberian">サイベリアン</a>
       <a href="siberian-allergy.html" class="mobile-nav-link">猫アレルギーと飼育</a>
       <a href="siberian-breeder-osaka.html" class="mobile-nav-link">大阪・関西のお迎え</a>
-      <a href="waitlist.html" class="mobile-nav-link">お迎え予約（ウェイトリスト）</a>
+      <a href="waitlist.html" class="mobile-nav-link">出産予定・未掲載の子猫</a>
       <a href="kittens.html" class="mobile-nav-link" data-i18n="nav.allKittens">子猫一覧（すべて）</a>
       <a href="parents.html" class="mobile-nav-link" data-i18n="nav.allParents">親猫紹介（すべて）</a>
       <a href="gallery.html" class="mobile-nav-link" data-i18n="nav.gallery">ギャラリー</a>
@@ -719,9 +723,10 @@
 
               <!-- Interested Kitten -->
               <div class="form-group">
-                <label for="bk-kitten"><span data-i18n="booking.kitten">気になる子猫</span></label>
-                <span class="hint" id="bk-kitten-hint" data-i18n="booking.kittenHint">子猫の名前や掲載番号をお書きください（複数可）。</span>
-                <input type="text" id="bk-kitten" class="booking-input" autocomplete="off" enterkeyhint="next" aria-describedby="bk-kitten-hint" data-placeholder-ja="例：ムーン、c995680-8" data-placeholder-en="e.g. Moon, c995680-8" data-placeholder-zh="例：Moon、c995680-8" placeholder="例：ムーン、c995680-8">
+                <span id="booking-kitten-label">気になる子猫（3匹まで）</span>
+                <input type="text" id="bk-kitten" class="booking-input" aria-label="気になる子猫の掲載番号">
+                <div id="booking-kitten-options" aria-label="販売中の子猫から選ぶ"></div>
+                <noscript><p>気になる子猫の掲載番号を上の欄にご記入ください（3匹まで）。</p></noscript>
               </div>
 
               <!-- Message -->
@@ -889,8 +894,8 @@
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
   </button>
 
-  <script src="i18n.js?v=20261004d"></script>
-  <script src="script.js?v=20261004d"></script>
+  <script src="i18n.js?v=20261007a"></script>
+  <script src="script.js?v=20261007a"></script>
   <script>
   // ===== Booking Form Submission — POSTs to fuluck-api Worker =====
   // Worker endpoint: /api/booking (CORS locked to https://fuluckpet.com)
