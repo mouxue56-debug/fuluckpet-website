@@ -63,3 +63,9 @@ body.ambient-off .ambient-scene{visibility:hidden}
  .ambient-enabled:not(.ambient-off) :is(.ambient-glass,.hero-content,.page-hero,.kit-filters,.filter-bar,.kittens-toolbar,.service-table-wrap,.service-care-details,.booking-form-card,.booking-sidebar .info-card,.faq-item,.kitten-body,.parent-body,.guide-card-body,.gal-caption),
  .ambient-enabled:not(.ambient-off) .ambient-glass-copy:before {background:rgba(255,254,248,.98)!important}
 }
+/* Detail pages use the same scene without covering the real kitten photographs. */
+.ambient-enabled[data-ambient-page="kitten-detail"] .kitten-detail-section{background:transparent}
+.ambient-enabled[data-ambient-page="kitten-detail"] .kitten-detail-info{padding:20px;background:rgba(255,254,248,.76)!important}
+.ambient-enabled[data-ambient-page="kitten-detail"] .breadcrumb{background:rgba(255,254,248,.64);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.ambient-enabled[data-ambient-page="kitten-detail"] .kitten-detail-info :is(h1,h2,h3,p,li,dt,dd){color:#263f36}
+@media(prefers-reduced-transparency:reduce),(prefers-contrast:more){.ambient-enabled[data-ambient-page="kitten-detail"] .kitten-detail-info{background:rgba(255,254,248,.98)!important}}

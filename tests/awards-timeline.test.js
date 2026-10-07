@@ -247,7 +247,7 @@ test('award visuals use one isolated, cache-busted stylesheet on only the two aw
 
 test('award pages use fresh translation and favicon cache keys', () => {
   for (const source of [indexSource, aboutSource]) {
-    assert.match(source, /i18n\.js\?v=20261004d/);
+    assert.match(source, /i18n\.js\?v=20261007a/);
     assert.match(source, /href=["']\/favicon\.ico\?v=20260903a["']/);
   }
 });

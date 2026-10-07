@@ -84,7 +84,6 @@ test('language filtering removes empty service groups instead of rendering dead 
 test('consultation menu stays concise and avoids overlapping adoption destinations', () => {
   const adoption = nav.navGroups().find((group) => group.id === 'adoption');
   assert.deepEqual(adoption.items.map((item) => item.key), [
-    'nav.booking',
     'nav.waitlist',
     'nav.osakaAdoption',
     'nav.guide',

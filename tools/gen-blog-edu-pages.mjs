@@ -134,7 +134,7 @@ function buildPage(art) {
       </a>
       <nav class="nav" id="nav">
         <a href="/index.html#about" class="nav-link">猫舎について</a>
-        <a href="/index.html#kittens" class="nav-link">子猫一覧</a>
+        <a href="/kittens.html" class="nav-link">子猫一覧</a>
         <a href="/index.html#parents" class="nav-link">親猫紹介</a>
         <a href="/index.html#visit" class="nav-link">見学案内</a>
         <a href="/index.html#faq" class="nav-link">よくある質問</a>
@@ -205,9 +205,9 @@ ${body}
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 15l-6-6-6 6"/></svg>
   </button>
 
-  <script src="/i18n.js?v=20261004d"></script>
+  <script src="/i18n.js?v=20261007a"></script>
   <script src="/blog/blog-i18n.js?v=20260710b"></script>
-  <script src="/script.js?v=20261004d"></script>
+  <script src="/script.js?v=20261007a"></script>
 
   <script defer src="/inquiry-context.js?v=20261004d"></script>
   <script defer src="/analytics.js?v=20261004d"></script>

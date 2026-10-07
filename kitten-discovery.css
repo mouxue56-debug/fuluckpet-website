@@ -29,3 +29,36 @@
 .kit-comparison-card dt {font-weight:700;margin-top:10px;}
 .kit-comparison-card dd {margin:2px 0 0;overflow-wrap:anywhere;}
 @media(max-width:600px) {.kit-discovery-fields label:not(.kit-discovery-checkbox) {flex:1 1 42%;}.kit-discovery-bar {gap:8px;}.kit-discovery-bar .kit-discovery-note {flex-basis:100%;}.kit-comparison-dialog {padding:15px;}.kit-comparison-card {min-width:190px;}.kit-comparison-card img {height:170px;}}
+/* Shared homepage/list controls stay translucent over the existing video. */
+.kit-discovery-tools,.kit-discovery-bar{background:rgba(255,253,246,.72);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid rgba(70,113,94,.28);border-radius:16px;padding:14px;}
+.kit-discovery-bar{margin:16px 0;box-shadow:0 5px 20px #163d2510;}
+.kit-discovery-bar>button{background:#28624e;color:#fff;border-color:#28624e;}
+.kit-compare-tray{display:flex;flex-wrap:wrap;gap:8px;width:100%;}
+.kit-compare-chip{display:flex;align-items:center;gap:8px;font-size:12px;border:1px solid #bfd6ca;border-radius:10px;padding:5px;}
+.kit-compare-chip img{width:42px!important;height:42px!important;object-fit:cover;border-radius:7px;}
+.kit-catalog-pager{display:flex;align-items:center;justify-content:center;gap:18px;margin:24px 0;}
+.kit-catalog-pager[hidden]{display:none;}
+[data-home-catalog]{display:flex;flex-wrap:wrap;gap:8px;scroll-margin-top:90px;}
+[data-home-catalog] .kit-discovery-tools{width:100%;text-align:left;}
+.kit-filter-chip{padding:10px 15px;border:1px solid #769b87;border-radius:22px;background:#fffdf6c9;color:#244734;font:inherit;cursor:pointer;}
+.kit-filter-chip[aria-pressed="true"]{background:#28624e;color:white;}
+.kitten-card[hidden]{display:none!important;}
+.kit-catalog-link{text-align:right;margin:16px 0;}
+@media(max-width:600px){.kit-compare-chip{flex:1 1 100%;}.kit-compare-chip button{margin-left:auto;}.kit-catalog-link .btn{font-size:13px;padding:12px;}.kit-discovery-fields select{min-width:0;width:100%;}}
+.booking-kitten-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-height:420px;overflow-y:auto;padding:4px;}
+.booking-kitten-choice{display:flex!important;align-items:center;gap:9px;padding:10px;border:1px solid #a5c5b7;border-radius:12px;background:#fffdf6a6;cursor:pointer;min-width:0;}
+.booking-kitten-choice:has(input:checked){border:2px solid #28624e;background:#e0f1e6c9;}
+.booking-kitten-choice:has(input:disabled){opacity:.55;}
+.booking-kitten-choice img{width:60px;height:60px;object-fit:cover;border-radius:8px;}
+.booking-kitten-choice span{font-size:12px;overflow-wrap:anywhere;}
+.booking-kitten-choice small{display:block;line-height:1.5;}
+.booking-kitten-choice input{accent-color:#28624e;flex-shrink:0;}
+@media(max-width:600px){.booking-kitten-grid{grid-template-columns:1fr;max-height:380px;}}
+.kittens-toolbar[hidden]{display:none!important;}
+.review-card[hidden]{display:none!important;}
+/* Homepage leads with cats; advanced controls follow the nine-card page. */
+#kittensGrid{scroll-margin-top:90px}
+#home-kitten-filters{margin-top:24px}
+.kit-discovery-bar[hidden]{display:none!important}
+.kit-catalog-link{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.kit-catalog-link>a:first-child{color:#285d48;font-size:14px;text-underline-offset:4px}

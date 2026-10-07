@@ -523,3 +523,13 @@ body.nav-enhanced .sr-only {
     font-size: 14px;
   }
 }
+
+/* One direct catalog destination, visible before any grouped navigation. */
+.nav-catalog-direct{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:8px 12px;border:1px solid rgba(63,108,89,.35);border-radius:12px;color:#284d3d;text-decoration:none;font-weight:700;white-space:nowrap;background:rgba(255,253,246,.48)}
+.nav-header-catalog{display:none}
+.nav-mobile-catalog{display:flex;margin:0 18px 14px}
+.kitten-detail-back{display:inline-flex;align-items:center;min-height:44px;margin:0 0 14px;padding:8px 14px;border-radius:12px;background:var(--glass-surface);-webkit-backdrop-filter:var(--glass-filter);backdrop-filter:var(--glass-filter);box-shadow:var(--glass-edge);color:#244b39;font-weight:700;text-decoration:none}
+@media(max-width:1360px){.nav-header-catalog{display:inline-flex;font-size:13px;padding:7px 10px}}
+@media(max-width:380px){body.nav-enhanced .header-inner{padding-inline:12px}body.nav-enhanced .logo{gap:6px}body.nav-enhanced .logo-text{font-size:14px}body.nav-enhanced .logo-icon{font-size:22px}.nav-header-catalog{padding:7px;font-size:12px}}
+/* Keep the motion control clear of the direct catalog and menu buttons. */
+@media(max-width:767px){body.nav-enhanced .ambient-motion-toggle{top:auto;right:14px;bottom:calc(90px + env(safe-area-inset-bottom,0px))}}

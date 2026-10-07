@@ -256,7 +256,7 @@ test('Ragdoll appears on merchandising surfaces only as a past record', () => {
     /布偶猫[^。\n]{0,12}(?:在售|出售|可预订)/,
     /Ragdolls?[^.\n]{0,40}(?:available|for sale|we breed)/i,
   ];
-  const PAST = /過去|過往|已不再繁育|no longer breed|past breeding/;
+  const PAST = /過去|過往|过往|已不再繁育|no longer breed|past breeding/i;
   const offenders = [];
   for (const relative of surfaces) {
     const source = fs.readFileSync(path.join(ROOT, relative), 'utf8');

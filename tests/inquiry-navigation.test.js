@@ -48,7 +48,7 @@ test('desktop and mobile booking destinations retain only safe kitten-detail IDs
     const context = navRuntime(pathname);
     for (const render of [context.renderDesktop, context.renderMobile]) {
       const links = anchors(render({ path: pathname, hash: '' })).filter(a => a.href.startsWith('/booking.html'));
-      assert.equal(links.length, 2, pathname + ': primary and menu booking links');
+      assert.equal(links.length, 1, pathname + ': one primary booking link');
       for (const link of links) assert.equal(link.href, expected, pathname);
     }
   }

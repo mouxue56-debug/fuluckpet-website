@@ -617,7 +617,7 @@ function validateHomepageKittensMarkers() {
   return { filepath, html, start, end, countTextStart, countTextEnd };
 }
 
-function homepageKittenCard(kitten, effectiveStatus, identity, photo) {
+function homepageKittenCard(kitten, effectiveStatus, identity, photo, visible) {
   const salePrice = KittenCatalog.normalizeSalePrice(kitten.price);
   const birthday = typeof kitten.birthday === 'string' ? kitten.birthday : '';
   const gender = kitten.gender === '♂' || kitten.gender === '♀' ? kitten.gender : '';
@@ -632,46 +632,45 @@ function homepageKittenCard(kitten, effectiveStatus, identity, photo) {
   const promotionChip = promotionTag
     ? `\n            <span class="kitten-promotion-chip usp-chip usp-chip--card" data-promotion-tag="${promotionTag}">${escapeHtml(KittenCatalog.promotionLabel(promotionTag, 'ja'))}</span>`
     : '';
-  const newBadge = kitten.isNew === true ? '\n            <span class="kit-badge-new">NEW</span>' : '';
+  const newBadge = kitten.isNew === true && effectiveStatus !== 'sold' ? '\n            <span class="kit-badge-new">NEW</span>' : '';
   const breed = typeof kitten.breed === 'string' ? kitten.breed : '';
   const color = typeof kitten.color === 'string' ? kitten.color : '';
   const detailUrl = `/kittens/${encodeURIComponent(identity)}.html`;
+  const tag = effectiveStatus === 'sold' ? 'div' : 'a';
+  const link = tag === 'a' ? ` href="${detailUrl}"` : ' role="button" tabindex="0" aria-haspopup="dialog"';
   return `
-        <div class="kitten-card" role="button" tabindex="0" aria-haspopup="dialog" data-status="${effectiveStatus}" data-promotion-tag="${promotionTag}" data-promotion-priority="${promotionPriority}" data-price="${salePrice === null ? '' : salePrice}" data-breed="${escapeHtml(safeCardAttributeText(breed))}" data-birthday="${escapeHtml(birthday)}" data-images="" data-video="" data-papa="${escapeHtml(kitten.papa)}" data-mama="${escapeHtml(kitten.mama)}" data-new="${kitten.isNew === true ? 'true' : 'false'}" data-name="" data-breeder-id="${identity}" data-detail-url="${detailUrl}">
+        <${tag} class="kitten-card"${link}${visible ? '' : ' hidden'} data-entry-group="${listEntryGroup(kitten)}" data-status="${kitten.sourceStatus === '販売終了' ? 'ended' : effectiveStatus}" data-promotion-tag="${promotionTag}" data-promotion-priority="${promotionPriority}" data-price="${salePrice === null ? '' : salePrice}" data-breed="${escapeHtml(safeCardAttributeText(breed))}" data-birthday="${escapeHtml(birthday)}" data-images="" data-video="" data-papa="${escapeHtml(kitten.papa)}" data-mama="${escapeHtml(kitten.mama)}" data-new="${kitten.isNew === true ? 'true' : 'false'}" data-name="" data-breeder-id="${identity}" data-detail-url="${detailUrl}">
           <div class="kitten-img">
-            <img src="${escapeHtml(photo)}" alt="${escapeHtml(`${breed}の子猫 ${color} ${genderLabel}・個体番号${identity}`.replace(/\s+/g, ' ').trim())}" loading="lazy" style="width:100%;height:100%;object-fit:cover;" width="640" height="480">
-            <span class="kit-status st-${effectiveStatus}"${statusI18nKey(effectiveStatus) ? ` data-i18n="${statusI18nKey(effectiveStatus)}"` : ''}>${escapeHtml(statusText(effectiveStatus))}</span>${newBadge}
+            <img src="${escapeHtml(photo)}" alt="${escapeHtml(`${breed}${effectiveStatus === 'sold' ? '（過去の掲載記録）' : 'の子猫'} ${color} ${genderLabel}・個体番号${identity}`.replace(/\s+/g, ' ').trim())}" loading="lazy" style="width:100%;height:100%;object-fit:cover;" width="640" height="480">
+            <span class="kit-status st-${effectiveStatus}"${kitten.sourceStatus !== '販売終了' && statusI18nKey(effectiveStatus) ? ` data-i18n="${statusI18nKey(effectiveStatus)}"` : ''}>${escapeHtml(kitten.sourceStatus === '販売終了' ? '販売終了' : statusText(effectiveStatus))}</span>${newBadge}
           </div>
           <div class="kitten-body">
-            <h3>${escapeHtml(breed)}</h3>${promotionChip}
+            <h3>${escapeHtml(breed)}</h3>${effectiveStatus === 'sold' ? '<small>過去の掲載記録</small>' : ''}${promotionChip}
             <p class="kit-meta">${genderIcon}${escapeHtml(genderLabel)}${color ? ` ・ ${escapeHtml(color)}` : ''}</p>
             <p class="kit-meta">${birthday ? `${escapeHtml(formatBirthday(birthday))}生まれ` : ''}</p>
-            <p class="kit-price">${salePrice === null ? escapeHtml(priceInquiryText('ja')) : `&yen;${formatPrice(salePrice)} <span class="tax">${taxIncl('ja')}</span>`}</p>
+            <p class="kit-price">${effectiveStatus === 'sold' ? '' : salePrice === null ? escapeHtml(priceInquiryText('ja')) : `&yen;${formatPrice(salePrice)} <span class="tax">${taxIncl('ja')}</span>`}</p>
           </div>
-        </div>`;
+        </${tag}>`;
 }
 
 function generateHomepageKittens(kittens) {
+  const historyFile = path.join(SITE_DIR, 'kitten-history.json');
+  if (fs.existsSync(historyFile)) kittens = require('../kitten-history.js').merge(kittens, JSON.parse(fs.readFileSync(historyFile, 'utf8')).records);
   const owned = validateHomepageKittensMarkers();
   const selected = [];
   for (const kitten of KittenCatalog.orderKittens(kittens)) {
     if (!kitten || typeof kitten !== 'object' || Array.isArray(kitten)) continue;
+    if (!['available', 'reserved', 'sold'].includes(kitten.status)) continue;
     const effectiveStatus = KittenCatalog.normalizeStatus(kitten.status);
-    // Owner-tagged (featured/campaign) kittens may take a homepage slot regardless of breed line
-    // (2026-08-23: the ¥240,000 golden British line is a featured entry and must be visible on /).
-    const promoted = KittenCatalog.normalizePromotionTag
-      ? Boolean(KittenCatalog.normalizePromotionTag(kitten.promotionTag))
-      : Boolean(kitten.promotionTag);
-    if (effectiveStatus === 'sold' || (!promoted && homepageBreedIndex(kitten.breed) !== 0)) continue;
     const identity = homepageIdentity(kitten);
     const photo = safeHomepagePhoto(getCoverPhoto(kitten));
     if (!identity || !photo) continue;
     selected.push({ kitten, effectiveStatus, identity, photo });
-    if (selected.length === HOMEPAGE_KITTEN_LIMIT) break;
+
   }
 
   const body = selected.length
-    ? selected.map((entry) => homepageKittenCard(entry.kitten, entry.effectiveStatus, entry.identity, entry.photo)).join('') + '\n      '
+    ? selected.map((entry, i) => homepageKittenCard(entry.kitten, entry.effectiveStatus, entry.identity, entry.photo, entry.effectiveStatus === 'available' && i < HOMEPAGE_KITTEN_LIMIT)).join('') + '\n      '
     : `
         <div class="catalog-empty" role="status" data-generated-empty="true" style="grid-column:1/-1;text-align:center;">
           <p class="sec-desc">${KITTENS_EMPTY_COPY.ja.message}</p>
@@ -686,7 +685,7 @@ function generateHomepageKittens(kittens) {
     {
       start: owned.countTextStart,
       end: owned.countTextEnd,
-      value: String(selected.length),
+      value: String(Math.min(HOMEPAGE_KITTEN_LIMIT, selected.filter(entry => entry.effectiveStatus === 'available').length)),
     },
   ].sort((left, right) => right.start - left.start);
   let output = owned.html;
@@ -1759,8 +1758,8 @@ function buildListHeader(jaHeader, lang) {
   const chrome = listToAbsoluteLinks(jaHeader.substring(headerIdx, heroIdx).replace(/\s*$/, ''));
 
   const styleV = verAsset('style.css', '20261004d');
-  const navCssV = verAsset('nav.css', '20261004e');
-  const navJsV = verAsset('nav.js', '20261004d');
+  const navCssV = verAsset('nav.css', '20261007b');
+  const navJsV = verAsset('nav.js', '20261007b');
   const relPath = 'kittens.html';
   const selfUrl = `${BASE_URL}/${langDir(lang)}kittens.html`;
   const kittensLabel = KITTENS_LABEL[lang];
@@ -1819,8 +1818,8 @@ ${hreflangBlock(relPath)}
   ]}
   </script>
   <script defer src="/nav.js?v=${navJsV}"></script>
-  <link rel="stylesheet" href="/ambient-motion.css?v=20261004f">
-  <script type="module" src="/ambient-motion.mjs?v=20261004e"></script>
+  <link rel="stylesheet" href="/ambient-motion.css?v=20261007b">
+  <script type="module" src="/ambient-motion.mjs?v=20261007b"></script>
 </head>
 <body class="has-mobile-cta catalog-page">
   <a class="skip-link" href="#main" data-i18n="a11y.skipToMain">メインコンテンツへスキップ</a>
@@ -1923,11 +1922,13 @@ function kittenFilterAssets(lang) {
     apply();
   })();
   </script>
-  <link rel="stylesheet" href="/kitten-discovery.css?v=20261004a">
-  <script defer src="/kitten-discovery.js?v=20261004a"></script>`;
+  <link rel="stylesheet" href="/kitten-discovery.css?v=20261007b">
+  <script defer src="/kitten-discovery.js?v=20261007b"></script>`;
 }
 
 function generateKittens(kittens, lang = 'ja') {
+  const historyFile = path.join(SITE_DIR, 'kitten-history.json');
+  if (fs.existsSync(historyFile)) kittens = require('../kitten-history.js').merge(kittens, JSON.parse(fs.readFileSync(historyFile, 'utf8')).records);
   // This function is also imported by focused tooling/tests, so keep the write boundary
   // safe even when main() is bypassed.
   assertSafeKittenDetailIds(kittens);
@@ -2007,7 +2008,7 @@ function generateKittens(kittens, lang = 'ja') {
 
       // Localized baked strings (ja passthrough → byte-identical). The card has no
       // data-i18n, so every visible value is emitted in-language here.
-      const stL = lang === 'ja' ? st : statusTextL(effectiveStatus, lang);
+      const stL = k.sourceStatus === '販売終了' ? ({ja:'販売終了',en:'Listing closed',zh:'已结束销售'}[lang]) : lang === 'ja' ? st : statusTextL(effectiveStatus, lang);
       const breedCard = lang === 'ja' ? k.breed : breedLabel(k.breed, lang);
       const colorCard = lang === 'ja' ? k.color : colorLabel(k.color, lang);
       const genderCard = lang === 'ja' ? k.gender : genderTextL(k.gender, lang); // en/zh: no ♂/♀ symbol
@@ -2015,7 +2016,7 @@ function generateKittens(kittens, lang = 'ja') {
       const bornCard = lang === 'ja' ? `${escapeHtml(bd)}生まれ` : escapeHtml(bornPhrase(k.birthday, lang));
 
       const cardAlt = lang === 'ja'
-        ? `${k.breed}の子猫 ${k.color || ''} ${gt}・個体番号${k.breederId}`.trim()
+        ? `${k.breed}${effectiveStatus === 'sold' ? '（過去の掲載記録）' : 'の子猫'} ${k.color || ''} ${gt}・個体番号${k.breederId}`.trim()
         : (lang === 'en'
             ? `${breedCard} kitten ${colorCard || ''} ${genderCard} · ID ${k.breederId}`.replace(/\s+/g, ' ').trim()
             : `${breedCard}幼猫 ${colorCard || ''} ${genderCard}・个体编号${k.breederId}`.replace(/\s+/g, ' ').trim());
@@ -2045,16 +2046,16 @@ function generateKittens(kittens, lang = 'ja') {
       // JavaScript too — so the initial markup already carries the default state.
       const initialHidden = effectiveStatus === 'available' ? '' : ' hidden';
       cardsHtml += `
-        <${cardTag} class="kitten-card"${cardHref}${initialHidden} role="${cardRole}" tabindex="0"${modalSemantics} data-status="${effectiveStatus}" data-entry-group="${entryGroup}" data-promotion-tag="${escapeHtml(promotionTag)}" data-promotion-priority="${promotionPriority}" data-price="${salePrice === null ? '' : salePrice}" data-breed="${escapeHtml(safeCardAttributeText(k.breed))}" data-birthday="${escapeHtml(k.birthday)}" data-images="${escapeHtml(photo)}" data-video="" data-papa="${escapeHtml(k.papa)}" data-mama="${escapeHtml(k.mama)}" data-new="${k.isNew ? 'true' : 'false'}" data-name="" data-breeder-id="${escapeHtml(k.breederId)}" data-detail-url="${escapeHtml(detailUrl)}">
+        <${cardTag} class="kitten-card"${cardHref}${initialHidden} role="${cardRole}" tabindex="0"${modalSemantics} data-status="${k.sourceStatus === '販売終了' ? 'ended' : effectiveStatus}" data-entry-group="${entryGroup}" data-promotion-tag="${escapeHtml(promotionTag)}" data-promotion-priority="${promotionPriority}" data-price="${salePrice === null ? '' : salePrice}" data-breed="${escapeHtml(safeCardAttributeText(k.breed))}" data-birthday="${escapeHtml(k.birthday)}" data-images="${escapeHtml(photo)}" data-video="" data-papa="${escapeHtml(k.papa)}" data-mama="${escapeHtml(k.mama)}" data-new="${k.isNew ? 'true' : 'false'}" data-name="" data-breeder-id="${escapeHtml(k.breederId)}" data-detail-url="${escapeHtml(detailUrl)}">
           <div class="kitten-img">
             <img src="${escapeHtml(photo)}" alt="${escapeHtml(cardAlt)}" ${imgLoadAttrs} width="360" height="360" style="width:100%;height:100%;object-fit:cover;aspect-ratio:1/1;">
-            <span class="kit-status st-${effectiveStatus}"${statusI18nKey(effectiveStatus) ? ` data-i18n="${statusI18nKey(effectiveStatus)}"` : ''}>${escapeHtml(stL)}</span>${isNewBadge}
+            <span class="kit-status st-${effectiveStatus}"${k.sourceStatus !== '販売終了' && statusI18nKey(effectiveStatus) ? ` data-i18n="${statusI18nKey(effectiveStatus)}"` : ''}>${escapeHtml(stL)}</span>${isNewBadge}
           </div>
           <div class="kitten-body">
-            <h3>${escapeHtml(breedCard)}</h3>${promotionChip}${hypoChip}${mixChip}${adultChip}${neuterChip}
+            <h3>${escapeHtml(breedCard)}</h3>${effectiveStatus === 'sold' ? '<small>' + (lang === 'en' ? 'Past breeding record' : lang === 'zh' ? '过往繁育记录' : '過去の掲載記録') + '</small>' : ''}${promotionChip}${hypoChip}${mixChip}${adultChip}${neuterChip}
             <p class="kit-meta">${metaLine}</p>
             <p class="kit-meta">${bornCard}</p>${noteHtml}
-            <p class="kit-price">${salePrice === null ? escapeHtml(priceInquiryText(lang)) : `&yen;${pr} <span class="tax">${taxIncl(lang)}</span>`}</p>
+            <p class="kit-price">${effectiveStatus === 'sold' ? '' : salePrice === null ? escapeHtml(priceInquiryText(lang)) : `&yen;${pr} <span class="tax">${taxIncl(lang)}</span>`}</p>
           </div>
         ${cardClose}`;
     }
@@ -2384,11 +2385,11 @@ ${smallAnimalHreflangBlock(detailId)}
   <link rel="preload" as="style" href="${fontHref(lang)}" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="${fontHref(lang)}" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20261004d')}">
-  <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20261004e')}">
+  <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20261007b')}">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <script defer src="/nav.js?v=${verAsset('nav.js', '20261004d')}"></script>`;
+  <script defer src="/nav.js?v=${verAsset('nav.js', '20261007b')}"></script>`;
 }
 
 function buildSmallAnimalListHtml(animals, headerHtml, footerHtml, lang = 'ja') {
@@ -2490,8 +2491,8 @@ ${sections}
 
 ${footerHtml}
 
-  <script src="/i18n.js?v=${verAsset('i18n.js', '20261004d')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20261004d')}"></script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20261007a')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20261007a')}"></script>
   <script defer src="/inquiry-context.js?v=20261004d"></script>
   <script defer src="/analytics.js?v=20261004d"></script>
 </body>
@@ -2636,8 +2637,8 @@ ${footerHtml}
     });
   });
   </script>
-  <script src="/i18n.js?v=${verAsset('i18n.js', '20261004d')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20261004d')}"></script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20261007a')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20261007a')}"></script>
   <script defer src="/inquiry-context.js?v=20261004d"></script>
   <script defer src="/analytics.js?v=20261004d"></script>
 </body>
@@ -2881,6 +2882,8 @@ ${shapesHtml}
 // ── Generate Reviews ──────────────────────────────────────────
 
 function generateReviews(reviews) {
+  const archiveFile = path.join(SITE_DIR, 'review-summaries.json');
+  if (fs.existsSync(archiveFile)) reviews = JSON.parse(fs.readFileSync(archiveFile, 'utf8'));
   const filepath = path.join(SITE_DIR, 'reviews.html');
   const { header: extractedHeader, tail } = extractTemplate(filepath);
   const header = injectSmallAnimalNavigation(extractedHeader, 'ja');
@@ -2892,7 +2895,7 @@ function generateReviews(reviews) {
         <div class="review-card">
           <div class="review-header">
             <div class="review-stars">★★★★★</div>
-            <span class="review-platform">みんなの子猫ブリーダー</span>
+            <span class="review-platform">みんなの子猫ブリーダー（過去のお迎え時の評価）${r.summary ? ' · 投稿冒頭の要点' : ''}</span>
           </div>
           <p class="review-body">${escapeHtml(r.body)}</p>
           <div class="review-footer">
@@ -2921,7 +2924,7 @@ function generateReviews(reviews) {
       <div class="sec-header">
         <span class="sec-tag">Reviews</span>
         <h2 class="sec-title">レビュー一覧</h2>
-        <p class="sec-desc">みんなの子猫ブリーダーに寄せられたお客様の声をご紹介します。</p>
+        <p class="sec-desc">公開ページで確認できた140件の評価を、投稿日・評価点と短い要点でご紹介します。要点は投稿冒頭を当サイトで整理したもので、原文の転載ではありません。</p>
       </div>
       <div class="reviews-page-grid">${cardsHtml}
       </div>
@@ -3270,17 +3273,19 @@ ${hreflangBlock(`kittens/${fileId}.html`)}
   <link rel="preload" as="style" href="${detailFontHref}" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="${detailFontHref}" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="/style.css?v=${verAsset('style.css', '20261004d')}">
-  <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20261004e')}">
+  <link rel="stylesheet" href="/nav.css?v=${verAsset('nav.css', '20261007b')}">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="${FAVICON_HREF}">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <script defer src="/nav.js?v=${verAsset('nav.js', '20261004d')}"></script>
+  <script defer src="/nav.js?v=${verAsset('nav.js', '20261007b')}"></script>
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EK459EK55M"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-EK459EK55M');</script>
 ${productSchemaHtml}  <script type="application/ld+json">
   ${breadcrumbJsonLd}
   </script>
+  <link rel="stylesheet" href="/ambient-motion.css?v=20261007b">
+  <script type="module" src="/ambient-motion.mjs?v=20261007b"></script>
   <style>
   /* ── Kitten Detail Page Styles ── */
   .kitten-detail-hero {
@@ -3610,6 +3615,8 @@ ${headerHtml}
     </div>
   </nav>
 
+  <div class="container"><a class="kitten-detail-back" href="/${langDir(lang)}kittens.html" data-i18n="kitten.backToList">${lang === 'en' ? '← Browse all kittens' : lang === 'zh' ? '← 查看全部幼猫' : '← すべての子猫を見る'}</a></div>
+
   <!-- Hero photo section -->
   <section class="kitten-detail-hero">
     <div class="container">
@@ -3697,11 +3704,11 @@ ${footerHtml}
 ${mobileCtaHtml}
 
   <script src="/kitten-catalog.js?v=${verAsset('kitten-catalog.js', '20260711b')}"></script>
-  <script src="/i18n.js?v=${verAsset('i18n.js', '20261004d')}"></script>
+  <script src="/i18n.js?v=${verAsset('i18n.js', '20261007a')}"></script>
   <script src="/catalog-i18n.js?v=${verAsset('catalog-i18n.js', '20261004a')}"></script>
   <script src="/kitten-carousel.js?v=${verAsset('kitten-carousel.js', '20260917a')}"></script>
-  <script src="/cta-widget.js?v=${verAsset('cta-widget.js', '20260926a')}"></script>
-  <script src="/script.js?v=${verAsset('script.js', '20261004d')}"></script>
+  <script src="/cta-widget.js?v=${verAsset('cta-widget.js', '20261007b')}"></script>
+  <script src="/script.js?v=${verAsset('script.js', '20261007a')}"></script>
   <script defer src="/mobile-cta.js?v=${verAsset('mobile-cta.js', '20261004d')}"></script>
   <script defer src="/inquiry-context.js?v=${verAsset('inquiry-context.js', '20261004d')}"></script>
   <script defer src="/analytics.js?v=${verAsset('analytics.js', '20261004d')}"></script>

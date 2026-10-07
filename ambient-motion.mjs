@@ -2,7 +2,7 @@ import {regions,sample,needed,fastMove,frameTime} from './ambient-timeline.mjs?v
 import {createMotionPreference} from './ambient-preferences.mjs?v=20261004a';
 import {mountMotionControl} from './ambient-controls.mjs?v=20261004a';
 import {media} from './ambient-media.mjs?v=20261004b';
-import {ambientPage,contentAnchors} from './ambient-pages.mjs?v=20261004a';
+import {ambientPage,contentAnchors} from './ambient-pages.mjs?v=20261007b';
 import {ambientPolicy} from './ambient-policy.mjs?v=20261004d';
 const config=ambientPage(location.pathname),main=document.querySelector('main,[role="main"]');
 if(config&&main)startAmbient();
@@ -16,7 +16,7 @@ function policy(){return ambientPolicy({reduced:reduce.matches,saveData:navigato
 document.body.classList.add('ambient-enabled');document.body.dataset.ambientPage=page;
 const serviceGlass='.service-price-card,.service-info-card,.service-table-wrap,.service-care-details,.service-legal,.booking-form-card,.booking-sidebar .info-card,.booking-sidebar .line-card,.blog-card,.blog-cat-nav,.blog-bottom-cta,.guide-card,.guide-quick-start,.guide-figure figcaption,.guide-cta,.rel-card,.experience-card,.experience-steps>li,.experience-template,.experience-context,.experience-photo figcaption';
 const serviceCopy='.experience-hero>div,.service-hero-inner>div:not(.service-hero-media),.service-heading,.service-final-cta,.booking-hero .container,.blog-hero,.blog-cat-heading,.guide-hub-header,.guide-category-title';
-const glassSelectors='.hero-content,.hero-award-proof,.page-hero,.sec-header,.choice-block,.about-card,.kitten-card,.parent-card,.review-card,.faq-item,.visit-card,.line-cta-card,.award-period,.awards-proof-note,.kit-filters,.filter-bar,.sort-controls,.kitten-filter-tabs,.kitten-sort-row,.sec-cta,.jisseki-obi,.kittens-toolbar';
+const glassSelectors='.kitten-detail-info,.kitten-detail-note,.kitten-detail-parents,.kitten-detail-cta,.hero-content,.hero-award-proof,.page-hero,.sec-header,.choice-block,.about-card,.kitten-card,.parent-card,.review-card,.faq-item,.visit-card,.line-cta-card,.award-period,.awards-proof-note,.kit-filters,.filter-bar,.sort-controls,.kitten-filter-tabs,.kitten-sort-row,.sec-cta,.jisseki-obi,.kittens-toolbar';
 function glassify(){
  document.querySelectorAll(glassSelectors+','+serviceGlass).forEach(e=>{e.classList.add('ambient-glass')});
  document.querySelectorAll(serviceCopy).forEach(e=>e.classList.add('ambient-glass','ambient-glass-copy'));

@@ -14,6 +14,7 @@ const pages = {
 
 export function ambientPage(pathname) {
   const route = pathname.replace(/^\/(?:en|zh)(?=\/)/, '').replace(/\/index\.html$/, '/');
+  if (/^\/kittens\/\d{4}-\d{5}\.html$/.test(route)) return {page:'kitten-detail',clips:['A','B','C'],sections:'.kitten-detail-hero,.kitten-detail-section,.kitten-detail-cta'};
   return pages[route] ?? null;
 }
 

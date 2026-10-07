@@ -12,20 +12,20 @@ const RELEASE = '20260710b';
 const COPY_RELEASE = '20260823a';
 const TRUST_RELEASE = '20260711b';
 const STYLE_RELEASE = '20261004d';
-const SCRIPT_RELEASE = '20261004d';
+const SCRIPT_RELEASE = '20261007a';
 const TRUTH_RELEASE = '20260711c';
 const CATALOG_RELEASE = '20260711b';
 const KITTEN_CAROUSEL_RELEASE = '20260917a';
-const CARD_LOADER_RELEASE = '20261004a';
+const CARD_LOADER_RELEASE = '20261007a';
 const ADMIN_RENDER_RELEASE = '20260811a';
 const ADMIN_PHOTOS_RELEASE = '20260811a';
 const ADMIN_DIARY_RELEASE = '20260711a';
 const ADMIN_FAQ_RELEASE = TRUTH_RELEASE;
 const ADMIN_CALENDAR_RELEASE = '20260714c';
-const NAV_RELEASE = '20261004d';
-const I18N_RELEASE = '20261004d';
+const NAV_RELEASE = '20261007b';
+const I18N_RELEASE = '20261007a';
 const GUIDE_RELEASE = '20261003c';
-const NAV_STYLE_RELEASE = '20261004e';
+const NAV_STYLE_RELEASE = '20261007b';
 const CHAT_STYLE_RELEASE = '20260712e';
 const CHAT_RELEASE = '20260714g';
 const SERVICE_STYLE_RELEASE = '20261004c';
@@ -34,11 +34,11 @@ const SERVICE_CALC_RELEASE = '20260816a';
 const DOG_UI_RELEASE = '20261004a';
 const ESTIMATE_RELEASE = '20260816a';
 const PUBLIC_ASSETS = {
-  'ambient-motion.css': '20261004f',
-  'ambient-motion.mjs': '20261004e',
+  'ambient-motion.css': '20261007b',
+  'ambient-motion.mjs': '20261007b',
   'awards.css': '20261004d',
   'page-experience.css': '20261004c',
-  'page-experience.js': '20261004e',
+  'page-experience.js': '20261007a',
   'gallery-filters.js': '20261004a',
   'style.css': STYLE_RELEASE,
   'nav.css': NAV_STYLE_RELEASE,
@@ -54,12 +54,12 @@ const PUBLIC_ASSETS = {
   'faq-loader.js': TRUST_RELEASE,
   'faq-page-loader.js': '20261004e',
   'kitten-carousel.js': KITTEN_CAROUSEL_RELEASE,
-  'cta-widget.js': '20260926a',
+  'cta-widget.js': '20261007b',
   'script.js': SCRIPT_RELEASE,
   'analytics.js': '20261004d',
   'inquiry-context.js': '20261004d',
-  'kitten-discovery.js': '20261004a',
-  'kitten-discovery.css': '20261004a',
+  'kitten-discovery.js': '20261007b',
+  'kitten-discovery.css': '20261007b',
   'guide/i18n-guide-body.js': '20261004a',
   'guide/guide-visuals.js': GUIDE_RELEASE,
   'mobile-cta.js': '20261004d',

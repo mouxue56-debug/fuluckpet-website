@@ -78,7 +78,7 @@ class CatalogGrid {
 
   set innerHTML(value) {
     this._innerHTML = String(value || '');
-    this.children = [...this._innerHTML.matchAll(/<div class="kitten-card"([^>]*)>/g)].map((match) => {
+    this.children = [...this._innerHTML.matchAll(/<(?:div|a) class="kitten-card"([^>]*)>/g)].map((match) => {
       const card = new CatalogControlNode('kitten-card');
       for (const attribute of match[1].matchAll(/\bdata-([a-z-]+)="([^"]*)"/g)) {
         const key = attribute[1].replace(/-([a-z])/g, (_whole, letter) => letter.toUpperCase());
@@ -403,11 +403,11 @@ test('every tracked CTA consumer uses the current shared-data cache version', ()
   const stale = [];
   for (const file of files) {
     const source = fs.readFileSync(path.join(ROOT, file), 'utf8');
-    if (/cta-widget\.js\?v=/.test(source) && !/cta-widget\.js\?v=20260926a/.test(source)) {
+    if (/cta-widget\.js\?v=/.test(source) && !/cta-widget\.js\?v=20261007b/.test(source)) {
       stale.push(file);
     }
   }
   assert.deepEqual(stale, []);
   const generator = fs.readFileSync(path.join(ROOT, 'tools/generate-site.js'), 'utf8');
-  assert.match(generator, /verAsset\('cta-widget\.js', '20260926a'\)/);
+  assert.match(generator, /verAsset\('cta-widget\.js', '20261007b'\)/);
 });

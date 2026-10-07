@@ -216,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const sortBtns = document.querySelectorAll('.sort-btn');
   const kittensGridEl = document.getElementById('kittensGrid');
 
-  if (kittensGridEl) {
+  if (kittensGridEl && !document.querySelector("[data-home-catalog]")) {
     const catalog = window.FuluckKittenCatalog;
 
     function orderCards(selectedSort) {
