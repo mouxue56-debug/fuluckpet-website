@@ -25,7 +25,7 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="style.css?v=20261004d">
-  <link rel="stylesheet" href="/nav.css?v=20261004e">
+  <link rel="stylesheet" href="/nav.css?v=20261007b">
   <link rel="stylesheet" href="/awards.css?v=20261004d">
   <!-- LCP: warm up the hero image and the image-proxy origin the kitten cards hit -->
   <link rel="preload" as="image" href="images/hero-main.webp" fetchpriority="high">
@@ -153,11 +153,11 @@
   <script type="application/ld+json">
 {"@context": "https://schema.org", "@type": "VideoObject", "name": "サイベリアン仔猫の日常 124 | 福楽キャッテリー", "description": "大阪のサイベリアン専門ブリーダー・福楽キャッテリーで暮らすサイベリアン仔猫の日常の様子をご紹介します。", "thumbnailUrl": "https://i.ytimg.com/vi/1RDZQd4luZg/hqdefault.jpg", "uploadDate": "2026-07-04T21:47:06-07:00", "contentUrl": "https://www.youtube.com/watch?v=1RDZQd4luZg", "embedUrl": "https://www.youtube-nocookie.com/embed/1RDZQd4luZg", "publisher": {"@type": "Organization", "name": "福楽キャッテリー", "logo": {"@type": "ImageObject", "url": "https://fuluckpet.com/images/ogp.jpg"}}}
 </script>
-  <script defer src="/nav.js?v=20261004d"></script>
-  <link rel="stylesheet" href="/ambient-motion.css?v=20261004f">
-  <script type="module" src="/ambient-motion.mjs?v=20261004e"></script>
-<link rel="stylesheet" href="/kitten-discovery.css?v=20261007a">
-<script defer src="/kitten-discovery.js?v=20261007a"></script>
+  <script defer src="/nav.js?v=20261007b"></script>
+  <link rel="stylesheet" href="/ambient-motion.css?v=20261007b">
+  <script type="module" src="/ambient-motion.mjs?v=20261007b"></script>
+<link rel="stylesheet" href="/kitten-discovery.css?v=20261007b">
+<script defer src="/kitten-discovery.js?v=20261007b"></script>
 <script defer src="/kitten-history.js?v=20261007a"></script>
 </head>
 <body class="has-mobile-cta">
@@ -176,7 +176,7 @@
 
       <nav class="nav" id="nav">
         <a href="#about" class="nav-link" data-i18n="nav.about">猫舎について</a>
-        <a href="#kittens" class="nav-link" data-i18n="nav.kittens">子猫一覧</a>
+        <a href="/kittens.html" class="nav-link" data-i18n="nav.kittens">子猫一覧</a>
         <a href="#parents" class="nav-link" data-i18n="nav.parents">親猫紹介</a>
         <a href="#visit" class="nav-link" data-i18n="nav.visit">見学案内</a>
         <a href="#faq" class="nav-link" data-i18n="nav.faq">よくある質問</a>
@@ -221,6 +221,7 @@
           </a>
         </div>
 
+        <a class="nav-catalog-direct nav-header-catalog" href="/kittens.html"><span data-i18n="nav.kittens">子猫一覧</span></a>
         <button class="hamburger" id="hamburger" aria-label="メニュー">
           <span></span><span></span><span></span>
         </button>
@@ -232,7 +233,7 @@
   <div class="mobile-nav" id="mobileNav">
     <nav>
       <a href="#about" class="mobile-nav-link" data-i18n="nav.about">猫舎について</a>
-      <a href="#kittens" class="mobile-nav-link" data-i18n="nav.kittens">子猫一覧</a>
+      <a href="/kittens.html" class="mobile-nav-link" data-i18n="nav.kittens">子猫一覧</a>
       <a href="#parents" class="mobile-nav-link" data-i18n="nav.parents">親猫紹介</a>
       <a href="#visit" class="mobile-nav-link" data-i18n="nav.visit">見学案内</a>
       <a href="#faq" class="mobile-nav-link" data-i18n="nav.faq">よくある質問</a>
@@ -240,7 +241,7 @@
       <a href="siberian-allergy.html" class="mobile-nav-link">猫アレルギーと飼育</a>
       <a href="siberian-breeder-osaka.html" class="mobile-nav-link">大阪・関西のお迎え</a>
       <a href="waitlist.html" class="mobile-nav-link">出産予定・未掲載の子猫</a>
-      <a href="kittens.html" class="mobile-nav-link" data-i18n="nav.allKittens">子猫一覧（すべて）</a>
+      <a href="/kittens.html" class="mobile-nav-link" data-i18n="nav.allKittens">子猫一覧（すべて）</a>
       <a href="parents.html" class="mobile-nav-link" data-i18n="nav.allParents">親猫紹介（すべて）</a>
       <a href="gallery.html" class="mobile-nav-link" data-i18n="nav.gallery">ギャラリー</a>
       <a href="reviews.html" class="mobile-nav-link" data-i18n="nav.reviews">お客様の声</a>
@@ -369,12 +370,6 @@
         <p class="sec-desc" data-i18n="kittens.desc">新しいご家族を待っている子猫たちをご紹介します。</p>
         <p class="sec-desc" style="margin-top:8px;font-size:15px;" data-i18n="kittens.priceRange">料金は子猫ごとに異なります。各子猫ページの最新情報をご確認ください。</p>
       </div>
-      <div class="filter-bar" data-kitten-filters data-home-catalog>
-        <button class="kit-filter-chip" data-status-filter="all" aria-pressed="false" data-i18n="kittens.all">すべて</button>
-        <button class="kit-filter-chip" data-status-filter="available" aria-pressed="true" data-i18n="kittens.available">販売中</button>
-        <button class="kit-filter-chip" data-status-filter="reserved" aria-pressed="false" data-i18n="kittens.reserved">ご予約済</button>
-        <button class="kit-filter-chip" data-status-filter="sold" aria-pressed="false" data-i18n="kittens.sold">ご家族決定</button>
-      </div>
       <div class="kittens-toolbar" hidden>
         <div class="sort-controls">
           <span class="sort-label" data-i18n="kittens.sort">並び替え:</span>
@@ -385,7 +380,7 @@
         </div>
         <span class="kittens-count"><span id="visibleCount">9</span>件表示</span>
       </div>
-      <p class="kit-catalog-link"><a class="btn btn-primary" data-i18n="kittens.allLink" href="/kittens.html">すべての子猫を見る →</a></p>
+      <p class="kit-catalog-link"><a href="#home-kitten-filters" data-experience-ja="条件を選ぶ ↓" data-experience-en="Filter kittens ↓" data-experience-zh="筛选条件 ↓">条件を選ぶ ↓</a> <a class="btn btn-primary" data-i18n="kittens.allLink" href="/kittens.html">すべての子猫を見る →</a></p>
       <div class="kittens-grid" id="kittensGrid" data-page-size="9">
         <!-- BEGIN GENERATED HOMEPAGE KITTENS -->
         <a class="kitten-card" href="/kittens/2603-02736.html" data-entry-group="siberian" data-status="available" data-promotion-tag="featured" data-promotion-priority="0" data-price="200000" data-breed="サイベリアン" data-birthday="2026-02-21" data-images="" data-video="" data-papa="LEO くん" data-mama="ティアラ ちゃん" data-new="false" data-name="" data-breeder-id="2603-02736" data-detail-url="/kittens/2603-02736.html">
@@ -3664,6 +3659,14 @@
         </div>
       <!-- END GENERATED HOMEPAGE KITTENS -->
       </div>
+      <p data-kitten-filter-empty hidden role="status">条件に合う子猫がいません。条件を変更してお探しください。</p>
+      <div class="filter-bar" data-kitten-filters data-home-catalog id="home-kitten-filters">
+        <button class="kit-filter-chip" data-status-filter="all" aria-pressed="false" data-i18n="kittens.all">すべて</button>
+        <button class="kit-filter-chip" data-status-filter="available" aria-pressed="true" data-i18n="kittens.available">販売中</button>
+        <button class="kit-filter-chip" data-status-filter="reserved" aria-pressed="false" data-i18n="kittens.reserved">ご予約済</button>
+        <button class="kit-filter-chip" data-status-filter="sold" aria-pressed="false" data-i18n="kittens.sold">ご家族決定</button>
+      </div>
+
       <div class="load-more-area" id="loadMoreArea" style="display:none">
         <button class="btn btn-secondary load-more-btn" id="loadMoreBtn" data-i18n="kittens.loadMore">もっと見る</button>
       </div>
@@ -4222,12 +4225,12 @@
         <div class="footer-links">
           <h2 data-i18n="footer.navTitle">ナビゲーション</h2>
           <a href="#about" data-i18n="nav.about">猫舎について</a>
-          <a href="#kittens" data-i18n="nav.kittens">子猫一覧</a>
+          <a href="/kittens.html" data-i18n="nav.kittens">子猫一覧</a>
           <a href="#parents" data-i18n="nav.parents">親猫紹介</a>
           <a href="#visit" data-i18n="nav.visit">見学案内</a>
           <a href="#faq" data-i18n="nav.faq">よくある質問</a>
           <a href="siberian.html" data-i18n="nav.siberian">サイベリアン</a>
-          <a href="kittens.html" data-i18n="nav.allKittens">子猫一覧（すべて）</a>
+          <a href="/kittens.html" data-i18n="nav.allKittens">子猫一覧（すべて）</a>
           <a href="parents.html" data-i18n="nav.allParents">親猫紹介（すべて）</a>
           <a href="gallery.html" data-i18n="nav.gallery">ギャラリー</a>
           <a href="reviews.html" data-i18n="nav.reviews">お客様の声</a>

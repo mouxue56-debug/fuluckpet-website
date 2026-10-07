@@ -56,3 +56,9 @@
 @media(max-width:600px){.booking-kitten-grid{grid-template-columns:1fr;max-height:380px;}}
 .kittens-toolbar[hidden]{display:none!important;}
 .review-card[hidden]{display:none!important;}
+/* Homepage leads with cats; advanced controls follow the nine-card page. */
+#kittensGrid{scroll-margin-top:90px}
+#home-kitten-filters{margin-top:24px}
+.kit-discovery-bar[hidden]{display:none!important}
+.kit-catalog-link{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.kit-catalog-link>a:first-child{color:#285d48;font-size:14px;text-underline-offset:4px}

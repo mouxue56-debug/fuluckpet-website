@@ -92,8 +92,8 @@
       });
       if (pager) {
         pager.replaceChildren(); pager.hidden = pages <= 1;
-        var prev = button(copy.prev, function() { page--; apply(); filters.scrollIntoView({block:'start'}); }); prev.disabled = page === 0;
-        var next = button(copy.next, function() { page++; apply(); filters.scrollIntoView({block:'start'}); }); next.disabled = page + 1 === pages;
+        var prev = button(copy.prev, function() { page--; apply(); grid.scrollIntoView({block:'start'}); }); prev.disabled = page === 0;
+        var next = button(copy.next, function() { page++; apply(); grid.scrollIntoView({block:'start'}); }); next.disabled = page + 1 === pages;
         pager.appendChild(prev); pager.appendChild(el('span', '', (page + 1) + ' / ' + pages)); pager.appendChild(next);
       }
       var empty = section.querySelector('[data-kitten-filter-empty]');
@@ -146,6 +146,7 @@
     function paintTray() {
       if (!tray) return;
       tray.replaceChildren();
+      if (filters.dataset.homeCatalog !== undefined) tray.parentElement.hidden = state.compare.length === 0;
       state.compare.forEach(function(id) {
         var card = Array.from(grid.querySelectorAll('.kitten-card')).find(function(card) { return card.dataset.breederId === id; });
         var chip = el('div', 'kit-compare-chip'), image = card && card.querySelector('img');
@@ -189,6 +190,8 @@
     }
     function renderTools() {
       copy = COPY[currentLang()];
+      var filterJump = section.querySelector('a[href="#home-kitten-filters"]');
+      if (filterJump) filterJump.textContent = filterJump.getAttribute('data-experience-' + currentLang()) || filterJump.getAttribute('data-experience-ja');
       if (tools) tools.remove();
       tools = el('details', 'kit-discovery-tools');
       tools.open = true;
@@ -206,7 +209,7 @@
       var oldBar = section.querySelector('.kit-discovery-bar'); if (oldBar) oldBar.remove();
       var bar = el('div', 'kit-discovery-bar'); count = el('p'); count.setAttribute('role', 'status');
       compareButton = button(copy.open, openComparison); note = el('p', 'kit-discovery-note', copy.hint); note.setAttribute('role', 'status');
-      bar.appendChild(count); if (typeof dialog.showModal === 'function') { bar.appendChild(compareButton); bar.appendChild(note); } filters.after(bar);
+      if (filters.dataset.homeCatalog !== undefined) tools.appendChild(count); else bar.appendChild(count); if (typeof dialog.showModal === 'function') { bar.appendChild(compareButton); bar.appendChild(note); } if (filters.dataset.homeCatalog !== undefined) grid.before(bar); else filters.after(bar);
       tray = el('div', 'kit-compare-tray'); bar.appendChild(tray);
       if (!pager) { pager = el('nav', 'kit-catalog-pager'); pager.setAttribute('aria-label', 'Kitten pages'); grid.after(pager); }
     }

@@ -134,7 +134,7 @@ function buildPage(art) {
       </a>
       <nav class="nav" id="nav">
         <a href="/index.html#about" class="nav-link">猫舎について</a>
-        <a href="/index.html#kittens" class="nav-link">子猫一覧</a>
+        <a href="/kittens.html" class="nav-link">子猫一覧</a>
         <a href="/index.html#parents" class="nav-link">親猫紹介</a>
         <a href="/index.html#visit" class="nav-link">見学案内</a>
         <a href="/index.html#faq" class="nav-link">よくある質問</a>

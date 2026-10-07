@@ -25,7 +25,7 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="style.css?v=20261004d">
-  <link rel="stylesheet" href="/nav.css?v=20261004e">
+  <link rel="stylesheet" href="/nav.css?v=20261007b">
   <link rel="stylesheet" href="/awards.css?v=20261004d">
   <link rel="icon" href="/favicon.ico?v=20260903a" sizes="any">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%235BC4A8'/><g fill='%23ffffff'><ellipse cx='11' cy='12' rx='2.3' ry='2.7'/><ellipse cx='21' cy='12' rx='2.3' ry='2.7'/><ellipse cx='7.5' cy='17.5' rx='2.1' ry='2.4'/><ellipse cx='24.5' cy='17.5' rx='2.1' ry='2.4'/><path d='M16 16.5c3.1 0 5.6 2.2 5.6 4.9 0 2.2-1.9 3.1-5.6 3.1s-5.6-.9-5.6-3.1c0-2.7 2.5-4.9 5.6-4.9z'/></g></svg>">
@@ -125,9 +125,9 @@
     ]
   }
   </script>
-  <script defer src="/nav.js?v=20261004d"></script>
-  <link rel="stylesheet" href="/ambient-motion.css?v=20261004f">
-  <script type="module" src="/ambient-motion.mjs?v=20261004e"></script>
+  <script defer src="/nav.js?v=20261007b"></script>
+  <link rel="stylesheet" href="/ambient-motion.css?v=20261007b">
+  <script type="module" src="/ambient-motion.mjs?v=20261007b"></script>
   <link rel="stylesheet" href="/page-experience.css?v=20261004c">
   <script defer src="/page-experience.js?v=20261007a"></script>
 </head>
@@ -147,7 +147,7 @@
 
       <nav class="nav" id="nav">
         <a href="index.html#about" class="nav-link" data-i18n="nav.about">猫舎について</a>
-        <a href="index.html#kittens" class="nav-link" data-i18n="nav.kittens">子猫一覧</a>
+        <a href="/kittens.html" class="nav-link" data-i18n="nav.kittens">子猫一覧</a>
         <a href="index.html#parents" class="nav-link" data-i18n="nav.parents">親猫紹介</a>
         <a href="index.html#visit" class="nav-link" data-i18n="nav.visit">見学案内</a>
         <a href="index.html#faq" class="nav-link" data-i18n="nav.faq">よくある質問</a>
@@ -161,7 +161,7 @@
             <a href="siberian-breeder-osaka.html" class="nav-dropdown-item">大阪・関西のお迎え</a>
             <a href="waitlist.html" class="nav-dropdown-item">お迎え予約（ウェイトリスト）</a>
             <a href="about.html" class="nav-dropdown-item" data-i18n="nav.aboutPage">受賞歴・認定</a>
-            <a href="kittens.html" class="nav-dropdown-item" data-i18n="nav.allKittens">子猫一覧（すべて）</a>
+            <a href="/kittens.html" class="nav-dropdown-item" data-i18n="nav.allKittens">子猫一覧（すべて）</a>
             <a href="parents.html" class="nav-dropdown-item" data-i18n="nav.allParents">親猫紹介（すべて）</a>
             <a href="gallery.html" class="nav-dropdown-item" data-i18n="nav.gallery">卒業猫ギャラリー</a>
             <a href="reviews.html" class="nav-dropdown-item" data-i18n="nav.reviews">お客様の声</a>
@@ -192,6 +192,7 @@
           </a>
         </div>
 
+        <a class="nav-catalog-direct nav-header-catalog" href="/kittens.html"><span data-i18n="nav.kittens">子猫一覧</span></a>
         <button class="hamburger" id="hamburger" aria-label="メニュー">
           <span></span><span></span><span></span>
         </button>
@@ -203,7 +204,7 @@
   <div class="mobile-nav" id="mobileNav">
     <nav>
       <a href="index.html#about" class="mobile-nav-link" data-i18n="nav.about">猫舎について</a>
-      <a href="index.html#kittens" class="mobile-nav-link" data-i18n="nav.kittens">子猫一覧</a>
+      <a href="/kittens.html" class="mobile-nav-link" data-i18n="nav.kittens">子猫一覧</a>
       <a href="index.html#parents" class="mobile-nav-link" data-i18n="nav.parents">親猫紹介</a>
       <a href="index.html#visit" class="mobile-nav-link" data-i18n="nav.visit">見学案内</a>
       <a href="index.html#faq" class="mobile-nav-link" data-i18n="nav.faq">よくある質問</a>
@@ -211,7 +212,7 @@
       <a href="siberian-allergy.html" class="mobile-nav-link">猫アレルギーと飼育</a>
       <a href="siberian-breeder-osaka.html" class="mobile-nav-link">大阪・関西のお迎え</a>
       <a href="waitlist.html" class="mobile-nav-link">お迎え予約（ウェイトリスト）</a>
-      <a href="kittens.html" class="mobile-nav-link" data-i18n="nav.allKittens">子猫一覧（すべて）</a>
+      <a href="/kittens.html" class="mobile-nav-link" data-i18n="nav.allKittens">子猫一覧（すべて）</a>
       <a href="parents.html" class="mobile-nav-link" data-i18n="nav.allParents">親猫紹介（すべて）</a>
       <a href="gallery.html" class="mobile-nav-link" data-i18n="nav.gallery">ギャラリー</a>
       <a href="reviews.html" class="mobile-nav-link" data-i18n="nav.reviews">お客様の声</a>
@@ -566,13 +567,13 @@
           <h2 data-i18n="footer.navTitle">ナビゲーション</h2>
           <a href="index.html#about" data-i18n="nav.about">猫舎について</a>
           <a href="siberian.html" data-i18n="nav.siberian">サイベリアンの魅力</a>
-          <a href="index.html#kittens" data-i18n="nav.kittens">子猫一覧</a>
+          <a href="/kittens.html" data-i18n="nav.kittens">子猫一覧</a>
           <a href="index.html#parents" data-i18n="nav.parents">親猫紹介</a>
           <a href="about.html" data-i18n="nav.aboutPage">受賞歴・認定</a>
           <a href="guide/" data-i18n="nav.guide">お迎えガイド</a>
           <a href="blog.html" data-i18n="nav.blog">知識ライブラリ</a>
           <a href="diary/" data-i18n="nav.diary">猫舎日記</a>
-          <a href="kittens.html" data-i18n="nav.allKittens">子猫一覧（すべて）</a>
+          <a href="/kittens.html" data-i18n="nav.allKittens">子猫一覧（すべて）</a>
           <a href="parents.html" data-i18n="nav.allParents">親猫紹介（すべて）</a>
           <a href="gallery.html" data-i18n="nav.gallery">卒業猫ギャラリー</a>
           <a href="reviews.html" data-i18n="nav.reviews">お客様の声</a>

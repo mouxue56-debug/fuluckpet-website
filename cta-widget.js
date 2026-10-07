@@ -74,6 +74,11 @@
   }
 
   function render() {
+    // Some pages place their static bar after this script; check after the async fetch too.
+    if (document.querySelector && document.querySelector('.mobile-cta-bar')) {
+      if (widget) { widget.remove(); widget = null; }
+      return;
+    }
     if (!widget) {
       widget = document.createElement('div');
       widget.className = 'cta-widget';

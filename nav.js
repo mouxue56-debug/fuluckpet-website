@@ -81,7 +81,6 @@
       labelKey: 'nav.group.adoption',
       icon: 'calendar-check',
       items: [
-        { href: '/booking.html', key: 'nav.booking', icon: 'calendar-check', match: ['/booking.html'] },
         { href: '/waitlist.html', key: 'nav.waitlist', icon: 'clipboard-list', localized: true, match: ['/waitlist.html'] },
         { href: '/siberian-breeder-osaka.html', key: 'nav.osakaAdoption', icon: 'map-pin', localized: true, match: ['/siberian-breeder-osaka.html'] },
         { href: '/guide/', key: 'nav.guide', icon: 'book-open', localized: true, match: ['/guide/'] },
@@ -412,10 +411,15 @@
     return '<span class="nav-new-badge" data-i18n="nav.new">新着</span>';
   }
 
+  function catalogDirectMarkup(extraClass) {
+    var href = (currentLang() === 'ja' ? '' : '/' + currentLang()) + '/kittens.html';
+    return '<a class="nav-catalog-direct ' + (extraClass || '') + '" href="' + href + '"><span data-i18n="nav.kittens">子猫一覧</span></a>';
+  }
+
   function renderDesktopNav(route) {
     var groups = visibleNavGroups().map(function (group) {
       var active = groupIsActive(group, route);
-      var items = visibleItems(group).map(function (item) {
+      var items = visibleItems(group).filter(function(item) { return item.key !== 'nav.kittens'; }).map(function (item) {
         var current = itemIsCurrent(item, route);
         return (
           '<a class="nav-dropdown-link' + (item.featured ? ' is-featured' : '') + (current ? ' is-current' : '') + '"' +
@@ -442,7 +446,7 @@
     }).join('');
 
     return (
-      '<div class="nav-menu-groups" aria-label="Main navigation">' + groups + '</div>' +
+      '<div class="nav-menu-groups" aria-label="Main navigation">' + catalogDirectMarkup('') + groups + '</div>' +
       '<div class="nav-actions">' +
         langSwitchMarkup('nav-lang') +
         '<a class="nav-action-btn" href="' + LINE_URL + '" target="_blank" rel="noopener" data-cta="line">' +
@@ -460,7 +464,7 @@
   function renderMobileNav(route) {
     var sections = visibleNavGroups().map(function (group) {
       var active = groupIsActive(group, route);
-      var items = visibleItems(group).map(function (item) {
+      var items = visibleItems(group).filter(function(item) { return item.key !== 'nav.kittens'; }).map(function (item) {
         var current = itemIsCurrent(item, route);
         return (
           '<a class="mobile-nav-link nav-mobile-link' + (item.featured ? ' is-featured' : '') + (current ? ' is-current' : '') + '"' +
@@ -500,7 +504,7 @@
             '<span data-i18n="visit.bookBtn"></span>' +
           '</a>' +
         '</div>' +
-        '<nav class="nav-mobile-sections" aria-label="Mobile navigation">' + sections + '</nav>' +
+        catalogDirectMarkup('nav-mobile-catalog') + '<nav class="nav-mobile-sections" aria-label="Mobile navigation">' + sections + '</nav>' +
       '</div>'
     );
   }
@@ -515,7 +519,7 @@
     });
     // In-place translation changes labels without rebuilding the menu. Keep its
     // destinations on the same selected language as those labels.
-    document.querySelectorAll('.nav-dropdown-link, .nav-mobile-link').forEach(function (link) {
+    document.querySelectorAll('.nav-dropdown-link, .nav-mobile-link, .nav-catalog-direct').forEach(function (link) {
       var label = link.querySelector('[data-i18n]');
       var key = label && label.getAttribute('data-i18n');
       NAV_GROUPS.forEach(function (group) {
@@ -861,6 +865,13 @@
       var route = currentRoute();
       nav.innerHTML = renderDesktopNav(route);
       mobileNav.innerHTML = renderMobileNav(route);
+      var hamburger = document.getElementById('hamburger');
+      if (hamburger && !document.querySelector('.nav-header-catalog')) {
+        var direct = document.createElement('a'); direct.className = 'nav-catalog-direct nav-header-catalog';
+        direct.href = (currentLang() === 'ja' ? '' : '/' + currentLang()) + '/kittens.html';
+        direct.innerHTML = '<span data-i18n="nav.kittens">子猫一覧</span>';
+        hamburger.parentElement.insertBefore(direct, hamburger);
+      }
 
       document.body.classList.add('nav-enhanced');
       bindDesktop(nav);
