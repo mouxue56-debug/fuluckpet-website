@@ -847,3 +847,60 @@ test('daily owner messages stay deterministic and bounded for 100 two-hundred-ch
   assert.ok(first.text.length <= 2_000, `email text length was ${first.text.length}`);
   assert.ok(first.html.length <= 8_000, `email HTML length was ${first.html.length}`);
 });
+
+
+test('overdue retry deadlines survive hourly and nighttime gaps without consuming skipped attempts', async () => {
+  const { bindings, DATA, emailCalls } = createEnv();
+  const failedAt = Date.parse('2026-10-10T15:56:00Z'); // JST 00:56
+  const spec = notificationSpec({ entityId: 'night-retry' });
+  await putJson(DATA, spec.sourceKey, bookingSource());
+  const intent = await createNotifyIntent(bindings, spec, failedAt);
+  const first = await markNotifyFailure(bindings, intent.itemKey, { code: 'transient' }, failedAt);
+  assert.equal(first.next_attempt_ms, Date.parse('2026-10-10T16:01:00Z'));
+  await reconcileDueNotifications(bindings, Date.parse('2026-10-10T16:00:00Z'), {});
+  assert.equal(emailCalls.length, 0, 'JST 01:00 must not send a future retry');
+  assert.equal((await readNotifyItem(bindings, intent.itemKey)).attempt_count, 1);
+  const emailSend = bindings.EMAIL.send;
+  bindings.EMAIL.send = async () => { throw new Error('synthetic transient email failure'); };
+  await reconcileDueNotifications(bindings, Date.parse('2026-10-10T23:00:00Z'), {});
+  const retry = await readNotifyItem(bindings, intent.itemKey);
+  assert.equal(retry.status, 'retry');
+  assert.equal(retry.attempt_count, 2);
+  assert.equal(retry.next_attempt_ms, Date.parse('2026-10-10T23:30:00Z'));
+  bindings.EMAIL.send = emailSend;
+  const result = await reconcileDueNotifications(bindings, Date.parse('2026-10-11T00:00:00Z'), {});
+  assert.equal(result.attempted, 1);
+  assert.equal(emailCalls.length, 1);
+  const sent = await readNotifyItem(bindings, intent.itemKey);
+  assert.equal(sent.status, 'sent');
+  assert.equal(sent.attempt_count, 2, 'only actual failed attempts consume the ladder');
+  assert.equal(DATA.store.has(retry.due_key), false);
+});
+
+test('an hourly due backlog keeps entries beyond the 100-item budget for the next hour', async () => {
+  const { bindings, DATA, emailCalls } = createEnv({ pageSize: 60 });
+  const createdAt = Date.parse('2026-10-10T16:01:00Z'); // JST 01:01
+  for (let index = 0; index < 105; index += 1) {
+    const spec = notificationSpec({ entityId: `hourly-backlog-${String(index).padStart(3, '0')}` });
+    await putJson(DATA, spec.sourceKey, bookingSource());
+    await createNotifyIntent(bindings, spec, createdAt);
+  }
+  const morning = Date.parse('2026-10-10T23:00:00Z');
+  const first = await reconcileDueNotifications(bindings, morning, {});
+  assert.equal(first.attempted, 100);
+  assert.equal(emailCalls.length, 100);
+  const remaining = [...DATA.store.keys()].filter((key) => key.startsWith('notify:due:'));
+  assert.equal(remaining.length, 5);
+  for (const dueKey of remaining) {
+    const item = await readNotifyItem(bindings, DATA.store.get(dueKey));
+    assert.equal(item.status, 'pending');
+    assert.equal(item.attempt_count, 0);
+    assert.equal(item.next_attempt_ms, createdAt);
+  }
+  const second = await reconcileDueNotifications(bindings, morning + 3_600_000, {});
+  assert.equal(second.attempted, 5);
+  assert.equal(emailCalls.length, 105);
+  assert.equal([...DATA.store.keys()].some((key) => key.startsWith('notify:due:')), false);
+  await reconcileDueNotifications(bindings, morning + 7_200_000, {});
+  assert.equal(emailCalls.length, 105, 'the next run cannot resend drained entries');
+});

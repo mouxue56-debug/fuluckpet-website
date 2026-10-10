@@ -1,6 +1,8 @@
 /** Durable notification intent and retry ledger backed by Cloudflare KV. */
 
 export const NOTIFY_TTL_SECONDS = 90 * 24 * 60 * 60;
+// Minimum retry deadlines, independent of cron cadence. An overdue deadline is
+// attempted on the next available run; paused hours never consume attempts.
 export const RETRY_DELAYS_MS = [5 * 60_000, 30 * 60_000, 6 * 3_600_000, 24 * 3_600_000];
 export const CHAT_NOTIFY_DESCRIPTOR_VERSION = 1;
 export const CHAT_SOURCE_PAYLOAD_HASH_RULE = 'sha256:json-v1:[ts,sid,provider,user,assistant]';
@@ -20,6 +22,7 @@ const ADMIN_URL = 'https://fuluckpet.com/admin/';
 const DUE_PREFIX = 'notify:due:';
 const READY_PREFIX = 'notify:ready:';
 const SENT_MARKER_PREFIX = 'notify:sent:';
+// Bound per-run work. Unprocessed due entries remain queued for a later run.
 const MAX_DUE_PER_RECONCILE = 100;
 const MAX_DUE_KEYS_SCANNED_PER_RECONCILE = MAX_DUE_PER_RECONCILE * 2;
 const LIST_PAGE_LIMIT = 1_000;
@@ -1163,11 +1166,13 @@ export async function runScheduledNotificationRecovery(env, nowMs, dependencies 
   const bookingRepair = await settleScheduledPhase(
     () => repairBookingNotificationSources(env, nowMs),
   );
-  const due = await settleScheduledPhase(
-    () => reconcileDueNotifications(env, nowMs, dependencies),
-  );
+  // Build the 09:00 JST summary before draining due items, so hourly scheduling
+  // does not postpone its first delivery until 10:00 JST.
   const daily = await settleScheduledPhase(
     () => ensureDailyReconcileSummary(env, nowMs, dependencies),
+  );
+  const due = await settleScheduledPhase(
+    () => reconcileDueNotifications(env, nowMs, dependencies),
   );
   return { chat_repair: chatRepair, booking_repair: bookingRepair, due, daily };
 }
@@ -1197,6 +1202,8 @@ export async function reconcileDueNotifications(env, nowMs, dependencies = {}) {
       const dueKey = entry?.name;
       if (typeof dueKey !== 'string') continue;
       const dueTime = dueTimeFromKey(dueKey);
+      // There is no lower time bound: include overdue retries from earlier
+      // hours/days, including the JST 01:00–08:00 scheduling gap.
       if (dueTime !== null && dueTime > nowMs) {
         reachedFuture = true;
         break;
