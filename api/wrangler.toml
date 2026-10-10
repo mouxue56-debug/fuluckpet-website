@@ -47,8 +47,9 @@ name = "EMAIL"
 destination_address = "mouxue56@gmail.com"
 
 # One scheduler owns source repair, due retries, and the 09:00 JST summary.
+# UTC 23,00–16 = JST 08–23,00–01 (18 runs/day); JST 02–07 is paused.
 [triggers]
-crons = ["*/5 * * * *"]
+crons = ["0 23,0-16 * * *"]
 
 # Exact tombstone for a legacy owner-gated pricing asset that was once published
 # with an immutable one-year cache policy. The source file is deleted; this route

@@ -49,6 +49,7 @@ class MemoryKV {
     this.failures = [];
     this.emptyFirstPageCursor = emptyFirstPageCursor;
     this.cursorOffsets = new Map([['', 0]]);
+    this.cursorAfterKeys = new Map();
     if (emptyFirstPageCursor) this.cursorOffsets.set(emptyFirstPageCursor, 0);
   }
 
@@ -85,19 +86,23 @@ class MemoryKV {
     if (this.emptyFirstPageCursor && cursor === '') {
       return { keys: [], list_complete: false, cursor: this.emptyFirstPageCursor };
     }
-    const offset = this.cursorOffsets.get(cursor) ?? 0;
+    const offset = this.cursorOffsets.get(`${prefix}|${cursor}`) ?? this.cursorOffsets.get(cursor) ?? 0;
     const names = [...new Set([...this.store.keys(), ...this.ghostKeys])]
       .filter((name) => name.startsWith(prefix))
       .sort();
     const size = Math.min(limit, this.pageSize);
-    const pageNames = names.slice(offset, offset + size);
+    // KV cursors advance past a key even when delivery removes earlier due keys.
+    const afterKey = this.cursorAfterKeys.get(`${prefix}|${cursor}`);
+    const remaining = afterKey ? names.filter((name) => name > afterKey) : names;
+    const pageNames = remaining.slice(0, size);
     const nextOffset = offset + pageNames.length;
     const nextCursor = `c${nextOffset}`;
-    this.cursorOffsets.set(nextCursor, nextOffset);
+    this.cursorOffsets.set(`${prefix}|${nextCursor}`, nextOffset);
+    this.cursorAfterKeys.set(`${prefix}|${nextCursor}`, pageNames.at(-1) || afterKey);
     return {
       keys: pageNames.map((name) => ({ name })),
-      list_complete: nextOffset >= names.length,
-      cursor: nextOffset < names.length ? nextCursor : undefined,
+      list_complete: pageNames.length >= remaining.length,
+      cursor: pageNames.length < remaining.length ? nextCursor : undefined,
     };
   }
 }
@@ -139,9 +144,9 @@ function sha256(value) {
   return `sha256:${createHash('sha256').update(String(value)).digest('hex')}`;
 }
 
-function chatSource(roundId, { sid = 'private-customer@example.test', validHash = true } = {}) {
+function chatSource(roundId, { sid = 'private-customer@example.test', validHash = true, sourceTs = NOW_MS } = {}) {
   const core = {
-    ts: NOW_MS,
+    ts: sourceTs,
     sid,
     provider: 'mayuki-grok-4.3',
     user: 'private customer question',
@@ -156,18 +161,18 @@ function chatSource(roundId, { sid = 'private-customer@example.test', validHash 
       round_id: roundId,
       template: 'owner_chat_round_v1',
       channels: ['email', 'telegram'],
-      source_ts: NOW_MS,
+      source_ts: sourceTs,
       payload_hash: validHash ? payloadHash : sha256('mismatch'),
       payload_hash_rule: CHAT_HASH_RULE,
     },
   };
 }
 
-function bookingSource(id, { descriptor = true } = {}) {
+function bookingSource(id, { descriptor = true, sourceTs = NOW_MS } = {}) {
   const fingerprint = createHash('sha256').update(`booking:${id}`).digest('hex');
   return {
     id,
-    created_at: new Date(NOW_MS).toISOString(),
+    created_at: new Date(sourceTs).toISOString(),
     name: 'Synthetic Customer',
     email: 'synthetic@example.test',
     phone: '090-0000-0000',
@@ -181,7 +186,7 @@ function bookingSource(id, { descriptor = true } = {}) {
         booking_id: id,
         template: 'owner_booking_v1',
         channels: ['email', 'telegram'],
-        source_ts: NOW_MS,
+        source_ts: sourceTs,
         payload_hash: fingerprint,
         payload_hash_rule: BOOKING_HASH_RULE,
       },
@@ -497,4 +502,73 @@ test('idle source repair does not delete absent pagination cursors', async () =>
   await repairChatNotificationSources(env, NOW_MS);
   await repairBookingNotificationSources(env, NOW_MS);
   assert.equal(DATA.operations.filter(({ operation }) => operation === 'delete').length, 0);
+});
+
+
+test('JST 09:00 builds and delivers both daily-summary channels in the same hourly run', async () => {
+  const { bindings, DATA, emailCalls, telegramCalls, dependencies } = createEnv();
+  const result = await runScheduledNotificationRecovery(bindings, Date.parse('2026-10-10T00:00:00Z'), dependencies);
+  assert.equal(result.daily.value.source_created, true);
+  assert.equal(result.due.value.attempted, 2);
+  assert.equal(emailCalls.length, 1);
+  assert.equal(telegramCalls.length, 1);
+  for (const channel of ['email', 'telegram']) {
+    const item = await readNotifyItem(bindings, `notify:item:summary:2026-10-09:${channel}:owner_daily_v1`);
+    assert.equal(item.status, 'sent');
+  }
+  assert.equal([...DATA.store.keys()].some((key) => key.startsWith('notify:due:')), false);
+});
+
+test('nighttime sources missing both items recover at JST 08:00 and never resend at 09:00', async () => {
+  const { bindings, DATA, emailCalls, telegramCalls, dependencies } = createEnv();
+  const chatTs = Date.parse('2026-08-16T17:15:00Z'); // JST 02:15 next day
+  const bookingTs = Date.parse('2026-08-16T22:59:00Z'); // JST 07:59 next day
+  const roundId = '00000000-0000-4000-8000-000000000301';
+  const chatKey = `chat:log:${'a'.repeat(64)}:${chatTs}:${roundId}`;
+  const bookingId = '9005000000000000-33333333333333333333333333333333';
+  await DATA.put(chatKey, JSON.stringify(chatSource(roundId, { sourceTs: chatTs })));
+  await DATA.put(`booking:${bookingId}`, JSON.stringify(bookingSource(bookingId, { sourceTs: bookingTs })));
+  const morning = Date.parse('2026-08-16T23:00:00Z');
+  const first = await runScheduledNotificationRecovery(bindings, morning, dependencies);
+  assert.equal(first.chat_repair.value.ready, 1);
+  assert.equal(first.booking_repair.value.ready, 1);
+  assert.equal(first.due.value.attempted, 4);
+  assert.equal(emailCalls.length, 2);
+  assert.equal(telegramCalls.length, 2);
+  assert.equal([...DATA.store.keys()].some((key) => key.startsWith('notify:due:')), false);
+  await runScheduledNotificationRecovery(bindings, morning + 3_600_000, dependencies);
+  // Only the new daily summary is sent at 09:00; neither customer source is replayed.
+  assert.equal(emailCalls.length, 3);
+  assert.equal(telegramCalls.length, 3);
+});
+
+test('source pagination saved at JST 01:00 continues at 08:00 instead of skipping old sources', async () => {
+  const { bindings, DATA, emailCalls, telegramCalls, dependencies } = createEnv({ pageSize: 1 });
+  for (const [index, roundId] of [
+    '00000000-0000-4000-8000-000000000401',
+    '00000000-0000-4000-8000-000000000402',
+  ].entries()) {
+    await DATA.put(`chat:log:${String(index).padStart(64, '0')}:${NOW_MS}:${roundId}`, JSON.stringify(chatSource(roundId)));
+  }
+  await runScheduledNotificationRecovery(bindings, Date.parse('2026-08-16T16:00:00Z'), dependencies);
+  assert.equal(DATA.store.has('notify:repair:cursor:chat:v1'), true);
+  const morning = await runScheduledNotificationRecovery(bindings, Date.parse('2026-08-16T23:00:00Z'), dependencies);
+  assert.equal(morning.chat_repair.value.ready, 1);
+  assert.equal(DATA.store.has('notify:repair:cursor:chat:v1'), false);
+  assert.equal(emailCalls.length, 2);
+  assert.equal(telegramCalls.length, 2);
+});
+
+
+test('a daily-summary write failure cannot suppress repaired customer due delivery', async () => {
+  const { bindings, DATA, emailCalls, telegramCalls, dependencies } = createEnv();
+  const id = '9005000000000000-55555555555555555555555555555555';
+  await DATA.put(`booking:${id}`, JSON.stringify(bookingSource(id)));
+  DATA.failPutTimes(({ key }) => key === 'notify:summary:2026-08-16');
+  const result = await runScheduledNotificationRecovery(bindings, Date.parse('2026-08-17T00:00:00Z'), dependencies);
+  assert.equal(result.daily.ok, false);
+  assert.equal(result.due.ok, true);
+  assert.equal(result.due.value.attempted, 2);
+  assert.equal(emailCalls.length, 1);
+  assert.equal(telegramCalls.length, 1);
 });

@@ -62,12 +62,12 @@ function configuredEnv(DATA = new MemoryKV()) {
   };
 }
 
-test('Wrangler has one restricted EMAIL binding and exactly one five-minute cron', () => {
+test('Wrangler has one restricted EMAIL binding and one notification scheduler', () => {
   assert.equal((WRANGLER.match(/^\[\[send_email\]\]$/gm) || []).length, 1);
   assert.match(WRANGLER, /^name\s*=\s*"EMAIL"$/m);
   assert.match(WRANGLER, /^destination_address\s*=\s*"mouxue56@gmail\.com"$/m);
   assert.equal((WRANGLER.match(/^\[triggers\]$/gm) || []).length, 1);
-  assert.match(WRANGLER, /^crons\s*=\s*\["\*\/5 \* \* \* \*"\]$/m);
+  assert.equal(configuredCrons().length, 1);
 });
 
 test('notification health is read-only and exposes only release plus three booleans', async () => {
@@ -109,12 +109,12 @@ test('notification health is read-only and exposes only release plus three boole
   ]) assert.equal(serialized.includes(forbidden), false, forbidden);
 });
 
-test('scheduled registers exactly one promise and runs repair before due reconciliation and daily summary', async () => {
+test('scheduled registers one promise and builds the daily summary after repair but before due delivery', async () => {
   const DATA = new MemoryKV();
   const waits = [];
-  const scheduledTime = Date.parse('2026-08-16T00:15:00.000Z');
+  const scheduledTime = Date.parse('2026-08-16T00:00:00.000Z');
 
-  await worker.scheduled({ scheduledTime }, configuredEnv(DATA), {
+  await worker.scheduled({ cron: configuredCrons()[0], scheduledTime }, { DATA }, {
     waitUntil(promise) { waits.push(Promise.resolve(promise)); },
   });
   assert.equal(waits.length, 1);
@@ -126,8 +126,8 @@ test('scheduled registers exactly one promise and runs repair before due reconci
   assert.deepEqual(prefixes.slice(0, 4), [
     'chat:log:',
     'booking:',
-    'notify:due:',
     'notify:daily:2026-08-15:',
+    'notify:due:',
   ]);
 });
 
@@ -136,8 +136,8 @@ test('a chat repair fault cannot suppress booking scan, due reconciliation, or d
   const waits = [];
 
   await worker.scheduled(
-    { scheduledTime: Date.parse('2026-08-16T00:20:00.000Z') },
-    configuredEnv(DATA),
+    { cron: configuredCrons()[0], scheduledTime: Date.parse('2026-08-16T00:00:00.000Z') },
+    { DATA },
     { waitUntil(promise) { waits.push(Promise.resolve(promise)); } },
   );
   assert.equal(waits.length, 1);
@@ -149,8 +149,53 @@ test('a chat repair fault cannot suppress booking scan, due reconciliation, or d
   assert.deepEqual(prefixes.slice(0, 4), [
     'chat:log:',
     'booking:',
-    'notify:due:',
     'notify:daily:2026-08-15:',
+    'notify:due:',
   ]);
   assert.equal(DATA.store.has('notify:summary:2026-08-15'), true);
+});
+
+
+function configuredCrons() {
+  return JSON.parse(WRANGLER.match(/^crons\s*=\s*(\[[^\n]+\])$/m)[1]);
+}
+
+function configuredUtcHours() {
+  const [minute, hours, day, month, weekday] = configuredCrons()[0].split(' ');
+  assert.equal(minute, '0', 'repair runs at whole hours');
+  assert.deepEqual([day, month, weekday], ['*', '*', '*']);
+  return hours.split(',').flatMap((part) => {
+    const [start, end = start] = part.split('-').map(Number);
+    assert.ok(Number.isInteger(start) && Number.isInteger(end) && start >= 0 && end >= start && end < 24);
+    return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+  });
+}
+
+test('the configured UTC schedule covers exactly JST 08–01 and excludes 02–07', () => {
+  const jstHours = configuredUtcHours().map((hour) => (hour + 9) % 24).sort((a, b) => a - b);
+  assert.deepEqual(jstHours, [0, 1, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]);
+});
+
+test('an idle JST 08:00 repair uses three lists and no deletes', async () => {
+  const DATA = new MemoryKV();
+  const waits = [];
+  await worker.scheduled({ cron: configuredCrons()[0], scheduledTime: Date.parse('2026-10-09T23:00:00Z') }, { DATA }, {
+    waitUntil(promise) { waits.push(promise); },
+  });
+  await Promise.all(waits);
+  assert.equal(DATA.operations.filter(({ operation }) => operation === 'list').length, 3);
+  assert.equal(DATA.operations.filter(({ operation }) => operation === 'delete').length, 0);
+});
+
+test('one configured day uses 54 background lists plus one daily-summary list without pagination', async () => {
+  const DATA = new MemoryKV();
+  // No provider bindings: the fixture cannot reach a real email/Telegram service.
+  for (const hour of configuredUtcHours().sort((a, b) => a - b)) {
+    const waits = [];
+    await worker.scheduled({ cron: configuredCrons()[0], scheduledTime: Date.UTC(2026, 9, 10, hour) }, { DATA }, {
+      waitUntil(promise) { waits.push(promise); },
+    });
+    await Promise.all(waits);
+  }
+  assert.equal(DATA.operations.filter(({ operation }) => operation === 'list').length, 55);
 });
