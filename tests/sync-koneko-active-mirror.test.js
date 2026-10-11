@@ -336,28 +336,36 @@ test('--mirror-active requires active coverage from both configured account grou
   assert.doesNotMatch(result.stderr, /FULUCK_ADMIN_PASS/);
 });
 
-test('--mirror-active holds conflicting existing and new listings without omitting them from the source snapshot', (t) => {
-  const dir = mkdtempSync(join(tmpdir(), 'fuluck-mirror-holds-'));
+test('--mirror-active includes both accounts and preserves source facts and prose even when they disagree', (t) => {
+  const dir = mkdtempSync(join(tmpdir(), 'fuluck-source-authority-'));
   t.after(() => rmSync(dir, { recursive: true, force: true }));
   const snapshotPath = join(dir, 'snapshot.json');
   const emitPath = join(dir, 'emitted.json');
   const stubPath = join(dir, 'fetch-stub.mjs');
-  const held = { ...current(), breederId: '2608-00001' };
+  const existing = { ...current(), gender: '♀' };
+  const authoritative = {
+    ...source(),
+    gender: '♂',
+    descriptions: {
+      ja: '明るい遊び好きな女の子。',
+      zh: '开朗、爱玩的小母猫。',
+      en: 'A cheerful, playful girl.',
+    },
+  };
   writeFileSync(snapshotPath, JSON.stringify({
     capturedAt: new Date().toISOString(),
     accounts: { c995680: 'one', d696506: 'two' },
     reservedIds: [], deleteRecordIds: [],
-    holdIds: ['2608-00001', '2608-00002'],
     kittens: [
-      { ...source(), group: 'c995680' },
-      { ...source(), breederId: '2608-00002', group: 'd696506' },
-      { ...source(), breederId: '2608-00003', group: 'd696506' },
+      { ...authoritative, group: 'c995680' },
+      { ...authoritative, breederId: '2608-00002', group: 'd696506' },
     ],
   }), { mode: 0o600 });
   writeFileSync(stubPath, `
-globalThis.fetch = async input => {
+globalThis.fetch = async (input, init) => {
+  if (init?.method && init.method !== 'GET') throw new Error('dry-run must not write');
   const path = new URL(String(input)).pathname;
-  if (path === '/api/admin/kittens') return new Response(${JSON.stringify(JSON.stringify([held]))});
+  if (path === '/api/admin/kittens') return new Response(${JSON.stringify(JSON.stringify([existing]))});
   if (path === '/api/parents') return new Response('[]');
   throw new Error('unexpected endpoint');
 };`);
@@ -366,33 +374,14 @@ globalThis.fetch = async input => {
     '--mirror-active', '--snapshot', snapshotPath, '--emit', emitPath,
   ], { encoding: 'utf8', env: { ...process.env, FULUCK_ADMIN_PASS: 'test-only' } });
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /保留.*2/);
   const emitted = JSON.parse(readFileSync(emitPath));
-  assert.deepEqual(emitted.find(k => k.breederId === held.breederId), held);
-  assert.equal(emitted.some(k => k.breederId === '2608-00002'), false);
-  assert.equal(emitted.some(k => k.breederId === '2608-00003'), true);
-});
-
-test('--mirror-active rejects invalid hold IDs before credentials or remote reads', (t) => {
-  const dir = mkdtempSync(join(tmpdir(), 'fuluck-invalid-holds-'));
-  t.after(() => rmSync(dir, { recursive: true, force: true }));
-  for (const holdIds of ['2608-00001', ['unknown'], ['2608-00001', '2608-00001'], ['2608-00003']]) {
-    const snapshotPath = join(dir, 'snapshot.json');
-    writeFileSync(snapshotPath, JSON.stringify({
-      capturedAt: new Date().toISOString(), accounts: { c995680: 'one', d696506: 'two' },
-      reservedIds: [], deleteRecordIds: [], holdIds,
-      kittens: [
-        { ...source(), group: 'c995680' },
-        { ...source(), breederId: '2608-00002', group: 'd696506' },
-        { ...source(), breederId: '2608-00003', group: 'd696506', status: 'sold' },
-      ],
-    }), { mode: 0o600 });
-    const result = spawnSync(process.execPath, [
-      fileURLToPath(new URL('../tools/sync-koneko.js', import.meta.url)),
-      '--mirror-active', '--snapshot', snapshotPath,
-    ], { encoding: 'utf8', env: { ...process.env, FULUCK_ADMIN_PASS: '' } });
-    assert.equal(result.status, 1);
-    assert.match(result.stderr, /holdIds/);
-    assert.doesNotMatch(result.stderr, /FULUCK_ADMIN_PASS|fetch failed/);
+  assert.deepEqual(emitted.map(k => k.breederId).sort(), ['2608-00001', '2608-00002']);
+  for (const record of emitted) {
+    assert.equal(record.gender, authoritative.gender);
+    assert.equal(record.note, authoritative.notes.ja);
+    assert.equal(record.description, authoritative.descriptions.ja);
+    assert.equal(record.descriptionZh, authoritative.descriptions.zh);
+    assert.equal(record.descriptionEn, authoritative.descriptions.en);
   }
+  assert.equal(emitted.find(k => k.id === existing.id).promotionTag, existing.promotionTag);
 });
