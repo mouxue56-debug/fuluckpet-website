@@ -61,6 +61,9 @@ export default async function fixtureFetch(url, options) {
   if (options?.method !== 'GET' || options?.credentials !== 'omit' || options?.headers?.authorization) {
     throw new Error('credentialed request: ' + secret);
   }
+  if (process.env.AUDIT_FIXTURE_MODE === 'http-failure') {
+    return { ...response(url, 'unavailable', 'text/html'), status: 503 };
+  }
   const parsed = new URL(url);
   if (parsed.hostname === 'www.koneko-breeder.com' && parsed.pathname === '/breederDetail.php') {
     const accountId = parsed.searchParams.get('breeder_id');
@@ -349,11 +352,23 @@ test('CLI BLOCKED receipts preserve a closed Fuluck API diagnostic', (t) => {
   const paths = workspace(t);
   const result = run(paths, { mode: 'diagnostic' });
   const reports = readReports(paths);
-  const expected = 'Public catalogue audit blocked: stage=fuluck_api; reason=content_type; url=https://fuluck-api.mouxue56.workers.dev/api/kittens';
+  const expected = 'Public catalogue audit blocked: stage=fuluck_api; reason=content_type; http_status=200; attempts=1; url=https://fuluck-api.mouxue56.workers.dev/api/kittens';
 
   assert.equal(result.status, 3);
   assert.deepEqual(reports.json.blocks, [expected]);
   assert.match(reports.markdown, new RegExp(expected.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+});
+
+test('CLI includes exhausted HTTP status and attempts in both reports and the log', (t) => {
+  const paths = workspace(t);
+  const result = run(paths, { mode: 'http-failure' });
+  const reports = readReports(paths);
+  assert.equal(result.status, 3);
+  assert.equal(reports.json.result, 'BLOCKED');
+  for (const output of [reports.json.blocks[0], reports.markdown, result.stderr]) {
+    assert.match(output, /stage=koneko_list; reason=http_status/);
+    assert.match(output, /http_status=503; attempts=3/);
+  }
 });
 
 test('CLI never emits a malicious public failure cause in stdout, stderr, JSON, or Markdown', (t) => {
@@ -365,7 +380,7 @@ test('CLI never emits a malicious public failure cause in stdout, stderr, JSON, 
 
   assert.equal(result.status, 3);
   assert.deepEqual(reports.json.blocks, [
-    'Public catalogue audit blocked: stage=koneko_list; reason=public_request_failed; account=c995680; url=https://www.koneko-breeder.com/breederDetail.php?breeder_id=c995680',
+    'Public catalogue audit blocked: stage=koneko_list; reason=public_request_failed; account=c995680; attempts=3; url=https://www.koneko-breeder.com/breederDetail.php?breeder_id=c995680',
   ]);
   for (const forbidden of [
     secret, 'Authorization', 'Bearer', 'password', 'hunter2', 'owner@example.com',

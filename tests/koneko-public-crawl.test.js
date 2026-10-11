@@ -15,9 +15,9 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import {
-  crawlKonekoAccount,
-  fetchPublicText,
-  readFuluckPublicTarget,
+  crawlKonekoAccount as crawlWithDefaults,
+  fetchPublicText as fetchWithDefaults,
+  readFuluckPublicTarget as readWithDefaults,
 } from '../tools/lib/koneko-public-crawl.js';
 import * as publicCrawl from '../tools/lib/koneko-public-crawl.js';
 
@@ -25,6 +25,10 @@ const KONEKO_ORIGIN = 'https://www.koneko-breeder.com';
 const API_ORIGIN = 'https://fuluck-api.mouxue56.workers.dev';
 const FULUCK_ORIGIN = 'https://fuluckpet.com';
 const PROJECT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const noSleep = async () => {};
+const fetchPublicText = (url, options) => fetchWithDefaults(url, { sleepImpl: noSleep, ...options });
+const crawlKonekoAccount = options => crawlWithDefaults({ sleepImpl: noSleep, ...options });
+const readFuluckPublicTarget = options => readWithDefaults({ sleepImpl: noSleep, ...options });
 
 function response({
   body = '<html><body>ok</body></html>',
@@ -104,6 +108,150 @@ test('fetchPublicText cannot be configured to accept non-2xx statuses', async ()
     }),
     /non-2xx|404/i,
   );
+});
+
+test('fetchPublicText waits before retrying a transient failure and returns the recovered page', async () => {
+  for (const status of [null, 429, 500, 501, 502, 503, 504, 599, 403]) {
+    const events = [];
+    const result = await fetchPublicText(`${KONEKO_ORIGIN}/ok`, {
+      sleepImpl: async ms => events.push(ms),
+      fetchImpl: async url => {
+        events.push('GET');
+        if (events.length === 1) {
+          if (status === null) throw new TypeError('connection reset');
+          return publicResponse({ status, url });
+        }
+        return publicResponse({ body: 'recovered', url });
+      },
+    });
+    assert.equal(result.text, 'recovered');
+    assert.deepEqual(events, ['GET', 1000, 'GET']);
+  }
+});
+
+test('fetchPublicText bounds retries with increasing waits and retains the final status and attempt count', async () => {
+  for (const [status, expectedAttempts, waits] of [[503, 3, [1000, 2000]], [429, 3, [1000, 2000]], [403, 2, [1000]], [404, 1, []]]) {
+    const delays = [];
+    let calls = 0;
+    await assert.rejects(fetchPublicText(`${KONEKO_ORIGIN}/ok`, {
+      sleepImpl: async ms => delays.push(ms),
+      fetchImpl: async url => { calls += 1; return publicResponse({ status, url }); },
+    }), error => {
+      assert.equal(error.httpStatus, status);
+      assert.equal(error.attempts, expectedAttempts);
+      return true;
+    });
+    assert.equal(calls, expectedAttempts);
+    assert.deepEqual(delays, waits);
+  }
+});
+
+test('fetchPublicText reports exhausted network attempts rather than a stale earlier HTTP response', async () => {
+  for (const firstStatus of [null, 503]) {
+    let calls = 0;
+    const delays = [];
+    await assert.rejects(fetchPublicText(`${KONEKO_ORIGIN}/ok`, {
+      sleepImpl: async ms => delays.push(ms),
+      fetchImpl: async url => {
+        calls += 1;
+        if (calls === 1 && firstStatus) return publicResponse({ status: firstStatus, url });
+        throw new TypeError('connection reset');
+      },
+    }), error => {
+      assert.match(error.message, /public fetch failed/);
+      assert.equal(error.httpStatus, undefined);
+      assert.equal(error.attempts, 3);
+      return true;
+    });
+    assert.equal(calls, 3);
+    assert.deepEqual(delays, [1000, 2000]);
+  }
+});
+
+test('fetchPublicText retries a body connection failure and returns the complete recovered body', async () => {
+  for (const failure of [new TypeError('terminated'), new DOMException('timed out', 'TimeoutError')]) {
+    const events = [];
+    const result = await fetchPublicText(`${KONEKO_ORIGIN}/ok`, {
+      sleepImpl: async ms => events.push(ms),
+      fetchImpl: async url => {
+        events.push('GET');
+        const body = events.length === 1
+          ? new ReadableStream({ start(controller) { controller.error(failure); } })
+          : 'complete recovered body';
+        return publicResponse({ url, body });
+      },
+    });
+    assert.equal(result.text, 'complete recovered body');
+    assert.deepEqual(events, ['GET', 1000, 'GET']);
+  }
+});
+
+test('fetchPublicText bounds failed body-read attempts and preserves the final HTTP receipt', async () => {
+  let calls = 0;
+  const delays = [];
+  await assert.rejects(fetchPublicText(`${KONEKO_ORIGIN}/ok`, {
+    sleepImpl: async ms => delays.push(ms),
+    fetchImpl: async url => {
+      calls += 1;
+      return publicResponse({ url, body: new ReadableStream({ start(controller) { controller.error(new TypeError('terminated')); } }) });
+    },
+  }), error => {
+    assert.equal(error.httpStatus, 200);
+    assert.equal(error.attempts, 3);
+    return true;
+  });
+  assert.equal(calls, 3);
+  assert.deepEqual(delays, [1000, 2000]);
+});
+
+test('fetchPublicText does not retry challenge, content, or redirect policy failures', async () => {
+  for (const options of [
+    { body: '<title>Just a moment...</title>' },
+    { contentType: 'application/json' },
+    { url: 'https://evil.example/redirected' },
+    { body: 'x'.repeat((2 * 1024 * 1024) + 1) },
+    { body: new Uint8Array([0xff]) },
+  ]) {
+    let calls = 0;
+    await assert.rejects(fetchPublicText(`${KONEKO_ORIGIN}/ok`, {
+      sleepImpl: async () => assert.fail('policy failures must not sleep'),
+      fetchImpl: async () => { calls += 1; return publicResponse(options); },
+    }), error => {
+      assert.equal(error.httpStatus, 200);
+      assert.equal(error.attempts, 1);
+      return true;
+    });
+    assert.equal(calls, 1);
+  }
+});
+
+test('crawlKonekoAccount continues parsing after the first list request fails', async () => {
+  let calls = 0;
+  const delays = [];
+  const result = await crawlKonekoAccount({
+    accountId: 'c995680', delayMs: 0,
+    sleepImpl: async ms => delays.push(ms),
+    fetchImpl: async url => {
+      calls += 1;
+      if (calls === 1) throw new TypeError('connection reset');
+      return publicResponse({ url, body: listPage([listCard('2608-00001', '販売終了')], { total: 1, start: 1, end: 1 }) });
+    },
+  });
+  assert.equal(result.declaredTotal, 1);
+  assert.equal(result.kittens[0].breederId, '2608-00001');
+  assert.deepEqual(delays, [1000]);
+});
+
+test('crawlKonekoAccount formats a persistent HTTP failure with status and total attempts', async () => {
+  await assert.rejects(crawlKonekoAccount({
+    accountId: 'c995680', delayMs: 0,
+    fetchImpl: async url => publicResponse({ status: 503, url }),
+  }), error => {
+    const message = publicCrawl.formatPublicAuditFailure(error);
+    assert.match(message, /stage=koneko_list; reason=http_status/);
+    assert.match(message, /http_status=503; attempts=3/);
+    return true;
+  });
 });
 
 function listCard(id, status = '') {
@@ -271,7 +419,7 @@ test('crawlKonekoAccount formats a page-2 #cat_list transport failure with a can
   });
   assert.equal(
     publicCrawl.formatPublicAuditFailure(failure),
-    `Public catalogue audit blocked: stage=koneko_list; reason=public_request_failed; account=c995680; url=${canonicalSecond}`,
+    `Public catalogue audit blocked: stage=koneko_list; reason=public_request_failed; account=c995680; attempts=3; url=${canonicalSecond}`,
   );
   assert.equal(publicCrawl.formatPublicAuditFailure(failure).includes('#'), false);
   assert.notEqual(publicCrawl.formatPublicAuditFailure(failure), 'Public catalogue evidence could not be completed.');

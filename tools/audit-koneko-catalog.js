@@ -65,14 +65,15 @@ async function runAudit(options, publicCrawl) {
   const { crawlKonekoAccount, readFuluckPublicTarget } = publicCrawl;
   const fetchImpl = options.fixture ? await loadFixture(options.fixture) : globalThis.fetch;
   const delayMs = options.fixture ? 0 : 500;
+  const sleepImpl = options.fixture ? async () => {} : undefined;
   const accounts = [];
   for (const accountId of ACCOUNT_IDS) {
-    accounts.push(await crawlKonekoAccount({ accountId, fetchImpl, delayMs }));
+    accounts.push(await crawlKonekoAccount({ accountId, fetchImpl, delayMs, sleepImpl }));
   }
   const activeIds = accounts.flatMap(account => account.kittens
     .filter(kitten => ACTIVE_STATUSES.has(kitten.status))
     .map(kitten => kitten.breederId));
-  const target = await readFuluckPublicTarget({ activeIds, fetchImpl });
+  const target = await readFuluckPublicTarget({ activeIds, fetchImpl, sleepImpl });
   const checkedSourceUrls = accounts.flatMap(account => [
     ...account.receipts.map(receipt => receipt.url),
     ...account.activeDetails.map(detail => detail.detailUrl),
@@ -114,6 +115,9 @@ async function main() {
   }
   try {
     writeAuditReports({ jsonPath: options.json, markdownPath: options.markdown }, result);
+    if (result.exitCode === 3) {
+      for (const block of result.blocks) process.stderr.write(`${block}\n`);
+    }
     process.exitCode = result.exitCode;
   } catch {
     process.stderr.write('Koneko audit BLOCKED: reports could not be written safely.\n');
