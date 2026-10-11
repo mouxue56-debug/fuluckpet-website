@@ -359,6 +359,18 @@ async function main() {
   if (requestedDeletes.length) {
     die('deleteRecordIds による物理削除は禁止です。重複整理は別の人工承認手順で実施してください。');
   }
+  // Keep conflicting records in the complete snapshot, but leave their target
+  // records unchanged until the owner resolves them. Never hide missing evidence
+  // by dropping an ID from the source catalogue (which could mark it sold).
+  const holdIds = Object.hasOwn(SNAP, 'holdIds') ? SNAP.holdIds : [];
+  const activeIds = new Set(K.filter(k => k.status === 'available' || k.status === 'reserved').map(k => k.breederId));
+  if (!Array.isArray(holdIds)
+    || holdIds.some(id => typeof id !== 'string' || !/^\d{4}-\d{5}$/.test(id) || !activeIds.has(id))
+    || new Set(holdIds).size !== holdIds.length
+    || (holdIds.length && !MIRROR_ACTIVE)) {
+    die('holdIds は --mirror-active の active source に含まれる重複のない breederId 配列で指定してください。');
+  }
+  const heldIds = new Set(holdIds);
   const covered = new Set(K.map(k => k.group));
   for (const acc of Object.keys(SNAP.accounts || {})) {
     if (!covered.has(acc)) die(`スナップショットに ${acc} の掲載が1件も無い。取得漏れの疑い。`);
@@ -397,12 +409,13 @@ async function main() {
   const snapByBid = new Map(K.map(k => [k.breederId, k]));
 
   // ---- 追加 ----
-  const adds = K.filter(k => k.status !== 'sold' && !byBid.has(k.breederId));
+  const adds = K.filter(k => k.status !== 'sold' && !byBid.has(k.breederId) && !heldIds.has(k.breederId));
 
   // ---- 更新 ----
   const updates = [];
   const notes = [];
   for (const rec of live) {
+    if (heldIds.has(rec.breederId)) continue;
     const s = snapByBid.get(rec.breederId);
     let patch;
 
@@ -487,6 +500,7 @@ async function main() {
   }
 
   console.log(`\n【物理削除】0 件（自動同期では禁止）`);
+  if (heldIds.size) console.log(`\n【保留】${heldIds.size} 頭（source 矛盾の確認待ち、追加・更新なし）: ${holdIds.join(', ')}`);
 
   // 親猫。papa/mama は parents の name と厳密一致でしか繋がらない（script.js:537）。
   // koneko 側にいるのにサイトに未登録の親は、先に作らないと子の血統欄が空のままになる。
