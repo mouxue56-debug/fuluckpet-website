@@ -157,6 +157,29 @@ test('assertCompleteActiveSource accepts a complete available or reserved source
   assert.doesNotThrow(() => assertCompleteActiveSource({ ...source(), status: 'reserved' }));
 });
 
+test('strict mirror accepts confirmed source video absence and clears an old target video', () => {
+  const absent = { ...source(), video: '', videoAbsenceConfirmed: true };
+  assert.doesNotThrow(() => assertCompleteActiveSource(absent));
+  assert.equal(buildActiveMirrorPatch(current(), absent).video, '');
+  const added = activeMirror.buildActiveMirrorRecord(absent);
+  assert.equal(added.video, '');
+  assert.equal(Object.hasOwn(added, 'videoAbsenceConfirmed'), false);
+});
+
+test('a video absence flag cannot excuse missing, malformed, or contradictory video evidence', () => {
+  for (const override of [
+    { video: undefined, videoAbsenceConfirmed: true },
+    { video: null, videoAbsenceConfirmed: true },
+    { video: ' ', videoAbsenceConfirmed: true },
+    { video: 'https://example.com/broken', videoAbsenceConfirmed: true },
+    { video: source().video, videoAbsenceConfirmed: true },
+    { video: '', videoAbsenceConfirmed: 'true' },
+    { video: '', videoAbsenceConfirmed: false },
+  ]) {
+    assert.throws(() => assertCompleteActiveSource({ ...source(), ...override }), /video/);
+  }
+});
+
 test('strict YouTube canonicalization accepts a watch URL whose v parameter is not first', () => {
   const watchUrl = 'https://www.youtube.com/watch?feature=share&v=AbCdEfGhI12';
   const active = { ...source(), video: watchUrl };
@@ -222,6 +245,8 @@ test('--mirror-active emit uses strict new-record YouTube canonicalization', (t)
         ...source(),
         breederId: '2608-00002',
         group: 'd696506',
+        video: '',
+        videoAbsenceConfirmed: true,
       },
     ],
   }), { mode: 0o600 });
@@ -256,6 +281,9 @@ globalThis.fetch = async (input) => {
   const emitted = JSON.parse(readFileSync(emitPath, 'utf8'));
   const added = emitted.find((record) => record.breederId === '2608-00001');
   assert.equal(added.video, 'https://www.youtube.com/embed/AbCdEfGhI12');
+  const withoutVideo = emitted.find((record) => record.breederId === '2608-00002');
+  assert.equal(withoutVideo.video, '');
+  assert.equal(Object.hasOwn(withoutVideo, 'videoAbsenceConfirmed'), false);
 });
 
 test('--mirror-active validates every active source before credentials or a remote catalogue read', (t) => {
@@ -306,4 +334,54 @@ test('--mirror-active requires active coverage from both configured account grou
   assert.equal(result.status, 1);
   assert.match(result.stderr, /d696506.*販売中または商談中/);
   assert.doesNotMatch(result.stderr, /FULUCK_ADMIN_PASS/);
+});
+
+test('--mirror-active includes both accounts and preserves source facts and prose even when they disagree', (t) => {
+  const dir = mkdtempSync(join(tmpdir(), 'fuluck-source-authority-'));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const snapshotPath = join(dir, 'snapshot.json');
+  const emitPath = join(dir, 'emitted.json');
+  const stubPath = join(dir, 'fetch-stub.mjs');
+  const existing = { ...current(), gender: '♀' };
+  const authoritative = {
+    ...source(),
+    gender: '♂',
+    descriptions: {
+      ja: '明るい遊び好きな女の子。',
+      zh: '开朗、爱玩的小母猫。',
+      en: 'A cheerful, playful girl.',
+    },
+  };
+  writeFileSync(snapshotPath, JSON.stringify({
+    capturedAt: new Date().toISOString(),
+    accounts: { c995680: 'one', d696506: 'two' },
+    reservedIds: [], deleteRecordIds: [],
+    kittens: [
+      { ...authoritative, group: 'c995680' },
+      { ...authoritative, breederId: '2608-00002', group: 'd696506' },
+    ],
+  }), { mode: 0o600 });
+  writeFileSync(stubPath, `
+globalThis.fetch = async (input, init) => {
+  if (init?.method && init.method !== 'GET') throw new Error('dry-run must not write');
+  const path = new URL(String(input)).pathname;
+  if (path === '/api/admin/kittens') return new Response(${JSON.stringify(JSON.stringify([existing]))});
+  if (path === '/api/parents') return new Response('[]');
+  throw new Error('unexpected endpoint');
+};`);
+  const result = spawnSync(process.execPath, [
+    '--import', stubPath, fileURLToPath(new URL('../tools/sync-koneko.js', import.meta.url)),
+    '--mirror-active', '--snapshot', snapshotPath, '--emit', emitPath,
+  ], { encoding: 'utf8', env: { ...process.env, FULUCK_ADMIN_PASS: 'test-only' } });
+  assert.equal(result.status, 0, result.stderr);
+  const emitted = JSON.parse(readFileSync(emitPath));
+  assert.deepEqual(emitted.map(k => k.breederId).sort(), ['2608-00001', '2608-00002']);
+  for (const record of emitted) {
+    assert.equal(record.gender, authoritative.gender);
+    assert.equal(record.note, authoritative.notes.ja);
+    assert.equal(record.description, authoritative.descriptions.ja);
+    assert.equal(record.descriptionZh, authoritative.descriptions.zh);
+    assert.equal(record.descriptionEn, authoritative.descriptions.en);
+  }
+  assert.equal(emitted.find(k => k.id === existing.id).promotionTag, existing.promotionTag);
 });
