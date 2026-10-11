@@ -23,7 +23,6 @@ const ALLOWED_HOSTS = new Set([
   'fuluck-api.mouxue56.workers.dev',
   'fuluckpet.com',
 ]);
-const RETRYABLE_STATUSES = new Set([429, 502, 503, 504]);
 const CHALLENGE_MARKERS = /challenge-platform|cf-chl-|just a moment|interstitial/i;
 const BREEDER_ID = /^\d{4}-\d{5}$/;
 const FIXED_ACCOUNTS = new Set(['c995680', 'd696506']);
@@ -199,7 +198,7 @@ function exactDiagnosticUrl(stage, value, context) {
 
 function validatedDiagnostic(details) {
   if (!details || typeof details !== 'object' || Array.isArray(details)) return null;
-  const allowedKeys = new Set(['stage', 'reason', 'accountId', 'breederId', 'locale', 'url']);
+  const allowedKeys = new Set(['stage', 'reason', 'accountId', 'breederId', 'locale', 'url', 'httpStatus', 'attempts']);
   if (Object.keys(details).some(key => !allowedKeys.has(key))) return null;
   const { stage, reason } = details;
   if (!FAILURE_STAGES.has(stage) || !FAILURE_REASONS.has(reason)) return null;
@@ -219,6 +218,8 @@ function validatedDiagnostic(details) {
   if (details.accountId !== undefined && !FIXED_ACCOUNTS.has(details.accountId)) return null;
   if (details.breederId !== undefined && (typeof details.breederId !== 'string' || !BREEDER_ID.test(details.breederId))) return null;
   if (details.locale !== undefined && !['ja', 'en', 'zh'].includes(details.locale)) return null;
+  if (details.httpStatus !== undefined && (!Number.isInteger(details.httpStatus) || details.httpStatus < 100 || details.httpStatus > 599)) return null;
+  if (details.attempts !== undefined && (!Number.isInteger(details.attempts) || details.attempts < 1 || details.attempts > MAX_RETRIES + 1)) return null;
   const url = exactDiagnosticUrl(stage, details.url, details);
   return url ? { ...details, url } : null;
 }
@@ -240,6 +241,8 @@ export function formatPublicAuditFailure(error) {
   if (value.accountId) parts.push(`account=${value.accountId}`);
   if (value.breederId) parts.push(`breeder=${value.breederId}`);
   if (value.locale) parts.push(`locale=${value.locale}`);
+  if (value.httpStatus !== undefined) parts.push(`http_status=${value.httpStatus}`);
+  if (value.attempts !== undefined) parts.push(`attempts=${value.attempts}`);
   parts.push(`url=${value.url}`);
   return `Public catalogue audit blocked: ${parts.join('; ')}`;
 }
@@ -260,7 +263,10 @@ function reasonFromCause(cause, fallback) {
 }
 
 function typedFailure(stage, context, cause, fallback) {
-  return new PublicAuditFailure({ stage, reason: reasonFromCause(cause, fallback), ...context }, { cause });
+  const metadata = {};
+  if (cause?.httpStatus !== undefined) metadata.httpStatus = cause.httpStatus;
+  if (cause?.attempts !== undefined) metadata.attempts = cause.attempts;
+  return new PublicAuditFailure({ stage, reason: reasonFromCause(cause, fallback), ...context, ...metadata }, { cause });
 }
 
 function contractFailure(stage, context, reason, message) {
@@ -331,6 +337,7 @@ async function readBoundedText(response, { requireRawBytes = false } = {}) {
 
 async function fetchApprovedText(url, {
   fetchImpl = globalThis.fetch,
+  sleepImpl = sleep,
   acceptedContentTypes = ['text/html'],
   expectedFinalUrl,
   allowExactTarget404 = false,
@@ -343,7 +350,14 @@ async function fetchApprovedText(url, {
 
   let response;
   let lastError;
+  let attempts = 0;
+  const requestFailure = message => Object.assign(new Error(message), {
+    ...(response ? { httpStatus: response.status } : {}), attempts,
+  });
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
+    if (attempt > 0) await sleepImpl(1000 * (2 ** (attempt - 1)));
+    response = undefined;
+    attempts = attempt + 1;
     try {
       response = await fetchImpl(requested.href, {
         method: 'GET',
@@ -353,57 +367,77 @@ async function fetchApprovedText(url, {
         headers: { 'user-agent': USER_AGENT },
       });
       if (!response || typeof response.status !== 'number') throw new Error('public fetch returned an invalid response');
-      if (RETRYABLE_STATUSES.has(response.status) && attempt < MAX_RETRIES) continue;
-      break;
+      const retryable = response.status === 429 || response.status === 403
+        || (response.status >= 500 && response.status <= 599);
+      // Retry an initial 403 only once; persistent denial must remain BLOCKED.
+      const maxRetries = response.status === 403 ? 1 : MAX_RETRIES;
+      if (retryable && attempt < maxRetries) {
+        try { await response.body?.cancel(); } catch {}
+        continue;
+      }
     } catch (error) {
       lastError = error;
+      response = undefined;
       if (attempt < MAX_RETRIES) continue;
+      if (isAbort(lastError)) throw requestFailure(`public fetch timeout/abort: ${lastError.message}`);
+      throw requestFailure(`public fetch failed: ${lastError?.message || 'unknown error'}`);
     }
-  }
-  if (!response) {
-    if (isAbort(lastError)) throw new Error(`public fetch timeout/abort: ${lastError.message}`);
-    throw new Error(`public fetch failed: ${lastError?.message || 'unknown error'}`);
-  }
 
-  let finalUrl;
-  try {
-    finalUrl = new URL(response.url || requested.href);
-  } catch {
-    throw new Error('redirect URL is invalid');
+    let finalUrl;
+    try {
+      finalUrl = new URL(response.url || requested.href);
+    } catch {
+      throw requestFailure('redirect URL is invalid');
+    }
+    if (finalUrl.protocol !== 'https:' || !ALLOWED_HOSTS.has(finalUrl.hostname) || finalUrl.hostname !== requested.hostname) {
+      throw requestFailure('redirect host is not allowed');
+    }
+    if (expected && finalUrl.href !== expected.href) throw requestFailure('public response final URL does not match the requested target');
+    const isAuthoritativeTarget404 = allowExactTarget404 && response.status === 404 && expected && finalUrl.href === expected.href;
+    if (!(response.status >= 200 && response.status < 300) && !isAuthoritativeTarget404) {
+      throw requestFailure(`public fetch returned non-2xx status: ${response.status}`);
+    }
+    const contentType = response.headers?.get?.('content-type') || '';
+    if (!contentTypeAllowed(contentType, acceptedContentTypes)) throw requestFailure(`public response content type is not allowed: ${contentType || '(missing)'}`);
+    let text;
+    let bytes;
+    try {
+      ({ text, bytes } = await readBoundedText(response, { requireRawBytes: stripFuluckTail }));
+    } catch (cause) {
+      // Fetch may resolve before a body connection failure. Invalid UTF-8 and
+      // explicit size/content contracts are evidence failures, not retries.
+      const transportFailure = isAbort(cause)
+        || (cause instanceof TypeError && cause.code !== 'ERR_ENCODING_INVALID_ENCODED_DATA');
+      if (transportFailure && attempt < MAX_RETRIES) {
+        try { await response.body?.cancel(); } catch {}
+        continue;
+      }
+      throw Object.assign(cause, { httpStatus: response.status, attempts });
+    }
+    if (stripFuluckTail && response.status >= 200 && response.status < 300) {
+      try { text = stripProvenFuluckTailInjection(text); } catch { throw requestFailure('challenge or interstitial response'); }
+      bytes = Buffer.from(text, 'utf8');
+    }
+    if (CHALLENGE_MARKERS.test(text)) throw requestFailure('challenge or interstitial response');
+    const receipt = {
+      url: finalUrl.href,
+      text,
+      status: response.status,
+      contentType,
+      sha256: createHash('sha256').update(bytes).digest('hex'),
+    };
+    Object.defineProperty(receipt, 'bodyBytes', { value: bytes });
+    return receipt;
   }
-  if (finalUrl.protocol !== 'https:' || !ALLOWED_HOSTS.has(finalUrl.hostname) || finalUrl.hostname !== requested.hostname) {
-    throw new Error('redirect host is not allowed');
-  }
-  if (expected && finalUrl.href !== expected.href) throw new Error('public response final URL does not match the requested target');
-  const isAuthoritativeTarget404 = allowExactTarget404 && response.status === 404 && expected && finalUrl.href === expected.href;
-  if (!(response.status >= 200 && response.status < 300) && !isAuthoritativeTarget404) {
-    throw new Error(`public fetch returned non-2xx status: ${response.status}`);
-  }
-  const contentType = response.headers?.get?.('content-type') || '';
-  if (!contentTypeAllowed(contentType, acceptedContentTypes)) throw new Error(`public response content type is not allowed: ${contentType || '(missing)'}`);
-  let { text, bytes } = await readBoundedText(response, { requireRawBytes: stripFuluckTail });
-  if (stripFuluckTail && response.status >= 200 && response.status < 300) {
-    text = stripProvenFuluckTailInjection(text);
-    bytes = Buffer.from(text, 'utf8');
-  }
-  if (CHALLENGE_MARKERS.test(text)) throw new Error('challenge or interstitial response');
-  const receipt = {
-    url: finalUrl.href,
-    text,
-    status: response.status,
-    contentType,
-    sha256: createHash('sha256').update(bytes).digest('hex'),
-  };
-  Object.defineProperty(receipt, 'bodyBytes', { value: bytes });
-  return receipt;
 }
 
 /** Fetches an approved public page with an anonymous, bounded GET request. */
 export async function fetchPublicText(url, {
   fetchImpl = globalThis.fetch,
+  sleepImpl = sleep,
   acceptedContentTypes = ['text/html'],
 } = {}) {
-  return fetchApprovedText(url, { fetchImpl, acceptedContentTypes });
+  return fetchApprovedText(url, { fetchImpl, sleepImpl, acceptedContentTypes });
 }
 
 function breederListUrl(accountId) {
@@ -423,7 +457,7 @@ function listReceipt(page, fetched) {
   };
 }
 
-export async function crawlKonekoAccount({ accountId, fetchImpl = globalThis.fetch, delayMs = 500 } = {}) {
+export async function crawlKonekoAccount({ accountId, fetchImpl = globalThis.fetch, delayMs = 500, sleepImpl = sleep } = {}) {
   if (!Number.isFinite(delayMs) || delayMs < 0) throw new Error('detail delay must be a non-negative number');
   let nextUrl = breederListUrl(accountId);
   const visitedUrls = new Set();
@@ -441,7 +475,7 @@ export async function crawlKonekoAccount({ accountId, fetchImpl = globalThis.fet
     lastListUrl = nextUrl;
     let fetched;
     try {
-      fetched = await fetchPublicText(nextUrl, { fetchImpl });
+      fetched = await fetchPublicText(nextUrl, { fetchImpl, sleepImpl });
     } catch (cause) {
       throw typedFailure('koneko_list', listContext, cause, 'public_request_failed');
     }
@@ -482,7 +516,7 @@ export async function crawlKonekoAccount({ accountId, fetchImpl = globalThis.fet
     const detailContext = { accountId, breederId: kitten.breederId, url: kitten.detailUrl };
     let fetched;
     try {
-      fetched = await fetchPublicText(kitten.detailUrl, { fetchImpl });
+      fetched = await fetchPublicText(kitten.detailUrl, { fetchImpl, sleepImpl });
     } catch (cause) {
       throw typedFailure('koneko_detail', detailContext, cause, 'public_request_failed');
     }
@@ -579,12 +613,13 @@ export function createControlledFuluckPageLoader({ root = CONTROLLED_FULUCK_ROOT
 
 const loadControlledFuluckPage = createControlledFuluckPageLoader();
 
-export async function fetchFuluckRenderedTarget(url, fetchImpl) {
+export async function fetchFuluckRenderedTarget(url, fetchImpl, { sleepImpl = sleep } = {}) {
   const target = checkedUrl(url);
   if (target.origin !== FULUCK_ORIGIN || target.username || target.password || target.search || target.hash
     || !FULUCK_RENDERED_PATH.test(target.pathname)) throw new Error('Fuluck rendered target URL is invalid');
   return fetchApprovedText(target.href, {
     fetchImpl,
+    sleepImpl,
     expectedFinalUrl: target.href,
     allowExactTarget404: true,
     stripFuluckTail: true,
@@ -594,6 +629,7 @@ export async function fetchFuluckRenderedTarget(url, fetchImpl) {
 export async function readFuluckPublicTarget({
   activeIds,
   fetchImpl = globalThis.fetch,
+  sleepImpl = sleep,
   controlledPageLoader = loadControlledFuluckPage,
 } = {}) {
   if (!Array.isArray(activeIds)) throw new Error('source active breeder IDs must be an array');
@@ -610,6 +646,7 @@ export async function readFuluckPublicTarget({
   try {
     apiResponse = await fetchPublicText(apiUrl, {
       fetchImpl,
+      sleepImpl,
       acceptedContentTypes: ['application/json'],
     });
   } catch (cause) {
@@ -637,7 +674,7 @@ export async function readFuluckPublicTarget({
       const renderContext = { breederId, locale, url };
       let fetched;
       try {
-        fetched = await fetchFuluckRenderedTarget(url, fetchImpl);
+        fetched = await fetchFuluckRenderedTarget(url, fetchImpl, { sleepImpl });
       } catch (cause) {
         throw typedFailure('fuluck_rendered', renderContext, cause, 'public_request_failed');
       }
