@@ -62,8 +62,11 @@ export function assertCompleteActiveSource(source) {
   if (!Array.isArray(source.photos) || source.photos.length === 0 || !source.photos.every(isNonBlankString)) {
     throw new Error('active source photos must contain at least one non-empty URL');
   }
-  if (!canonicalizeYouTubeVideo(source.video)) {
-    throw new Error('active source video must contain a valid YouTube ID');
+  // An empty URL is usable only after the complete source detail page was checked.
+  // Missing extraction results and malformed URLs must still fail closed.
+  const videoAbsenceConfirmed = source.videoAbsenceConfirmed === true;
+  if (videoAbsenceConfirmed ? source.video !== '' : !canonicalizeYouTubeVideo(source.video)) {
+    throw new Error('active source video must contain a valid YouTube ID or explicitly confirmed absence');
   }
   for (const [group, locale] of REQUIRED_LOCALIZED_TEXT) {
     if (!isNonBlankString(sourceText(source, group, locale))) {

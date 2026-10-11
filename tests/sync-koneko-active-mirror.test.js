@@ -157,6 +157,29 @@ test('assertCompleteActiveSource accepts a complete available or reserved source
   assert.doesNotThrow(() => assertCompleteActiveSource({ ...source(), status: 'reserved' }));
 });
 
+test('strict mirror accepts confirmed source video absence and clears an old target video', () => {
+  const absent = { ...source(), video: '', videoAbsenceConfirmed: true };
+  assert.doesNotThrow(() => assertCompleteActiveSource(absent));
+  assert.equal(buildActiveMirrorPatch(current(), absent).video, '');
+  const added = activeMirror.buildActiveMirrorRecord(absent);
+  assert.equal(added.video, '');
+  assert.equal(Object.hasOwn(added, 'videoAbsenceConfirmed'), false);
+});
+
+test('a video absence flag cannot excuse missing, malformed, or contradictory video evidence', () => {
+  for (const override of [
+    { video: undefined, videoAbsenceConfirmed: true },
+    { video: null, videoAbsenceConfirmed: true },
+    { video: ' ', videoAbsenceConfirmed: true },
+    { video: 'https://example.com/broken', videoAbsenceConfirmed: true },
+    { video: source().video, videoAbsenceConfirmed: true },
+    { video: '', videoAbsenceConfirmed: 'true' },
+    { video: '', videoAbsenceConfirmed: false },
+  ]) {
+    assert.throws(() => assertCompleteActiveSource({ ...source(), ...override }), /video/);
+  }
+});
+
 test('strict YouTube canonicalization accepts a watch URL whose v parameter is not first', () => {
   const watchUrl = 'https://www.youtube.com/watch?feature=share&v=AbCdEfGhI12';
   const active = { ...source(), video: watchUrl };
@@ -222,6 +245,8 @@ test('--mirror-active emit uses strict new-record YouTube canonicalization', (t)
         ...source(),
         breederId: '2608-00002',
         group: 'd696506',
+        video: '',
+        videoAbsenceConfirmed: true,
       },
     ],
   }), { mode: 0o600 });
@@ -256,6 +281,9 @@ globalThis.fetch = async (input) => {
   const emitted = JSON.parse(readFileSync(emitPath, 'utf8'));
   const added = emitted.find((record) => record.breederId === '2608-00001');
   assert.equal(added.video, 'https://www.youtube.com/embed/AbCdEfGhI12');
+  const withoutVideo = emitted.find((record) => record.breederId === '2608-00002');
+  assert.equal(withoutVideo.video, '');
+  assert.equal(Object.hasOwn(withoutVideo, 'videoAbsenceConfirmed'), false);
 });
 
 test('--mirror-active validates every active source before credentials or a remote catalogue read', (t) => {
